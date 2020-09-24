@@ -1,6 +1,9 @@
 # Ignore the following paths:
 
 .vs/
+[Oo]ut/
 [Bb]in/
 [Bb]uild/
 [Ll]og/
+
+main.cpp

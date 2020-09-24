@@ -16,7 +16,7 @@ int main(){
 	double x = Math::toDegrees(a.angle(b));
 	std::cout << x << std::endl;
 	
-	std::string text("KEKW TACO IS A KEK {appname}");
+	std::string text("Taco is a {appname}");
 	std::cout << Util::format(text) << std::endl;
 	
 	Log::closeLogFile();

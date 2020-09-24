@@ -9,11 +9,11 @@ namespace Math {
 	constexpr double epsilon = 0.00000001;
 
 
-	double toDegrees(double radians) {
+	constexpr inline double toDegrees(double radians) {
 		return radians * 180.0 / pi;
 	}
 
-	double toRadians(double degrees) {
+	constexpr inline double toRadians(double degrees) {
 		return degrees * pi / 180.0;
 	}
 
