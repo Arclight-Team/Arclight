@@ -22,19 +22,6 @@ namespace Log {
 	bool logfileValid = false;
 
 
-	void printRaw(const std::string& level, const std::string& subsystem, const std::string& message) {
-
-		std::stringstream ss;
-		ss << "[" << level << "] <" << subsystem << "> " << message;
-		std::cout << ss.str() << std::endl;
-
-		if (logfileValid) {
-			logFile << ss.str() << std::endl;
-		}
-
-	}
-
-
 	void openLogFile() {
 
 		if (logfileValid) {
@@ -50,11 +37,11 @@ namespace Log {
 			try {
 				created = fs::create_directory(logfileDir);
 			} catch (std::exception& e) {
-				printRaw(LOG_ERROR, "Logger", "Failed to create log directory");
+				Raw::error("Logger", "Failed to create log directory");
 			}
 
 			if (!created) {
-				printRaw(LOG_ERROR, "Logger", "Failed to create log directory");
+				Raw::error("Logger", "Failed to create log directory");
 			}
 
 		}
@@ -64,7 +51,7 @@ namespace Log {
 		logFile.open(logfilePath.string(), std::ios::out);
 
 		if (!logFile.is_open()) {
-			printRaw(LOG_ERROR, "Logger", "Failed to open log file");
+			Raw::error("Logger", "Failed to open log file");
 		} else {
 			logfileValid = true;
 		}
@@ -82,24 +69,39 @@ namespace Log {
 	}
 
 
-	void debug(const std::string& subsystem, const std::string& message) {
-		printRaw(LOG_DEBUG, subsystem, message);
+	namespace Raw {
+
+		void print(const std::string& level, const std::string& subsystem, const std::string& message) {
+
+			std::stringstream ss;
+			ss << "[" << level << "] <" << subsystem << "> " << message;
+			std::cout << ss.str() << std::endl;
+
+			if (logfileValid) {
+				logFile << ss.str() << std::endl;
+			}
+
+		}
+
+		void debug(const std::string& subsystem, const std::string& message) {
+			print(LOG_DEBUG, subsystem, message);
+		}
+
+
+		void info(const std::string& subsystem, const std::string& message) {
+			print(LOG_INFO, subsystem, message);
+		}
+
+
+		void warn(const std::string& subsystem, const std::string& message) {
+			print(LOG_WARN, subsystem, message);
+		}
+
+
+		void error(const std::string& subsystem, const std::string& message) {
+			print(LOG_ERROR, subsystem, message);
+		}
+
 	}
-
-
-	void info(const std::string& subsystem, const std::string& message) {
-		printRaw(LOG_INFO, subsystem, message);
-	}
-
-
-	void warn(const std::string& subsystem, const std::string& message) {
-		printRaw(LOG_WARN, subsystem, message);
-	}
-
-
-	void error(const std::string& subsystem, const std::string& message) {
-		printRaw(LOG_ERROR, subsystem, message);
-	}
-
 
 }

@@ -5,34 +5,39 @@
 
 namespace Log {
 
-	/*
-		Opens the log file given by the config
-	*/
+
 	void openLogFile();
 
-	/*
-		Closes the log file given by the config
-	*/
 	void closeLogFile();
 
-	/*
-		Prints a debug string
-	*/
-	void debug(const std::string& subsystem, const std::string& message);
+	namespace Raw {
 
-	/*
-		Prints an info string
-	*/
-	void info(const std::string& subsystem, const std::string& message);
+		void debug(const std::string& subsystem, const std::string& message);
+		void info(const std::string& subsystem, const std::string& message);
+		void warn(const std::string& subsystem, const std::string& message);
+		void error(const std::string& subsystem, const std::string& message);
 
-	/*
-		Prints a warning string
-	*/
-	void warn(const std::string& subsystem, const std::string& message);
+	}
 
-	/*
-		Prints an error string
-	*/
-	void error(const std::string& subsystem, const std::string& message);
+
+	template<class... Args>
+	void debug(const std::string& subsystem, const std::string& message, const Args&... args) {
+		Raw::debug(subsystem, Util::format(message, args...));
+	}
+
+	template<class... Args>
+	void info(const std::string& subsystem, const std::string& message, const Args&... args) {
+		Raw::info(subsystem, Util::format(message, args...));
+	}
+
+	template<class... Args>
+	void warn(const std::string& subsystem, const std::string& message, const Args&... args) {
+		Raw::warn(subsystem, Util::format(message, args...));
+	}
+
+	template<class... Args>
+	void error(const std::string& subsystem, const std::string& message, const Args&... args) {
+		Raw::error(subsystem, Util::format(message, args...));
+	}
 
 }

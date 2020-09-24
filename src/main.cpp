@@ -1,7 +1,6 @@
 ﻿#include "util/log.h"
 #include "util/vector.h"
 #include "util/format.h"
-#include <iostream>
 
 
 int main(){
@@ -9,15 +8,12 @@ int main(){
 	Log::openLogFile();
 
 	Log::info("Core", "Starting game engine");
-	Log::info("Core", "Starting game engine");
 
 	Vec2 a(1.2, 3.9);
 	Vec2 b(0.3, 1.11);
 	double x = Math::toDegrees(a.angle(b));
-	std::cout << x << std::endl;
-	
-	std::string text("Taco is a {appname}");
-	std::cout << Util::format(text) << std::endl;
+
+	Log::debug("Core", "{appname}: The angle between the two vectors equals %f", x);
 	
 	Log::closeLogFile();
 
