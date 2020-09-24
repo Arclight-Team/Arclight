@@ -38,10 +38,12 @@ namespace Log {
 				created = fs::create_directory(logfileDir);
 			} catch (std::exception& e) {
 				Raw::error("Logger", "Failed to create log directory");
+				return;
 			}
 
 			if (!created) {
 				Raw::error("Logger", "Failed to create log directory");
+				return;
 			}
 
 		}
