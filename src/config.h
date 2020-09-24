@@ -1,30 +1,14 @@
 #pragma once
 
+
 namespace Config {
 
-	/*
-		Application base name
-	*/
-	const char* appName = "Project Arclight";
+	const char* getApplicationName();
 
-	/*
-		Application version
-	*/
-	const 
+	const char* getURIRootPath();
 
-	/*
-		The base path for URI's
-	*/
-	const char* uriRoot = "../../assets/";
+	const char* getLogDirectoryName();
 
-	/*
-		The log file's directory
-	*/
-	const char* logDirName = "../../log";
-
-	/*
-		The log file's name
-	*/
-	const char* logFileName = "appname-%version-%date-%u32.txt";
+	const char* getLogFileName();
 
 }

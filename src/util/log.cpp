@@ -41,7 +41,7 @@ namespace Log {
 			return;
 		}
 
-		fs::path logfileDir(Config::logDirName);
+		fs::path logfileDir(Config::getLogDirectoryName());
 
 		if (!fs::exists(logfileDir)) {
 
@@ -59,7 +59,7 @@ namespace Log {
 
 		}
 
-		fs::path logfilePath(std::string(Config::logDirName) + "/" + Config::logFileName);
+		fs::path logfilePath(std::string(Config::getLogDirectoryName()) + "/" + Config::getLogFileName());
 
 		logFile.open(logfilePath.string(), std::ios::out);
 
