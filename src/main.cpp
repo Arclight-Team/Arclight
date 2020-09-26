@@ -3,6 +3,7 @@
 #include "util/format.h"
 #include "util/assert.h"
 #include "util/matrix.h"
+#include "util/file.h"
 
 
 int main(){
@@ -18,7 +19,7 @@ int main(){
 	Vec2 c(0, 0);
 	Vec2 d(1, 2);
 	double y = Math::toDegrees(c.angle(d));
-
+	URIPath p(":/textures/lol.txt");
 	Log::debug("Core", "{appname}: The angle between the two vectors equals %f", x);
 	
 	Log::closeLogFile();
