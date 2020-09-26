@@ -7,7 +7,7 @@
 #include "types.h"
 
 
-class URIPath {
+class URI {
 
 public:
 
@@ -15,8 +15,9 @@ public:
 	typedef std::filesystem::recursive_directory_iterator RecursiveDirectoryIterator;
 	
 
-	URIPath();
-	URIPath(const std::string& path);
+	URI();
+	URI(const char* path);
+	URI(const std::string& path);
 
 	void setPath(const std::string& path);
 
@@ -46,12 +47,13 @@ public:
 	static constexpr u8 Trunc	= std::ios::trunc;
 
 	File();
-	explicit File(const URIPath& path, File::Flags flags = File::In);
+	explicit File(const URI& path, File::Flags flags = File::In);
 
-	bool open(const URIPath& path, File::Flags flags = File::In);
+	bool open(const URI& path, File::Flags flags = File::In);
 	void close();
 
 	std::string read(u64 count);
+	std::string readWord();
 	std::string readLine();
 	std::string readAll();
 	void write(const std::string& text);
@@ -65,14 +67,14 @@ public:
 	bool isOpen() const;
 	u64 getFileSize() const;
 
-	URIPath getPath() const;
+	URI getURI() const;
 	Flags getStreamFlags() const;
 	u64 getLastWriteTime() const;
 	
 
 private:
 	std::fstream stream;
-	URIPath filepath;
+	URI filepath;
 	Flags openFlags;
 
 };

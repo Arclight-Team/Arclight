@@ -6,16 +6,21 @@
 #include <vector>
 
 
-URIPath::URIPath() : path() {}
+URI::URI() : path() {}
 
 
-URIPath::URIPath(const std::string& path) {
+URI::URI(const char* path) {
+	setPath(path);
+};
+
+
+URI::URI(const std::string& path) {
 	setPath(path);
 };
 
 
 
-void URIPath::setPath(const std::string& path) {
+void URI::setPath(const std::string& path) {
 
 	if (!path.empty() && path[0] == ':') {
 		this->path = Config::getURIRootPath() + path.substr(1);
@@ -32,13 +37,13 @@ void URIPath::setPath(const std::string& path) {
 
 
 
-bool URIPath::valid() const {
+bool URI::valid() const {
 	return std::filesystem::exists(path) && std::filesystem::is_regular_file(path);
 }
 
 
 
-std::string URIPath::getPath() const {
+std::string URI::getPath() const {
 	return path.string();
 }
 
@@ -48,11 +53,11 @@ std::string URIPath::getPath() const {
 File::File() : openFlags(0) {}
 
 
-File::File(const URIPath& path, File::Flags flags) : filepath(path), openFlags(flags) {};
+File::File(const URI& path, File::Flags flags) : filepath(path), openFlags(flags) {};
 
 
 
-bool File::open(const URIPath& path, File::Flags flags) {
+bool File::open(const URI& path, File::Flags flags) {
 
 	arc_assert((flags & File::In) || (flags & File::Out), "Invalid file flags requested: %02X", flags);
 
@@ -101,6 +106,21 @@ std::string File::read(u64 count) {
 	stream.read(text.data(), count);
 
 	return text;
+
+}
+
+
+
+std::string File::readWord() {
+
+	arc_assert(isOpen(), "Attempted to read from an unopened file");
+	arc_assert(openFlags & File::In, "Attempted to read from an output stream");
+	arc_assert(!(openFlags & File::Binary), "Attempted to read text from a binary stream");
+
+	std::string word;
+	stream >> word;
+
+	return word;
 
 }
 
@@ -195,7 +215,7 @@ u64 File::getFileSize() const {
 
 
 
-URIPath File::getPath() const {
+URI File::getURI() const {
 	return filepath;
 }
 
