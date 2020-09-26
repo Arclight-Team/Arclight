@@ -20,8 +20,11 @@ public:
 	URI(const std::string& path);
 
 	void setPath(const std::string& path);
+	bool createDirectory();
+	void move(const std::string& path);
 
-	bool valid() const;
+	bool validFile() const;
+	bool validDirectory() const;
 	std::string getPath() const;
 
 
@@ -57,6 +60,7 @@ public:
 	std::string readLine();
 	std::string readAll();
 	void write(const std::string& text);
+	void writeLine(const std::string& line);
 
 	void read(u8* data, u64 count);
 	void write(u8* data, u64 count);

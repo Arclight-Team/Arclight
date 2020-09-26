@@ -1,73 +1,46 @@
 #include "util/log.h"
+#include "util/file.h"
+#include "util/assert.h"
+#include "config.h"
 
 #include <iostream>
-#include <fstream>
-#include <iomanip>
 #include <sstream>
-#include <filesystem>
 
-#include "config.h"
 
 #define LOG_DEBUG "D"
 #define LOG_INFO  "I"
 #define LOG_WARN  "W"
 #define LOG_ERROR "E"
 
-namespace fs = std::filesystem;
 
 
 namespace Log {
 
-	std::ofstream logFile;
-	bool logfileValid = false;
+	File logfile;
 
 
 	void openLogFile() {
 
-		if (logfileValid) {
+		URI logfileURI(Config::getLogDirectoryName());
+		bool dirCreated = logfileURI.createDirectory();
+
+		if (!dirCreated) {
+			Log::error("Log", "Failed to create log file directory '%s'", logfileURI.getPath().c_str());
 			return;
 		}
 
-		fs::path logfileDir(Config::getLogDirectoryName());
+		logfileURI.move(Config::getLogFileName());
+		logfile.open(logfileURI, File::Out);
 
-		if (!fs::exists(logfileDir)) {
-
-			bool created = false;
-
-			try {
-				created = fs::create_directory(logfileDir);
-			} catch (std::exception& e) {
-				Raw::error("Logger", "Failed to create log directory");
-				return;
-			}
-
-			if (!created) {
-				Raw::error("Logger", "Failed to create log directory");
-				return;
-			}
-
-		}
-
-		fs::path logfilePath(std::string(Config::getLogDirectoryName()) + "/" + Config::getLogFileName());
-
-		logFile.open(logfilePath.string(), std::ios::out);
-
-		if (!logFile.is_open()) {
-			Raw::error("Logger", "Failed to open log file");
-		} else {
-			logfileValid = true;
+		if (!logfile.isOpen()) {
+			Log::error("Logger", "Failed to open log file '%s'", logfileURI.getPath().c_str());
 		}
 
 	}
 
 
 	void closeLogFile() {
-
-		if (logfileValid) {
-			logfileValid = false;
-			logFile.close();
-		}
-
+		logfile.close();
 	}
 
 
@@ -79,8 +52,8 @@ namespace Log {
 			ss << "[" << level << "] <" << subsystem << "> " << message;
 			std::cout << ss.str() << std::endl;
 
-			if (logfileValid) {
-				logFile << ss.str() << std::endl;
+			if (logfile.getURI().validFile()) {
+				logfile.writeLine(ss.str());
 			}
 
 		}

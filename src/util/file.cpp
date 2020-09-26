@@ -28,17 +28,50 @@ void URI::setPath(const std::string& path) {
 		this->path = path;
 	}
 
+}
 
-	if (!valid()) {
-		Log::warn("File", "URI path '%s' does not exist", this->path.string().c_str());
+
+
+bool URI::createDirectory() {
+
+	if (validDirectory()) {
+		return true;
 	}
+
+	bool created = false;
+
+	try {
+		created = std::filesystem::create_directories(path);
+	} catch (std::exception& e) {
+		Log::error("Logger", "Failed to create directory '%s'", path.string().c_str());
+		return false;
+	}
+
+	if (!created) {
+		Log::error("Logger", "Failed to create directory '%s'", path.string().c_str());
+		return false;
+	}
+
+	return true;
 
 }
 
 
 
-bool URI::valid() const {
+void URI::move(const std::string& path) {
+	this->path /= path;
+}
+
+
+
+bool URI::validFile() const {
 	return std::filesystem::exists(path) && std::filesystem::is_regular_file(path);
+}
+
+
+
+bool URI::validDirectory() const {
+	return std::filesystem::exists(path) && std::filesystem::is_directory(path);
 }
 
 
@@ -60,11 +93,6 @@ File::File(const URI& path, File::Flags flags) : filepath(path), openFlags(flags
 bool File::open(const URI& path, File::Flags flags) {
 
 	arc_assert((flags & File::In) || (flags & File::Out), "Invalid file flags requested: %02X", flags);
-
-	if (!path.valid()) {
-		Log::warn("File", "Invalid URI '%s'", path.getPath().c_str());
-		return false;
-	}
 
 	if (isOpen()) {
 		Log::warn("File", "Attempting to open stream that has already been opened. Open: '%s', requested '%s'", filepath.getPath().c_str(), path.getPath().c_str());
@@ -166,6 +194,18 @@ void File::write(const std::string& text) {
 
 
 
+void File::writeLine(const std::string& line) {
+
+	arc_assert(isOpen(), "Attempted to write to an unopened file");
+	arc_assert(openFlags & File::Out, "Attempted to write to an input stream");
+	arc_assert(!(openFlags & File::Binary), "Attempted to write text to a binary stream");
+
+	stream << line << '\n';
+
+}
+
+
+
 void File::read(u8* data, u64 count) {
 
 	arc_assert(isOpen(), "Attempted to read from an unopened file");
@@ -209,7 +249,7 @@ bool File::isOpen() const {
 
 
 u64 File::getFileSize() const {
-	arc_assert(filepath.valid(), "Invalid URI '%s'", filepath.getPath().c_str());
+	arc_assert(filepath.validFile(), "Invalid URI '%s'", filepath.getPath().c_str());
 	return std::filesystem::file_size(filepath.getPath());
 }
 
@@ -228,6 +268,6 @@ File::Flags File::getStreamFlags() const {
 
 
 u64 File::getLastWriteTime() const {
-	arc_assert(filepath.valid(), "Invalid URI '%s'", filepath.getPath().c_str());
+	arc_assert(filepath.validFile(), "Invalid URI '%s'", filepath.getPath().c_str());
 	return std::filesystem::last_write_time(filepath.getPath()).time_since_epoch().count();
 }
