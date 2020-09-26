@@ -10,8 +10,16 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 
+add_subdirectory("lib/GLFW")
+
+list(APPEND CMAKE_PREFIX_PATH #Add path to GLEW)
+find_package(GLEW REQUIRED)
+
 include_directories("src")
+include_directories("lib/GLFW/include")
+include_directories(${GLEW_INCLUDE_DIR})
 
 file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp")
 
 add_executable (arclight ${SOURCES})
+target_link_libraries(arclight GLEW::GLEW glfw)
