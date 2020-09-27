@@ -15,6 +15,26 @@
 					"name": "CMAKE_CONFIGURATION_TYPES",
 					"value": "Debug",
 					"type": "UNINITIALIZED"
+				},
+				{
+					"name": "GLFW_BUILD_DOCS",
+					"value": "False",
+					"type": "BOOL"
+				},
+				{
+					"name": "GLFW_BUILD_EXAMPLES",
+					"value": "False",
+					"type": "BOOL"
+				},
+				{
+					"name": "GLFW_BUILD_TESTS",
+					"value": "False",
+					"type": "BOOL"
+				},
+				{
+					"name": "GLFW_INSTALL",
+					"value": "False",
+					"type": "BOOL"
 				}
 			]
 		},
