@@ -1,2 +1,2 @@
 # Project-Arclight
-To be announced later
+Fast, efficient and flexible game engine
