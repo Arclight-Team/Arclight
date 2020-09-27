@@ -5,39 +5,64 @@
 #include "util/matrix.h"
 #include "util/file.h"
 #include "util/profiler.h"
+#include "core/window.h"
+
+#include <GLFW/glfw3.h>
+
+
+bool libraryStartup();
+void libraryShutdown();
 
 
 int main(){
 
-	Log::openLogFile();
+	if (!libraryStartup()) {
+		Log::error("Core", "Failed to initialize backend libraries, aborting");
+		return -1;
+	}
 
+	Log::openLogFile();
 	Log::info("Core", "Starting game engine");
 
 	Profiler profiler(Profiler::Resolution::Milliseconds, 3);
 	profiler.start();
 
-	File file;
-	bool open = file.open(":/textures/lol.txt", File::Out);
-	arc_assert(open, "Failed to open file '%s'", file.getURI().getPath().c_str());
-	file.write("KEKW");
-	for (u32 i = 0; i < 100000; i++) {
-		file.write(std::to_string(i));
+	Window window;
+	window.setWindowConfig(WindowConfig());
+	bool windowCreated = window.create(200, 200, "KEKW");
+
+	if (windowCreated) {
+		Log::info("Core", "Window successfully created");
 	}
-	file.close();
 
-	profiler.stop("File 1");
-	profiler.start();
-
-	std::ofstream s(URI(":/textures/lol.txt").getPath());
-	for (u32 i = 0; i < 100000; i++) {
-		s << std::to_string(i);
-	}
-	s.close();
-
-	profiler.stop("File 2");
-
+	window.close();
+	profiler.stop();
 	Log::closeLogFile();
 
+	libraryShutdown();
+
 	return 0;
+
+}
+
+
+
+
+bool libraryStartup() {
+
+	if (!glfwInit()) {
+		Log::error("Core", "Failed to initialize GLFW");
+		return false;
+	}
+
+	return true;
+
+}
+
+
+
+void libraryShutdown() {
+
+	glfwTerminate();
 
 }
