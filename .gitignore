@@ -5,5 +5,7 @@
 [Bb]in/
 [Bb]uild/
 [Ll]og/
+[Ll]ib/
 
 main.cpp
+CMakeLists.txt
