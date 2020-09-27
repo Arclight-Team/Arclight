@@ -12,6 +12,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 
 add_subdirectory("lib/GLFW")
 
+list(APPEND CMAKE_PREFIX_PATH "lib/GLEW")
 find_package(GLEW REQUIRED)
 
 include_directories("src")

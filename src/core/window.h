@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types.h"
+#include <string>
 
 
 class WindowConfig {
@@ -12,8 +14,10 @@ public:
 		Any
 	};
 
-	constexpr WindowConfig() {}
-
+	/*constexpr WindowConfig() : openglMajor(3),
+								openglMinor(3),
+								profile(OpenGLProfile::Core){}
+*/
 private:
 	u32 openglMajor;
 	u32 openglMinor;
