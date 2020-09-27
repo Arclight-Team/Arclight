@@ -54,23 +54,6 @@ private:
 };
 
 
-struct MonitorArea {
-	u32 x;
-	u32 y;
-	u32 width;
-	u32 height;
-};
-
-struct VideoMode {
-	u32 width;
-	u32 height;
-	u32 redBits;
-	u32 greenBits;
-	u32 blueBits;
-	u32 refreshRate;
-};
-
-
 
 struct GLFWwindow;
 struct GLFWmonitor;
@@ -87,9 +70,51 @@ public:
 	bool createFullscreen(const std::string& title);
 	void close();
 
+	void setWindowedMode();
+	void setFullscreen();
+
+	void setSize(u32 w, u32 h);
+	void setTitle(const std::string& title);
+	void setX(u32 x);
+	void setY(u32 y);
+	void setPosition(u32 x, u32 y);
+	void setLimits(u32 minW, u32 minH, u32 maxW, u32 maxH);
+	void setMinLimits(u32 minW, u32 minH);
+	void setMaxLimits(u32 maxW, u32 maxH);
+	void setAspectRatio(double aspect);
+	void setOpacity(double opacity);
+	//void setIcon(); //Define when textures are implemented
+
+	u32 getWidth() const;
+	u32 getHeight() const;
+	u32 getX() const;
+	u32 getY() const;
+
+	//void getIcon();
+
+	void minimize();
+	void restore();
+	void maximize();
+	void show();
+	void hide();
+	void focus();
+	void requestAttention();
+	void disableConstraints();
+
+	void fetchEvents();
+	void swapBuffers();
+
+	bool isCreated() const;
+	bool isFullscreen() const;
+
+	void enableContext();
+	void disableContext();
+	void enableVSync();
+	void disableVSync();
+
 
 private:
-	static void queryMonitors();
+	static bool queryMonitors();
 
 	static GLFWmonitor** connectedMonitors;
 	static GLFWmonitor* primaryMonitor;
@@ -98,9 +123,7 @@ private:
 	WindowConfig contextConfig;
 	GLFWwindow* windowHandle;
 
-	u32 width;
-	u32 height;
-	bool created;
-	bool fullscreen;
+	u32 backupWidth;
+	u32 backupHeight;
 
 };

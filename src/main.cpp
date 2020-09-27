@@ -35,6 +35,10 @@ int main(){
 		Log::info("Core", "Window successfully created");
 	}
 
+	window.enableVSync();
+	window.swapBuffers();
+
+
 	window.close();
 	profiler.stop();
 	Log::closeLogFile();
