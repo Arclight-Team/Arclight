@@ -24,7 +24,7 @@ int main(){
 	Log::openLogFile();
 	Log::info("Core", "Starting game engine");
 
-	Profiler profiler(Profiler::Resolution::Milliseconds, 3);
+	Profiler profiler(Timer::Unit::Milliseconds, 3);
 	profiler.start();
 
 	Window window;
@@ -36,8 +36,52 @@ int main(){
 	}
 
 	window.enableVSync();
-	window.swapBuffers();
 
+	Timer timer;
+	timer.start();
+
+	while (!window.closeRequested()) {
+
+		if (timer.getElapsedTime(Timer::Unit::Seconds) > 1) {
+			
+			switch (rand() % 9) {
+				case 0:
+					window.focus();
+					break;
+				case 1:
+					window.hide();
+					break;
+				case 2:
+					window.requestAttention();
+					break;
+				case 3:
+					window.restore();
+					break;
+				case 4:
+					window.maximize();
+					break;
+				case 5:
+					window.show();
+					break;
+				case 6:
+					window.minimize();
+					break;
+				case 7:
+					window.setFullscreen();
+					break;
+				case 8:
+					window.setWindowed();
+					break;
+			}
+
+			timer.start();
+
+		}
+
+		window.swapBuffers();
+		window.fetchEvents();
+
+	}
 
 	window.close();
 	profiler.stop();

@@ -1,8 +1,8 @@
 #include "core/window.h"
 #include "util/assert.h"
 
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
-
 
 
 
@@ -165,7 +165,14 @@ bool Window::create(u32 w, u32 h, const std::string& title) {
 	windowHandle = glfwCreateWindow(w, h, title.c_str(), nullptr, nullptr);
 
 	if (windowHandle) {
+
 		enableContext();
+
+		if (!setupGLContext()) {
+			close();
+			return false;
+		}
+
 	} else {
 		Log::error("Window", "Failed to create window");
 	}
@@ -207,6 +214,11 @@ bool Window::createFullscreen(const std::string& title) {
 		backupHeight = videoMode->height;
 		enableContext();
 
+		if (!setupGLContext()) {
+			close();
+			return false;
+		}
+
 	} else {
 		Log::error("Window", "Failed to create window");
 	}
@@ -234,7 +246,7 @@ void Window::close() {
 
 
 
-void Window::setWindowedMode() {
+void Window::setWindowed() {
 
 	arc_assert(isCreated(), "Tried to set windowed mode for non-existing window");
 
@@ -242,7 +254,7 @@ void Window::setWindowedMode() {
 		return;
 	}
 
-	glfwSetWindowMonitor(windowHandle, nullptr, 0, 0, backupWidth, backupHeight, GLFW_DONT_CARE);
+	glfwSetWindowMonitor(windowHandle, nullptr, 40, 40, backupWidth, backupHeight, GLFW_DONT_CARE);
 
 }
 
@@ -524,6 +536,15 @@ void Window::disableVSync() {
 
 
 
+bool Window::closeRequested() const {
+
+	arc_assert(isCreated(), "Tried to fetch close request state for non-existing window");
+	return glfwWindowShouldClose(windowHandle);
+
+}
+
+
+
 bool Window::isCreated() const {
 	return windowHandle != nullptr;
 }
@@ -534,6 +555,22 @@ bool Window::isFullscreen() const {
 
 	arc_assert(isCreated(), "Tried to obtain fullscreen state for non-existing window");
 	return glfwGetWindowMonitor(windowHandle) != nullptr;
+
+}
+
+
+
+bool Window::setupGLContext() {
+	
+	glewExperimental = GL_TRUE;
+	GLenum result = glewInit();
+
+	if (glewInit() != GLEW_OK) {
+		Log::error("Window", "OpenGL context creation failed: %s", glewGetErrorString(result));
+		return false;
+	}
+
+	return true;
 
 }
 

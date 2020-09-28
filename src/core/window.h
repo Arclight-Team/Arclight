@@ -70,7 +70,7 @@ public:
 	bool createFullscreen(const std::string& title);
 	void close();
 
-	void setWindowedMode();
+	void setWindowed();
 	void setFullscreen();
 
 	void setSize(u32 w, u32 h);
@@ -112,8 +112,10 @@ public:
 	void enableVSync();
 	void disableVSync();
 
+	bool closeRequested() const;
 
 private:
+	static bool setupGLContext();
 	static bool queryMonitors();
 
 	static GLFWmonitor** connectedMonitors;
