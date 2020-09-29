@@ -101,7 +101,8 @@ u32 Window::monitorCount = 0;
 
 
 
-Window::Window() : backupWidth(0), backupHeight(0), windowHandle(nullptr) {}
+Window::Window() : backupWidth(0), backupHeight(0), windowHandle(nullptr),
+	moveFunction(nullptr), resizeFunction(nullptr), stateChangeFunction(nullptr), fbResizeFunction(nullptr) {}
 
 
 
@@ -173,6 +174,8 @@ bool Window::create(u32 w, u32 h, const std::string& title) {
 			return false;
 		}
 
+		glfwSetWindowUserPointer(windowHandle, this);
+
 	} else {
 		Log::error("Window", "Failed to create window");
 	}
@@ -219,6 +222,8 @@ bool Window::createFullscreen(const std::string& title) {
 			return false;
 		}
 
+		glfwSetWindowUserPointer(windowHandle, this);
+
 	} else {
 		Log::error("Window", "Failed to create window");
 	}
@@ -236,6 +241,7 @@ void Window::close() {
 		return;
 	}
 
+	resetWindowFunctions();
 	glfwDestroyWindow(windowHandle);
 	
 	backupWidth = 0;
@@ -536,6 +542,24 @@ void Window::disableVSync() {
 
 
 
+void Window::requestClose() {
+
+	arc_assert(isCreated(), "Tried to request close for non-existing window");
+	glfwSetWindowShouldClose(windowHandle, true);
+
+}
+
+
+
+void Window::dismissCloseRequest() {
+
+	arc_assert(isCreated(), "Tried to dismiss close request for non-existing window");
+	glfwSetWindowShouldClose(windowHandle, false);
+
+}
+
+
+
 bool Window::closeRequested() const {
 
 	arc_assert(isCreated(), "Tried to fetch close request state for non-existing window");
@@ -555,6 +579,118 @@ bool Window::isFullscreen() const {
 
 	arc_assert(isCreated(), "Tried to obtain fullscreen state for non-existing window");
 	return glfwGetWindowMonitor(windowHandle) != nullptr;
+
+}
+
+
+
+void Window::setWindowMoveFunction(WindowMoveFunction function) {
+
+	arc_assert(isCreated(), "Tried to set window move function for non-existing window");
+	moveFunction = function;
+
+	if (function) {
+
+		glfwSetWindowPosCallback(windowHandle, [](GLFWwindow* window, int x, int y) {
+			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
+			ptr->moveFunction(ptr, x, y);
+		});
+
+	} else {
+		glfwSetWindowPosCallback(windowHandle, nullptr);
+	}
+
+}
+
+
+
+void Window::setWindowResizeFunction(WindowResizeFunction function) {
+
+	arc_assert(isCreated(), "Tried to set window resize function for non-existing window");
+	resizeFunction = function;
+
+	if (windowHandle) {
+
+		glfwSetWindowSizeCallback(windowHandle, [](GLFWwindow* window, int w, int h) {
+			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
+			ptr->resizeFunction(ptr, w, h);
+		});
+
+	} else {
+		glfwSetWindowSizeCallback(windowHandle, nullptr);
+	}
+
+}
+
+
+
+void Window::setWindowStateChangeFunction(WindowStateChangeFunction function) {
+
+	arc_assert(isCreated(), "Tried to set window state change function for non-existing window");
+	stateChangeFunction = function;
+
+	if (function) {
+
+		glfwSetWindowCloseCallback(windowHandle, [](GLFWwindow* window) {
+			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
+			ptr->stateChangeFunction(ptr, WindowState::CloseRequest);
+		});
+
+		glfwSetWindowFocusCallback(windowHandle, [](GLFWwindow* window, int focused) {
+			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
+			ptr->stateChangeFunction(ptr, focused ? WindowState::Focused : WindowState::Unfocused);
+		});
+
+		glfwSetWindowIconifyCallback(windowHandle, [](GLFWwindow* window, int iconified) {
+			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
+			ptr->stateChangeFunction(ptr, iconified ? WindowState::Minimized : WindowState::Restored);
+		});
+
+		glfwSetWindowMaximizeCallback(windowHandle, [](GLFWwindow* window, int maximized) {
+			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
+			ptr->stateChangeFunction(ptr, maximized ? WindowState::Maximized : WindowState::Restored);
+		});
+
+
+	} else {
+
+		glfwSetWindowCloseCallback(windowHandle, nullptr);
+		glfwSetWindowFocusCallback(windowHandle, nullptr);
+		glfwSetWindowIconifyCallback(windowHandle, nullptr);
+		glfwSetWindowMaximizeCallback(windowHandle, nullptr);
+
+	}
+
+}
+
+
+
+void Window::setFramebufferResizeFunction(FramebufferResizeFunction function) {
+
+	arc_assert(isCreated(), "Tried to set framebuffer resize function for non-existing window");
+	fbResizeFunction = function;
+
+	if (windowHandle) {
+
+		glfwSetFramebufferSizeCallback(windowHandle, [](GLFWwindow* window, int w, int h) {
+			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
+			ptr->fbResizeFunction(ptr, w, h);
+		});
+
+	} else {
+		glfwSetFramebufferSizeCallback(windowHandle, nullptr);
+	}
+
+}
+
+
+
+void Window::resetWindowFunctions() {
+
+	setWindowMoveFunction(nullptr);
+	setWindowResizeFunction(nullptr);
+	setWindowStateChangeFunction(nullptr);
+	setFramebufferResizeFunction(nullptr);
 
 }
 

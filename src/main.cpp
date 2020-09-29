@@ -7,6 +7,7 @@
 #include "util/profiler.h"
 #include "util/random.h"
 #include "core/window.h"
+#include "core/event/event.h"
 
 #include <GLFW/glfw3.h>
 
@@ -32,11 +33,42 @@ int main(){
 	window.setWindowConfig(WindowConfig());
 	bool windowCreated = window.create(200, 200, "KEKW");
 
-	if (windowCreated) {
-		Log::info("Core", "Window successfully created");
+	if (!windowCreated) {
+		return -1;
 	}
+	
+	Log::info("Core", "Window successfully created");
 
 	window.enableVSync();
+
+	window.setWindowMoveFunction([](Window* window, u32 x, u32 y) {
+		window->setPosition(200, 200);
+	});
+
+	window.setWindowResizeFunction([](Window* window, u32 w, u32 h) {
+		window->setSize(200, 200);
+	});
+
+	window.setWindowStateChangeFunction([](Window* window, WindowState state) {
+		
+		switch (state) {
+
+			case WindowState::CloseRequest:
+				window->dismissCloseRequest();
+				break;
+
+			case WindowState::Unfocused:
+				window->requestAttention();
+				break;
+
+			case WindowState::Maximized:
+			case WindowState::Minimized:
+				window->restore();
+				break;
+
+		}
+
+	});
 
 	Timer timer;
 	timer.start();

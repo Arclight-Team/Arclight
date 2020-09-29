@@ -55,9 +55,22 @@ private:
 
 
 
+enum class WindowState {
+	CloseRequest,
+	Minimized,
+	Restored,
+	Focused,
+	Unfocused,
+	Maximized
+};
+
 struct GLFWwindow;
 struct GLFWmonitor;
 
+typedef void(*WindowMoveFunction)(Window*, u32, u32);
+typedef void(*WindowResizeFunction)(Window*, u32, u32);
+typedef void(*WindowStateChangeFunction)(Window*, WindowState);
+typedef void(*FramebufferResizeFunction)(Window*, u32, u32);
 
 class Window {
 
@@ -112,7 +125,15 @@ public:
 	void enableVSync();
 	void disableVSync();
 
+	void requestClose();
+	void dismissCloseRequest();
 	bool closeRequested() const;
+
+	void setWindowMoveFunction(WindowMoveFunction function);
+	void setWindowResizeFunction(WindowResizeFunction function);
+	void setWindowStateChangeFunction(WindowStateChangeFunction function);
+	void setFramebufferResizeFunction(FramebufferResizeFunction function);
+	void resetWindowFunctions();
 
 private:
 	static bool setupGLContext();
@@ -127,5 +148,10 @@ private:
 
 	u32 backupWidth;
 	u32 backupHeight;
+
+	WindowMoveFunction moveFunction;
+	WindowResizeFunction resizeFunction;
+	WindowStateChangeFunction stateChangeFunction;
+	FramebufferResizeFunction fbResizeFunction;
 
 };
