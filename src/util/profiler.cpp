@@ -37,5 +37,5 @@ void Profiler::stop(const std::string& name) {
 
 
 const char* Profiler::getResolutionUnit() const {
-	return resToUnit[static_cast<u32>(resolution)];
+	return resToUnit[static_cast<u32>(unit)];
 }

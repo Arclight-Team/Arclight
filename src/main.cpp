@@ -5,6 +5,7 @@
 #include "util/matrix.h"
 #include "util/file.h"
 #include "util/profiler.h"
+#include "util/random.h"
 #include "core/window.h"
 
 #include <GLFW/glfw3.h>
@@ -41,7 +42,7 @@ int main(){
 	timer.start();
 
 	while (!window.closeRequested()) {
-
+		/*
 		if (timer.getElapsedTime(Timer::Unit::Seconds) > 1) {
 			
 			switch (rand() % 9) {
@@ -77,6 +78,13 @@ int main(){
 			timer.start();
 
 		}
+		
+		
+		if (timer.getElapsedTime(Timer::Unit::Milliseconds) > 1) {
+			window.setPosition(rand() % 2000, rand() % 1400);
+			timer.start();
+		}
+		*/
 
 		window.swapBuffers();
 		window.fetchEvents();
