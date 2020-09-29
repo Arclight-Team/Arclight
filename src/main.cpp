@@ -30,7 +30,7 @@ int main(){
 	profiler.start();
 
 	Window window;
-	window.setWindowConfig(WindowConfig());
+	window.setWindowConfig(WindowConfig().setResizable(true));
 	bool windowCreated = window.create(200, 200, "KEKW");
 
 	if (!windowCreated) {
@@ -119,7 +119,7 @@ int main(){
 		*/
 
 		window.swapBuffers();
-		window.fetchEvents();
+		window.pollEvents();
 
 	}
 

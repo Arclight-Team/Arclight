@@ -55,6 +55,25 @@ private:
 
 
 
+struct Monitor {
+
+	u32 monitorID;
+	u32 virtualX;
+	u32 virtualY;
+	u32 workX;
+	u32 workY;
+	u32 workW;
+	u32 workH;
+	u32 physicalW;
+	u32 physicalH;
+	u32 width;
+	u32 height;
+	u32 refreshRate;
+	std::string name;
+
+};
+
+
 enum class WindowState {
 	CloseRequest,
 	Minimized,
@@ -80,11 +99,11 @@ public:
 
 	void setWindowConfig(const WindowConfig& config);
 	bool create(u32 w, u32 h, const std::string& title);
-	bool createFullscreen(const std::string& title);
+	bool createFullscreen(const std::string& title, u32 monitorID = 0);
 	void close();
 
 	void setWindowed();
-	void setFullscreen();
+	void setFullscreen(u32 monitorID = 0);
 
 	void setSize(u32 w, u32 h);
 	void setTitle(const std::string& title);
@@ -114,7 +133,7 @@ public:
 	void requestAttention();
 	void disableConstraints();
 
-	void fetchEvents();
+	static void pollEvents();
 	void swapBuffers();
 
 	bool isCreated() const;
@@ -129,6 +148,10 @@ public:
 	void dismissCloseRequest();
 	bool closeRequested() const;
 
+	static u32 getMonitorCount();
+	static Monitor getMonitor(u32 id);
+	static bool monitorConfigurationChanged();
+
 	void setWindowMoveFunction(WindowMoveFunction function);
 	void setWindowResizeFunction(WindowResizeFunction function);
 	void setWindowStateChangeFunction(WindowStateChangeFunction function);
@@ -136,11 +159,12 @@ public:
 	void resetWindowFunctions();
 
 private:
+	static void initMonitorCallback();
+	static void queryMonitors();
 	static bool setupGLContext();
-	static bool queryMonitors();
 
 	static GLFWmonitor** connectedMonitors;
-	static GLFWmonitor* primaryMonitor;
+	static bool monitorsChanged;
 	static u32 monitorCount;
 
 	WindowConfig contextConfig;

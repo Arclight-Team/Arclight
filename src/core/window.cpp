@@ -96,13 +96,17 @@ WindowConfig& WindowConfig::setAlwaysOnTop(bool enable) {
 
 
 GLFWmonitor** Window::connectedMonitors = nullptr;
-GLFWmonitor* Window::primaryMonitor = nullptr;
+bool Window::monitorsChanged = true;
 u32 Window::monitorCount = 0;
 
 
 
 Window::Window() : backupWidth(0), backupHeight(0), windowHandle(nullptr),
-	moveFunction(nullptr), resizeFunction(nullptr), stateChangeFunction(nullptr), fbResizeFunction(nullptr) {}
+	moveFunction(nullptr), resizeFunction(nullptr), stateChangeFunction(nullptr), fbResizeFunction(nullptr) {
+
+	initMonitorCallback();
+
+}
 
 
 
@@ -186,19 +190,22 @@ bool Window::create(u32 w, u32 h, const std::string& title) {
 
 
 
-bool Window::createFullscreen(const std::string& title) {
+bool Window::createFullscreen(const std::string& title, u32 monitorID) {
 
 	if (isCreated()) {
 		Log::warn("Window", "Cannot open window that is already open");
 		return true;
 	}
 
-	if (!queryMonitors()) {
-		Log::error("Window", "No valid monitor found");
+	if (monitorID >= monitorCount || connectedMonitors[monitorID] == nullptr) {
+		Log::error("Window", "No valid monitor with ID=%d found", monitorID);
 		return false;
 	}
 
-	const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
+	GLFWmonitor* monitor = connectedMonitors[monitorID];
+	const GLFWvidmode* videoMode = glfwGetVideoMode(monitor);
+
+	arc_assert(videoMode, "Video mode of non-created window on monitor ID=%d null", monitorID);
 
 	contextConfig.redBits = videoMode->redBits;
 	contextConfig.greenBits = videoMode->greenBits;
@@ -209,7 +216,7 @@ bool Window::createFullscreen(const std::string& title) {
 	glfwWindowHint(GLFW_BLUE_BITS, contextConfig.blueBits);
 	glfwWindowHint(GLFW_REFRESH_RATE, videoMode->refreshRate);
 
-	windowHandle = glfwCreateWindow(videoMode->width, videoMode->height, title.c_str(), primaryMonitor, nullptr);
+	windowHandle = glfwCreateWindow(videoMode->width, videoMode->height, title.c_str(), monitor, nullptr);
 
 	if (windowHandle) {
 
@@ -266,7 +273,7 @@ void Window::setWindowed() {
 
 
 
-void Window::setFullscreen() {
+void Window::setFullscreen(u32 monitorID) {
 
 	arc_assert(isCreated(), "Tried to set fullscreen mode for non-existing window");
 
@@ -274,16 +281,21 @@ void Window::setFullscreen() {
 		return;
 	}
 
-	if (!queryMonitors()) {
-		Log::error("Window", "No valid monitor found");
+	if (monitorID >= monitorCount || connectedMonitors[monitorID] == nullptr) {
+		Log::error("Window", "No valid monitor with ID=%d found", monitorID);
 		return;
 	}
 
 	backupWidth = getWidth();
 	backupHeight = getHeight();
 
-	const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
-	glfwSetWindowMonitor(windowHandle, primaryMonitor, 0, 0, videoMode->width, videoMode->height, videoMode->refreshRate);
+	
+	GLFWmonitor* monitor = connectedMonitors[monitorID];
+	const GLFWvidmode* videoMode = glfwGetVideoMode(monitor);
+
+	arc_assert(videoMode, "Video mode of non-created window on monitor ID=%d null", monitorID);
+
+	glfwSetWindowMonitor(windowHandle, monitor, 0, 0, videoMode->width, videoMode->height, videoMode->refreshRate);
 
 }
 
@@ -500,7 +512,7 @@ void Window::disableConstraints() {
 
 
 
-void Window::fetchEvents() {
+void Window::pollEvents() {
 	glfwPollEvents();
 }
 
@@ -584,6 +596,59 @@ bool Window::isFullscreen() const {
 
 
 
+u32 Window::getMonitorCount() {
+	return monitorCount;
+}
+
+
+
+Monitor Window::getMonitor(u32 id) {
+
+	arc_assert(id < monitorCount, "Accessing non-existing monitor with ID=%d", id);
+	arc_assert(connectedMonitors[id], "Monitor with ID=%d is null", id);
+
+	GLFWmonitor* monitorHandle = connectedMonitors[id];
+	i32 vx, vy, wx, wy, ww, wh, pw, ph;
+
+	glfwGetMonitorPos(monitorHandle, &vx, &vy);
+	glfwGetMonitorWorkarea(monitorHandle, &wx, &wy, &ww, &wh);
+	glfwGetMonitorPhysicalSize(monitorHandle, &pw, &ph);
+	const char* name = glfwGetMonitorName(monitorHandle);
+	const GLFWvidmode* mode = glfwGetVideoMode(monitorHandle);
+
+	u32 width = 0;
+	u32 height = 0;
+	u32 refresh = 0;
+
+	if (mode) {
+
+		width = mode->width;
+		height = mode->height;
+		refresh = mode->refreshRate;
+
+	}
+
+	return Monitor{id, static_cast<u32>(vx), static_cast<u32>(vy), static_cast<u32>(wx), static_cast<u32>(wy), static_cast<u32>(ww), static_cast<u32>(wh), static_cast<u32>(pw), static_cast<u32>(ph), width, height, refresh, name};
+
+}
+
+
+
+bool Window::monitorConfigurationChanged() {
+	
+	if (monitorsChanged) {
+
+		monitorsChanged = false;
+		return true;
+
+	}
+
+	return false;
+
+}
+
+
+
 void Window::setWindowMoveFunction(WindowMoveFunction function) {
 
 	arc_assert(isCreated(), "Tried to set window move function for non-existing window");
@@ -591,7 +656,7 @@ void Window::setWindowMoveFunction(WindowMoveFunction function) {
 
 	if (function) {
 
-		glfwSetWindowPosCallback(windowHandle, [](GLFWwindow* window, int x, int y) {
+		glfwSetWindowPosCallback(windowHandle, [](GLFWwindow* window, i32 x, i32 y) {
 			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			ptr->moveFunction(ptr, x, y);
 		});
@@ -611,7 +676,7 @@ void Window::setWindowResizeFunction(WindowResizeFunction function) {
 
 	if (windowHandle) {
 
-		glfwSetWindowSizeCallback(windowHandle, [](GLFWwindow* window, int w, int h) {
+		glfwSetWindowSizeCallback(windowHandle, [](GLFWwindow* window, i32 w, i32 h) {
 			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			ptr->resizeFunction(ptr, w, h);
 		});
@@ -636,17 +701,17 @@ void Window::setWindowStateChangeFunction(WindowStateChangeFunction function) {
 			ptr->stateChangeFunction(ptr, WindowState::CloseRequest);
 		});
 
-		glfwSetWindowFocusCallback(windowHandle, [](GLFWwindow* window, int focused) {
+		glfwSetWindowFocusCallback(windowHandle, [](GLFWwindow* window, i32 focused) {
 			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			ptr->stateChangeFunction(ptr, focused ? WindowState::Focused : WindowState::Unfocused);
 		});
 
-		glfwSetWindowIconifyCallback(windowHandle, [](GLFWwindow* window, int iconified) {
+		glfwSetWindowIconifyCallback(windowHandle, [](GLFWwindow* window, i32 iconified) {
 			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			ptr->stateChangeFunction(ptr, iconified ? WindowState::Minimized : WindowState::Restored);
 		});
 
-		glfwSetWindowMaximizeCallback(windowHandle, [](GLFWwindow* window, int maximized) {
+		glfwSetWindowMaximizeCallback(windowHandle, [](GLFWwindow* window, i32 maximized) {
 			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			ptr->stateChangeFunction(ptr, maximized ? WindowState::Maximized : WindowState::Restored);
 		});
@@ -672,7 +737,7 @@ void Window::setFramebufferResizeFunction(FramebufferResizeFunction function) {
 
 	if (windowHandle) {
 
-		glfwSetFramebufferSizeCallback(windowHandle, [](GLFWwindow* window, int w, int h) {
+		glfwSetFramebufferSizeCallback(windowHandle, [](GLFWwindow* window, i32 w, i32 h) {
 			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			ptr->fbResizeFunction(ptr, w, h);
 		});
@@ -712,13 +777,30 @@ bool Window::setupGLContext() {
 
 
 
-bool Window::queryMonitors() {
+void Window::queryMonitors() {
 
 	i32 count = 0;
 	connectedMonitors = glfwGetMonitors(&count);
-	primaryMonitor = glfwGetPrimaryMonitor();
 	monitorCount = count;
 
-	return primaryMonitor != nullptr;
+}
+
+
+
+void Window::initMonitorCallback() {
+
+	static bool init = false;
+
+	if (!init) {
+
+		init = true;
+		glfwSetMonitorCallback([](GLFWmonitor* monitor, i32 state) {
+			queryMonitors();
+			monitorsChanged = true;
+		});
+
+		queryMonitors();
+
+	}
 
 }
