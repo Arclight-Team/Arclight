@@ -25,7 +25,7 @@ void Profiler::start() {
 
 void Profiler::stop(const std::string& name) {
 
-	double delta = timer.getElapsedTime();
+	double delta = timer.getElapsedTime(unit);
 
 	if (name.empty()) {
 		Log::debug("Profiler", "Profiler measured %0." + std::to_string(resolution) + "f" + getResolutionUnit(), delta);

@@ -6,7 +6,7 @@
 #include "util/file.h"
 #include "util/profiler.h"
 #include "util/random.h"
-#include "core/window.h"
+#include "core/input/window.h"
 #include "core/event/event.h"
 
 #include <GLFW/glfw3.h>
@@ -41,82 +41,15 @@ int main(){
 
 	window.enableVSync();
 
-	window.setWindowMoveFunction([](Window* window, u32 x, u32 y) {
-		window->setPosition(200, 200);
-	});
-
-	window.setWindowResizeFunction([](Window* window, u32 w, u32 h) {
-		window->setSize(200, 200);
-	});
-
-	window.setWindowStateChangeFunction([](Window* window, WindowState state) {
-		
-		switch (state) {
-
-			case WindowState::CloseRequest:
-				window->dismissCloseRequest();
-				break;
-
-			case WindowState::Unfocused:
-				window->requestAttention();
-				break;
-
-			case WindowState::Maximized:
-			case WindowState::Minimized:
-				window->restore();
-				break;
-
-		}
-
-	});
+	for (u32 i = 0; i < window.getMonitorCount(); i++) {
+		Monitor m = window.getMonitor(i);
+		Log::info("Core", "Monitor %d (%s):\nSize: %d x %d (%dmm x %dmm)\n", i, m.name.c_str(), m.width, m.height, m.physicalW, m.physicalH);
+	}
 
 	Timer timer;
 	timer.start();
 
 	while (!window.closeRequested()) {
-		/*
-		if (timer.getElapsedTime(Timer::Unit::Seconds) > 1) {
-			
-			switch (rand() % 9) {
-				case 0:
-					window.focus();
-					break;
-				case 1:
-					window.hide();
-					break;
-				case 2:
-					window.requestAttention();
-					break;
-				case 3:
-					window.restore();
-					break;
-				case 4:
-					window.maximize();
-					break;
-				case 5:
-					window.show();
-					break;
-				case 6:
-					window.minimize();
-					break;
-				case 7:
-					window.setFullscreen();
-					break;
-				case 8:
-					window.setWindowed();
-					break;
-			}
-
-			timer.start();
-
-		}
-		
-		
-		if (timer.getElapsedTime(Timer::Unit::Milliseconds) > 1) {
-			window.setPosition(rand() % 2000, rand() % 1400);
-			timer.start();
-		}
-		*/
 
 		window.swapBuffers();
 		window.pollEvents();
