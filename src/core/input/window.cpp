@@ -1,4 +1,4 @@
-#include "core/window.h"
+#include "core/input/window.h"
 #include "util/assert.h"
 
 #include <GL/glew.h>
@@ -112,7 +112,7 @@ Window::Window() : backupWidth(0), backupHeight(0), windowHandle(nullptr),
 
 void Window::setWindowConfig(const WindowConfig& config) {
 
-	if (isCreated()) {
+	if (isOpen()) {
 		Log::warn("Window", "Window config will have no effect until re-opening the window");
 		return;
 	}
@@ -162,7 +162,7 @@ void Window::setWindowConfig(const WindowConfig& config) {
 
 bool Window::create(u32 w, u32 h, const std::string& title) {
 
-	if (isCreated()) {
+	if (isOpen()) {
 		Log::warn("Window", "Cannot open window that is already open");
 		return true;
 	}
@@ -184,7 +184,7 @@ bool Window::create(u32 w, u32 h, const std::string& title) {
 		Log::error("Window", "Failed to create window");
 	}
 
-	return isCreated();
+	return isOpen();
 
 }
 
@@ -192,7 +192,7 @@ bool Window::create(u32 w, u32 h, const std::string& title) {
 
 bool Window::createFullscreen(const std::string& title, u32 monitorID) {
 
-	if (isCreated()) {
+	if (isOpen()) {
 		Log::warn("Window", "Cannot open window that is already open");
 		return true;
 	}
@@ -235,7 +235,7 @@ bool Window::createFullscreen(const std::string& title, u32 monitorID) {
 		Log::error("Window", "Failed to create window");
 	}
 
-	return isCreated();
+	return isOpen();
 
 }
 
@@ -243,7 +243,7 @@ bool Window::createFullscreen(const std::string& title, u32 monitorID) {
 
 void Window::close() {
 
-	if (!isCreated()) {
+	if (!isOpen()) {
 		Log::warn("Window", "Cannot close window that is not open");
 		return;
 	}
@@ -261,7 +261,7 @@ void Window::close() {
 
 void Window::setWindowed() {
 
-	arc_assert(isCreated(), "Tried to set windowed mode for non-existing window");
+	arc_assert(isOpen(), "Tried to set windowed mode for non-existing window");
 
 	if (!isFullscreen()) {
 		return;
@@ -275,7 +275,7 @@ void Window::setWindowed() {
 
 void Window::setFullscreen(u32 monitorID) {
 
-	arc_assert(isCreated(), "Tried to set fullscreen mode for non-existing window");
+	arc_assert(isOpen(), "Tried to set fullscreen mode for non-existing window");
 
 	if (isFullscreen()) {
 		return;
@@ -303,7 +303,7 @@ void Window::setFullscreen(u32 monitorID) {
 
 void Window::setSize(u32 w, u32 h) {
 
-	arc_assert(isCreated(), "Tried to set window size for non-existing window");
+	arc_assert(isOpen(), "Tried to set window size for non-existing window");
 	glfwSetWindowSize(windowHandle, w, h);
 
 }
@@ -312,7 +312,7 @@ void Window::setSize(u32 w, u32 h) {
 
 void Window::setTitle(const std::string& title) {
 
-	arc_assert(isCreated(), "Tried to set window title for non-existing window");
+	arc_assert(isOpen(), "Tried to set window title for non-existing window");
 	glfwSetWindowTitle(windowHandle, title.c_str());
 
 }
@@ -321,7 +321,7 @@ void Window::setTitle(const std::string& title) {
 
 void Window::setX(u32 x) {
 		
-	arc_assert(isCreated(), "Tried to set window x-position for non-existing window");
+	arc_assert(isOpen(), "Tried to set window x-position for non-existing window");
 	glfwSetWindowPos(windowHandle, x, getY());
 
 }
@@ -330,7 +330,7 @@ void Window::setX(u32 x) {
 
 void Window::setY(u32 y) {
 
-	arc_assert(isCreated(), "Tried to set window y-position for non-existing window");
+	arc_assert(isOpen(), "Tried to set window y-position for non-existing window");
 	glfwSetWindowPos(windowHandle, getX(), y);
 
 }
@@ -339,7 +339,7 @@ void Window::setY(u32 y) {
 
 void Window::setPosition(u32 x, u32 y) {
 
-	arc_assert(isCreated(), "Tried to set window position for non-existing window");
+	arc_assert(isOpen(), "Tried to set window position for non-existing window");
 	glfwSetWindowPos(windowHandle, x, y);
 
 }
@@ -348,7 +348,7 @@ void Window::setPosition(u32 x, u32 y) {
 
 void Window::setLimits(u32 minW, u32 minH, u32 maxW, u32 maxH) {
 
-	arc_assert(isCreated(), "Tried to set window limits for non-existing window");
+	arc_assert(isOpen(), "Tried to set window limits for non-existing window");
 	glfwSetWindowSizeLimits(windowHandle, minW, minH, maxW, maxH);
 
 }
@@ -357,7 +357,7 @@ void Window::setLimits(u32 minW, u32 minH, u32 maxW, u32 maxH) {
 
 void Window::setMinLimits(u32 minW, u32 minH) {
 
-	arc_assert(isCreated(), "Tried to set window min limits for non-existing window");
+	arc_assert(isOpen(), "Tried to set window min limits for non-existing window");
 	glfwSetWindowSizeLimits(windowHandle, minW, minH, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
 }
@@ -366,7 +366,7 @@ void Window::setMinLimits(u32 minW, u32 minH) {
 
 void Window::setMaxLimits(u32 maxW, u32 maxH) {
 
-	arc_assert(isCreated(), "Tried to set window max limits for non-existing window");
+	arc_assert(isOpen(), "Tried to set window max limits for non-existing window");
 	glfwSetWindowSizeLimits(windowHandle, GLFW_DONT_CARE, GLFW_DONT_CARE, maxW, maxH);
 
 }
@@ -375,7 +375,7 @@ void Window::setMaxLimits(u32 maxW, u32 maxH) {
 
 void Window::setAspectRatio(double aspect) {
 
-	arc_assert(isCreated(), "Tried to set window aspect ratio for non-existing window");
+	arc_assert(isOpen(), "Tried to set window aspect ratio for non-existing window");
 	glfwSetWindowAspectRatio(windowHandle, aspect * 1000, 1000);
 
 }
@@ -384,7 +384,7 @@ void Window::setAspectRatio(double aspect) {
 
 void Window::setOpacity(double opacity) {
 
-	arc_assert(isCreated(), "Tried to set window opacity for non-existing window");
+	arc_assert(isOpen(), "Tried to set window opacity for non-existing window");
 	glfwSetWindowOpacity(windowHandle, opacity);
 
 }
@@ -393,7 +393,7 @@ void Window::setOpacity(double opacity) {
 
 u32 Window::getWidth() const {
 
-	arc_assert(isCreated(), "Tried to get window width for non-existing window");
+	arc_assert(isOpen(), "Tried to get window width for non-existing window");
 
 	i32 w = 0;
 	glfwGetWindowSize(windowHandle, &w, nullptr);
@@ -405,7 +405,7 @@ u32 Window::getWidth() const {
 
 u32 Window::getHeight() const {
 
-	arc_assert(isCreated(), "Tried to get window height for non-existing window");
+	arc_assert(isOpen(), "Tried to get window height for non-existing window");
 
 	i32 h = 0;
 	glfwGetWindowSize(windowHandle, nullptr, &h);
@@ -417,7 +417,7 @@ u32 Window::getHeight() const {
 
 u32 Window::getX() const {
 
-	arc_assert(isCreated(), "Tried to get window x-position for non-existing window");
+	arc_assert(isOpen(), "Tried to get window x-position for non-existing window");
 
 	i32 x = 0;
 	glfwGetWindowPos(windowHandle, &x, nullptr);
@@ -429,7 +429,7 @@ u32 Window::getX() const {
 
 u32 Window::getY() const {
 
-	arc_assert(isCreated(), "Tried to get window y-position for non-existing window");
+	arc_assert(isOpen(), "Tried to get window y-position for non-existing window");
 
 	i32 y = 0;
 	glfwGetWindowPos(windowHandle, nullptr, &y);
@@ -441,7 +441,7 @@ u32 Window::getY() const {
 
 void Window::minimize() {
 
-	arc_assert(isCreated(), "Tried to minimize window for non-existing window");
+	arc_assert(isOpen(), "Tried to minimize window for non-existing window");
 	glfwIconifyWindow(windowHandle);
 
 }
@@ -450,7 +450,7 @@ void Window::minimize() {
 
 void Window::restore() {
 
-	arc_assert(isCreated(), "Tried to restore window for non-existing window");
+	arc_assert(isOpen(), "Tried to restore window for non-existing window");
 	glfwRestoreWindow(windowHandle);
 
 }
@@ -459,7 +459,7 @@ void Window::restore() {
 
 void Window::maximize() {
 
-	arc_assert(isCreated(), "Tried to maximize window for non-existing window");
+	arc_assert(isOpen(), "Tried to maximize window for non-existing window");
 	glfwMaximizeWindow(windowHandle);
 
 }
@@ -468,7 +468,7 @@ void Window::maximize() {
 
 void Window::show() {
 
-	arc_assert(isCreated(), "Tried to show window for non-existing window");
+	arc_assert(isOpen(), "Tried to show window for non-existing window");
 	glfwShowWindow(windowHandle);
 
 }
@@ -477,7 +477,7 @@ void Window::show() {
 
 void Window::hide() {
 
-	arc_assert(isCreated(), "Tried to hide window for non-existing window");
+	arc_assert(isOpen(), "Tried to hide window for non-existing window");
 	glfwHideWindow(windowHandle);
 
 }
@@ -486,7 +486,7 @@ void Window::hide() {
 
 void Window::focus() {
 
-	arc_assert(isCreated(), "Tried to focus window for non-existing window");
+	arc_assert(isOpen(), "Tried to focus window for non-existing window");
 	glfwFocusWindow(windowHandle);
 
 }
@@ -495,7 +495,7 @@ void Window::focus() {
 
 void Window::requestAttention() {
 
-	arc_assert(isCreated(), "Tried to request attention for non-existing window");
+	arc_assert(isOpen(), "Tried to request attention for non-existing window");
 	glfwRequestWindowAttention(windowHandle);
 
 }
@@ -504,7 +504,7 @@ void Window::requestAttention() {
 
 void Window::disableConstraints() {
 
-	arc_assert(isCreated(), "Tried to disable size constraints for non-existing window");
+	arc_assert(isOpen(), "Tried to disable size constraints for non-existing window");
 	glfwSetWindowSizeLimits(windowHandle, GLFW_DONT_CARE, GLFW_DONT_CARE, GLFW_DONT_CARE, GLFW_DONT_CARE);
 	glfwSetWindowAspectRatio(windowHandle, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
@@ -520,7 +520,7 @@ void Window::pollEvents() {
 
 void Window::swapBuffers() {
 
-	arc_assert(isCreated(), "Tried to swap buffers for non-existing window");
+	arc_assert(isOpen(), "Tried to swap buffers for non-existing window");
 	glfwSwapBuffers(windowHandle);
 
 }
@@ -529,7 +529,7 @@ void Window::swapBuffers() {
 
 void Window::enableContext() {
 
-	arc_assert(isCreated(), "Tried to enable OpenGL context for non-existing window");
+	arc_assert(isOpen(), "Tried to enable OpenGL context for non-existing window");
 	glfwMakeContextCurrent(windowHandle);
 
 }
@@ -556,7 +556,7 @@ void Window::disableVSync() {
 
 void Window::requestClose() {
 
-	arc_assert(isCreated(), "Tried to request close for non-existing window");
+	arc_assert(isOpen(), "Tried to request close for non-existing window");
 	glfwSetWindowShouldClose(windowHandle, true);
 
 }
@@ -565,7 +565,7 @@ void Window::requestClose() {
 
 void Window::dismissCloseRequest() {
 
-	arc_assert(isCreated(), "Tried to dismiss close request for non-existing window");
+	arc_assert(isOpen(), "Tried to dismiss close request for non-existing window");
 	glfwSetWindowShouldClose(windowHandle, false);
 
 }
@@ -574,14 +574,14 @@ void Window::dismissCloseRequest() {
 
 bool Window::closeRequested() const {
 
-	arc_assert(isCreated(), "Tried to fetch close request state for non-existing window");
+	arc_assert(isOpen(), "Tried to fetch close request state for non-existing window");
 	return glfwWindowShouldClose(windowHandle);
 
 }
 
 
 
-bool Window::isCreated() const {
+bool Window::isOpen() const {
 	return windowHandle != nullptr;
 }
 
@@ -589,7 +589,7 @@ bool Window::isCreated() const {
 
 bool Window::isFullscreen() const {
 
-	arc_assert(isCreated(), "Tried to obtain fullscreen state for non-existing window");
+	arc_assert(isOpen(), "Tried to obtain fullscreen state for non-existing window");
 	return glfwGetWindowMonitor(windowHandle) != nullptr;
 
 }
@@ -651,7 +651,7 @@ bool Window::monitorConfigurationChanged() {
 
 void Window::setWindowMoveFunction(WindowMoveFunction function) {
 
-	arc_assert(isCreated(), "Tried to set window move function for non-existing window");
+	arc_assert(isOpen(), "Tried to set window move function for non-existing window");
 	moveFunction = function;
 
 	if (function) {
@@ -671,7 +671,7 @@ void Window::setWindowMoveFunction(WindowMoveFunction function) {
 
 void Window::setWindowResizeFunction(WindowResizeFunction function) {
 
-	arc_assert(isCreated(), "Tried to set window resize function for non-existing window");
+	arc_assert(isOpen(), "Tried to set window resize function for non-existing window");
 	resizeFunction = function;
 
 	if (windowHandle) {
@@ -691,7 +691,7 @@ void Window::setWindowResizeFunction(WindowResizeFunction function) {
 
 void Window::setWindowStateChangeFunction(WindowStateChangeFunction function) {
 
-	arc_assert(isCreated(), "Tried to set window state change function for non-existing window");
+	arc_assert(isOpen(), "Tried to set window state change function for non-existing window");
 	stateChangeFunction = function;
 
 	if (function) {
@@ -732,7 +732,7 @@ void Window::setWindowStateChangeFunction(WindowStateChangeFunction function) {
 
 void Window::setFramebufferResizeFunction(FramebufferResizeFunction function) {
 
-	arc_assert(isCreated(), "Tried to set framebuffer resize function for non-existing window");
+	arc_assert(isOpen(), "Tried to set framebuffer resize function for non-existing window");
 	fbResizeFunction = function;
 
 	if (windowHandle) {

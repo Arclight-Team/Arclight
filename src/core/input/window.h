@@ -136,7 +136,7 @@ public:
 	static void pollEvents();
 	void swapBuffers();
 
-	bool isCreated() const;
+	bool isOpen() const;
 	bool isFullscreen() const;
 
 	void enableContext();
@@ -151,6 +151,8 @@ public:
 	static u32 getMonitorCount();
 	static Monitor getMonitor(u32 id);
 	static bool monitorConfigurationChanged();
+
+	InputDevice* getInputDevice();
 
 	void setWindowMoveFunction(WindowMoveFunction function);
 	void setWindowResizeFunction(WindowResizeFunction function);
@@ -172,6 +174,8 @@ private:
 
 	u32 backupWidth;
 	u32 backupHeight;
+
+	InputDevice inputDevice;
 
 	WindowMoveFunction moveFunction;
 	WindowResizeFunction resizeFunction;
