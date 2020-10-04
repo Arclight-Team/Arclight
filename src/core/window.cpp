@@ -1,4 +1,6 @@
-#include "core/input/window.h"
+#include "core/window.h"
+#include "core/windowhandle.h"
+#include "core/input/inputsystem.h"
 #include "util/assert.h"
 
 #include <GL/glew.h>
@@ -110,6 +112,16 @@ Window::Window() : backupWidth(0), backupHeight(0), windowHandle(nullptr),
 
 
 
+Window::~Window() {
+
+	if (isOpen()) {
+		close();
+	}
+
+}
+
+
+
 void Window::setWindowConfig(const WindowConfig& config) {
 
 	if (isOpen()) {
@@ -167,9 +179,14 @@ bool Window::create(u32 w, u32 h, const std::string& title) {
 		return true;
 	}
 
-	windowHandle = glfwCreateWindow(w, h, title.c_str(), nullptr, nullptr);
+	GLFWwindow* handle = glfwCreateWindow(w, h, title.c_str(), nullptr, nullptr);
 
-	if (windowHandle) {
+	if (handle) {
+
+		windowHandle = std::make_shared<WindowHandle>();
+		windowHandle->handle = handle;
+		windowHandle->userPtr.window = this;
+		glfwSetWindowUserPointer(windowHandle->handle, static_cast<void*>(&windowHandle->userPtr));
 
 		enableContext();
 
@@ -177,8 +194,6 @@ bool Window::create(u32 w, u32 h, const std::string& title) {
 			close();
 			return false;
 		}
-
-		glfwSetWindowUserPointer(windowHandle, this);
 
 	} else {
 		Log::error("Window", "Failed to create window");
@@ -216,9 +231,14 @@ bool Window::createFullscreen(const std::string& title, u32 monitorID) {
 	glfwWindowHint(GLFW_BLUE_BITS, contextConfig.blueBits);
 	glfwWindowHint(GLFW_REFRESH_RATE, videoMode->refreshRate);
 
-	windowHandle = glfwCreateWindow(videoMode->width, videoMode->height, title.c_str(), monitor, nullptr);
+	GLFWwindow* handle = glfwCreateWindow(videoMode->width, videoMode->height, title.c_str(), monitor, nullptr);
 
-	if (windowHandle) {
+	if (handle) {
+
+		windowHandle = std::make_shared<WindowHandle>();
+		windowHandle->handle = handle;
+		windowHandle->userPtr.window = this;
+		glfwSetWindowUserPointer(windowHandle->handle, static_cast<void*>(&windowHandle->userPtr));
 
 		backupWidth = videoMode->width;
 		backupHeight = videoMode->height;
@@ -228,8 +248,6 @@ bool Window::createFullscreen(const std::string& title, u32 monitorID) {
 			close();
 			return false;
 		}
-
-		glfwSetWindowUserPointer(windowHandle, this);
 
 	} else {
 		Log::error("Window", "Failed to create window");
@@ -248,12 +266,17 @@ void Window::close() {
 		return;
 	}
 
-	resetWindowFunctions();
-	glfwDestroyWindow(windowHandle);
-	
+	InputSystem* input = windowHandle->userPtr.input;
+
+	if (input) {
+		input->disconnect();
+	}
+
+	glfwDestroyWindow(windowHandle->handle);
+
+	windowHandle.reset();
 	backupWidth = 0;
 	backupHeight = 0;
-	windowHandle = nullptr;
 
 }
 
@@ -267,7 +290,7 @@ void Window::setWindowed() {
 		return;
 	}
 
-	glfwSetWindowMonitor(windowHandle, nullptr, 40, 40, backupWidth, backupHeight, GLFW_DONT_CARE);
+	glfwSetWindowMonitor(windowHandle->handle, nullptr, 40, 40, backupWidth, backupHeight, GLFW_DONT_CARE);
 
 }
 
@@ -295,7 +318,7 @@ void Window::setFullscreen(u32 monitorID) {
 
 	arc_assert(videoMode, "Video mode of non-created window on monitor ID=%d null", monitorID);
 
-	glfwSetWindowMonitor(windowHandle, monitor, 0, 0, videoMode->width, videoMode->height, videoMode->refreshRate);
+	glfwSetWindowMonitor(windowHandle->handle, monitor, 0, 0, videoMode->width, videoMode->height, videoMode->refreshRate);
 
 }
 
@@ -304,7 +327,7 @@ void Window::setFullscreen(u32 monitorID) {
 void Window::setSize(u32 w, u32 h) {
 
 	arc_assert(isOpen(), "Tried to set window size for non-existing window");
-	glfwSetWindowSize(windowHandle, w, h);
+	glfwSetWindowSize(windowHandle->handle, w, h);
 
 }
 
@@ -313,7 +336,7 @@ void Window::setSize(u32 w, u32 h) {
 void Window::setTitle(const std::string& title) {
 
 	arc_assert(isOpen(), "Tried to set window title for non-existing window");
-	glfwSetWindowTitle(windowHandle, title.c_str());
+	glfwSetWindowTitle(windowHandle->handle, title.c_str());
 
 }
 
@@ -322,7 +345,7 @@ void Window::setTitle(const std::string& title) {
 void Window::setX(u32 x) {
 		
 	arc_assert(isOpen(), "Tried to set window x-position for non-existing window");
-	glfwSetWindowPos(windowHandle, x, getY());
+	glfwSetWindowPos(windowHandle->handle, x, getY());
 
 }
 
@@ -331,7 +354,7 @@ void Window::setX(u32 x) {
 void Window::setY(u32 y) {
 
 	arc_assert(isOpen(), "Tried to set window y-position for non-existing window");
-	glfwSetWindowPos(windowHandle, getX(), y);
+	glfwSetWindowPos(windowHandle->handle, getX(), y);
 
 }
 
@@ -340,7 +363,7 @@ void Window::setY(u32 y) {
 void Window::setPosition(u32 x, u32 y) {
 
 	arc_assert(isOpen(), "Tried to set window position for non-existing window");
-	glfwSetWindowPos(windowHandle, x, y);
+	glfwSetWindowPos(windowHandle->handle, x, y);
 
 }
 
@@ -349,7 +372,7 @@ void Window::setPosition(u32 x, u32 y) {
 void Window::setLimits(u32 minW, u32 minH, u32 maxW, u32 maxH) {
 
 	arc_assert(isOpen(), "Tried to set window limits for non-existing window");
-	glfwSetWindowSizeLimits(windowHandle, minW, minH, maxW, maxH);
+	glfwSetWindowSizeLimits(windowHandle->handle, minW, minH, maxW, maxH);
 
 }
 
@@ -358,7 +381,7 @@ void Window::setLimits(u32 minW, u32 minH, u32 maxW, u32 maxH) {
 void Window::setMinLimits(u32 minW, u32 minH) {
 
 	arc_assert(isOpen(), "Tried to set window min limits for non-existing window");
-	glfwSetWindowSizeLimits(windowHandle, minW, minH, GLFW_DONT_CARE, GLFW_DONT_CARE);
+	glfwSetWindowSizeLimits(windowHandle->handle, minW, minH, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
 }
 
@@ -367,7 +390,7 @@ void Window::setMinLimits(u32 minW, u32 minH) {
 void Window::setMaxLimits(u32 maxW, u32 maxH) {
 
 	arc_assert(isOpen(), "Tried to set window max limits for non-existing window");
-	glfwSetWindowSizeLimits(windowHandle, GLFW_DONT_CARE, GLFW_DONT_CARE, maxW, maxH);
+	glfwSetWindowSizeLimits(windowHandle->handle, GLFW_DONT_CARE, GLFW_DONT_CARE, maxW, maxH);
 
 }
 
@@ -376,7 +399,7 @@ void Window::setMaxLimits(u32 maxW, u32 maxH) {
 void Window::setAspectRatio(double aspect) {
 
 	arc_assert(isOpen(), "Tried to set window aspect ratio for non-existing window");
-	glfwSetWindowAspectRatio(windowHandle, aspect * 1000, 1000);
+	glfwSetWindowAspectRatio(windowHandle->handle, aspect * 1000, 1000);
 
 }
 
@@ -385,7 +408,7 @@ void Window::setAspectRatio(double aspect) {
 void Window::setOpacity(double opacity) {
 
 	arc_assert(isOpen(), "Tried to set window opacity for non-existing window");
-	glfwSetWindowOpacity(windowHandle, opacity);
+	glfwSetWindowOpacity(windowHandle->handle, opacity);
 
 }
 
@@ -396,7 +419,7 @@ u32 Window::getWidth() const {
 	arc_assert(isOpen(), "Tried to get window width for non-existing window");
 
 	i32 w = 0;
-	glfwGetWindowSize(windowHandle, &w, nullptr);
+	glfwGetWindowSize(windowHandle->handle, &w, nullptr);
 	return w;
 		
 }
@@ -408,7 +431,7 @@ u32 Window::getHeight() const {
 	arc_assert(isOpen(), "Tried to get window height for non-existing window");
 
 	i32 h = 0;
-	glfwGetWindowSize(windowHandle, nullptr, &h);
+	glfwGetWindowSize(windowHandle->handle, nullptr, &h);
 	return h;
 
 }
@@ -420,7 +443,7 @@ u32 Window::getX() const {
 	arc_assert(isOpen(), "Tried to get window x-position for non-existing window");
 
 	i32 x = 0;
-	glfwGetWindowPos(windowHandle, &x, nullptr);
+	glfwGetWindowPos(windowHandle->handle, &x, nullptr);
 	return x;
 
 }
@@ -432,7 +455,7 @@ u32 Window::getY() const {
 	arc_assert(isOpen(), "Tried to get window y-position for non-existing window");
 
 	i32 y = 0;
-	glfwGetWindowPos(windowHandle, nullptr, &y);
+	glfwGetWindowPos(windowHandle->handle, nullptr, &y);
 	return y;
 
 }
@@ -442,7 +465,7 @@ u32 Window::getY() const {
 void Window::minimize() {
 
 	arc_assert(isOpen(), "Tried to minimize window for non-existing window");
-	glfwIconifyWindow(windowHandle);
+	glfwIconifyWindow(windowHandle->handle);
 
 }
 
@@ -451,7 +474,7 @@ void Window::minimize() {
 void Window::restore() {
 
 	arc_assert(isOpen(), "Tried to restore window for non-existing window");
-	glfwRestoreWindow(windowHandle);
+	glfwRestoreWindow(windowHandle->handle);
 
 }
 
@@ -460,7 +483,7 @@ void Window::restore() {
 void Window::maximize() {
 
 	arc_assert(isOpen(), "Tried to maximize window for non-existing window");
-	glfwMaximizeWindow(windowHandle);
+	glfwMaximizeWindow(windowHandle->handle);
 
 }
 
@@ -469,7 +492,7 @@ void Window::maximize() {
 void Window::show() {
 
 	arc_assert(isOpen(), "Tried to show window for non-existing window");
-	glfwShowWindow(windowHandle);
+	glfwShowWindow(windowHandle->handle);
 
 }
 
@@ -478,7 +501,7 @@ void Window::show() {
 void Window::hide() {
 
 	arc_assert(isOpen(), "Tried to hide window for non-existing window");
-	glfwHideWindow(windowHandle);
+	glfwHideWindow(windowHandle->handle);
 
 }
 
@@ -487,7 +510,7 @@ void Window::hide() {
 void Window::focus() {
 
 	arc_assert(isOpen(), "Tried to focus window for non-existing window");
-	glfwFocusWindow(windowHandle);
+	glfwFocusWindow(windowHandle->handle);
 
 }
 
@@ -496,7 +519,7 @@ void Window::focus() {
 void Window::requestAttention() {
 
 	arc_assert(isOpen(), "Tried to request attention for non-existing window");
-	glfwRequestWindowAttention(windowHandle);
+	glfwRequestWindowAttention(windowHandle->handle);
 
 }
 
@@ -505,8 +528,8 @@ void Window::requestAttention() {
 void Window::disableConstraints() {
 
 	arc_assert(isOpen(), "Tried to disable size constraints for non-existing window");
-	glfwSetWindowSizeLimits(windowHandle, GLFW_DONT_CARE, GLFW_DONT_CARE, GLFW_DONT_CARE, GLFW_DONT_CARE);
-	glfwSetWindowAspectRatio(windowHandle, GLFW_DONT_CARE, GLFW_DONT_CARE);
+	glfwSetWindowSizeLimits(windowHandle->handle, GLFW_DONT_CARE, GLFW_DONT_CARE, GLFW_DONT_CARE, GLFW_DONT_CARE);
+	glfwSetWindowAspectRatio(windowHandle->handle, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
 }
 
@@ -521,7 +544,7 @@ void Window::pollEvents() {
 void Window::swapBuffers() {
 
 	arc_assert(isOpen(), "Tried to swap buffers for non-existing window");
-	glfwSwapBuffers(windowHandle);
+	glfwSwapBuffers(windowHandle->handle);
 
 }
 
@@ -530,7 +553,7 @@ void Window::swapBuffers() {
 void Window::enableContext() {
 
 	arc_assert(isOpen(), "Tried to enable OpenGL context for non-existing window");
-	glfwMakeContextCurrent(windowHandle);
+	glfwMakeContextCurrent(windowHandle->handle);
 
 }
 
@@ -557,7 +580,7 @@ void Window::disableVSync() {
 void Window::requestClose() {
 
 	arc_assert(isOpen(), "Tried to request close for non-existing window");
-	glfwSetWindowShouldClose(windowHandle, true);
+	glfwSetWindowShouldClose(windowHandle->handle, true);
 
 }
 
@@ -566,7 +589,7 @@ void Window::requestClose() {
 void Window::dismissCloseRequest() {
 
 	arc_assert(isOpen(), "Tried to dismiss close request for non-existing window");
-	glfwSetWindowShouldClose(windowHandle, false);
+	glfwSetWindowShouldClose(windowHandle->handle, false);
 
 }
 
@@ -575,7 +598,7 @@ void Window::dismissCloseRequest() {
 bool Window::closeRequested() const {
 
 	arc_assert(isOpen(), "Tried to fetch close request state for non-existing window");
-	return glfwWindowShouldClose(windowHandle);
+	return glfwWindowShouldClose(windowHandle->handle);
 
 }
 
@@ -590,7 +613,7 @@ bool Window::isOpen() const {
 bool Window::isFullscreen() const {
 
 	arc_assert(isOpen(), "Tried to obtain fullscreen state for non-existing window");
-	return glfwGetWindowMonitor(windowHandle) != nullptr;
+	return glfwGetWindowMonitor(windowHandle->handle) != nullptr;
 
 }
 
@@ -656,13 +679,13 @@ void Window::setWindowMoveFunction(WindowMoveFunction function) {
 
 	if (function) {
 
-		glfwSetWindowPosCallback(windowHandle, [](GLFWwindow* window, i32 x, i32 y) {
+		glfwSetWindowPosCallback(windowHandle->handle, [](GLFWwindow* window, i32 x, i32 y) {
 			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			ptr->moveFunction(ptr, x, y);
 		});
 
 	} else {
-		glfwSetWindowPosCallback(windowHandle, nullptr);
+		glfwSetWindowPosCallback(windowHandle->handle, nullptr);
 	}
 
 }
@@ -674,15 +697,15 @@ void Window::setWindowResizeFunction(WindowResizeFunction function) {
 	arc_assert(isOpen(), "Tried to set window resize function for non-existing window");
 	resizeFunction = function;
 
-	if (windowHandle) {
+	if (function) {
 
-		glfwSetWindowSizeCallback(windowHandle, [](GLFWwindow* window, i32 w, i32 h) {
+		glfwSetWindowSizeCallback(windowHandle->handle, [](GLFWwindow* window, i32 w, i32 h) {
 			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			ptr->resizeFunction(ptr, w, h);
 		});
 
 	} else {
-		glfwSetWindowSizeCallback(windowHandle, nullptr);
+		glfwSetWindowSizeCallback(windowHandle->handle, nullptr);
 	}
 
 }
@@ -696,22 +719,22 @@ void Window::setWindowStateChangeFunction(WindowStateChangeFunction function) {
 
 	if (function) {
 
-		glfwSetWindowCloseCallback(windowHandle, [](GLFWwindow* window) {
+		glfwSetWindowCloseCallback(windowHandle->handle, [](GLFWwindow* window) {
 			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			ptr->stateChangeFunction(ptr, WindowState::CloseRequest);
 		});
 
-		glfwSetWindowFocusCallback(windowHandle, [](GLFWwindow* window, i32 focused) {
+		glfwSetWindowFocusCallback(windowHandle->handle, [](GLFWwindow* window, i32 focused) {
 			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			ptr->stateChangeFunction(ptr, focused ? WindowState::Focused : WindowState::Unfocused);
 		});
 
-		glfwSetWindowIconifyCallback(windowHandle, [](GLFWwindow* window, i32 iconified) {
+		glfwSetWindowIconifyCallback(windowHandle->handle, [](GLFWwindow* window, i32 iconified) {
 			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			ptr->stateChangeFunction(ptr, iconified ? WindowState::Minimized : WindowState::Restored);
 		});
 
-		glfwSetWindowMaximizeCallback(windowHandle, [](GLFWwindow* window, i32 maximized) {
+		glfwSetWindowMaximizeCallback(windowHandle->handle, [](GLFWwindow* window, i32 maximized) {
 			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			ptr->stateChangeFunction(ptr, maximized ? WindowState::Maximized : WindowState::Restored);
 		});
@@ -719,10 +742,10 @@ void Window::setWindowStateChangeFunction(WindowStateChangeFunction function) {
 
 	} else {
 
-		glfwSetWindowCloseCallback(windowHandle, nullptr);
-		glfwSetWindowFocusCallback(windowHandle, nullptr);
-		glfwSetWindowIconifyCallback(windowHandle, nullptr);
-		glfwSetWindowMaximizeCallback(windowHandle, nullptr);
+		glfwSetWindowCloseCallback(windowHandle->handle, nullptr);
+		glfwSetWindowFocusCallback(windowHandle->handle, nullptr);
+		glfwSetWindowIconifyCallback(windowHandle->handle, nullptr);
+		glfwSetWindowMaximizeCallback(windowHandle->handle, nullptr);
 
 	}
 
@@ -735,15 +758,15 @@ void Window::setFramebufferResizeFunction(FramebufferResizeFunction function) {
 	arc_assert(isOpen(), "Tried to set framebuffer resize function for non-existing window");
 	fbResizeFunction = function;
 
-	if (windowHandle) {
+	if (function) {
 
-		glfwSetFramebufferSizeCallback(windowHandle, [](GLFWwindow* window, i32 w, i32 h) {
+		glfwSetFramebufferSizeCallback(windowHandle->handle, [](GLFWwindow* window, i32 w, i32 h) {
 			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			ptr->fbResizeFunction(ptr, w, h);
 		});
 
 	} else {
-		glfwSetFramebufferSizeCallback(windowHandle, nullptr);
+		glfwSetFramebufferSizeCallback(windowHandle->handle, nullptr);
 	}
 
 }
@@ -758,6 +781,13 @@ void Window::resetWindowFunctions() {
 	setFramebufferResizeFunction(nullptr);
 
 }
+
+
+
+std::weak_ptr<WindowHandle> Window::getInternalHandle() const {
+	return std::weak_ptr<WindowHandle>(windowHandle);
+}
+
 
 
 

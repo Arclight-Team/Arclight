@@ -2,6 +2,7 @@
 
 #include "types.h"
 #include <string>
+#include <memory>
 
 
 class Window;
@@ -83,19 +84,20 @@ enum class WindowState {
 	Maximized
 };
 
-struct GLFWwindow;
 struct GLFWmonitor;
+struct WindowHandle;
 
 typedef void(*WindowMoveFunction)(Window*, u32, u32);
 typedef void(*WindowResizeFunction)(Window*, u32, u32);
 typedef void(*WindowStateChangeFunction)(Window*, WindowState);
 typedef void(*FramebufferResizeFunction)(Window*, u32, u32);
 
-class Window {
+class Window final {
 
 public:
 
 	Window();
+	~Window();
 
 	void setWindowConfig(const WindowConfig& config);
 	bool create(u32 w, u32 h, const std::string& title);
@@ -152,15 +154,17 @@ public:
 	static Monitor getMonitor(u32 id);
 	static bool monitorConfigurationChanged();
 
-	InputDevice* getInputDevice();
-
 	void setWindowMoveFunction(WindowMoveFunction function);
 	void setWindowResizeFunction(WindowResizeFunction function);
 	void setWindowStateChangeFunction(WindowStateChangeFunction function);
 	void setFramebufferResizeFunction(FramebufferResizeFunction function);
 	void resetWindowFunctions();
 
+	std::weak_ptr<WindowHandle> getInternalHandle() const;
+
 private:
+	friend class InputDevice;
+
 	static void initMonitorCallback();
 	static void queryMonitors();
 	static bool setupGLContext();
@@ -170,12 +174,11 @@ private:
 	static u32 monitorCount;
 
 	WindowConfig contextConfig;
-	GLFWwindow* windowHandle;
+
+	std::shared_ptr<WindowHandle> windowHandle;
 
 	u32 backupWidth;
 	u32 backupHeight;
-
-	InputDevice inputDevice;
 
 	WindowMoveFunction moveFunction;
 	WindowResizeFunction resizeFunction;

@@ -6,7 +6,8 @@
 #include "util/file.h"
 #include "util/profiler.h"
 #include "util/random.h"
-#include "core/input/window.h"
+#include "core/window.h"
+#include "core/input/inputsystem.h"
 #include "core/event/event.h"
 
 #include <GLFW/glfw3.h>
@@ -39,15 +40,10 @@ int main(){
 	
 	Log::info("Core", "Window successfully created");
 
+	InputSystem input;
+	input.connect(window);
+
 	window.enableVSync();
-
-	for (u32 i = 0; i < window.getMonitorCount(); i++) {
-		Monitor m = window.getMonitor(i);
-		Log::info("Core", "Monitor %d (%s):\nSize: %d x %d (%dmm x %dmm)\n", i, m.name.c_str(), m.width, m.height, m.physicalW, m.physicalH);
-	}
-
-	Timer timer;
-	timer.start();
 
 	while (!window.closeRequested()) {
 
@@ -57,6 +53,7 @@ int main(){
 	}
 
 	window.close();
+	input.disconnect();
 	profiler.stop();
 	Log::closeLogFile();
 
