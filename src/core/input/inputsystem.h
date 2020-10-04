@@ -17,6 +17,8 @@ class InputSystem final {
 public:
 
 	InputSystem();
+	InputSystem(const Window& window);
+
 	~InputSystem();
 
 	void connect(const Window& window);
@@ -32,6 +34,8 @@ public:
 	void onKeyEvent(const KeyEvent& event);
 	void onCharEvent(const CharEvent& event);
 	void onMouseEvent(const MouseEvent& event);
+	void onCursorEvent(const CursorEvent& event);
+	void onScrollEvent(const ScrollEvent& event);
 	void onControllerEvent(const ControllerEvent& event);
 
 private:

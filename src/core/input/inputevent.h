@@ -4,31 +4,20 @@
 
 
 typedef u32 Key;
+typedef u32 KeyChar;
 
 enum class KeyState {
 	Pressed,
-	Released,
-	Repeated
+	Released
 };
-
-
-
-enum class KeyMods {
-	Shift = 0x1,
-	Control = 0x2,
-	Alt = 0x4,
-	Super = 0x8
-};
-
-
 
 
 class KeyEvent {
 
 public:
 
-	constexpr KeyEvent(Key key, KeyState state, KeyMods mods)
-		: key(key), state(state), mods(mods) {}
+	constexpr KeyEvent(Key key, KeyState state)
+		: key(key), state(state) {}
 
 
 	constexpr Key getKey() const {
@@ -47,20 +36,75 @@ public:
 		return state == KeyState::Released;
 	}
 
-	constexpr bool repeated() const {
-		return state == KeyState::Repeated;
-	}
-	/*
-	bool shiftMod() const {
-
-	}
-	bool ctrlMod() const;
-	bool altMod() const;
-	bool superMod() const;
-	*/
 private:
 	Key key;
 	KeyState state;
-	KeyMods mods;
+
+};
+
+
+
+class CharEvent {
+
+public:
+
+	constexpr CharEvent(KeyChar character)
+		: character(character) {}
+
+
+	constexpr KeyChar getChar() const {
+		return character;
+	}
+
+private:
+	KeyChar character;
+
+};
+
+
+
+class CursorEvent {
+
+public:
+
+	constexpr CursorEvent(double x, double y)
+		: x(x), y(y) {}
+
+
+	constexpr double getX() const {
+		return x;
+	}
+
+	constexpr double getY() const {
+		return y;
+	}
+
+private:
+	double x;
+	double y;
+
+};
+
+
+
+class ScrollEvent {
+
+public:
+
+	constexpr ScrollEvent(double x, double y)
+		: x(x), y(y) {}
+
+
+	constexpr double scrollX() const {
+		return x;
+	}
+
+	constexpr double scrollY() const {
+		return y;
+	}
+
+private:
+	double x;
+	double y;
 
 };
