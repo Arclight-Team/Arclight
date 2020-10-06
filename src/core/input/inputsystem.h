@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/input/inputevent.h"
+#include "core/input/inputcontext.h"
 #include <memory>
 
 
@@ -24,8 +25,8 @@ public:
 	void connect(const Window& window);
 	void disconnect();
 
-	//void attachContext(InputContext context);
-	//void detachContext(InputContext context);
+	void attachContext(const InputContext& context);
+	void detachContext(const InputContext& context);
 	//void enableContext()
 
 
@@ -41,7 +42,6 @@ public:
 private:
 
 	std::shared_ptr<WindowHandle> getWindowHandle() const;
-
 
 	std::weak_ptr<WindowHandle> windowHandle;
 
