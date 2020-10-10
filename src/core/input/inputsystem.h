@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/input/inputevent.h"
 #include "core/input/inputcontext.h"
 #include <memory>
 
@@ -10,8 +9,8 @@ struct WindowHandle;
 
 class KeyEvent;
 class CharEvent;
-class MouseEvent;
-class ControllerEvent;
+class CursorEvent;
+class ScrollEvent;
 
 class InputSystem final {
 
@@ -34,10 +33,8 @@ public:
 
 	void onKeyEvent(const KeyEvent& event);
 	void onCharEvent(const CharEvent& event);
-	void onMouseEvent(const MouseEvent& event);
 	void onCursorEvent(const CursorEvent& event);
 	void onScrollEvent(const ScrollEvent& event);
-	void onControllerEvent(const ControllerEvent& event);
 
 private:
 

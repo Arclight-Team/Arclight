@@ -185,25 +185,65 @@ void InputSystem::disableContext(const std::string& name) {
 
 
 void InputSystem::onKeyEvent(const KeyEvent& event) {
+
 	Log::debug("Input System", "Key: %s, Event: %s", glfwGetKeyName(event.getKey(), GLFW_DONT_CARE), event.pressed() ? "Pressed" : "Released");
+
+	for (u32 i = 0; i < inputContexts.size(); i++) {
+
+		if (inputContexts[i].onKeyEvent(event)) {
+			break;
+		}
+
+	}
+
 }
 
 
 
 void InputSystem::onCharEvent(const CharEvent& event) {
+
 	Log::debug("Input System", "Char: %c", static_cast<char>(event.getChar()));
+
+	for (u32 i = 0; i < inputContexts.size(); i++) {
+
+		if (inputContexts[i].onCharEvent(event)) {
+			break;
+		}
+
+	}
+
 }
 
 
 
 void InputSystem::onCursorEvent(const CursorEvent& event) {
+
 	Log::debug("Input System", "Cursor: x = %0.3f, y = %0.3f", event.getX(), event.getY());
+
+	for (u32 i = 0; i < inputContexts.size(); i++) {
+
+		if (inputContexts[i].onCursorEvent(event)) {
+			break;
+		}
+
+	}
+
 }
 
 
 
 void InputSystem::onScrollEvent(const ScrollEvent& event) {
+
 	Log::debug("Input System", "Scroll: x = %0.3f, y = %0.3f", event.scrollX(), event.scrollY());
+
+	for (u32 i = 0; i < inputContexts.size(); i++) {
+
+		if (inputContexts[i].onScrollEvent(event)) {
+			break;
+		}
+
+	}
+
 }
 
 
