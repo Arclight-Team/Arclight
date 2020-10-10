@@ -5,6 +5,8 @@
 #include "util/log.h"
 #include "util/assert.h"
 
+#include <algorithm>
+
 #include <GLFW/glfw3.h>
 
 
@@ -76,6 +78,13 @@ void InputSystem::connect(const Window& window) {
 
 	});
 
+	glfwSetMouseButtonCallback(handle->handle, [](GLFWwindow* window, int button, int action, int mods) {
+
+		InputSystem* input = static_cast<WindowHandle*>(glfwGetWindowUserPointer(window))->userPtr.input;
+		input->onKeyEvent(KeyEvent(button, action == GLFW_PRESS ? KeyState::Pressed : KeyState::Released));
+
+	});
+
 }
 
 
@@ -115,6 +124,66 @@ bool InputSystem::connected() const {
 
 
 
+void InputSystem::createContext(const std::string& name, u32 priority) {
+
+	u32 index = getContextIndex(name);
+
+	if (index != invalidContext) {
+		Log::warn("Input System", "Input context with name '%s' already exists", name.c_str());
+		return;
+	}
+
+	inputContexts.emplace(inputContexts.begin() + getPriorityInsertIndex(priority), name, priority);
+
+}
+
+
+
+void InputSystem::deleteContext(const std::string& name) {
+
+	u32 index = getContextIndex(name);
+
+	if (index == invalidContext) {
+		Log::warn("Input System", "Input context with name '%s' doesn't exist", name.c_str());
+		return;
+	}
+
+	inputContexts.erase(inputContexts.begin() + index);
+
+}
+
+
+
+void InputSystem::enableContext(const std::string& name) {
+
+	u32 index = getContextIndex(name);
+
+	if (index == invalidContext) {
+		Log::warn("Input System", "Input context with name '%s' doesn't exist", name.c_str());
+		return;
+	}
+
+	inputContexts[index].enable();
+
+}
+
+
+
+void InputSystem::disableContext(const std::string& name) {
+
+	u32 index = getContextIndex(name);
+
+	if (index == invalidContext) {
+		Log::warn("Input System", "Input context with name '%s' doesn't exist", name.c_str());
+		return;
+	}
+
+	inputContexts[index].disable();
+
+}
+
+
+
 void InputSystem::onKeyEvent(const KeyEvent& event) {
 	Log::debug("Input System", "Key: %s, Event: %s", glfwGetKeyName(event.getKey(), GLFW_DONT_CARE), event.pressed() ? "Pressed" : "Released");
 }
@@ -141,4 +210,36 @@ void InputSystem::onScrollEvent(const ScrollEvent& event) {
 
 std::shared_ptr<WindowHandle> InputSystem::getWindowHandle() const {
 	return windowHandle.lock();
+}
+
+
+
+u32 InputSystem::getContextIndex(const std::string& name) const {
+
+	for (u32 i = 0; i < inputContexts.size(); i++) {
+
+		if (name == inputContexts.at(i).getContextName()) {
+			return i;
+		}
+
+	}
+
+	return invalidContext;
+
+}
+
+
+
+u32 InputSystem::getPriorityInsertIndex(u32 priority) const {
+
+	for (u32 i = 0; i < inputContexts.size(); i++) {
+
+		if (priority <= inputContexts.at(i).getPriority()) {
+			return i;
+		}
+
+	}
+
+	return inputContexts.size();
+
 }

@@ -1,9 +1,10 @@
 #include "core/input/inputcontext.h"
+#include "util/log.h"
+
 
 
 void InputContext::switchState(u32 stateID) {
-
-
+	currentState = stateID;
 }
 
 
@@ -39,6 +40,42 @@ void InputContext::removeTrigger(const InputTrigger& trigger) {
 
 
 
+void InputContext::clearTriggers() {
+
+	for (auto& state : inputStates) {
+		state.second.clear();
+	}
+
+	inputStates.clear();
+
+}
+
+
+
+void InputContext::disable() {
+	enabled = false;
+}
+
+
+
+void InputContext::enable() {
+	enabled = true;
+}
+
+
+
 u32 InputContext::getCurrentStateID() const {
 	return currentState;
+}
+
+
+
+u32 InputContext::getPriority() const {
+	return priority;
+}
+
+
+
+const std::string& InputContext::getContextName() const {
+	return name;
 }

@@ -25,10 +25,10 @@ public:
 	void connect(const Window& window);
 	void disconnect();
 
-	void attachContext(const InputContext& context);
-	void detachContext(const InputContext& context);
-	//void enableContext()
-
+	void createContext(const std::string& name, u32 priority);
+	void deleteContext(const std::string& name);
+	void enableContext(const std::string& name);
+	void disableContext(const std::string& name);
 
 	bool connected() const;
 
@@ -41,8 +41,13 @@ public:
 
 private:
 
+	constexpr static u32 invalidContext = -1;
+
+	u32 getContextIndex(const std::string& name) const;
+	u32 getPriorityInsertIndex(u32 priority) const;
 	std::shared_ptr<WindowHandle> getWindowHandle() const;
 
 	std::weak_ptr<WindowHandle> windowHandle;
+	std::vector<InputContext> inputContexts;
 
 };
