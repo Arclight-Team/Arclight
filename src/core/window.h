@@ -84,8 +84,8 @@ enum class WindowState {
 	Maximized
 };
 
-struct GLFWmonitor;
 struct WindowHandle;
+struct GLFWmonitor;
 
 typedef void(*WindowMoveFunction)(Window*, u32, u32);
 typedef void(*WindowResizeFunction)(Window*, u32, u32);
@@ -163,7 +163,6 @@ public:
 	std::weak_ptr<WindowHandle> getInternalHandle() const;
 
 private:
-	friend class InputDevice;
 
 	static void initMonitorCallback();
 	static void queryMonitors();

@@ -1,6 +1,5 @@
 #include "util/log.h"
 #include "util/file.h"
-#include "util/assert.h"
 #include "config.h"
 
 #include <iostream>

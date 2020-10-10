@@ -52,6 +52,8 @@ int main(){
 
 	}
 
+	//Log::
+
 	window.close();
 	input.disconnect();
 	profiler.stop();

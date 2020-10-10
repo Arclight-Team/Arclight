@@ -2,6 +2,11 @@
 
 
 
+template<typename T>
+concept Number = std::is_integral_v<T> || std::is_floating_point_v<T>;
+
+
+
 namespace Math {
 
 	constexpr double pi = 3.1415926535897932384626434;
