@@ -2,6 +2,7 @@
 
 #include "core/input/inputcontext.h"
 #include <memory>
+#include <map>
 
 
 class Window;
@@ -21,13 +22,16 @@ public:
 
 	~InputSystem();
 
+	InputSystem(const InputSystem& system) = delete;
+	InputSystem& operator=(const InputSystem& system) = delete;	
+
 	void connect(const Window& window);
 	void disconnect();
 
-	void createContext(const std::string& name, u32 priority);
-	void deleteContext(const std::string& name);
-	void enableContext(const std::string& name);
-	void disableContext(const std::string& name);
+	InputContext& createContext(u32 id);
+	void destroyContext(u32 id);
+	void enableContext(u32 id);
+	void disableContext(u32 id);
 
 	bool connected() const;
 
@@ -38,13 +42,11 @@ public:
 
 private:
 
-	constexpr static u32 invalidContext = -1;
-
-	u32 getContextIndex(const std::string& name) const;
-	u32 getPriorityInsertIndex(u32 priority) const;
+	void setupKeyMap();
 	std::shared_ptr<WindowHandle> getWindowHandle() const;
 
 	std::weak_ptr<WindowHandle> windowHandle;
-	std::vector<InputContext> inputContexts;
+	std::map<u32, InputContext> inputContexts;
+	std::vector<KeyState> keyStates;
 
 };

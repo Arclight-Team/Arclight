@@ -33,7 +33,7 @@ void InputSystem::connect(const Window& window) {
 	disconnect();
 
 	windowHandle = window.getInternalHandle();
-	std::shared_ptr<WindowHandle> handle = getWindowHandle();
+	auto handle = getWindowHandle();
 	
 	if (handle) {
 		handle->userPtr.input = this;
@@ -52,38 +52,40 @@ void InputSystem::connect(const Window& window) {
 			return;
 		}
 
-		InputSystem* input = static_cast<WindowHandle*>(glfwGetWindowUserPointer(window))->userPtr.input;
+		InputSystem* input = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->input;
 		input->onKeyEvent(KeyEvent(key, action == GLFW_PRESS ? KeyState::Pressed : KeyState::Released));
 
 	});
 
 	glfwSetCharCallback(handle->handle, [](GLFWwindow* window, unsigned int codepoint) {
 
-		InputSystem* input = static_cast<WindowHandle*>(glfwGetWindowUserPointer(window))->userPtr.input;
+		InputSystem* input = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->input;
 		input->onCharEvent(CharEvent(codepoint));
 
 	});
 
 	glfwSetCursorPosCallback(handle->handle, [](GLFWwindow* window, double x, double y) {
 
-		InputSystem* input = static_cast<WindowHandle*>(glfwGetWindowUserPointer(window))->userPtr.input;
+		InputSystem* input = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->input;
 		input->onCursorEvent(CursorEvent(x, y));
 
 	});
 
 	glfwSetScrollCallback(handle->handle, [](GLFWwindow* window, double x, double y) {
 
-		InputSystem* input = static_cast<WindowHandle*>(glfwGetWindowUserPointer(window))->userPtr.input;
+		InputSystem* input = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->input;
 		input->onScrollEvent(ScrollEvent(x, y));
 
 	});
 
 	glfwSetMouseButtonCallback(handle->handle, [](GLFWwindow* window, int button, int action, int mods) {
 
-		InputSystem* input = static_cast<WindowHandle*>(glfwGetWindowUserPointer(window))->userPtr.input;
+		InputSystem* input = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->input;
 		input->onKeyEvent(KeyEvent(button, action == GLFW_PRESS ? KeyState::Pressed : KeyState::Released));
 
 	});
+
+	setupKeyMap();
 
 }
 
@@ -124,61 +126,54 @@ bool InputSystem::connected() const {
 
 
 
-void InputSystem::createContext(const std::string& name, u32 priority) {
+InputContext& InputSystem::createContext(u32 id) {
 
-	u32 index = getContextIndex(name);
-
-	if (index != invalidContext) {
-		Log::warn("Input System", "Input context with name '%s' already exists", name.c_str());
-		return;
+	if (inputContexts.contains(id)) {
+		Log::warn("Input System", "Input context with ID %d already exists", id);
+		return inputContexts[id];
 	}
 
-	inputContexts.emplace(inputContexts.begin() + getPriorityInsertIndex(priority), name, priority);
+	inputContexts.try_emplace(id);
+	return inputContexts[id];
 
 }
 
 
 
-void InputSystem::deleteContext(const std::string& name) {
+void InputSystem::destroyContext(u32 id) {
 
-	u32 index = getContextIndex(name);
-
-	if (index == invalidContext) {
-		Log::warn("Input System", "Input context with name '%s' doesn't exist", name.c_str());
+	if (!inputContexts.contains(id)) {
+		Log::warn("Input System", "Input context with ID %d doesn't exist", id);
 		return;
 	}
 
-	inputContexts.erase(inputContexts.begin() + index);
+	inputContexts.erase(id);
 
 }
 
 
 
-void InputSystem::enableContext(const std::string& name) {
+void InputSystem::enableContext(u32 id) {
 
-	u32 index = getContextIndex(name);
-
-	if (index == invalidContext) {
-		Log::warn("Input System", "Input context with name '%s' doesn't exist", name.c_str());
+	if (!inputContexts.contains(id)) {
+		Log::warn("Input System", "Input context with ID %d doesn't exist", id);
 		return;
 	}
 
-	inputContexts[index].enable();
+	inputContexts[id].enable();
 
 }
 
 
 
-void InputSystem::disableContext(const std::string& name) {
+void InputSystem::disableContext(u32 id) {
 
-	u32 index = getContextIndex(name);
-
-	if (index == invalidContext) {
-		Log::warn("Input System", "Input context with name '%s' doesn't exist", name.c_str());
+	if (!inputContexts.contains(id)) {
+		Log::warn("Input System", "Input context with ID %d doesn't exist", id);
 		return;
 	}
 
-	inputContexts[index].disable();
+	inputContexts[id].disable();
 
 }
 
@@ -188,9 +183,11 @@ void InputSystem::onKeyEvent(const KeyEvent& event) {
 
 	Log::debug("Input System", "Key: %s, Event: %s", glfwGetKeyName(event.getKey(), GLFW_DONT_CARE), event.pressed() ? "Pressed" : "Released");
 
-	for (u32 i = 0; i < inputContexts.size(); i++) {
+	keyStates[event.getKey()] = event.getKeyState();
 
-		if (inputContexts[i].onKeyEvent(event)) {
+	for (auto& [id, context] : inputContexts) {
+
+		if (context.onKeyEvent(event, keyStates)) {
 			break;
 		}
 
@@ -254,32 +251,19 @@ std::shared_ptr<WindowHandle> InputSystem::getWindowHandle() const {
 
 
 
-u32 InputSystem::getContextIndex(const std::string& name) const {
+void InputSystem::setupKeyMap() {
 
-	for (u32 i = 0; i < inputContexts.size(); i++) {
+	auto handle = getWindowHandle();
+	arc_assert(handle != nullptr, "Handle unexpectedly null");
+	
+	keyStates.resize(GLFW_KEY_LAST, KeyState::Released);
 
-		if (name == inputContexts.at(i).getContextName()) {
-			return i;
-		}
-
+	for (u32 i = GLFW_MOUSE_BUTTON_1; i <= GLFW_MOUSE_BUTTON_LAST; i++) {
+		glfwGetMouseButton(handle->handle, i);
 	}
 
-	return invalidContext;
-
-}
-
-
-
-u32 InputSystem::getPriorityInsertIndex(u32 priority) const {
-
-	for (u32 i = 0; i < inputContexts.size(); i++) {
-
-		if (priority <= inputContexts.at(i).getPriority()) {
-			return i;
-		}
-
+	for (u32 i = GLFW_KEY_SPACE; i <= GLFW_KEY_LAST; i++) {
+		glfwGetKey(handle->handle, i);
 	}
-
-	return inputContexts.size();
 
 }
