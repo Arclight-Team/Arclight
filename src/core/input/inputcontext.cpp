@@ -44,19 +44,34 @@ void InputContext::switchState(u32 stateID) {
 
 
 
-void InputContext::addTrigger(u32 stateID, const InputTrigger& trigger, InputAction action) {
+void InputContext::addTrigger(u32 stateID, const KeyTrigger& trigger, KeyAction action) {
 
 	arc_assert(inputStates.contains(stateID), "State with ID %d doesn't exist", stateID);
 
+	auto& keyMap = inputStates[stateID].keyMapping;
+
 	for (u32 i = 0; i < trigger.getKeyCount(); i++) {
-		inputStates[stateID].keyMapping.emplace(trigger.getKey(i), std::make_pair(trigger, action));
+
+		auto keyNode = keyMap.equal_range(trigger.getKey(i));
+
+		for (auto it = keyNode.first; it != keyNode.second; it++) {
+
+			if (it->second.first.getKeyCount() <= trigger.getKeyCount()) {
+				keyMap.emplace_hint(it, trigger.getKey(i), std::make_pair(trigger, action));
+				return;
+			}
+
+		}
+
+		keyMap.emplace_hint(keyNode.second, trigger.getKey(i), std::make_pair(trigger, action));
+
 	}
 
 }
 
 
 
-void InputContext::removeTrigger(u32 stateID, const InputTrigger& trigger) {
+void InputContext::removeTrigger(u32 stateID, const KeyTrigger& trigger) {
 
 	arc_assert(inputStates.contains(stateID), "State with ID %d doesn't exist", stateID);
 
@@ -101,13 +116,26 @@ void InputContext::enable() {
 
 
 
-bool InputContext::onKeyEvent(const KeyEvent& event) {
+bool InputContext::onKeyEvent(const KeyEvent& event, const std::vector<KeyState>& keyStates) {
 
 	if (!handler) {
-		return false;
+		//return false;
 	}
 
+	Key key = event.getKey();
+	auto& keyMap = inputStates[currentState].keyMapping;
+	auto keyNode = keyMap.equal_range(key);
+	
+	for (auto it = keyNode.first; it != keyNode.second; it++) {
 
+		if(triggerCompare(keyStates, it->second.first, event)){
+			Log::debug("Input Context", "Action triggered: %d", it->second.second);
+			return true;
+		}
+
+	}
+
+	return false;
 
 }
 
@@ -115,11 +143,12 @@ bool InputContext::onKeyEvent(const KeyEvent& event) {
 
 bool InputContext::onCharEvent(const CharEvent& event) {
 
-	if (!handler || !inputStates[currentState].enableChar) {
+	if (!handler || !isCharMode()) {
 		return false;
 	}
 
-	return handler->onCharReceived(event.getChar());
+	//return handler->onCharReceived(event.getChar());
+	return true;
 
 }
 
@@ -131,7 +160,8 @@ bool InputContext::onCursorEvent(const CursorEvent& event) {
 		return false;
 	}
 
-	return handler->onCursorMove(event);
+	//return handler->onCursorMove(event);
+	return true;
 
 }
 
@@ -143,7 +173,8 @@ bool InputContext::onScrollEvent(const ScrollEvent& event) {
 		return false;
 	}
 
-	return handler->onScroll(event);
+	//return handler->onScroll(event);
+	return true;
 
 }
 
@@ -169,12 +200,28 @@ u32 InputContext::getCurrentStateID() const {
 
 
 
-u32 InputContext::getPriority() const {
-	return priority;
+bool InputContext::isCharMode() const {
+	return inputStates.at(currentState).charMode;
 }
 
 
 
-const std::string& InputContext::getContextName() const {
-	return name;
+bool InputContext::triggerCompare(const std::vector<KeyState>& keyStates, const KeyTrigger& trigger, const KeyEvent& event) const {
+
+	if (trigger.getKeyState() != event.getKeyState()) {
+		return false;
+	}
+
+	for (u32 i = 0; i < trigger.getKeyCount(); i++) {
+
+		Key key = trigger.getKey(i);
+
+		if (keyStates[key] != trigger.getKeyState()) {
+			return false;
+		}
+
+	}
+
+	return true;
+
 }

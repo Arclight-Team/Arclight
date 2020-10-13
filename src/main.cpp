@@ -42,6 +42,9 @@ int main(){
 
 	InputSystem input;
 	input.connect(window);
+	InputContext& rootContext = input.createContext(0);
+	rootContext.addState(0);
+	rootContext.addTrigger(0, KeyTrigger({ 48, 49, 50 }, KeyState::Pressed, KeyTriggerType::Continuous), 0);
 
 	window.enableVSync();
 
@@ -51,8 +54,6 @@ int main(){
 		window.pollEvents();
 
 	}
-
-	//Log::
 
 	window.close();
 	input.disconnect();

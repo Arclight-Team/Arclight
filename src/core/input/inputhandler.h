@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/input/inputtrigger.h"
+#include "core/input/keytrigger.h"
 #include "core/input/inputevent.h"
 
 
@@ -13,7 +13,10 @@ public:
 	explicit InputHandler(InputContext* context);
 	~InputHandler();
 
-	bool onActionTriggered(InputAction action);
+	InputHandler(const InputHandler& handler) = delete;
+	InputHandler& operator=(const InputHandler& handler) = delete;
+
+	bool onActionTriggered(KeyAction action);
 	bool onCharReceived(KeyChar character);
 	bool onCursorMove(const CursorEvent& event);
 	bool onScroll(const ScrollEvent& event);
