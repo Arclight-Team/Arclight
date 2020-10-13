@@ -23,7 +23,9 @@ namespace Log {
 
 	template<class... Args>
 	void debug(const std::string& subsystem, const std::string& message, const Args&... args) {
+#ifndef NDEBUG
 		Raw::debug(subsystem, Util::format(message, args...));
+#endif
 	}
 
 	template<class... Args>

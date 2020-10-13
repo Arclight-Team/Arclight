@@ -19,7 +19,7 @@ public:
 	constexpr static u32 invalidKey = -1;
 
 	KeyTrigger();
-	KeyTrigger(std::initializer_list<Key> keys, KeyState state, KeyTriggerType type);
+	KeyTrigger(std::initializer_list<Key> keys, KeyState state = KeyState::Pressed, KeyTriggerType type = KeyTriggerType::Once);
 
 	void addKey(u32 key);
 	void resetKeys();

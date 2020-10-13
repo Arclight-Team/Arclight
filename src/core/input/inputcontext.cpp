@@ -182,6 +182,10 @@ bool InputContext::onScrollEvent(const ScrollEvent& event) {
 
 void InputContext::linkHandler(InputHandler& handler) {
 
+	if (this->handler) {
+		unlinkHandler();
+	}
+
 	this->handler = &handler;
 
 }
@@ -189,7 +193,7 @@ void InputContext::linkHandler(InputHandler& handler) {
 
 
 void InputContext::unlinkHandler() {
-
+	this->handler = nullptr;
 }
 
 
