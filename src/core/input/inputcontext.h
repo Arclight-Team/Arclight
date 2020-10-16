@@ -13,29 +13,28 @@ class ScrollEvent;
 
 class InputContext {
 
+public:
+
 	typedef std::pair<KeyTrigger, KeyAction> KeyTriggers;
 
 	struct State {
 
-		inline State() : charMode(false), enableCursorMove(true), enableScroll(true), disableCursor(false), disablePropagation(false) {}
-		inline State(bool charMode, bool enableCursorMove, bool enableScroll, bool disableCursor, bool disablePropagation)
-			: charMode(charMode), enableCursorMove(enableCursorMove), enableScroll(enableScroll), disableCursor(disableCursor), disablePropagation(disablePropagation){}
+		inline State() : charMode(false), enableCursor(true), enableScroll(true), disablePropagation(false) {}
+		inline State(bool charMode, bool enableCursor, bool enableScroll, bool disablePropagation)
+			: charMode(charMode), enableCursor(enableCursor), enableScroll(enableScroll), disablePropagation(disablePropagation){}
 
 		bool charMode;
-		bool enableCursorMove;
+		bool enableCursor;
 		bool enableScroll;
-		bool disableCursor;
 		bool disablePropagation;
 		std::unordered_multimap<Key, KeyTriggers> keyMapping;
 
 	};
 
-public:
-
 	constexpr static u32 invalidState = -1;
 
-
 	inline explicit InputContext() : enabled(true), handler(nullptr), currentState(invalidState) {}
+	~InputContext();
 
 	InputContext(const InputContext& context) = delete;
 	InputContext& operator=(const InputContext& context) = delete;
@@ -62,7 +61,10 @@ public:
 	void unlinkHandler();
 
 	u32 getCurrentStateID() const;
-	bool isCharMode() const;
+	bool charEnabled() const;
+	bool cursorEnabled() const;
+	bool scrollEnabled() const;
+	bool propagationDisabled() const;
 
 private:
 

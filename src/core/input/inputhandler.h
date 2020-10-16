@@ -2,12 +2,12 @@
 
 #include "core/input/keytrigger.h"
 #include "core/input/inputevent.h"
-#include "interface/idestructionsafeguard.h"
+
 
 
 class InputContext;
 
-class InputHandler : public IDestructionSafeguard {
+class InputHandler {
 
 public:
 
@@ -18,7 +18,7 @@ public:
 
 	inline constexpr InputHandler() : context(nullptr), actionListener(nullptr), charListener(nullptr), cursorListener(nullptr), scrollListener(nullptr) {};
 
-	~InputHandler();
+	virtual ~InputHandler();
 
 	InputHandler(const InputHandler& handler) = delete;
 	InputHandler& operator=(const InputHandler& handler) = delete;
@@ -40,6 +40,8 @@ public:
 	}
 
 private:
+
+	friend class InputContext;
 
 	InputContext* context;
 	ActionListener actionListener;

@@ -4,6 +4,12 @@
 
 
 
+InputContext::~InputContext() {
+	unlinkHandler();
+}
+
+
+
 void InputContext::addState(u32 stateID, const State& state) {
 
 	if (inputStates.contains(stateID)) {
@@ -118,8 +124,8 @@ void InputContext::enable() {
 
 bool InputContext::onKeyEvent(const KeyEvent& event, const std::vector<KeyState>& keyStates) {
 
-	if (!handler) {
-		//return false;
+	if (!handler || !handler->actionListener) {
+		return propagationDisabled();
 	}
 
 	Key key = event.getKey();
@@ -129,13 +135,12 @@ bool InputContext::onKeyEvent(const KeyEvent& event, const std::vector<KeyState>
 	for (auto it = keyNode.first; it != keyNode.second; it++) {
 
 		if(triggerCompare(keyStates, it->second.first, event)){
-			Log::debug("Input Context", "Action triggered: %d", it->second.second);
-			return true;
+			return handler->actionListener(it->second.second) || propagationDisabled();
 		}
 
 	}
 
-	return false;
+	return propagationDisabled();
 
 }
 
@@ -143,12 +148,11 @@ bool InputContext::onKeyEvent(const KeyEvent& event, const std::vector<KeyState>
 
 bool InputContext::onCharEvent(const CharEvent& event) {
 
-	if (!handler || !isCharMode()) {
-		return false;
+	if (!handler || !handler->charListener || !charEnabled()) {
+		return propagationDisabled();
 	}
 
-	//return handler->onCharReceived(event.getChar());
-	return true;
+	return handler->charListener(event.getChar()) || propagationDisabled();
 
 }
 
@@ -156,12 +160,11 @@ bool InputContext::onCharEvent(const CharEvent& event) {
 
 bool InputContext::onCursorEvent(const CursorEvent& event) {
 
-	if (!handler || !inputStates[currentState].enableCursorMove) {
-		return false;
+	if (!handler || !handler->cursorListener || !cursorEnabled()) {
+		return propagationDisabled();
 	}
 
-	//return handler->onCursorMove(event);
-	return true;
+	return handler->cursorListener(event.getX(), event.getY()) || propagationDisabled();
 
 }
 
@@ -169,12 +172,11 @@ bool InputContext::onCursorEvent(const CursorEvent& event) {
 
 bool InputContext::onScrollEvent(const ScrollEvent& event) {
 
-	if (!handler || !inputStates[currentState].enableScroll) {
-		return false;
+	if (!handler || !handler->scrollListener || !scrollEnabled()) {
+		return propagationDisabled();
 	}
 
-	//return handler->onScroll(event);
-	return true;
+	return handler->scrollListener(event.scrollX(), event.scrollY()) || propagationDisabled();
 
 }
 
@@ -182,18 +184,21 @@ bool InputContext::onScrollEvent(const ScrollEvent& event) {
 
 void InputContext::linkHandler(InputHandler& handler) {
 
-	if (this->handler) {
-		unlinkHandler();
-	}
-
+	unlinkHandler();
 	this->handler = &handler;
+	this->handler->context = this;
 
 }
 
 
 
 void InputContext::unlinkHandler() {
-	this->handler = nullptr;
+
+	if (handler) {
+		handler->context = nullptr;
+		handler = nullptr;
+	}
+
 }
 
 
@@ -204,8 +209,26 @@ u32 InputContext::getCurrentStateID() const {
 
 
 
-bool InputContext::isCharMode() const {
+bool InputContext::charEnabled() const {
 	return inputStates.at(currentState).charMode;
+}
+
+
+
+bool InputContext::cursorEnabled() const {
+	return inputStates.at(currentState).enableCursor;
+}
+
+
+
+bool InputContext::scrollEnabled() const {
+	return inputStates.at(currentState).enableScroll;
+}
+
+
+
+bool InputContext::propagationDisabled() const {
+	return inputStates.at(currentState).disablePropagation;
 }
 
 

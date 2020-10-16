@@ -181,8 +181,6 @@ void InputSystem::disableContext(u32 id) {
 
 void InputSystem::onKeyEvent(const KeyEvent& event) {
 
-	Log::debug("Input System", "Key: %s, Event: %s", glfwGetKeyName(event.getKey(), GLFW_DONT_CARE), event.pressed() ? "Pressed" : "Released");
-
 	keyStates[event.getKey()] = event.getKeyState();
 
 	for (auto& [id, context] : inputContexts) {
@@ -199,11 +197,9 @@ void InputSystem::onKeyEvent(const KeyEvent& event) {
 
 void InputSystem::onCharEvent(const CharEvent& event) {
 
-	Log::debug("Input System", "Char: %c", static_cast<char>(event.getChar()));
+	for (auto& [id, context] : inputContexts) {
 
-	for (u32 i = 0; i < inputContexts.size(); i++) {
-
-		if (inputContexts[i].onCharEvent(event)) {
+		if (context.onCharEvent(event)) {
 			break;
 		}
 
@@ -215,11 +211,9 @@ void InputSystem::onCharEvent(const CharEvent& event) {
 
 void InputSystem::onCursorEvent(const CursorEvent& event) {
 
-	Log::debug("Input System", "Cursor: x = %0.3f, y = %0.3f", event.getX(), event.getY());
+	for (auto& [id, context] : inputContexts) {
 
-	for (u32 i = 0; i < inputContexts.size(); i++) {
-
-		if (inputContexts[i].onCursorEvent(event)) {
+		if (context.onCursorEvent(event)) {
 			break;
 		}
 
@@ -231,11 +225,9 @@ void InputSystem::onCursorEvent(const CursorEvent& event) {
 
 void InputSystem::onScrollEvent(const ScrollEvent& event) {
 
-	Log::debug("Input System", "Scroll: x = %0.3f, y = %0.3f", event.scrollX(), event.scrollY());
+	for (auto& [id, context] : inputContexts) {
 
-	for (u32 i = 0; i < inputContexts.size(); i++) {
-
-		if (inputContexts[i].onScrollEvent(event)) {
+		if (context.onScrollEvent(event)) {
 			break;
 		}
 
