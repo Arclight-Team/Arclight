@@ -5,6 +5,8 @@
 #include "util/log.h"
 #include "util/assert.h"
 
+#include <algorithm>
+
 #include <GLFW/glfw3.h>
 
 
@@ -31,7 +33,7 @@ void InputSystem::connect(const Window& window) {
 	disconnect();
 
 	windowHandle = window.getInternalHandle();
-	std::shared_ptr<WindowHandle> handle = getWindowHandle();
+	auto handle = getWindowHandle();
 	
 	if (handle) {
 		handle->userPtr.input = this;
@@ -50,31 +52,40 @@ void InputSystem::connect(const Window& window) {
 			return;
 		}
 
-		InputSystem* input = static_cast<WindowHandle*>(glfwGetWindowUserPointer(window))->userPtr.input;
+		InputSystem* input = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->input;
 		input->onKeyEvent(KeyEvent(key, action == GLFW_PRESS ? KeyState::Pressed : KeyState::Released));
 
 	});
 
 	glfwSetCharCallback(handle->handle, [](GLFWwindow* window, unsigned int codepoint) {
 
-		InputSystem* input = static_cast<WindowHandle*>(glfwGetWindowUserPointer(window))->userPtr.input;
+		InputSystem* input = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->input;
 		input->onCharEvent(CharEvent(codepoint));
 
 	});
 
 	glfwSetCursorPosCallback(handle->handle, [](GLFWwindow* window, double x, double y) {
 
-		InputSystem* input = static_cast<WindowHandle*>(glfwGetWindowUserPointer(window))->userPtr.input;
+		InputSystem* input = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->input;
 		input->onCursorEvent(CursorEvent(x, y));
 
 	});
 
 	glfwSetScrollCallback(handle->handle, [](GLFWwindow* window, double x, double y) {
 
-		InputSystem* input = static_cast<WindowHandle*>(glfwGetWindowUserPointer(window))->userPtr.input;
+		InputSystem* input = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->input;
 		input->onScrollEvent(ScrollEvent(x, y));
 
 	});
+
+	glfwSetMouseButtonCallback(handle->handle, [](GLFWwindow* window, int button, int action, int mods) {
+
+		InputSystem* input = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->input;
+		input->onKeyEvent(KeyEvent(button, action == GLFW_PRESS ? KeyState::Pressed : KeyState::Released));
+
+	});
+
+	setupKeyMap();
 
 }
 
@@ -115,30 +126,136 @@ bool InputSystem::connected() const {
 
 
 
+InputContext& InputSystem::createContext(u32 id) {
+
+	if (inputContexts.contains(id)) {
+		Log::warn("Input System", "Input context with ID %d already exists", id);
+		return inputContexts[id];
+	}
+
+	inputContexts.try_emplace(id);
+	return inputContexts[id];
+
+}
+
+
+
+void InputSystem::destroyContext(u32 id) {
+
+	if (!inputContexts.contains(id)) {
+		Log::warn("Input System", "Input context with ID %d doesn't exist", id);
+		return;
+	}
+
+	inputContexts.erase(id);
+
+}
+
+
+
+void InputSystem::enableContext(u32 id) {
+
+	if (!inputContexts.contains(id)) {
+		Log::warn("Input System", "Input context with ID %d doesn't exist", id);
+		return;
+	}
+
+	inputContexts[id].enable();
+
+}
+
+
+
+void InputSystem::disableContext(u32 id) {
+
+	if (!inputContexts.contains(id)) {
+		Log::warn("Input System", "Input context with ID %d doesn't exist", id);
+		return;
+	}
+
+	inputContexts[id].disable();
+
+}
+
+
+
 void InputSystem::onKeyEvent(const KeyEvent& event) {
-	Log::debug("Input System", "Key: %s, Event: %s", glfwGetKeyName(event.getKey(), GLFW_DONT_CARE), event.pressed() ? "Pressed" : "Released");
+
+	keyStates[event.getKey()] = event.getKeyState();
+
+	for (auto& [id, context] : inputContexts) {
+
+		if (context.onKeyEvent(event, keyStates)) {
+			break;
+		}
+
+	}
+
 }
 
 
 
 void InputSystem::onCharEvent(const CharEvent& event) {
-	Log::debug("Input System", "Char: %c", static_cast<char>(event.getChar()));
+
+	for (auto& [id, context] : inputContexts) {
+
+		if (context.onCharEvent(event)) {
+			break;
+		}
+
+	}
+
 }
 
 
 
 void InputSystem::onCursorEvent(const CursorEvent& event) {
-	Log::debug("Input System", "Cursor: x = %0.3f, y = %0.3f", event.getX(), event.getY());
+
+	for (auto& [id, context] : inputContexts) {
+
+		if (context.onCursorEvent(event)) {
+			break;
+		}
+
+	}
+
 }
 
 
 
 void InputSystem::onScrollEvent(const ScrollEvent& event) {
-	Log::debug("Input System", "Scroll: x = %0.3f, y = %0.3f", event.scrollX(), event.scrollY());
+
+	for (auto& [id, context] : inputContexts) {
+
+		if (context.onScrollEvent(event)) {
+			break;
+		}
+
+	}
+
 }
 
 
 
 std::shared_ptr<WindowHandle> InputSystem::getWindowHandle() const {
 	return windowHandle.lock();
+}
+
+
+
+void InputSystem::setupKeyMap() {
+
+	auto handle = getWindowHandle();
+	arc_assert(handle != nullptr, "Handle unexpectedly null");
+	
+	keyStates.resize(GLFW_KEY_LAST, KeyState::Released);
+
+	for (u32 i = GLFW_MOUSE_BUTTON_1; i <= GLFW_MOUSE_BUTTON_LAST; i++) {
+		glfwGetMouseButton(handle->handle, i);
+	}
+
+	for (u32 i = GLFW_KEY_SPACE; i <= GLFW_KEY_LAST; i++) {
+		glfwGetKey(handle->handle, i);
+	}
+
 }

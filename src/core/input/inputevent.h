@@ -3,14 +3,6 @@
 #include "types.h"
 
 
-typedef u32 Key;
-typedef u32 KeyChar;
-
-enum class KeyState {
-	Pressed,
-	Released
-};
-
 
 class KeyEvent {
 

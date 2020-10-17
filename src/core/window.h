@@ -99,6 +99,9 @@ public:
 	Window();
 	~Window();
 
+	Window(const Window& window) = delete;
+	Window& operator=(const Window& window) = delete;
+
 	void setWindowConfig(const WindowConfig& config);
 	bool create(u32 w, u32 h, const std::string& title);
 	bool createFullscreen(const std::string& title, u32 monitorID = 0);
