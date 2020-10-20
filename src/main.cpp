@@ -43,13 +43,20 @@ int main(){
 	InputSystem input;
 	input.connect(window);
 	InputContext& rootContext = input.createContext(0);
-	rootContext.addState(0, InputContext::State(true, true, true, false));
-	rootContext.addTrigger(0, KeyTrigger({ 48, 49, 50 }, KeyState::Pressed, KeyTriggerType::Continuous), 0);
-	
+	rootContext.addState(0);
+	rootContext.addBoundAction(0, KeyTrigger({ 48, 49, 50 }, KeyState::Pressed, KeyTriggerType::Once), KeyTrigger({ 48 }, KeyState::Pressed, KeyTriggerType::Once));
+	rootContext.registerAction(0, 0);
+	rootContext.restoreBinding(0);
+
 	InputHandler handler;
 
 	handler.setActionListener([](KeyAction action) {
 		Log::info("Input Context", "Action triggered: %d", action);
+		return true;
+	});
+
+	handler.setKeyListener([](Key key, KeyState state) {
+		Log::info("Input Context", "Key triggered: %d, %d", key, state);
 		return true;
 	});
 

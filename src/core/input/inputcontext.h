@@ -1,9 +1,9 @@
 #pragma once
 
 #include "core/input/keytrigger.h"
-#include "core/input/inputevent.h"
 #include "core/input/inputhandler.h"
 #include <unordered_map>
+#include <optional>
 
 
 class KeyEvent;
@@ -13,23 +13,16 @@ class ScrollEvent;
 
 class InputContext {
 
-public:
-
-	typedef std::pair<KeyTrigger, KeyAction> KeyTriggers;
-
 	struct State {
 
-		inline State() : charMode(false), enableCursor(true), enableScroll(true), disablePropagation(false) {}
-		inline State(bool charMode, bool enableCursor, bool enableScroll, bool disablePropagation)
-			: charMode(charMode), enableCursor(enableCursor), enableScroll(enableScroll), disablePropagation(disablePropagation){}
+		inline State(bool disablePropagation = false) : disablePropagation(disablePropagation) {}
 
-		bool charMode;
-		bool enableCursor;
-		bool enableScroll;
 		bool disablePropagation;
-		std::unordered_multimap<Key, KeyTriggers> keyMapping;
+		std::unordered_multimap<Key, KeyAction> keyLookup;
 
 	};
+
+public:
 
 	constexpr static u32 invalidState = -1;
 
@@ -41,13 +34,29 @@ public:
 	InputContext(InputContext&& context) noexcept = default;
 	InputContext& operator=(InputContext&& context) = default;
 
-	void addState(u32 stateID, const State& state = State());
+	void addState(u32 stateID, bool disablePropagation = false);
 	void removeState(u32 stateID);
 	void switchState(u32 stateID);
+	bool stateAdded(u32 stateID) const;
 
-	void addTrigger(u32 stateID, const KeyTrigger& trigger, KeyAction action);
-	void removeTrigger(u32 stateID, const KeyTrigger& trigger);
-	void clearTriggers(u32 stateID);
+	void addBoundAction(KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger);
+	void addAction(KeyAction action, const KeyTrigger& trigger);
+	void removeAction(KeyAction action);
+	void clearActions();
+	bool actionAdded(KeyAction action) const;
+
+	void setBinding(KeyAction action, const KeyTrigger& binding);
+	void restoreBinding(KeyAction action);
+	void restoreBindings();
+	KeyTrigger getActionBinding(KeyAction action) const;
+	KeyTrigger getActionDefaultBinding(KeyAction action) const;
+
+	void registerAction(u32 stateID, KeyAction action);
+	void unregisterAction(u32 stateID, KeyAction action);
+	void unregisterAction(KeyAction action);
+	void unregisterActions(u32 stateID);
+	void unregisterActions();
+	bool actionRegistered(u32 stateID, KeyAction action) const;
 
 	void disable();
 	void enable();
@@ -61,9 +70,6 @@ public:
 	void unlinkHandler();
 
 	u32 getCurrentStateID() const;
-	bool charEnabled() const;
-	bool cursorEnabled() const;
-	bool scrollEnabled() const;
 	bool propagationDisabled() const;
 
 private:
@@ -74,5 +80,7 @@ private:
 	u32 currentState;
 	InputHandler* handler;
 	std::unordered_map<u32, State> inputStates;
+	std::unordered_map<KeyAction, KeyTrigger> actionBindings;
+	std::unordered_map<KeyAction, KeyTrigger> defaultBindings;
 
 };

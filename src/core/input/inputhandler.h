@@ -12,11 +12,12 @@ class InputHandler {
 public:
 
 	typedef bool(*ActionListener)(KeyAction);
+	typedef bool(*KeyListener)(Key, KeyState);
 	typedef bool(*CharListener)(KeyChar);
 	typedef bool(*CursorListener)(double, double);
 	typedef bool(*ScrollListener)(double, double);
 
-	inline constexpr InputHandler() : context(nullptr), actionListener(nullptr), charListener(nullptr), cursorListener(nullptr), scrollListener(nullptr) {};
+	inline constexpr InputHandler() : context(nullptr), actionListener(nullptr), keyListener(nullptr), charListener(nullptr), cursorListener(nullptr), scrollListener(nullptr) {};
 
 	virtual ~InputHandler();
 
@@ -25,6 +26,10 @@ public:
 
 	inline void setActionListener(ActionListener listener) {
 		actionListener = listener;
+	}
+
+	inline void setKeyListener(KeyListener listener) {
+		keyListener = listener;
 	}
 
 	inline void setCharListener(CharListener listener) {
@@ -45,6 +50,7 @@ private:
 
 	InputContext* context;
 	ActionListener actionListener;
+	KeyListener keyListener;
 	CharListener charListener;
 	CursorListener cursorListener;
 	ScrollListener scrollListener;

@@ -8,6 +8,7 @@ void __arc_assert(bool condition, const std::string& file, int line, const std::
 
 	if (!condition) {
 		Log::error("Assert", "Assertion failed (File " + file + ", line " + std::to_string(line) + "): " + message, args...);
+		std::abort();
 	}
 
 }

@@ -10,9 +10,12 @@ KeyTrigger::KeyTrigger() : keyState(KeyState::Released), triggerType(KeyTriggerT
 
 KeyTrigger::KeyTrigger(std::initializer_list<Key> keys, KeyState state, KeyTriggerType type) : keyState(state), triggerType(type), keyCount(keys.size()) {
 
+	arc_assert(keys.size(), "Key trigger size cannot be 0");
+
 	for (u32 i = 0; i < keyCount; i++) {
 		this->keys[i] = *(keys.begin() + i);
 	}
+
 	for (u32 i = keyCount; i < maxTriggerKeys; i++) {
 		this->keys[i] = invalidKey;
 	}
