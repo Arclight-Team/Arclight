@@ -1,3 +1,5 @@
+![Arclight Engine Logo](assets/logo.png)
+
 # Arclight Engine
 High-performance and flexible game engine
 
