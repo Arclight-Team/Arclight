@@ -1,4 +1,4 @@
-![Arclight Engine Logo](assets/logo.png)
+<img src="assets/logo.png" height="150" align="right">
 
 # Arclight Engine
 High-performance and flexible game engine
@@ -31,3 +31,6 @@ You can check out progress on what has already been done, what is in progress ri
 If you want to support this project, feel free to donate as soon as donation is set up.
 
 If you want to join out team, contact me through overblade.dev@gmail.com. Please note that this is a very advanced project and requires at least 3 years of knowledge in C++ and at least *some* knowledge in game engine design and game development. I cannot give any guarantees whether your application will be successful or not.
+
+## Credits
+[ItzTacos](https://github.com/ItzTacosOfficial) for the official logo
