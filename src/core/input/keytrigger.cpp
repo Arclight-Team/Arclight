@@ -3,12 +3,12 @@
 
 
 
-KeyTrigger::KeyTrigger() : keyState(KeyState::Released), triggerType(KeyTriggerType::Once), keyCount(0) {
+KeyTrigger::KeyTrigger() : keyState(KeyState::Pressed), keyCount(0) {
 	resetKeys();
 }
 
 
-KeyTrigger::KeyTrigger(std::initializer_list<Key> keys, KeyState state, KeyTriggerType type) : keyState(state), triggerType(type), keyCount(keys.size()) {
+KeyTrigger::KeyTrigger(std::initializer_list<Key> keys, KeyState state) : keyState(state), keyCount(keys.size()) {
 
 	arc_assert(keys.size(), "Key trigger size cannot be 0");
 
@@ -57,12 +57,6 @@ void KeyTrigger::setKeyState(KeyState state) {
 
 
 
-void KeyTrigger::setTriggerType(KeyTriggerType type) {
-	triggerType = type;
-}
-
-
-
 u32 KeyTrigger::getKey(u32 index) const {
 	
 	arc_assert(index < maxTriggerKeys, "Requested key index in trigger out of range");
@@ -74,12 +68,6 @@ u32 KeyTrigger::getKey(u32 index) const {
 
 u32 KeyTrigger::getKeyCount() const {
 	return keyCount;
-}
-
-
-
-KeyTriggerType KeyTrigger::getTriggerType() const {
-	return triggerType;
 }
 
 

@@ -40,13 +40,17 @@ public:
 	void onCursorEvent(const CursorEvent& event);
 	void onScrollEvent(const ScrollEvent& event);
 
+	void updateContinuous(u32 ticks);
+
 private:
 
 	void setupKeyMap();
+	void resetEventCounts();
 	std::shared_ptr<WindowHandle> getWindowHandle() const;
 
 	std::weak_ptr<WindowHandle> windowHandle;
 	std::map<u32, InputContext> inputContexts;
 	std::vector<KeyState> keyStates;
+	std::vector<u32> eventCounts;
 
 };

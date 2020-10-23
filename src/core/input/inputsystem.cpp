@@ -86,6 +86,7 @@ void InputSystem::connect(const Window& window) {
 	});
 
 	setupKeyMap();
+	eventCounts.resize(keyStates.size());
 
 }
 
@@ -182,6 +183,7 @@ void InputSystem::disableContext(u32 id) {
 void InputSystem::onKeyEvent(const KeyEvent& event) {
 
 	keyStates[event.getKey()] = event.getKeyState();
+	eventCounts[event.getKey()]++;
 
 	for (auto& [id, context] : inputContexts) {
 
@@ -237,6 +239,39 @@ void InputSystem::onScrollEvent(const ScrollEvent& event) {
 
 
 
+void InputSystem::updateContinuous(u32 ticks) {
+
+	if (!ticks) {
+		return;
+	}
+
+	for (u32 i : eventCounts) {
+
+		if (i > ticks) {
+
+			//Prevents auto-clicks and mouse abuse
+			Log::error("Input System", "Detected non-human generated input");
+			resetEventCounts();
+			return;
+
+		}
+
+	}
+
+	for (auto& [id, context] : inputContexts) {
+		
+		if (context.onContinuousEvent(ticks, keyStates, eventCounts)) {
+			break;
+		}
+
+	}
+
+	resetEventCounts();
+
+}
+
+
+
 std::shared_ptr<WindowHandle> InputSystem::getWindowHandle() const {
 	return windowHandle.lock();
 }
@@ -247,6 +282,7 @@ void InputSystem::setupKeyMap() {
 
 	auto handle = getWindowHandle();
 	arc_assert(handle != nullptr, "Handle unexpectedly null");
+	arc_assert(GLFW_KEY_LAST < 512, "GLFW_KEY_LAST exceeds the keycount maximum of 512 keys");
 	
 	keyStates.resize(GLFW_KEY_LAST, KeyState::Released);
 
@@ -257,5 +293,15 @@ void InputSystem::setupKeyMap() {
 	for (u32 i = GLFW_KEY_SPACE; i <= GLFW_KEY_LAST; i++) {
 		glfwGetKey(handle->handle, i);
 	}
+
+}
+
+
+
+void InputSystem::resetEventCounts() {
+
+	arc_assert(eventCounts.size(), "Event counts not initialized");
+
+	std::fill(eventCounts.begin(), eventCounts.end(), 0);
 
 }

@@ -19,6 +19,7 @@ class InputContext {
 
 		bool disablePropagation;
 		std::unordered_multimap<Key, KeyAction> keyLookup;
+		std::vector<KeyAction> coActions;
 
 	};
 
@@ -26,7 +27,7 @@ public:
 
 	constexpr static u32 invalidState = -1;
 
-	inline explicit InputContext() : enabled(true), handler(nullptr), currentState(invalidState) {}
+	inline InputContext() : enabled(true), handler(nullptr), currentState(invalidState) {}
 	~InputContext();
 
 	InputContext(const InputContext& context) = delete;
@@ -39,24 +40,26 @@ public:
 	void switchState(u32 stateID);
 	bool stateAdded(u32 stateID) const;
 
-	void addBoundAction(KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger);
-	void addAction(KeyAction action, const KeyTrigger& trigger);
+	void addAction(KeyAction action, const KeyTrigger& trigger, bool continuous = false);
+	void addBoundAction(KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger, bool continuous = false);
 	void removeAction(KeyAction action);
 	void clearActions();
 	bool actionAdded(KeyAction action) const;
 
 	void setBinding(KeyAction action, const KeyTrigger& binding);
 	void restoreBinding(KeyAction action);
-	void restoreBindings();
-	KeyTrigger getActionBinding(KeyAction action) const;
-	KeyTrigger getActionDefaultBinding(KeyAction action) const;
+	void restoreAllBindings();
+	const KeyTrigger& getActionBinding(KeyAction action) const;
+	const KeyTrigger& getActionDefaultBinding(KeyAction action) const;
+	bool isActionContinuous(KeyAction action) const;
 
 	void registerAction(u32 stateID, KeyAction action);
 	void unregisterAction(u32 stateID, KeyAction action);
-	void unregisterAction(KeyAction action);
-	void unregisterActions(u32 stateID);
-	void unregisterActions();
+	void unregisterActionGroup(KeyAction action);
+	void unregisterStateActions(u32 stateID);
+	void unregisterAllActions();
 	bool actionRegistered(u32 stateID, KeyAction action) const;
+
 
 	void disable();
 	void enable();
@@ -65,6 +68,7 @@ public:
 	bool onCharEvent(const CharEvent& event);
 	bool onCursorEvent(const CursorEvent& event);
 	bool onScrollEvent(const ScrollEvent& event);
+	bool onContinuousEvent(u32 ticks, const std::vector<KeyState>& keyStates, std::vector<u32>& eventCounts);
 
 	void linkHandler(InputHandler& handler);
 	void unlinkHandler();
@@ -80,7 +84,7 @@ private:
 	u32 currentState;
 	InputHandler* handler;
 	std::unordered_map<u32, State> inputStates;
-	std::unordered_map<KeyAction, KeyTrigger> actionBindings;
+	std::unordered_map<KeyAction, std::pair<KeyTrigger, bool>> actionBindings;
 	std::unordered_map<KeyAction, KeyTrigger> defaultBindings;
 
 };

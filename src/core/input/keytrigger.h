@@ -5,11 +5,6 @@
 #include <initializer_list>
 
 
-enum class KeyTriggerType {
-	Once,
-	Continuous
-};
-
 
 class KeyTrigger {
 
@@ -19,21 +14,19 @@ public:
 	constexpr static u32 invalidKey = -1;
 
 	KeyTrigger();
-	KeyTrigger(std::initializer_list<Key> keys, KeyState state = KeyState::Pressed, KeyTriggerType type = KeyTriggerType::Once);
+	KeyTrigger(std::initializer_list<Key> keys, KeyState state = KeyState::Pressed);
 
 	void addKey(u32 key);
 	void resetKeys();
 	void setKeyState(KeyState state);
-	void setTriggerType(KeyTriggerType type);
 
 	u32 getKey(u32 index) const;
 	u32 getKeyCount() const;
 	KeyState getKeyState() const;
-	KeyTriggerType getTriggerType() const;
 
 	inline bool operator==(const KeyTrigger& trigger) const {
 		
-		if (keyCount != trigger.keyCount || triggerType != trigger.triggerType || keyState != trigger.keyState) {
+		if (keyCount != trigger.keyCount || keyState != trigger.keyState) {
 			return false;
 		}
 
@@ -65,6 +58,5 @@ private:
 	Key keys[maxTriggerKeys];
 	u32 keyCount;
 	KeyState keyState;
-	KeyTriggerType triggerType;
 	
 };

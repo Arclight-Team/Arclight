@@ -2,6 +2,8 @@
 #include "util/log.h"
 #include "util/assert.h"
 
+#include <algorithm>
+
 
 
 InputContext::~InputContext() {
@@ -56,23 +58,23 @@ bool InputContext::stateAdded(u32 stateID) const {
 
 
 
-void InputContext::addBoundAction(KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger) {
+void InputContext::addAction(KeyAction action, const KeyTrigger& trigger, bool continuous) {
 
 	arc_assert(!actionAdded(action), "Action %d already added to context", action);
 
-	actionBindings[action] = boundTrigger;
-	defaultBindings[action] = defaultTrigger;
+	actionBindings[action] = std::make_pair(trigger, continuous);
+	defaultBindings[action] = trigger;
 
 }
 
 
 
-void InputContext::addAction(KeyAction action, const KeyTrigger& trigger) {
+void InputContext::addBoundAction(KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger, bool continuous) {
 
 	arc_assert(!actionAdded(action), "Action %d already added to context", action);
 
-	actionBindings[action] = trigger;
-	defaultBindings[action] = trigger;
+	actionBindings[action] = std::make_pair(boundTrigger, continuous);
+	defaultBindings[action] = defaultTrigger;
 
 }
 
@@ -82,7 +84,7 @@ void InputContext::removeAction(KeyAction action) {
 
 	arc_assert(actionAdded(action), "Action %d not added to context", action);
 
-	unregisterAction(action);
+	unregisterStateActions(action);
 	actionBindings.erase(action);
 	defaultBindings.erase(action);
 
@@ -92,7 +94,7 @@ void InputContext::removeAction(KeyAction action) {
 
 void InputContext::clearActions() {
 
-	unregisterActions();
+	unregisterAllActions();
 	actionBindings.clear();
 	defaultBindings.clear();
 
@@ -113,16 +115,23 @@ void InputContext::setBinding(KeyAction action, const KeyTrigger& binding) {
 		return;
 	}
 
+	std::vector<u32> boundStates;
+
 	for (const auto& [stateID, state] : inputStates) {
 
 		if (actionRegistered(stateID, action)) {
 
 			unregisterAction(stateID, action);
-			actionBindings[action] = binding;
-			registerAction(stateID, action);
+			boundStates.push_back(stateID);
 
 		}
 
+	}
+
+	actionBindings[action].first = binding;
+
+	for (u32 stateID : boundStates) {
+		registerAction(stateID, action);
 	}
 
 }
@@ -142,7 +151,7 @@ void InputContext::restoreBinding(KeyAction action) {
 
 
 
-void InputContext::restoreBindings() {
+void InputContext::restoreAllBindings() {
 
 	for (const auto& [action, trigger] : defaultBindings) {
 		restoreBinding(action);
@@ -152,21 +161,31 @@ void InputContext::restoreBindings() {
 
 
 
-KeyTrigger InputContext::getActionBinding(KeyAction action) const {
+const KeyTrigger& InputContext::getActionBinding(KeyAction action) const {
 
 	arc_assert(actionAdded(action), "Action %d not added to context", action);
 
-	return actionBindings.at(action);
+	return actionBindings.at(action).first;
 
 }
 
 
 
-KeyTrigger InputContext::getActionDefaultBinding(KeyAction action) const {
+const KeyTrigger& InputContext::getActionDefaultBinding(KeyAction action) const {
 
 	arc_assert(actionAdded(action), "Action %d not added to context", action);
 
 	return defaultBindings.at(action);
+
+}
+
+
+
+bool InputContext::isActionContinuous(KeyAction action) const {
+
+	arc_assert(actionAdded(action), "Action bindings don't contain action %d", action);
+
+	return actionBindings.at(action).second;
 
 }
 
@@ -177,23 +196,43 @@ void InputContext::registerAction(u32 stateID, KeyAction action) {
 	arc_assert(stateAdded(stateID), "State %d not defined for input context while registering key action %d", stateID, action);
 	arc_assert(actionAdded(action), "Action bindings don't contain action %d", action);
 
-	auto& keyMap = inputStates[stateID].keyLookup;
-	const KeyTrigger& trigger = actionBindings[action];
+	const KeyTrigger& trigger = getActionBinding(action);
 
-	for (u32 i = 0; i < trigger.getKeyCount(); i++) {
+	if (isActionContinuous(action)) {
 
-		const auto& actions = keyMap.equal_range(trigger.getKey(i));
+		auto& coActions = inputStates[stateID].coActions;
 
-		for (auto it = actions.first; it != actions.second; it++) {
+		for (auto it = coActions.begin(); it != coActions.end(); it++) {
 
-			if (actionBindings[it->second].getKeyCount() <= trigger.getKeyCount()) {
-				keyMap.emplace_hint(it, trigger.getKey(i), action);
+			if (getActionBinding(*it).getKeyCount() <= trigger.getKeyCount()) {
+				coActions.insert(it, action);
 				return;
 			}
 
 		}
 
-		keyMap.emplace_hint(actions.second, trigger.getKey(i), action);
+		coActions.insert(coActions.end(), action);
+
+	} else {
+
+		auto& keyMap = inputStates[stateID].keyLookup;
+
+		for (u32 i = 0; i < trigger.getKeyCount(); i++) {
+
+			const auto& actions = keyMap.equal_range(trigger.getKey(i));
+
+			for (auto it = actions.first; it != actions.second; it++) {
+
+				if (actionBindings[it->second].first.getKeyCount() <= trigger.getKeyCount()) {
+					keyMap.emplace_hint(it, trigger.getKey(i), action);
+					return;
+				}
+
+			}
+
+			keyMap.emplace_hint(actions.second, trigger.getKey(i), action);
+
+		}
 
 	}
 
@@ -206,18 +245,35 @@ void InputContext::unregisterAction(u32 stateID, KeyAction action) {
 	arc_assert(stateAdded(stateID), "State %d not defined for input context while unregistering key action %d", stateID, action);
 	arc_assert(actionAdded(action), "Action bindings don't contain action %d", action);
 
-	auto& keyMap = inputStates[stateID].keyLookup;
-	const KeyTrigger& trigger = actionBindings[action];
+	if (isActionContinuous(action)) {
 
-	for (u32 i = 0; i < trigger.getKeyCount(); i++) {
+		auto& coActions = inputStates[stateID].coActions;
 
-		const auto& actions = keyMap.equal_range(trigger.getKey(i));
+		for (u32 i = 0; i < coActions.size(); i++) {
 
-		for (auto it = actions.first; it != actions.second; it++) {
+			if (coActions[i] == action) {
+				coActions.erase(coActions.begin() + i);
+				return;
+			}
 
-			if (it->second == action) {
-				keyMap.erase(it);
-				break;
+		}
+
+	} else {
+
+		auto& keyMap = inputStates[stateID].keyLookup;
+		const KeyTrigger& trigger = getActionBinding(action);
+
+		for (u32 i = 0; i < trigger.getKeyCount(); i++) {
+
+			const auto& actions = keyMap.equal_range(trigger.getKey(i));
+
+			for (auto it = actions.first; it != actions.second; it++) {
+
+				if (it->second == action) {
+					keyMap.erase(it);
+					break;
+				}
+
 			}
 
 		}
@@ -228,7 +284,7 @@ void InputContext::unregisterAction(u32 stateID, KeyAction action) {
 
 
 
-void InputContext::unregisterAction(KeyAction action) {
+void InputContext::unregisterActionGroup(KeyAction action) {
 
 	for (auto& state : inputStates) {
 		unregisterAction(state.first, action);
@@ -238,21 +294,24 @@ void InputContext::unregisterAction(KeyAction action) {
 
 
 
-void InputContext::unregisterActions(u32 stateID) {
+void InputContext::unregisterStateActions(u32 stateID) {
 
 	arc_assert(stateAdded(stateID), "State %d not defined for input context while unregistering all actions", stateID);
 
 	auto& keyMap = inputStates[stateID].keyLookup;
+	auto& coActions = inputStates[stateID].coActions;
+	
 	keyMap.clear();
+	coActions.clear();
 
 }
 
 
 
-void InputContext::unregisterActions() {
+void InputContext::unregisterAllActions() {
 
 	for (auto& state : inputStates) {
-		unregisterActions(state.first);
+		unregisterStateActions(state.first);
 	}
 
 }
@@ -264,14 +323,30 @@ bool InputContext::actionRegistered(u32 stateID, KeyAction action) const {
 	arc_assert(stateAdded(stateID), "State %d not defined for input context while unregistering all action", stateID);
 	arc_assert(actionAdded(action), "Action bindings don't contain action %d", action);
 
-	Key key = actionBindings.at(action).getKey(0);
-	auto& keyMap = inputStates.at(stateID).keyLookup;
-	const auto& actions = keyMap.equal_range(key);
+	if (isActionContinuous(action)) {
 
-	for (auto it = actions.first; it != actions.second; it++) {
+		auto& coActions = inputStates.at(stateID).coActions;
 
-		if (it->second == action) {
-			return true;
+		for (u32 i = 0; i < coActions.size(); i++) {
+
+			if (coActions[i] == action) {
+				return true;
+			}
+
+		}
+
+	} else {
+
+		Key key = getActionBinding(action).getKey(0);
+		auto& keyMap = inputStates.at(stateID).keyLookup;
+		const auto& actions = keyMap.equal_range(key);
+
+		for (auto it = actions.first; it != actions.second; it++) {
+
+			if (it->second == action) {
+				return true;
+			}
+
 		}
 
 	}
@@ -311,7 +386,7 @@ bool InputContext::onKeyEvent(const KeyEvent& event, const std::vector<KeyState>
 	
 		for (auto it = actions.first; it != actions.second; it++) {
 
-			const KeyTrigger& trigger = actionBindings[it->second];
+			const KeyTrigger& trigger = getActionBinding(it->second);
 
 			if(triggerCompare(keyStates, trigger, event)){
 			
@@ -367,6 +442,54 @@ bool InputContext::onScrollEvent(const ScrollEvent& event) {
 	}
 
 	return handler->scrollListener(event.scrollX(), event.scrollY()) || propagationDisabled();
+
+}
+
+
+
+bool InputContext::onContinuousEvent(u32 ticks, const std::vector<KeyState>& keyStates, std::vector<u32>& eventCounts) {
+
+	if (!enabled || !handler || !handler->coActionListener) {
+		return propagationDisabled();
+	}
+
+	for (KeyAction action : inputStates[currentState].coActions) {
+
+		u32 combinedEventCount = -1;
+		const KeyTrigger& trigger = getActionBinding(action);
+
+		for (u32 i = 0; i < trigger.getKeyCount(); i++) {
+
+			Key key = trigger.getKey(i);
+			u32 eventCount = 0;
+
+			if (keyStates[key] == trigger.getKeyState() && eventCounts[key] == 0) {
+				eventCount = ticks;
+			} else {
+				eventCount = (eventCounts[key] + (keyStates[key] == trigger.getKeyState())) / 2;
+			}
+
+			combinedEventCount = std::min(combinedEventCount, eventCount);
+
+		}
+
+		bool result = false;
+
+		for (u32 i = 0; i < combinedEventCount; i++) {
+			result |= handler->coActionListener(action, 1);
+		}
+
+		if (result) {
+				
+			for (u32 i = 0; i < trigger.getKeyCount(); i++) {
+				eventCounts[trigger.getKey(i)] = 0;
+			}
+
+		}
+
+	}
+
+	return propagationDisabled();
 
 }
 
