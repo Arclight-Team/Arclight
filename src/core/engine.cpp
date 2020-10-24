@@ -1,4 +1,5 @@
 #include "core/engine.h"
+#include "util/file.h"
 #include "util/log.h"
 
 
@@ -23,16 +24,24 @@ bool Engine::initialize() {
 	profiler.start();
 
 	//Create the main window
-	if (createWindow()) {
-		Log::info("Core", "Window successfully created");
-	} else {
+	if (!createWindow()) {
 		Log::error("Core", "Failed to create window");
 		return false;
 	}
 
+	Log::info("Core", "Window successfully created");
+
 	//Setup input system and input handler
 	setupInputSystem();
 	Log::info("Core", "Input system successfully set up");
+
+	//Initialize audio engine
+	if (!audioEngine.initialize()) {
+		Log::error("Core", "Audio engine failed to initialize");
+		return false;
+	}
+
+	Log::info("Core", "Audio engine initialized");
 
 	//Enable V-Sync
 	window.enableVSync();
@@ -56,6 +65,9 @@ void Engine::run() {
 	u64 lastTime = timer.getElapsedTime();
 	u64 accum = 0;
 
+	//Play sounds
+
+
 	//Loop until window close event is requested
 	while (!window.closeRequested()) {
 
@@ -75,6 +87,9 @@ void Engine::run() {
 		window.pollEvents();
 		inputSystem.updateContinuous(ticks);
 
+		//Update audio engine
+		audioEngine.update();
+
 		//Swap render buffers
 		window.swapBuffers();
 
@@ -86,15 +101,22 @@ void Engine::run() {
 
 void Engine::shutdown() {
 
+	Log::info("Core", "Shutting down engine");
+
 	//Close instances
+	audioEngine.shutdown();
 	inputSystem.disconnect();
 	window.close();
 
 	//Stop the profiler and get engine runtime
 	profiler.stop();
 
+	Log::info("Core", "Shutting down backend");
+
 	//Shutdown engine backend libraries
 	shutdownBackend();
+
+	Log::info("Core", "Bye");
 
 	//Finally close log file
 	Log::closeLogFile();
@@ -149,6 +171,7 @@ void Engine::setupInputSystem() {
 
 	inputHandler.setActionListener([](KeyAction action) {
 		Log::info("Input Context", "Action triggered: %d", action);
+		//audioEngine.playSound(URI(":/sounds/world1.wav"));
 		return true;
 	});
 

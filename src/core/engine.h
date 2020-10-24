@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/audio/audioengine.h"
 #include "core/input/inputsystem.h"
 #include "core/window.h"
 #include "util/profiler.h"
@@ -26,5 +27,6 @@ private:
 	Window window;
 	InputSystem inputSystem;
 	InputHandler inputHandler;
+	AudioEngine audioEngine;
 
 };

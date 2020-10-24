@@ -6,6 +6,7 @@
 [Bb]uild/
 [Ll]og/
 [Ll]ib/
+assets/
 .idea/
 cmake-build-debug-visual-studio/
 cmake-build-release-visual-studio/

@@ -51,7 +51,7 @@ namespace Log {
 			ss << "[" << level << "] <" << subsystem << "> " << message;
 			std::cout << ss.str() << std::endl;
 
-			if (logfile.getURI().validFile()) {
+			if (logfile.isOpen()) {
 				logfile.writeLine(ss.str());
 			}
 
