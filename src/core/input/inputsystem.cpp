@@ -247,7 +247,7 @@ void InputSystem::updateContinuous(u32 ticks) {
 
 	for (u32 i : eventCounts) {
 
-		if (i > ticks) {
+		if ((i / 2) > ticks) {
 
 			//Prevents auto-clicks and mouse abuse
 			Log::error("Input System", "Detected non-human generated input");

@@ -16,10 +16,11 @@ list(APPEND CMAKE_PREFIX_PATH "lib/GLEW")
 find_package(GLEW REQUIRED)
 
 include_directories("src")
+include_directories("lib/FMOD/include")
 include_directories("lib/GLFW/include")
 include_directories(${GLEW_INCLUDE_DIR})
 
 file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp")
 
 add_executable (arclight ${SOURCES})
-target_link_libraries(arclight GLEW::GLEW glfw)
+target_link_libraries(arclight GLEW::GLEW glfw ${CMAKE_CURRENT_SOURCE_DIR}/lib/FMOD/fmodL_vc.lib)
