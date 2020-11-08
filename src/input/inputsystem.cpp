@@ -1,7 +1,7 @@
-#include "core/input/inputsystem.h"
+#include "input/inputsystem.h"
+#include "input/inputevent.h"
 #include "core/windowhandle.h"
 #include "core/window.h"
-#include "core/input/inputevent.h"
 #include "util/log.h"
 #include "util/assert.h"
 

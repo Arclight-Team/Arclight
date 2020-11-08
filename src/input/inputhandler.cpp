@@ -1,5 +1,5 @@
-#include "core/input/inputhandler.h"
-#include "core/input/inputcontext.h"
+#include "input/inputhandler.h"
+#include "input/inputcontext.h"
 
 
 

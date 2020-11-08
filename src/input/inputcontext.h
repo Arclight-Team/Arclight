@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/input/keytrigger.h"
-#include "core/input/inputhandler.h"
+#include "input/keytrigger.h"
+#include "input/inputhandler.h"
 #include <unordered_map>
 #include <optional>
 

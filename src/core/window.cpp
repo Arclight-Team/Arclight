@@ -1,6 +1,6 @@
 #include "core/window.h"
 #include "core/windowhandle.h"
-#include "core/input/inputsystem.h"
+#include "input/inputsystem.h"
 #include "util/assert.h"
 
 #include <GL/glew.h>

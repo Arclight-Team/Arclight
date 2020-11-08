@@ -66,7 +66,7 @@ void Engine::run() {
 	u64 accum = 0;
 
 	//Play sounds
-
+	audioEngine.playSound(":/sounds/rickroll.mp3");
 
 	//Loop until window close event is requested
 	while (!window.closeRequested()) {
@@ -157,40 +157,40 @@ void Engine::setupInputSystem() {
 	rootContext.addBoundAction(0, KeyTrigger({ 48, 49, 50 }), KeyTrigger({ 48 }));
 	rootContext.addAction(1, KeyTrigger({ 51 }), true);
 	rootContext.addAction(2, KeyTrigger({ 52 }), true);
-	rootContext.addAction(3, KeyTrigger({ 0 }), true);
+	rootContext.addAction(3, KeyTrigger({ 0 }));
 	rootContext.addAction(4, KeyTrigger({ 1 }), true);
 	rootContext.registerAction(0, 3);
 	rootContext.registerAction(0, 4);
 	rootContext.restoreBinding(0);
 
 	//Define input handler callbacks
-	inputHandler.setCoActionListener([](KeyAction action, double scale) {
+	inputHandler.setCoActionListener([this](KeyAction action, double scale) {
 		Log::info("Input Context", "Action triggered: %d", action);
 		return true;
 	});
 
-	inputHandler.setActionListener([](KeyAction action) {
+	inputHandler.setActionListener([this](KeyAction action) {
 		Log::info("Input Context", "Action triggered: %d", action);
-		//audioEngine.playSound(URI(":/sounds/world1.wav"));
+		this->audioEngine.playSound(URI(":/sounds/world1.wav"));
 		return true;
 	});
 
-	inputHandler.setKeyListener([](Key key, KeyState state) {
+	inputHandler.setKeyListener([this](Key key, KeyState state) {
 		//Log::info("Input Context", "Key triggered: %d, %d", key, state);
 		return true;
 	});
 
-	inputHandler.setCharListener([](KeyChar character) {
+	inputHandler.setCharListener([this](KeyChar character) {
 		//Log::info("Input Context", "Char obtained: %d", character);
 		return true;
 	});
 
-	inputHandler.setCursorListener([](double x, double y) {
+	inputHandler.setCursorListener([this](double x, double y) {
 		//Log::info("Input Context", "Cursor at: %f, %f", x, y);
 		return true;
 	});
 
-	inputHandler.setScrollListener([](double x, double y) {
+	inputHandler.setScrollListener([this](double x, double y) {
 		//Log::info("Input Context", "Scrolled: %f, %f", x, y);
 		return true;
 	});

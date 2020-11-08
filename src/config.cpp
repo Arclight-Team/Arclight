@@ -5,7 +5,7 @@
 namespace Config {
 
 	const char* appName = "Project Arclight";
-	const char* uriRoot = "../../assets/";
+	const char* uriRoot = "../../assets";
 	const char* logDirName = "../../log";
 	const char* logFileName = "appname-%version-%date-%u32.txt";
 

@@ -1,4 +1,4 @@
-#include "core/input/keytrigger.h"
+#include "input/keytrigger.h"
 #include "util/assert.h"
 
 

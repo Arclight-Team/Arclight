@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/input/inputcontext.h"
+#include "input/inputcontext.h"
 #include <memory>
 #include <map>
 

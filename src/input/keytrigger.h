@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/input/keydefs.h"
+#include "input/keydefs.h"
 #include "types.h"
 #include <initializer_list>
 

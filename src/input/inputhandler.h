@@ -1,8 +1,9 @@
 #pragma once
 
-#include "core/input/keytrigger.h"
-#include "core/input/inputevent.h"
+#include "input/keytrigger.h"
+#include "input/inputevent.h"
 
+#include <functional>
 
 
 class InputContext;
@@ -11,14 +12,14 @@ class InputHandler {
 
 public:
 
-	typedef bool(*CoActionListener)(KeyAction, double);
-	typedef bool(*ActionListener)(KeyAction);
-	typedef bool(*KeyListener)(Key, KeyState);
-	typedef bool(*CharListener)(KeyChar);
-	typedef bool(*CursorListener)(double, double);
-	typedef bool(*ScrollListener)(double, double);
+	typedef std::function<bool(KeyAction, double)> CoActionListener;
+	typedef std::function<bool(KeyAction)> ActionListener;
+	typedef std::function<bool(Key, KeyState)> KeyListener;
+	typedef std::function<bool(KeyChar)> CharListener;
+	typedef std::function<bool(double, double)> CursorListener;
+	typedef std::function<bool(double, double)> ScrollListener;
 
-	inline constexpr InputHandler() : context(nullptr), actionListener(nullptr), coActionListener(nullptr), keyListener(nullptr), charListener(nullptr), cursorListener(nullptr), scrollListener(nullptr) {};
+	inline InputHandler() : context(nullptr), actionListener(nullptr), coActionListener(nullptr), keyListener(nullptr), charListener(nullptr), cursorListener(nullptr), scrollListener(nullptr) {};
 
 	virtual ~InputHandler();
 

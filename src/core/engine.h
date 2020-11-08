@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/audio/audioengine.h"
-#include "core/input/inputsystem.h"
+#include "audio/audioengine.h"
+#include "input/inputsystem.h"
 #include "core/window.h"
 #include "util/profiler.h"
 
