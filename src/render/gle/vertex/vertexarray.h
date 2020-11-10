@@ -5,6 +5,22 @@
 
 GLE_BEGIN
 
+enum class AttributeType {
+	Byte,
+	UByte,
+	Short,
+	UShort,
+	Int,
+	UInt,
+	HalfFloat,
+	Float,
+	Double,
+	Fixed,
+	Int2_10,
+	UInt2_10
+};
+
+
 class VertexArray {
 
 public:
@@ -20,8 +36,9 @@ public:
 	//Destroys a vertex array if it was created once
 	void destroy();
 
-	//void setAttribute(u32 index);
-	//void setDivisor(u32 index, u32 divisor);
+	//Sets vertex attribute settings
+	void setAttribute(u32 index, u8 elements, AttributeType type, u32 stride, u32 offset);
+	void setDivisor(u32 index, u32 divisor);
 
 	//Enables/disables attributes
 	void enableAttribute(u32 index);
@@ -32,6 +49,8 @@ public:
 	bool isBound() const;
 
 private:
+
+	static u32 getAttributeTypeEnum(AttributeType type);
 
 	u32 id;		//ID of the vertex array
 
