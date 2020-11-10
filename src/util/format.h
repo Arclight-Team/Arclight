@@ -10,7 +10,7 @@ namespace Util {
 
 
 	template<class... Args>
-	std::string format(std::string message, const Args&... args) {
+	std::string format(std::string message, Args&&... args) {
 		
 		static const char* sequenceList[] = {
 			"appname"

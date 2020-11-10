@@ -283,7 +283,7 @@ void ListAllocator::ListAllocator::deallocateDirect(MemoryBlock* mBlock) {
 		nAllocatedBlocks--;
 	}
 }
-
+#include <typeinfo>
 #if _DEBUG
 void ListAllocator::dumpMemoryVisitor(Allocator* allocator, void* mBlock, u32 param) {
 	ListAllocator* pAllocator = reinterpret_cast<ListAllocator*>(allocator);
@@ -292,7 +292,7 @@ void ListAllocator::dumpMemoryVisitor(Allocator* allocator, void* mBlock, u32 pa
 	Log::debug("Heap", "Memory Block information:");
 	Log::debug("Heap", "    Address:    0x%X", pMB);
 	Log::debug("Heap", "    Tag:        0x%X", pMB->tag);
-	Log::debug("Heap", "    ID:         0x%X", pMB->id);
+	//Log::debug("Heap", "    ID:         0x%X", pMB->id);
 	Log::debug("Heap", "    Used:       %s", pMB->used ? "true" : "false");
 	Log::debug("Heap", "    Size:       0x%X (total: 0x%X)", pMB->size - sizeof(MemoryBlock), pMB->size);
 	Log::debug("Heap", "    Allocator:  0x%X", pMB->pAllocator);

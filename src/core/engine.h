@@ -4,6 +4,7 @@
 #include "input/inputsystem.h"
 #include "core/window.h"
 #include "util/profiler.h"
+#include "render/rendertest.h"
 
 
 class Engine {
@@ -28,5 +29,6 @@ private:
 	InputSystem inputSystem;
 	InputHandler inputHandler;
 	AudioEngine audioEngine;
+	RenderTest renderTest;
 
 };

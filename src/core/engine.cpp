@@ -1,7 +1,7 @@
 #include "core/engine.h"
 #include "util/file.h"
 #include "util/log.h"
-
+#include "render/gle/gc.h"
 
 
 Engine::Engine() : profiler(Timer::Unit::Seconds, 3) {}
@@ -42,6 +42,9 @@ bool Engine::initialize() {
 	}
 
 	Log::info("Core", "Audio engine initialized");
+
+	//Create render test
+	renderTest.create();
 
 	//Enable V-Sync
 	window.enableVSync();
@@ -90,6 +93,9 @@ void Engine::run() {
 		//Update audio engine
 		audioEngine.update();
 
+		//Run render test
+		renderTest.run();
+
 		//Swap render buffers
 		window.swapBuffers();
 
@@ -104,6 +110,7 @@ void Engine::shutdown() {
 	Log::info("Core", "Shutting down engine");
 
 	//Close instances
+	renderTest.destroy();
 	audioEngine.shutdown();
 	inputSystem.disconnect();
 	window.close();
