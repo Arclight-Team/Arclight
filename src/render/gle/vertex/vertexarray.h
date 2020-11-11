@@ -25,7 +25,7 @@ class VertexArray {
 
 public:
 
-	constexpr VertexArray() : id(invalidVertexArrayID) {}
+	constexpr VertexArray() : id(invalidID) {}
 
 	//Creates a vertex array if none has been created yet
 	void create();
@@ -54,10 +54,7 @@ private:
 
 	u32 id;		//ID of the vertex array
 
-	constexpr static inline u32 invalidVertexArrayID = -1;
-	constexpr static inline u32 invalidBoundID = -2;
-
-	static inline u32 boundVertexArray = invalidBoundID;
+	static inline u32 boundVertexArrayID = invalidBoundID;
 
 };
 

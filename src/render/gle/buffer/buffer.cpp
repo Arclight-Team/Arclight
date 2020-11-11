@@ -24,6 +24,7 @@ void Buffer::bind(BufferTarget target) {
 
 	if (!isBound()) {
 		glBindBuffer(getBufferTargetEnum(target), id);
+		setBoundBufferID(target, id);
 	}
 
 }
@@ -34,8 +35,12 @@ void Buffer::destroy() {
 	
 	if (isCreated()) {
 
+		if (isBound()) {
+			setBoundBufferID(target, invalidBoundID);
+		}
+
 		glDeleteBuffers(1, &id);
-		id = invalidBufferID;
+		id = invalidID;
 		size = -1;
 
 	}
@@ -105,7 +110,7 @@ void Buffer::copy(Buffer& destBuffer, u32 srcOffset, u32 destOffset, u32 size) {
 
 
 bool Buffer::isCreated() const {
-	return id != invalidBufferID;
+	return id != invalidID;
 }
 
 

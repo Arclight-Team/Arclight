@@ -8,5 +8,6 @@
 [Ll]ib/
 assets/
 .idea/
+pack/
 cmake-build-debug-visual-studio/
 cmake-build-release-visual-studio/

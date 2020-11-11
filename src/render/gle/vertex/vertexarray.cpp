@@ -22,6 +22,7 @@ void VertexArray::bind() {
 
 	if (!isBound()) {
 		glBindVertexArray(id);
+		boundVertexArrayID = id;
 	}
 
 }
@@ -32,8 +33,12 @@ void VertexArray::destroy() {
 
 	if (isCreated()) {
 
+		if (isBound()) {
+			boundVertexArrayID = invalidBoundID;
+		}
+
 		glDeleteVertexArrays(1, &id);
-		id = invalidVertexArrayID;
+		id = invalidID;
 
 	}
 
@@ -108,13 +113,13 @@ void VertexArray::disableAttribute(u32 index) {
 
 
 bool VertexArray::isCreated() const {
-	return id != invalidVertexArrayID;
+	return id != invalidID;
 }
 
 
 
 bool VertexArray::isBound() const {
-	return id == boundVertexArray;
+	return id == boundVertexArrayID;
 }
 
 

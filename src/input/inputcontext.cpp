@@ -1,4 +1,4 @@
-#include "core/input/inputcontext.h"
+#include "input/inputcontext.h"
 #include "util/log.h"
 #include "util/assert.h"
 

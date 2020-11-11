@@ -32,7 +32,7 @@ class Buffer {
 
 public:
 
-	constexpr Buffer() : id(invalidBufferID), target(BufferTarget::VertexBuffer), size(-1) {}
+	constexpr Buffer() : id(invalidID), target(BufferTarget::VertexBuffer), size(-1) {}
 
 	//Creates a buffer if none has been created yet
 	void create();
@@ -60,6 +60,10 @@ public:
 
 private:
 
+	constexpr void setBoundBufferID(BufferTarget target, u32 id) const {
+		boundBufferIDs[static_cast<u32>(target)] = id;
+	}
+
 	constexpr u32 getBoundBufferID(BufferTarget target) const {
 		return boundBufferIDs[static_cast<u32>(target)];
 	}
@@ -72,12 +76,8 @@ private:
 	BufferTarget target;		//Current bound target
 	u32 size;					//Buffer size or -1 if none has been allocated
 
-	//Invalid IDs
-	constexpr static inline u32 invalidBufferID = -1;
-	constexpr static inline u32 invalidBoundID = -2;
-
 	//Active buffer handles per type
-	static inline u32 boundBufferIDs[6] = { invalidBoundID };
+	static inline u32 boundBufferIDs[6] = { invalidBoundID, invalidBoundID, invalidBoundID, invalidBoundID, invalidBoundID, invalidBoundID };
 
 };
 

@@ -12,7 +12,8 @@ public:
 	void destroy();
 
 private:
-	GLE::VertexBuffer buf0;
-	GLE::VertexArray arr0;
+	GLE::VertexBuffer vertexBuffer;
+	GLE::VertexArray vertexArray;
+	GLE::ShaderProgram shader;
 
 };

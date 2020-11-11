@@ -5,6 +5,10 @@
 #define GLE_BEGIN	namespace GLE {
 #define GLE_END		}
 
+#define GLE_MAJOR 4
+#define GLE_MINOR 3
+#define GLE_VERSION_MIN(major, minor) ((major) <= GLE_MAJOR) && ((minor) <= GLE_MINOR)
+
 /*
 typedef bool	glbool;
 typedef s8		gls8;
@@ -67,7 +71,10 @@ static inline void error(const std::string& msg, Args&&... args) {
 }
 
 
-constexpr inline u32 maxVertexAttributes = 16;
-constexpr inline u32 maxVertexAttributeBytes = (maxVertexAttributes + 7) / 8;
+constexpr static inline u32 maxVertexAttributes = 16;
+constexpr static inline u32 maxVertexAttributeBytes = (maxVertexAttributes + 7) / 8;
+
+constexpr static inline u32 invalidID = -1;
+constexpr static inline u32 invalidBoundID = -2;
 
 GLE_END
