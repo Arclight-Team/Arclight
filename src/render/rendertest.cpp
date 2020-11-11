@@ -65,3 +65,9 @@ void RenderTest::destroy() {
 	vertexBuffer.destroy();
 
 }
+
+
+
+void RenderTest::resizeWindowFB(u32 w, u32 h) {
+	glViewport(0, 0, w, h);
+}

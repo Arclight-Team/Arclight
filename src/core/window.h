@@ -3,6 +3,7 @@
 #include "types.h"
 #include <string>
 #include <memory>
+#include <functional>
 
 
 class Window;
@@ -87,10 +88,10 @@ enum class WindowState {
 struct WindowHandle;
 struct GLFWmonitor;
 
-typedef void(*WindowMoveFunction)(Window*, u32, u32);
-typedef void(*WindowResizeFunction)(Window*, u32, u32);
-typedef void(*WindowStateChangeFunction)(Window*, WindowState);
-typedef void(*FramebufferResizeFunction)(Window*, u32, u32);
+typedef std::function<void(u32, u32)> WindowMoveFunction;
+typedef std::function<void(u32, u32)> WindowResizeFunction;
+typedef std::function<void(WindowState)> WindowStateChangeFunction;
+typedef std::function<void(u32, u32)> FramebufferResizeFunction;
 
 class Window final {
 

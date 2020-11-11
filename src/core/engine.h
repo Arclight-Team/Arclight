@@ -19,6 +19,8 @@ public:
 
 private:
 
+	void onFBResize(u32 w, u32 h);
+
 	bool initializeBackend();
 	void shutdownBackend();
 	bool createWindow();

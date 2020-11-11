@@ -680,8 +680,8 @@ void Window::setWindowMoveFunction(WindowMoveFunction function) {
 	if (function) {
 
 		glfwSetWindowPosCallback(windowHandle->handle, [](GLFWwindow* window, i32 x, i32 y) {
-			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
-			ptr->moveFunction(ptr, x, y);
+			Window* ptr = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->window;
+			ptr->moveFunction(x, y);
 		});
 
 	} else {
@@ -700,8 +700,8 @@ void Window::setWindowResizeFunction(WindowResizeFunction function) {
 	if (function) {
 
 		glfwSetWindowSizeCallback(windowHandle->handle, [](GLFWwindow* window, i32 w, i32 h) {
-			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
-			ptr->resizeFunction(ptr, w, h);
+			Window* ptr = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->window;
+			ptr->resizeFunction(w, h);
 		});
 
 	} else {
@@ -720,23 +720,23 @@ void Window::setWindowStateChangeFunction(WindowStateChangeFunction function) {
 	if (function) {
 
 		glfwSetWindowCloseCallback(windowHandle->handle, [](GLFWwindow* window) {
-			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
-			ptr->stateChangeFunction(ptr, WindowState::CloseRequest);
+			Window* ptr = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->window;
+			ptr->stateChangeFunction(WindowState::CloseRequest);
 		});
 
 		glfwSetWindowFocusCallback(windowHandle->handle, [](GLFWwindow* window, i32 focused) {
-			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
-			ptr->stateChangeFunction(ptr, focused ? WindowState::Focused : WindowState::Unfocused);
+			Window* ptr = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->window;
+			ptr->stateChangeFunction(focused ? WindowState::Focused : WindowState::Unfocused);
 		});
 
 		glfwSetWindowIconifyCallback(windowHandle->handle, [](GLFWwindow* window, i32 iconified) {
-			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
-			ptr->stateChangeFunction(ptr, iconified ? WindowState::Minimized : WindowState::Restored);
+			Window* ptr = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->window;
+			ptr->stateChangeFunction(iconified ? WindowState::Minimized : WindowState::Restored);
 		});
 
 		glfwSetWindowMaximizeCallback(windowHandle->handle, [](GLFWwindow* window, i32 maximized) {
-			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
-			ptr->stateChangeFunction(ptr, maximized ? WindowState::Maximized : WindowState::Restored);
+			Window* ptr = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->window;
+			ptr->stateChangeFunction(maximized ? WindowState::Maximized : WindowState::Restored);
 		});
 
 
@@ -761,8 +761,8 @@ void Window::setFramebufferResizeFunction(FramebufferResizeFunction function) {
 	if (function) {
 
 		glfwSetFramebufferSizeCallback(windowHandle->handle, [](GLFWwindow* window, i32 w, i32 h) {
-			Window* ptr = static_cast<Window*>(glfwGetWindowUserPointer(window));
-			ptr->fbResizeFunction(ptr, w, h);
+			Window* ptr = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->window;
+			ptr->fbResizeFunction(w, h);
 		});
 
 	} else {

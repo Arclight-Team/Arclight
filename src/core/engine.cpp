@@ -29,6 +29,8 @@ bool Engine::initialize() {
 		return false;
 	}
 
+	window.setFramebufferResizeFunction([this](u32 w, u32 h) {onFBResize(w, h); });
+
 	Log::info("Core", "Window successfully created");
 
 	//Setup input system and input handler
@@ -205,4 +207,10 @@ void Engine::setupInputSystem() {
 	//Link handler to the root context
 	rootContext.linkHandler(inputHandler);
 
+}
+
+
+
+void Engine::onFBResize(u32 w, u32 h) {
+	renderTest.resizeWindowFB(w, h);
 }

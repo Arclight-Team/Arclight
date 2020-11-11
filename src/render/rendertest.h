@@ -11,6 +11,8 @@ public:
 	void run();
 	void destroy();
 
+	void resizeWindowFB(u32 w, u32 h);
+
 private:
 	GLE::VertexBuffer vertexBuffer;
 	GLE::VertexArray vertexArray;
