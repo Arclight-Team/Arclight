@@ -23,4 +23,4 @@ include_directories(${GLEW_INCLUDE_DIR})
 file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp")
 
 add_executable (arclight ${SOURCES})
-target_link_libraries(arclight GLEW::GLEW glfw ${CMAKE_CURRENT_SOURCE_DIR}/lib/FMOD/fmodL_vc.lib)
+target_link_libraries(arclight GLEW::GLEW opengl32 glfw ${CMAKE_CURRENT_SOURCE_DIR}/lib/FMOD/fmodL_vc.lib)
