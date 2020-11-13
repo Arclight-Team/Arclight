@@ -128,7 +128,7 @@ public:
 
 	template<Arithmetic A>
 	constexpr auto distance(const Vec2<A>& v) const {
-		return { x - v.x, y - v.y }.length();
+		return Vec2<decltype(x - v.x)>(x - v.x, y - v.y).length();
 	}
 
 	template<Arithmetic A>
@@ -280,7 +280,7 @@ public:
 
 	template<Arithmetic A>
 	constexpr auto distance(const Vec3<A>& v) const {
-		return { x - v.x, y - v.y, z - v.z }.length();
+		return Vec3<decltype(x - v.x)>(x - v.x, y - v.y, z - v.z).length();
 	}
 
 	template<Arithmetic A>
@@ -290,15 +290,7 @@ public:
 	}
 
 
-	union {
-		struct {
-			T x, y, z;
-		};
-		struct {
-			T r, g, b;
-		};
-		T n[3];
-	};
+	T x, y, z;
 
 };
 
@@ -444,7 +436,7 @@ public:
 
 	template<Arithmetic A>
 	constexpr auto distance(const Vec4<A>& v) const {
-		return { x - v.x, y - v.y, z - v.z, w - v.w }.length();
+		return Vec4<decltype(x - v.x)>(x - v.x, y - v.y, z - v.z, w - v.w).length();
 	}
 
 	template<Arithmetic A>
@@ -454,15 +446,7 @@ public:
 	}
 
 
-	union {
-		struct {
-			T x, y, z, w;
-		};
-		struct {
-			T r, g, b, a;
-		};
-		T n[4];
-	};
+	T x, y, z, w;
 
 };
 
