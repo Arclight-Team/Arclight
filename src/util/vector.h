@@ -12,117 +12,133 @@ class Vec2 {
 
 public:
 
-	inline constexpr Vec2() : x(T(0)), y(T(0)) {}
+	constexpr Vec2() : x(T(0)), y(T(0)) {}
 
 	template<Arithmetic A>
-	inline constexpr explicit Vec2(A value) : x(static_cast<T>(value)), y(static_cast<T>(value)) {}
+	constexpr explicit Vec2(A value) : x(value), y(value) {}
 
 	template<Arithmetic A, Arithmetic B>
-	inline constexpr Vec2(A x, B y) : x(static_cast<T>(x)), y(static_cast<T>(y)) {}
+	constexpr Vec2(A x, B y) : x(x), y(y) {}
+
+	template<Arithmetic A>
+	constexpr Vec2(const Vec2<A>& v) : x(v.x), y(v.y) {}
 
 
 	template<Arithmetic A>
-	inline void add(const Vec2<A>& v) {
+	constexpr void add(const Vec2<A>& v) {
 		x += v.x;
 		y += v.y;
 	}
 
 	template<Arithmetic A>
-	inline void sub(const Vec2<A>& v) {
+	constexpr void sub(const Vec2<A>& v) {
 		x -= v.x;
 		y -= v.y;
 	}
 
 	template<Arithmetic A>
-	inline void mul(A s) {
+	constexpr void mul(A s) {
 		x *= s;
 		y *= s;
 	}
 
 	template<Arithmetic A>
-	inline void div(A s) {
+	constexpr void div(A s) {
 		arc_assert(!Math::isZero(s), "Vec2 divided by 0");
 		x /= s;
 		y /= s;
 	}
 
 	template<Arithmetic A>
-	inline Vec2& operator=(const Vec2<A>& v) {
+	constexpr Vec2& operator=(const Vec2<A>& v) {
 		x = v.x;
 		y = v.y;
 		return *this;
 	}
 
 	template<Arithmetic A>
-	inline Vec2& operator+=(const Vec2<A>& v) {
+	constexpr Vec2& operator+=(const Vec2<A>& v) {
 		add(v);
 		return *this;
 	}
 
 	template<Arithmetic A>
-	inline Vec2& operator-=(const Vec2<A>& v) {
+	constexpr Vec2& operator-=(const Vec2<A>& v) {
 		sub(v);
 		return *this;
 	}
 
 	template<Arithmetic A>
-	inline Vec2& operator*=(A s) {
+	constexpr Vec2& operator*=(A s) {
 		mul(s);
 		return *this;
 	}
 
 	template<Arithmetic A>
-	inline Vec2& operator/=(A s) {
+	constexpr Vec2& operator/=(A s) {
 		div(s);
 		return *this;
 	}
 
 	template<Arithmetic A>
-	inline bool operator==(const Vec2<A>& v) const {
+	constexpr bool operator==(const Vec2<A>& v) const {
 		return Math::isEqual(x, v.x) && Math::isEqual(y, v.y);
 	}
 
 	template<Arithmetic A>
-	inline bool operator!=(const Vec2<A>& v) const {
+	constexpr bool operator!=(const Vec2<A>& v) const {
 		return !(*this == v);
 	}
 
-	inline Vec2 operator-() const {
+	constexpr Vec2 operator-() const {
 		return Vec2(-x, -y);
 	}
 
+	constexpr T& operator[](u32 index) {
+		
+		switch (index) {
 
-	inline auto length() const {
-		return Math::sqrt(x * x + y * y);
+			case 0:	return x;
+			case 1:	return y;
+			default:
+				arc_assert(false, "Vec2 access out of bounds (index=%d)", index);
+				return x;
+
+		}
+
 	}
 
-	inline void normalize() {
+
+	constexpr auto magSquared() const {
+		return x * x + y * y;
+	}
+
+	constexpr auto length() const {
+		return Math::sqrt(magSquared);
+	}
+
+	constexpr void normalize() {
 		div(length());
 	}
 
 	template<Arithmetic A>
-	inline auto dot(const Vec2<A>& v) const {
+	constexpr auto dot(const Vec2<A>& v) const {
 		return x * v.x + y * v.y;
 	}
 
 	template<Arithmetic A>
-	inline auto distance(const Vec2<A>& v) const {
-		return Vec2<decltype(x - v.x)>(x - v.x, y - v.y).length();
+	constexpr auto distance(const Vec2<A>& v) const {
+		return { x - v.x, y - v.y }.length();
 	}
 
 	template<Arithmetic A>
-	inline auto angle(const Vec2<A>& v) const {
+	constexpr auto angle(const Vec2<A>& v) const {
 		arc_assert(!Math::isZero(length()) && !Math::isZero(v.length()), "Vec2 angle with null vector");
 		return Math::acos(dot(v) / (length() * v.length()));
 	}
 
 
-	union {
-		struct {
-			T x, y;
-		};
-		T n[2];
-	};
+	T x, y;
 
 };
 
@@ -133,41 +149,44 @@ class Vec3 {
 
 public:
 
-	inline constexpr Vec3() : x(T(0)), y(T(0)), z(T(0)) {}
+	constexpr Vec3() : x(T(0)), y(T(0)), z(T(0)) {}
 
 	template<Arithmetic A>
-	inline constexpr explicit Vec3(A value) : x(static_cast<T>(value)), y(static_cast<T>(value)), z(static_cast<T>(value)) {}
+	constexpr explicit Vec3(A value) : x(value), y(value), z(value) {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
-	inline constexpr Vec3(A x, B y, C z) : x(static_cast<T>(x)), y(static_cast<T>(y)), z(static_cast<T>(z)) {}
+	constexpr Vec3(A x, B y, C z) : x(x), y(y), z(z) {}
 	
 	template<Arithmetic A>
-	inline constexpr explicit Vec3(const Vec2<A>& v) : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)), z(T(0)) {}
+	constexpr explicit Vec3(const Vec2<A>& v) : x(v.x), y(v.y), z(T(0)) {}
+
+	template<Arithmetic A>
+	constexpr Vec3(const Vec3<A>& v) : x(v.x), y(v.y), z(v.z) {}
 
 
 	template<Arithmetic A>
-	inline void add(const Vec3<A>& v) {
+	constexpr void add(const Vec3<A>& v) {
 		x += v.x;
 		y += v.y;
 		z += v.z;
 	}
 
 	template<Arithmetic A>
-	inline void sub(const Vec3<A>& v) {
+	constexpr void sub(const Vec3<A>& v) {
 		x -= v.x;
 		y -= v.y;
 		z -= v.z;
 	}
 
 	template<Arithmetic A>
-	inline void mul(A s) {
+	constexpr void mul(A s) {
 		x *= s;
 		y *= s;
 		z *= s;
 	}
 
 	template<Arithmetic A>
-	inline void div(A s) {
+	constexpr void div(A s) {
 		arc_assert(!Math::isZero(s), "Vec3 divided by 0");
 		x /= s;
 		y /= s;
@@ -175,7 +194,7 @@ public:
 	}
 
 	template<Arithmetic A>
-	inline Vec3& operator=(const Vec3<A>& v) {
+	constexpr Vec3& operator=(const Vec3<A>& v) {
 		x = v.x;
 		y = v.y;
 		z = v.z;
@@ -183,70 +202,89 @@ public:
 	}
 
 	template<Arithmetic A>
-	inline Vec3& operator+=(const Vec3<A>& v) {
+	constexpr Vec3& operator+=(const Vec3<A>& v) {
 		add(v);
 		return *this;
 	}
 
 	template<Arithmetic A>
-	inline Vec3& operator-=(const Vec3<A>& v) {
+	constexpr Vec3& operator-=(const Vec3<A>& v) {
 		sub(v);
 		return *this;
 	}
 
 	template<Arithmetic A>
-	inline Vec3& operator*=(A s) {
+	constexpr Vec3& operator*=(A s) {
 		mul(s);
 		return *this;
 	}
 
 	template<Arithmetic A>
-	inline Vec3& operator/=(A s) {
+	constexpr Vec3& operator/=(A s) {
 		div(s);
 		return *this;
 	}
 
 	template<Arithmetic A>
-	inline bool operator==(const Vec3<A>& v) const {
+	constexpr bool operator==(const Vec3<A>& v) const {
 		return Math::isEqual(x, v.x) && Math::isEqual(y, v.y) && Math::isEqual(z, v.z);
 
 	}
 
 	template<Arithmetic A>
-	inline bool operator!=(const Vec3<A>& v) const {
+	constexpr bool operator!=(const Vec3<A>& v) const {
 		return !(*this == v);
 	}
 
-	inline Vec3 operator-() const {
+	constexpr Vec3 operator-() const {
 		return Vec3(-x, -y, -z);
 	}
 
+	constexpr T& operator[](u32 index) {
 
-	inline auto length() const {
-		return Math::sqrt(x * x + y * y + z * z);
+		switch (index) {
+
+			case 0:	return x;
+			case 1:	return y;
+			case 2:	return z;
+			default:
+				arc_assert(false, "Vec3 access out of bounds (index=%d)", index);
+				return x;
+
+		}
+
 	}
 
-	inline void normalize() {
+
+	constexpr auto magSquared() const {
+		return x * x + y * y + z * z;
+	}
+
+	constexpr auto length() const {
+		return Math::sqrt(magSquared);
+	}
+
+	constexpr void normalize() {
 		div(length());
 	}
 
 	template<Arithmetic A>
-	inline auto cross(const Vec3<A>& v) const {
+	constexpr auto cross(const Vec3<A>& v) const {
 		return Vec3<decltype(y* v.z - z * v.y)>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
 	}
 
 	template<Arithmetic A>
-	inline auto dot(const Vec3<A>& v) const {
+	constexpr auto dot(const Vec3<A>& v) const {
 		return x * v.x + y * v.y + z * v.z;
 	}
 
 	template<Arithmetic A>
-	inline auto distance(const Vec3<A>& v) const {
-		return Vec3<decltype(x - v.x)>(x - v.x, y - v.y, z - v.z).length();
+	constexpr auto distance(const Vec3<A>& v) const {
+		return { x - v.x, y - v.y, z - v.z }.length();
 	}
 
 	template<Arithmetic A>
-	inline auto angle(const Vec3<A>& v) const {
+	constexpr auto angle(const Vec3<A>& v) const {
 		arc_assert(!Math::isZero(length()) && !Math::isZero(v.length()), "Vec3 angle with null vector");
 		return Math::acos(dot(v) / (length() * v.length()));
 	}
@@ -271,23 +309,26 @@ class Vec4 {
 
 public:
 
-	inline constexpr Vec4() : x(T(0)), y(T(0)), z(T(0)), w(T(0)) {}
+	constexpr Vec4() : x(T(0)), y(T(0)), z(T(0)), w(T(0)) {}
 
 	template<Arithmetic A>
-	inline constexpr explicit Vec4(A value) : x(static_cast<T>(value)), y(static_cast<T>(value)), z(static_cast<T>(value)), w(static_cast<T>(value)) {}
+	constexpr explicit Vec4(A value) : x(value), y(value), z(value), w(value) {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
-	inline constexpr Vec4(A x, B y, C z, D w) : x(static_cast<T>(x)), y(static_cast<T>(y)), z(static_cast<T>(z)), w(static_cast<T>(w)) {}
+	constexpr Vec4(A x, B y, C z, D w) : x(x), y(y), z(z), w(w) {}
 
 	template<Arithmetic A>
-	inline constexpr explicit Vec4(const Vec2<A>& v) : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)), z(T(0)), w(T(0)) {}
+	constexpr explicit Vec4(const Vec2<A>& v) : x(v.x), y(v.y), z(T(0)), w(T(0)) {}
 
 	template<Arithmetic A>
-	inline constexpr explicit Vec4(const Vec3<A>& v) : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)), z(static_cast<T>(v.z)), w(T(0)) {}
+	constexpr explicit Vec4(const Vec3<A>& v) : x(v.x), y(v.y), z(v.z), w(T(0)) {}
+
+	template<Arithmetic A>
+	constexpr Vec4(const Vec4<A>& v) : x(v.x), y(v.y), z(v.z), w(v.w) {}
 
 
 	template<Arithmetic A>
-	inline void add(const Vec4<A>& v) {
+	constexpr void add(const Vec4<A>& v) {
 		x += v.x;
 		y += v.y;
 		z += v.z;
@@ -295,7 +336,7 @@ public:
 	}
 
 	template<Arithmetic A>
-	inline void sub(const Vec4<A>& v) {
+	constexpr void sub(const Vec4<A>& v) {
 		x -= v.x;
 		y -= v.y;
 		z -= v.z;
@@ -303,7 +344,7 @@ public:
 	}
 
 	template<Arithmetic A>
-	inline void mul(A s) {
+	constexpr void mul(A s) {
 		x *= s;
 		y *= s;
 		z *= s;
@@ -311,7 +352,7 @@ public:
 	}
 
 	template<Arithmetic A>
-	inline void div(A s) {
+	constexpr void div(A s) {
 		arc_assert(!Math::isZero(s), "Vec4 divided by 0");
 		x /= s;
 		y /= s;
@@ -321,7 +362,7 @@ public:
 
 
 	template<Arithmetic A>
-	inline Vec4& operator=(const Vec4<A>& v) {
+	constexpr Vec4& operator=(const Vec4<A>& v) {
 		x = v.x;
 		y = v.y;
 		z = v.z;
@@ -330,64 +371,84 @@ public:
 	}
 
 	template<Arithmetic A>
-	inline Vec4& operator+=(const Vec4<A>& v) {
+	constexpr Vec4& operator+=(const Vec4<A>& v) {
 		add(v);
 		return *this;
 	}
 
 	template<Arithmetic A>
-	inline Vec4& operator-=(const Vec4<A>& v) {
+	constexpr Vec4& operator-=(const Vec4<A>& v) {
 		sub(v);
 		return *this;
 	}
 
 	template<Arithmetic A>
-	inline Vec4& operator*=(A s) {
+	constexpr Vec4& operator*=(A s) {
 		mul(s);
 		return *this;
 	}
 
 	template<Arithmetic A>
-	inline Vec4& operator/=(A s) {
+	constexpr Vec4& operator/=(A s) {
 		div(s);
 		return *this;
 	}
 
 	template<Arithmetic A>
-	inline bool operator==(const Vec4<A>& v) const {
+	constexpr bool operator==(const Vec4<A>& v) const {
 		return Math::isEqual(x, v.x) && Math::isEqual(y, v.y) && Math::isEqual(z, v.z) && Math::isEqual(w, v.w);
 	}
 
 	template<Arithmetic A>
-	inline bool operator!=(const Vec4<A>& v) const {
+	constexpr bool operator!=(const Vec4<A>& v) const {
 		return !(*this == v);
 	}
 
-	inline Vec4 operator-() const {
+	constexpr Vec4 operator-() const {
 		return Vec4(-x, -y, -z, -w);
 	}
 
+	constexpr T& operator[](u32 index) {
 
-	inline auto length() const {
-		return Math::sqrt(x * x + y * y + z * z + w * w);
+		switch (index) {
+
+			case 0:	return x;
+			case 1:	return y;
+			case 2:	return z;
+			case 3:	return w;
+			default:
+				arc_assert(false, "Vec4 access out of bounds (index=%d)", index);
+				return x;
+
+		}
+
 	}
 
-	inline void normalize() {
+
+	constexpr auto magSquared() const {
+		return x * x + y * y + z * z + w * w;
+	}
+
+	constexpr auto length() const {
+		return Math::sqrt(magSquared);
+	}
+
+	constexpr void normalize() {
 		div(length());
 	}
 
 	template<Arithmetic A>
-	inline auto dot(const Vec4<A>& v) const {
+	constexpr auto dot(const Vec4<A>& v) const {
 		return x * v.x + y * v.y + z * v.z + w * v.w;
 	}
 
 	template<Arithmetic A>
-	inline auto distance(const Vec4<A>& v) const {
-		return Vec4<decltype(x - v.x)>(x - v.x, y - v.y, z - v.z, w - v.w).length();
+	constexpr auto distance(const Vec4<A>& v) const {
+		return { x - v.x, y - v.y, z - v.z, w - v.w }.length();
 	}
 
 	template<Arithmetic A>
-	inline auto angle(const Vec4<A>& v) const {
+	constexpr auto angle(const Vec4<A>& v) const {
 		arc_assert(!Math::isZero(length()) && !Math::isZero(v.length()), "Vec4 angle with null vector");
 		return Math::acos(dot(v) / (length() * v.length()));
 	}
@@ -409,31 +470,31 @@ public:
 
 
 template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
-inline Vector<A> operator+(Vector<A> a, const Vector<B>& b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>){
+constexpr Vector<A> operator+(Vector<A> a, const Vector<B>& b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>){
 	a += b;
 	return a;
 }
 
 template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
-inline Vector<A> operator-(Vector<A> a, const Vector<B>& b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
+constexpr Vector<A> operator-(Vector<A> a, const Vector<B>& b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
 	a -= b;
 	return a;
 }
 
 template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
-inline Vector<A> operator*(Vector<A> a, B s) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
+constexpr Vector<A> operator*(Vector<A> a, B s) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
 	a *= s;
 	return a;
 }
 
 template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
-inline Vector<A> operator/(Vector<A> a, B s) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
+constexpr Vector<A> operator/(Vector<A> a, B s) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
 	a /= s;
 	return a;
 }
 
 
-#define VECTOR_DEFINE_NDTS(name, dim, type, suffix) typedef Vec##dim##<##type##> name##dim##suffix##;
+#define VECTOR_DEFINE_NDTS(name, dim, type, suffix) typedef Vec##dim<type> name##dim##suffix;
 
 #define VECTOR_DEFINE_ND(name, dim) \
 	VECTOR_DEFINE_NDTS(name, dim, float, f) \

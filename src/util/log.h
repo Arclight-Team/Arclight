@@ -1,7 +1,8 @@
 #pragma once
+
 #include "format.h"
-#include <string>
 #include "util/format.h"
+#include <string>
 
 
 namespace Log {

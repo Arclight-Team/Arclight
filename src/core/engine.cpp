@@ -59,9 +59,9 @@ bool Engine::initialize() {
 	//Test code
 	Vec2f a(1, 2);
 	Vec2f b(2.0, -1.7);
-	Vec2f c = a + b;
+	Vec2i c = a + b;
 
-	Log::info("", "%f, %f, %s", c.x, c.y, typeid(Math::mod(2.0, 1.0f)).name());
+	Log::info("", "%d, %d, %s", c.x, c.y, typeid(Math::mod(2.0, 1.0f)).name());
 
 	return true;
 
