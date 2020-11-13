@@ -2,6 +2,7 @@
 #include "util/file.h"
 #include "util/log.h"
 #include "render/gle/gc.h"
+#include "util/vector.h"
 
 
 Engine::Engine() : profiler(Timer::Unit::Seconds, 3) {}
@@ -53,6 +54,14 @@ bool Engine::initialize() {
 
 	//We're successfully running
 	Log::info("Core", "Starting engine");
+
+
+	//Test code
+	Vec2f a(1, 2);
+	Vec2f b(2.0, -1.7);
+	Vec2f c = a + b;
+
+	Log::info("", "%f, %f, %s", c.x, c.y, typeid(Math::mod(2.0, 1.0f)).name());
 
 	return true;
 
