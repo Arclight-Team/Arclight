@@ -31,19 +31,19 @@ public:
 	}
 
 	template<Arithmetic A>
-	constexpr void sub(const Vec2<A>& v) {
+	constexpr void subtract(const Vec2<A>& v) {
 		x -= v.x;
 		y -= v.y;
 	}
 
 	template<Arithmetic A>
-	constexpr void mul(A s) {
+	constexpr void multiply(A s) {
 		x *= s;
 		y *= s;
 	}
 
 	template<Arithmetic A>
-	constexpr void div(A s) {
+	constexpr void divide(A s) {
 		arc_assert(!Math::isZero(s), "Vec2 divided by 0");
 		x /= s;
 		y /= s;
@@ -64,19 +64,19 @@ public:
 
 	template<Arithmetic A>
 	constexpr Vec2& operator-=(const Vec2<A>& v) {
-		sub(v);
+		subtract(v);
 		return *this;
 	}
 
 	template<Arithmetic A>
 	constexpr Vec2& operator*=(A s) {
-		mul(s);
+		multiply(s);
 		return *this;
 	}
 
 	template<Arithmetic A>
 	constexpr Vec2& operator/=(A s) {
-		div(s);
+		divide(s);
 		return *this;
 	}
 
@@ -108,6 +108,20 @@ public:
 
 	}
 
+	constexpr T operator[](u32 index) const {
+
+		switch (index) {
+
+			case 0:	return x;
+			case 1:	return y;
+			default:
+				arc_assert(false, "Vec2 access out of bounds (index=%d)", index);
+				return x;
+
+		}
+
+	}
+
 
 	constexpr auto magSquared() const {
 		return x * x + y * y;
@@ -118,7 +132,7 @@ public:
 	}
 
 	constexpr void normalize() {
-		div(length());
+		divide(length());
 	}
 
 	template<Arithmetic A>
@@ -172,21 +186,21 @@ public:
 	}
 
 	template<Arithmetic A>
-	constexpr void sub(const Vec3<A>& v) {
+	constexpr void subtract(const Vec3<A>& v) {
 		x -= v.x;
 		y -= v.y;
 		z -= v.z;
 	}
 
 	template<Arithmetic A>
-	constexpr void mul(A s) {
+	constexpr void multiply(A s) {
 		x *= s;
 		y *= s;
 		z *= s;
 	}
 
 	template<Arithmetic A>
-	constexpr void div(A s) {
+	constexpr void divide(A s) {
 		arc_assert(!Math::isZero(s), "Vec3 divided by 0");
 		x /= s;
 		y /= s;
@@ -209,19 +223,19 @@ public:
 
 	template<Arithmetic A>
 	constexpr Vec3& operator-=(const Vec3<A>& v) {
-		sub(v);
+		subtract(v);
 		return *this;
 	}
 
 	template<Arithmetic A>
 	constexpr Vec3& operator*=(A s) {
-		mul(s);
+		multiply(s);
 		return *this;
 	}
 
 	template<Arithmetic A>
 	constexpr Vec3& operator/=(A s) {
-		div(s);
+		divide(s);
 		return *this;
 	}
 
@@ -255,6 +269,21 @@ public:
 
 	}
 
+	constexpr T operator[](u32 index) const {
+
+		switch (index) {
+
+			case 0:	return x;
+			case 1:	return y;
+			case 2:	return z;
+			default:
+				arc_assert(false, "Vec3 access out of bounds (index=%d)", index);
+				return x;
+
+		}
+
+	}
+
 
 	constexpr auto magSquared() const {
 		return x * x + y * y + z * z;
@@ -265,7 +294,7 @@ public:
 	}
 
 	constexpr void normalize() {
-		div(length());
+		divide(length());
 	}
 
 	template<Arithmetic A>
@@ -328,7 +357,7 @@ public:
 	}
 
 	template<Arithmetic A>
-	constexpr void sub(const Vec4<A>& v) {
+	constexpr void subtract(const Vec4<A>& v) {
 		x -= v.x;
 		y -= v.y;
 		z -= v.z;
@@ -336,7 +365,7 @@ public:
 	}
 
 	template<Arithmetic A>
-	constexpr void mul(A s) {
+	constexpr void multiply(A s) {
 		x *= s;
 		y *= s;
 		z *= s;
@@ -344,7 +373,7 @@ public:
 	}
 
 	template<Arithmetic A>
-	constexpr void div(A s) {
+	constexpr void divide(A s) {
 		arc_assert(!Math::isZero(s), "Vec4 divided by 0");
 		x /= s;
 		y /= s;
@@ -370,19 +399,19 @@ public:
 
 	template<Arithmetic A>
 	constexpr Vec4& operator-=(const Vec4<A>& v) {
-		sub(v);
+		subtract(v);
 		return *this;
 	}
 
 	template<Arithmetic A>
 	constexpr Vec4& operator*=(A s) {
-		mul(s);
+		multiply(s);
 		return *this;
 	}
 
 	template<Arithmetic A>
 	constexpr Vec4& operator/=(A s) {
-		div(s);
+		divide(s);
 		return *this;
 	}
 
@@ -416,6 +445,22 @@ public:
 
 	}
 
+	constexpr T operator[](u32 index) const {
+
+		switch (index) {
+
+			case 0:	return x;
+			case 1:	return y;
+			case 2:	return z;
+			case 3:	return w;
+			default:
+				arc_assert(false, "Vec4 access out of bounds (index=%d)", index);
+				return x;
+
+		}
+
+	}
+
 
 	constexpr auto magSquared() const {
 		return x * x + y * y + z * z + w * w;
@@ -426,7 +471,7 @@ public:
 	}
 
 	constexpr void normalize() {
-		div(length());
+		divide(length());
 	}
 
 	template<Arithmetic A>

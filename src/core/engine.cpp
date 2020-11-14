@@ -3,6 +3,7 @@
 #include "util/log.h"
 #include "render/gle/gc.h"
 #include "util/vector.h"
+#include "util/matrix.h"
 
 
 Engine::Engine() : profiler(Timer::Unit::Seconds, 3) {}
@@ -59,9 +60,19 @@ bool Engine::initialize() {
 	//Test code
 	Vec2f a(1, 2);
 	Vec2f b(2.0, -1.7);
-	Vec2d c = a + b;
+	Vec2f c = a + b;
+	Mat2<float> m;
+	m[0][0] = 1;
+	m[0][1] = 2;
+	m[1][0] = 3;
+	m[1][1] = 4;
 
-	Log::info("", "%d, %d, %s", c.x, c.y, typeid(Math::mod(2.0, 1.0f)).name());
+	Log::info("", "%f, %f, %f, %f", m[0][0], m[0][1], m[1][0], m[1][1]);
+
+	m.invert();
+	m.invert();
+
+	Log::info("", "%f, %f, %f, %f", m[0][0], m[0][1], m[1][0], m[1][1]);
 
 	return true;
 
