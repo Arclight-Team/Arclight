@@ -57,23 +57,6 @@ bool Engine::initialize() {
 	Log::info("Core", "Starting engine");
 
 
-	//Test code
-	Vec2f a(1, 2);
-	Vec2f b(2.0, -1.7);
-	Vec2f c = a + b;
-	Mat2<float> m;
-	m[0][0] = 1;
-	m[0][1] = 2;
-	m[1][0] = 3;
-	m[1][1] = 4;
-
-	Log::info("", "%f, %f, %f, %f", m[0][0], m[0][1], m[1][0], m[1][1]);
-
-	m.invert();
-	m.invert();
-
-	Log::info("", "%f, %f, %f, %f", m[0][0], m[0][1], m[1][0], m[1][1]);
-
 	return true;
 
 }

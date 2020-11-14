@@ -1,10 +1,7 @@
 #pragma once
 
-#include <cmath>
-
 #include "util/math.h"
 #include "util/assert.h"
-
 
 
 template<Arithmetic T>
@@ -47,6 +44,12 @@ public:
 		arc_assert(!Math::isZero(s), "Vec2 divided by 0");
 		x /= s;
 		y /= s;
+	}
+
+	template<Arithmetic A>
+	constexpr void compMultiply(const Vec2<A>& v) {
+		x *= v.x;
+		y *= v.y;
 	}
 
 	template<Arithmetic A>
@@ -108,7 +111,7 @@ public:
 
 	}
 
-	constexpr T operator[](u32 index) const {
+	constexpr const T& operator[](u32 index) const {
 
 		switch (index) {
 
@@ -205,6 +208,13 @@ public:
 		x /= s;
 		y /= s;
 		z /= s;
+	}
+
+	template<Arithmetic A>
+	constexpr void compMultiply(const Vec3<A>& v) {
+		x *= v.x;
+		y *= v.y;
+		z *= v.z;
 	}
 
 	template<Arithmetic A>
@@ -381,6 +391,13 @@ public:
 		w /= s;
 	}
 
+	template<Arithmetic A>
+	constexpr void compMultiply(const Vec4<A>& v) {
+		x *= v.x;
+		y *= v.y;
+		z *= v.z;
+		w *= v.w;
+	}
 
 	template<Arithmetic A>
 	constexpr Vec4& operator=(const Vec4<A>& v) {
