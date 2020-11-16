@@ -4,7 +4,7 @@
 
 
 
-void RenderTest::create() {
+void RenderTest::create(u32 w, u32 h) {
 
 	static std::string vs = R"(#version 430
 								layout(location = 0) in vec2 vertices;
@@ -42,10 +42,16 @@ void RenderTest::create() {
 	vertexArray.setAttribute(0, 2, GLE::AttributeType::Float, 0, 0);
 	vertexArray.enableAttribute(0);
 
-	Mat4f m = Mat4f::fromTranslation(1, 2, 3).rotate(Vec3f(2, 3, 4), Math::toRadians(69)).scale(1, 2, -4.89);
-	Mat4f v = Mat4f::lookAt(Vec3f(0, 0, 0), Vec3f(2, 3, 2));
-	Mat4f p = Mat4f::perspective(Math::toRadians(90), 1, 0.1, 1000.0);
-	mvpMatrix = p * v * m;
+
+	camera.setPosition(camStartPos);
+	camera.setRotation(camStartAngleH, camStartAngleV);
+
+	//modelMatrix = Mat4f::fromTranslation(1, 2, 3).rotate(Vec3f(2, 3, 4), Math::toRadians(69)).scale(1, 2, -4.89);
+	modelMatrix = Mat4f::fromTranslation(0, 0, 0);
+	viewMatrix = Mat4f::lookAt(camera.getPosition(), camera.getPosition() + camera.getDirection());
+	projectionMatrix = Mat4f::perspective(Math::toRadians(fov), w / static_cast<double>(h), nearPlane, farPlane);
+
+	recalculateMVPMatrix();
 
 }
 
@@ -53,6 +59,20 @@ void RenderTest::create() {
 
 
 void RenderTest::run() {
+
+	if (camMovement != Vec3i(0, 0, 0) || camRotation != Vec3i(0, 0, 0)) {
+
+		camera.move(camMovement * camVelocityScale);
+		camera.rotate(camRotation.x * camRotationScale, camRotation.y * camRotationScale);
+
+		camMovement = Vec3f(0, 0, 0);
+		camRotation = Vec3f(0, 0, 0);
+
+	}
+
+	camera.update(0.1, 0.1);
+	viewMatrix = Mat4f::lookAt(camera.getPosition(), camera.getPosition() + camera.getDirection());
+	recalculateMVPMatrix();
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -76,5 +96,50 @@ void RenderTest::destroy() {
 
 
 void RenderTest::resizeWindowFB(u32 w, u32 h) {
+
 	glViewport(0, 0, w, h);
+	projectionMatrix = Mat4f::perspective(Math::toRadians(fov), w / static_cast<double>(h), nearPlane, farPlane);
+	recalculateMVPMatrix();
+
+}
+
+
+
+void RenderTest::onCameraKeyAction(KeyAction action) {
+
+	switch (action) {
+
+		case 1:
+			camRotation.x += 1;
+			break;
+		case 2:
+			camRotation.x -= 1;
+			break;
+		case 3:
+			camRotation.y -= 1;
+			break;
+		case 4:
+			camRotation.y += 1;
+			break;
+		case 5:
+			camMovement.x -= 1;
+			break;
+		case 6:
+			camMovement.x += 1;
+			break;
+		case 7:
+			camMovement.z -= 1;
+			break;
+		case 8:
+			camMovement.z += 1;
+			break;
+
+	}
+
+}
+
+
+
+void RenderTest::recalculateMVPMatrix() {
+	mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
 }

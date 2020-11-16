@@ -48,7 +48,7 @@ bool Engine::initialize() {
 	Log::info("Core", "Audio engine initialized");
 
 	//Create render test
-	renderTest.create();
+	renderTest.create(window.getWidth(), window.getHeight());
 
 	//Enable V-Sync
 	window.enableVSync();
@@ -165,24 +165,32 @@ void Engine::setupInputSystem() {
 	//Create the root context and add actions to it
 	InputContext& rootContext = inputSystem.createContext(0);
 	rootContext.addState(0);
-	rootContext.addBoundAction(0, KeyTrigger({ 48, 49, 50 }), KeyTrigger({ 48 }));
-	rootContext.addAction(1, KeyTrigger({ 51 }), true);
-	rootContext.addAction(2, KeyTrigger({ 52 }), true);
-	rootContext.addAction(3, KeyTrigger({ 0 }));
-	rootContext.addAction(4, KeyTrigger({ 1 }), true);
+	rootContext.addAction(1, KeyTrigger({ 262 }), true);
+	rootContext.addAction(2, KeyTrigger({ 263 }), true);
+	rootContext.addAction(3, KeyTrigger({ 264 }), true);
+	rootContext.addAction(4, KeyTrigger({ 265 }), true);	
+	rootContext.addAction(5, KeyTrigger({ 65 }), true);
+	rootContext.addAction(6, KeyTrigger({ 68 }), true);
+	rootContext.addAction(7, KeyTrigger({ 83 }), true);
+	rootContext.addAction(8, KeyTrigger({ 87 }), true);
+	rootContext.registerAction(0, 1);
+	rootContext.registerAction(0, 2);
 	rootContext.registerAction(0, 3);
 	rootContext.registerAction(0, 4);
-	rootContext.restoreBinding(0);
+	rootContext.registerAction(0, 5);
+	rootContext.registerAction(0, 6);
+	rootContext.registerAction(0, 7);
+	rootContext.registerAction(0, 8);
 
 	//Define input handler callbacks
 	inputHandler.setCoActionListener([this](KeyAction action, double scale) {
-		Log::info("Input Context", "Action triggered: %d", action);
+		//Log::info("Input Context", "Action triggered: %d", action);
+		renderTest.onCameraKeyAction(action);
 		return true;
 	});
 
 	inputHandler.setActionListener([this](KeyAction action) {
-		Log::info("Input Context", "Action triggered: %d", action);
-		this->audioEngine.playSound(URI(":/sounds/world1.wav"));
+		//Log::info("Input Context", "Action triggered: %d", action);
 		return true;
 	});
 
