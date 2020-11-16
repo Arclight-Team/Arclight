@@ -6,14 +6,15 @@
 
 void RenderTest::create() {
 
-	static std::string vs = R"(#version 330 core
+	static std::string vs = R"(#version 430
 								layout(location = 0) in vec2 vertices;
+								layout(location = 0) uniform mat4 mvp;
 
 								void main(){
-									gl_Position = vec4(vertices, 0.0, 1.0);
+									gl_Position = mvp * vec4(vertices, 0.0, 1.0);
 								})";
 
-	static std::string fs = R"(#version 330 core
+	static std::string fs = R"(#version 430
 								out vec4 color;
 
 								void main(){
@@ -41,6 +42,11 @@ void RenderTest::create() {
 	vertexArray.setAttribute(0, 2, GLE::AttributeType::Float, 0, 0);
 	vertexArray.enableAttribute(0);
 
+	Mat4f m = Mat4f::fromTranslation(1, 2, 3).rotate(Vec3f(2, 3, 4), Math::toRadians(69)).scale(1, 2, -4.89);
+	Mat4f v = Mat4f::lookAt(Vec3f(0, 0, 0), Vec3f(2, 3, 2));
+	Mat4f p = Mat4f::perspective(Math::toRadians(90), 1, 0.1, 1000.0);
+	mvpMatrix = p * v * m;
+
 }
 
 
@@ -51,6 +57,7 @@ void RenderTest::run() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	shader.start();
+	glUniformMatrix4fv(0, 1, false, &mvpMatrix[0][0]);
 	vertexArray.bind();
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 

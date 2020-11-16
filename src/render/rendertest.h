@@ -1,7 +1,7 @@
 #pragma once
 
 #include "render/gle/gle.h"
-
+#include "util/matrix.h"
 
 class RenderTest {
 
@@ -17,5 +17,7 @@ private:
 	GLE::VertexBuffer vertexBuffer;
 	GLE::VertexArray vertexArray;
 	GLE::ShaderProgram shader;
+
+	Mat4f mvpMatrix;
 
 };

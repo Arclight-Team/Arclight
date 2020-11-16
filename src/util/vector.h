@@ -12,13 +12,13 @@ public:
 	constexpr Vec2() : x(T(0)), y(T(0)) {}
 
 	template<Arithmetic A>
-	constexpr explicit Vec2(A value) : x(value), y(value) {}
+	constexpr explicit Vec2(A value) : x(T(value)), y(T(value)) {}
 
 	template<Arithmetic A, Arithmetic B>
-	constexpr Vec2(A x, B y) : x(x), y(y) {}
+	constexpr Vec2(A x, B y) : x(T(x)), y(T(y)) {}
 
 	template<Arithmetic A>
-	constexpr Vec2(const Vec2<A>& v) : x(v.x), y(v.y) {}
+	constexpr Vec2(const Vec2<A>& v) : x(T(v.x)), y(T(v.y)) {}
 
 
 	template<Arithmetic A>
@@ -175,16 +175,16 @@ public:
 	constexpr Vec3() : x(T(0)), y(T(0)), z(T(0)) {}
 
 	template<Arithmetic A>
-	constexpr explicit Vec3(A value) : x(value), y(value), z(value) {}
+	constexpr explicit Vec3(A value) : x(T(value)), y(T(value)), z(T(value)) {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
-	constexpr Vec3(A x, B y, C z) : x(x), y(y), z(z) {}
+	constexpr Vec3(A x, B y, C z) : x(T(x)), y(T(y)), z(T(z)) {}
 	
 	template<Arithmetic A>
-	constexpr explicit Vec3(const Vec2<A>& v) : x(v.x), y(v.y), z(T(0)) {}
+	constexpr explicit Vec3(const Vec2<A>& v) : x(T(v.x)), y(T(v.y)), z(T(0)) {}
 
 	template<Arithmetic A>
-	constexpr Vec3(const Vec3<A>& v) : x(v.x), y(v.y), z(v.z) {}
+	constexpr Vec3(const Vec3<A>& v) : x(T(v.x)), y(T(v.y)), z(T(v.z)) {}
 
 
 	template<Arithmetic A>
@@ -355,19 +355,19 @@ public:
 	constexpr Vec4() : x(T(0)), y(T(0)), z(T(0)), w(T(0)) {}
 
 	template<Arithmetic A>
-	constexpr explicit Vec4(A value) : x(value), y(value), z(value), w(value) {}
+	constexpr explicit Vec4(A value) : x(T(value)), y(T(value)), z(T(value)), w(T(value)) {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
-	constexpr Vec4(A x, B y, C z, D w) : x(x), y(y), z(z), w(w) {}
+	constexpr Vec4(A x, B y, C z, D w) : x(T(x)), y(T(y)), z(T(z)), w(T(w)) {}
 
 	template<Arithmetic A>
-	constexpr explicit Vec4(const Vec2<A>& v) : x(v.x), y(v.y), z(T(0)), w(T(0)) {}
+	constexpr explicit Vec4(const Vec2<A>& v) : x(T(v.x)), y(T(v.y)), z(T(0)), w(T(0)) {}
 
 	template<Arithmetic A>
-	constexpr explicit Vec4(const Vec3<A>& v) : x(v.x), y(v.y), z(v.z), w(T(0)) {}
+	constexpr explicit Vec4(const Vec3<A>& v) : x(T(v.x)), y(T(v.y)), z(T(v.z)), w(T(0)) {}
 
 	template<Arithmetic A>
-	constexpr Vec4(const Vec4<A>& v) : x(v.x), y(v.y), z(v.z), w(v.w) {}
+	constexpr Vec4(const Vec4<A>& v) : x(T(v.x)), y(T(v.y)), z(T(v.z)), w(T(v.w)) {}
 
 
 	template<Arithmetic A>
