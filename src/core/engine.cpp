@@ -56,6 +56,15 @@ bool Engine::initialize() {
 	//We're successfully running
 	Log::info("Core", "Starting engine");
 
+	Mat4d translation = Mat4d::fromTranslation(1, 2, 3);
+	Mat4d rotation = Mat4d::fromRotation(Vec3f(2, 3, 4), Math::toRadians(69));
+	Mat4d scale = Mat4d::fromScale(true, Math::atan2(0, 1), -4.89);
+	Mat4d m = translation * rotation * scale;
+
+	for (u32 i = 0; i < 4; i++) {
+		Log::info("", "%f %f %f %f", m[0][i], m[1][i], m[2][i], m[3][i]);
+	}
+
 
 	return true;
 

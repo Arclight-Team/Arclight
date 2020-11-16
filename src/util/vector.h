@@ -131,7 +131,7 @@ public:
 	}
 
 	constexpr auto length() const {
-		return Math::sqrt(magSquared);
+		return Math::sqrt(magSquared());
 	}
 
 	constexpr void normalize() {
@@ -152,6 +152,12 @@ public:
 	constexpr auto angle(const Vec2<A>& v) const {
 		arc_assert(!Math::isZero(length()) && !Math::isZero(v.length()), "Vec2 angle with null vector");
 		return Math::acos(dot(v) / (length() * v.length()));
+	}
+
+	constexpr auto getUnitVector() const {
+		Vec2 v = *this;
+		v.normalize();
+		return v;
 	}
 
 
@@ -300,7 +306,7 @@ public:
 	}
 
 	constexpr auto length() const {
-		return Math::sqrt(magSquared);
+		return Math::sqrt(magSquared());
 	}
 
 	constexpr void normalize() {
@@ -326,6 +332,12 @@ public:
 	constexpr auto angle(const Vec3<A>& v) const {
 		arc_assert(!Math::isZero(length()) && !Math::isZero(v.length()), "Vec3 angle with null vector");
 		return Math::acos(dot(v) / (length() * v.length()));
+	}
+
+	constexpr auto getUnitVector() const {
+		Vec3 v = *this;
+		v.normalize();
+		return v;
 	}
 
 
@@ -484,7 +496,7 @@ public:
 	}
 
 	constexpr auto length() const {
-		return Math::sqrt(magSquared);
+		return Math::sqrt(magSquared());
 	}
 
 	constexpr void normalize() {
@@ -505,6 +517,12 @@ public:
 	constexpr auto angle(const Vec4<A>& v) const {
 		arc_assert(!Math::isZero(length()) && !Math::isZero(v.length()), "Vec4 angle with null vector");
 		return Math::acos(dot(v) / (length() * v.length()));
+	}
+
+	constexpr auto getUnitVector() const {
+		Vec4 v = *this;
+		v.normalize();
+		return v;
 	}
 
 
@@ -543,6 +561,7 @@ constexpr Vector<A> operator/(Vector<A> a, B s) requires (std::is_same_v<Vector<
 #define VECTOR_DEFINE_NDTS(name, dim, type, suffix) typedef Vec##dim<type> name##dim##suffix;
 
 #define VECTOR_DEFINE_ND(name, dim) \
+	VECTOR_DEFINE_NDTS(name, dim, bool, b) \
 	VECTOR_DEFINE_NDTS(name, dim, float, f) \
 	VECTOR_DEFINE_NDTS(name, dim, double, d) \
 	VECTOR_DEFINE_NDTS(name, dim, long double, ld) \
