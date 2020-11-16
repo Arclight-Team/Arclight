@@ -193,4 +193,9 @@ namespace Math {
 		return start + factor * (end - start);
 	}
 
+	template<Arithmetic A, Arithmetic B, Arithmetic C>
+	constexpr auto clamp(A lowerBound, B upperBound, C value) {
+		return value < lowerBound ? lowerBound : (value > upperBound ? upperBound : value);
+	}
+
 }

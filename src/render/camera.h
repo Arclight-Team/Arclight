@@ -24,6 +24,8 @@ public:
 	Vec3f getDirection() const;
 
 private:
+
+	void clampPitch();
 	
 	Vec3f newPosition;
 	Vec3f oldPosition;

@@ -60,6 +60,7 @@ void Camera::rotate(double angleH, double angleV) {
 
 	yaw += angleH;
 	pitch += angleV;
+	clampPitch();
 
 	oldFront = getDirection();
 	newFront = Vec3f::normalize(Vec3f(Math::cos(yaw) * Math::cos(pitch), Math::sin(pitch), Math::sin(yaw) * Math::cos(pitch)));
@@ -83,6 +84,7 @@ void Camera::setRotation(double angleH, double angleV) {
 
 	yaw = angleH;
 	pitch = angleV;
+	clampPitch();
 
 	newFront = Vec3f::normalize(Vec3f(Math::cos(yaw) * Math::cos(pitch), Math::sin(pitch), Math::sin(yaw) * Math::cos(pitch)));
 
@@ -108,4 +110,10 @@ Vec3f Camera::getDirection() const {
 				 Math::lerp(oldFront.y, newFront.y, blendRotation),
 				 Math::lerp(oldFront.z, newFront.z, blendRotation));
 
+}
+
+
+
+void Camera::clampPitch() {
+	pitch = Math::clamp(Math::toRadians(-89.999), Math::toRadians(89.999), pitch);
 }

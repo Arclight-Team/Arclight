@@ -4,6 +4,10 @@
 
 
 
+RenderTest::RenderTest() : frameCounter(0) {}
+
+
+
 void RenderTest::create(u32 w, u32 h) {
 
 	static std::string vs = R"(#version 430
@@ -46,7 +50,6 @@ void RenderTest::create(u32 w, u32 h) {
 	camera.setPosition(camStartPos);
 	camera.setRotation(camStartAngleH, camStartAngleV);
 
-	//modelMatrix = Mat4f::fromTranslation(1, 2, 3).rotate(Vec3f(2, 3, 4), Math::toRadians(69)).scale(1, 2, -4.89);
 	modelMatrix = Mat4f::fromTranslation(0, 0, 0);
 	viewMatrix = Mat4f::lookAt(camera.getPosition(), camera.getPosition() + camera.getDirection());
 	projectionMatrix = Mat4f::perspective(Math::toRadians(fov), w / static_cast<double>(h), nearPlane, farPlane);
@@ -59,6 +62,14 @@ void RenderTest::create(u32 w, u32 h) {
 
 
 void RenderTest::run() {
+
+	frameCounter++;
+
+	if (frameCounter > 500) {
+		frameCounter = 0;
+	}
+
+	modelMatrix = Mat4f::fromTranslation(0, 10 * (1 + Math::sin(frameCounter / 20.0) * Math::sin(frameCounter / 20.0)) / (frameCounter / 14.0), 0).rotate(Vec3f(0, 1, 0), Math::toRadians(10 * frameCounter * (1 / (1 + (frameCounter / 360.0)))));
 
 	if (camMovement != Vec3i(0, 0, 0) || camRotation != Vec3i(0, 0, 0)) {
 
@@ -79,7 +90,7 @@ void RenderTest::run() {
 	shader.start();
 	glUniformMatrix4fv(0, 1, false, &mvpMatrix[0][0]);
 	vertexArray.bind();
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawArrays(GL_TRIANGLES, 0, 9000);
 
 }
 

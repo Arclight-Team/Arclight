@@ -10,6 +10,8 @@ class RenderTest {
 
 public:
 
+	RenderTest();
+
 	void create(u32 w, u32 h);
 	void run();
 	void destroy();
@@ -34,8 +36,10 @@ private:
 	Vec3i camRotation;
 	Camera camera;
 
+	u64 frameCounter;
+
 	constexpr inline static double fov = 90;
-	constexpr inline static double nearPlane = 0.1;
+	constexpr inline static double nearPlane = 0.01;
 	constexpr inline static double farPlane = 1000;
 	constexpr inline static Vec3f camStartPos = Vec3f(0, 0, 10);
 	constexpr inline static double camStartAngleH = Math::toRadians(-90);
