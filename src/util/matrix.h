@@ -14,7 +14,7 @@ public:
 		setIdentity();
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat2(const Mat2<A>& m) : v{ m[0], m[1] } {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
@@ -24,21 +24,21 @@ public:
 	constexpr Mat2(const Vec2<A>& a, const Vec2<B>& b) : v{ a, b } {}
 
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat2& add(const Mat2<A>& m) {
 		v[0] += m[0];
 		v[1] += m[1];
 		return *this;
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat2& subtract(const Mat2<A>& m) {
 		v[0] -= m[0];
 		v[1] -= m[1];
 		return *this;
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat2& multiply(const Mat2<A>& m) {
 		T a = v[0][0] * m[0][0] + v[1][0] * m[0][1];
 		T b = v[0][1] * m[0][0] + v[1][1] * m[0][1];
@@ -55,7 +55,7 @@ public:
 		return *this;
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat2& compMultiply(const Mat2<A>& m) {
 		v[0].compMultiply(m[0]);
 		v[1].compMultiply(m[1]);
@@ -105,24 +105,24 @@ public:
 		v[1] = {0, 1};
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat2& operator=(const Mat2<A>& m) {
 		v[0] = m[0];
 		v[1] = m[1];
 		return *this;
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat2& operator+=(const Mat2<A>& m) {
 		return add(m);
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat2& operator-=(const Mat2<A>& m) {
 		return subtract(m);
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat2& operator*=(const Mat2<A>& m) {
 		return multiply(m);
 	}
@@ -132,12 +132,12 @@ public:
 		return multiply(a);
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr bool operator==(const Mat2<A>& m) const {
 		return v[0] == m[0] && v[1] == m[1];
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr bool operator!=(const Mat2<A>& m) const {
 		return !(*this == m);
 	}
@@ -168,7 +168,7 @@ public:
 		setIdentity();
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat3(const Mat3<A>& m) : v{ m[0], m[1], m[2] } {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, 
@@ -180,7 +180,7 @@ public:
 	constexpr Mat3(const Vec3<A>& a, const Vec3<B>& b, const Vec3<C>& c) : v{ a, b, c } {}
 
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat3& add(const Mat3<A>& m) {
 		v[0] += m[0];
 		v[1] += m[1];
@@ -188,7 +188,7 @@ public:
 		return *this;
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat3& subtract(const Mat3<A>& m) {
 		v[0] -= m[0];
 		v[1] -= m[1];
@@ -196,7 +196,7 @@ public:
 		return *this;
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat3& multiply(const Mat3<A>& m) {
 		T a = v[0][0] * m[0][0] + v[1][0] * m[0][1] + v[2][0] * m[0][2];
 		T b = v[0][1] * m[0][0] + v[1][1] * m[0][1] + v[2][1] * m[0][2];
@@ -219,7 +219,7 @@ public:
 		return *this;
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat3& compMultiply(const Mat3<A>& m) {
 		v[0].compMultiply(m[0]);
 		v[1].compMultiply(m[1]);
@@ -296,7 +296,7 @@ public:
 		v[2] = { 0, 0, 1 };
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat3& operator=(const Mat3<A>& m) {
 		v[0] = m[0];
 		v[1] = m[1];
@@ -304,17 +304,17 @@ public:
 		return *this;
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat3& operator+=(const Mat3<A>& m) {
 		return add(m);
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat3& operator-=(const Mat3<A>& m) {
 		return subtract(m);
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat3& operator*=(const Mat3<A>& m) {
 		return multiply(m);
 	}
@@ -324,12 +324,12 @@ public:
 		return multiply(a);
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr bool operator==(const Mat3<A>& m) const {
 		return v[0] == m[0] && v[1] == m[1] && v[2] == m[2];
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr bool operator!=(const Mat3<A>& m) const {
 		return !(*this == m);
 	}
@@ -360,7 +360,7 @@ public:
 		setIdentity();
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat4(const Mat4<A>& m) : v{ m[0], m[1], m[2], m[3] } {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D,
@@ -374,7 +374,7 @@ public:
 	constexpr Mat4(const Vec4<A>& a, const Vec4<B>& b, const Vec4<C>& c, const Vec4<D>& d) : v{ a, b, c, d } {}
 
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat4& add(const Mat4<A>& m) {
 		v[0] += m[0];
 		v[1] += m[1];
@@ -383,7 +383,7 @@ public:
 		return *this;
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat4& subtract(const Mat4<A>& m) {
 		v[0] -= m[0];
 		v[1] -= m[1];
@@ -392,7 +392,7 @@ public:
 		return *this;
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat4& multiply(const Mat4<A>& t) {
 		T a = v[0][0] * t[0][0] + v[1][0] * t[0][1] + v[2][0] * t[0][2] + v[3][0] * t[0][3];
 		T b = v[0][1] * t[0][0] + v[1][1] * t[0][1] + v[2][1] * t[0][2] + v[3][1] * t[0][3];
@@ -423,7 +423,7 @@ public:
 		return *this;
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat4& compMultiply(const Mat4<A>& m) {
 		v[0].compMultiply(m[0]);
 		v[1].compMultiply(m[1]);
@@ -539,7 +539,7 @@ public:
 		v[3] = { 0, 0, 0, 1 };
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat4& operator=(const Mat4<A>& m) {
 		v[0] = m[0];
 		v[1] = m[1];
@@ -548,17 +548,17 @@ public:
 		return *this;
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat4& operator+=(const Mat4<A>& m) {
 		return add(m);
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat4& operator-=(const Mat4<A>& m) {
 		return subtract(m);
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr Mat4& operator*=(const Mat4<A>& m) {
 		return multiply(m);
 	}
@@ -568,12 +568,12 @@ public:
 		return multiply(a);
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr bool operator==(const Mat4<A>& m) const {
 		return v[0] == m[0] && v[1] == m[1] && v[2] == m[2] && v[3] == m[3];
 	}
 
-	template<Arithmetic A>
+	template<Float A>
 	constexpr bool operator!=(const Mat4<A>& m) const {
 		return !(*this == m);
 	}
@@ -598,18 +598,18 @@ public:
 	template<Arithmetic A, Arithmetic B>
 	constexpr Mat4& rotate(const Vec3<A>& axis, B angle) {
 
-		Vec3<A> u = axis.getUnitVector();
+		Vec3<T> u = Vec3<T>::normalize(axis);
 		auto sinTheta = Math::sin(angle);
 		auto cosTheta = Math::cos(angle);
 		auto mcosTheta = 1.0 - cosTheta;
 
-		Mat3 n (u.x * u.x * mcosTheta + cosTheta, u.x * u.y * mcosTheta - u.z * sinTheta, u.x * u.z * mcosTheta + u.y * sinTheta,
+		Mat3<T> n (u.x * u.x * mcosTheta + cosTheta, u.x * u.y * mcosTheta - u.z * sinTheta, u.x * u.z * mcosTheta + u.y * sinTheta,
 				u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta,
 				u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta);
 
-		Vec3 x = v[0] * n[0][0] + v[1] * n[0][1] + v[2] * n[0][2];
-		Vec3 y = v[0] * n[1][0] + v[1] * n[1][1] + v[2] * n[1][2];
-		Vec3 z = v[0] * n[2][0] + v[1] * n[2][1] + v[2] * n[2][2];
+		Vec4 x = v[0] * n[0][0] + v[1] * n[0][1] + v[2] * n[0][2];
+		Vec4 y = v[0] * n[1][0] + v[1] * n[1][1] + v[2] * n[1][2];
+		Vec4 z = v[0] * n[2][0] + v[1] * n[2][1] + v[2] * n[2][2];
 		v[0] = x;
 		v[1] = y;
 		v[2] = z;
@@ -632,10 +632,10 @@ public:
 		return Mat4(1, 0, 0, x, 0, 1, 0, y, 0, 0, 1, z, 0, 0, 0, 1);
 	}
 
-	template<Arithmetic A, Arithmetic B>
+	template<Float A, Arithmetic B>
 	constexpr static Mat4 fromRotation(const Vec3<A>& axis, B angle) {
 
-		Vec3<A> u = axis.getUnitVector();
+		Vec3<T> u = Vec3<T>::normalize(axis);
 		auto sinTheta = Math::sin(angle);
 		auto cosTheta = Math::cos(angle);
 		auto mcosTheta = 1.0 - cosTheta;
@@ -652,6 +652,69 @@ public:
 		return Mat4(x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1);
 	}
 
+	template<Float A, Float B>
+	constexpr static Mat4 lookAt(const Vec3<A>& pos, const Vec3<B>& target, const Vec3<double>& up = Vec3<double>(0, 1, 0)) {
+
+		Vec3<T> f = Vec3<T>::normalize(pos - target);
+		Vec3<T> r = Vec3<T>::normalize(up.cross(f));
+		Vec3<T> u = f.cross(r);
+
+		return Mat4(r.x, r.y, r.z, -r.dot(pos),
+					u.x, u.y, u.z, -u.dot(pos),
+					f.x, f.y, f.z, -f.dot(pos),
+					0, 0, 0, 1);
+
+	}
+
+	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D, Arithmetic E, Arithmetic F>
+	constexpr static Mat4 frustum(A left, B right, C bottom, D top, E near, F far) {
+
+		T l = left;
+		T r = right;
+		T b = bottom;
+		T t = top;
+		T n = near;
+		T f = far;
+
+		return Mat4(2 * n / (r - l), 0, (r + l) / (r - l), 0,
+					0, 2 * n / (t - b), (t + b) / (t - b), 0,
+					0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
+					0, 0, -1, 0);
+
+	}
+
+	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
+	constexpr static Mat4 perspective(A fovy, B aspect, C near, D far) {
+
+		T t = Math::tan(fovy / 2.0);
+		T a = aspect;
+		T n = near;
+		T f = far;
+
+		return Mat4(1 / (a * t), 0, 0, 0,
+					0, 1 / t, 0, 0,
+					0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
+					0, 0, -1, 0);
+
+	}
+
+	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D, Arithmetic E, Arithmetic F>
+	constexpr static Mat4 ortho(A left, B right, C bottom, D top, E near, F far) {
+
+		T l = left;
+		T r = right;
+		T b = bottom;
+		T t = top;
+		T n = near;
+		T f = far;
+
+		return Mat4(2 / (r - l), 0, 0, -(r + l) / (r - l),
+					0, 2 / (t - b), 0, -(t + b) / (t - b),
+					0, 0, -2 * (f - n), -(f + n) / (f - n),
+					0, 0, 0, 1);
+
+	}
+
 
 	Vec4<T> v[4];
 
@@ -659,55 +722,55 @@ public:
 
 
 
-template<Arithmetic A, Arithmetic B, template<Arithmetic> class Matrix>
-constexpr Matrix<A> operator+(Matrix<A> m, const Matrix<B>& n) requires (std::is_same_v<Matrix<A>, Mat2<A>> || std::is_same_v<Matrix<A>, Mat3<A>> || std::is_same_v<Matrix<A>, Mat4<A>>) {
+template<Float A, Float B, template<Float> class Matrix>
+constexpr auto operator+(Matrix<A> m, const Matrix<B>& n) requires (std::is_same_v<Matrix<A>, Mat2<A>> || std::is_same_v<Matrix<A>, Mat3<A>> || std::is_same_v<Matrix<A>, Mat4<A>>) {
 	m += n;
 	return m;
 }
 
-template<Arithmetic A, Arithmetic B, template<Arithmetic> class Matrix>
-constexpr Matrix<A> operator-(Matrix<A> m, const Matrix<B>& n) requires (std::is_same_v<Matrix<A>, Mat2<A>> || std::is_same_v<Matrix<A>, Mat3<A>> || std::is_same_v<Matrix<A>, Mat4<A>>) {
+template<Float A, Float B, template<Float> class Matrix>
+constexpr auto operator-(Matrix<A> m, const Matrix<B>& n) requires (std::is_same_v<Matrix<A>, Mat2<A>> || std::is_same_v<Matrix<A>, Mat3<A>> || std::is_same_v<Matrix<A>, Mat4<A>>) {
 	m -= n;
 	return m;
 }
 
-template<Arithmetic A, Arithmetic B, template<Arithmetic> class Matrix>
-constexpr Matrix<A> operator*(Matrix<A> m, const Matrix<B>& n) requires (std::is_same_v<Matrix<A>, Mat2<A>> || std::is_same_v<Matrix<A>, Mat3<A>> || std::is_same_v<Matrix<A>, Mat4<A>>) {
+template<Float A, Float B, template<Float> class Matrix>
+constexpr auto operator*(Matrix<A> m, const Matrix<B>& n) requires (std::is_same_v<Matrix<A>, Mat2<A>> || std::is_same_v<Matrix<A>, Mat3<A>> || std::is_same_v<Matrix<A>, Mat4<A>>) {
 	m *= n;
 	return m;
 }
 
 
-template<Arithmetic A, Arithmetic B>
-constexpr Vec2<B> operator*(const Mat2<A>& m, const Vec2<B>& v) {
+template<Float A, Arithmetic B>
+constexpr auto operator*(const Mat2<A>& m, const Vec2<B>& v) {
 
 	T x = m[0][0] * v[0] + m[1][0] * v[1];
 	T y = m[0][1] * v[0] + m[1][1] * v[1];
 
-	return Vec2(x, y);
+	return Vec2<A>(x, y);
 
 }
 
-template<Arithmetic A, Arithmetic B>
-constexpr Vec3<B> operator*(const Mat3<A>& m, const Vec3<B>& v) {
+template<Float A, Arithmetic B>
+constexpr auto operator*(const Mat3<A>& m, const Vec3<B>& v) {
 
 	T x = m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2];
 	T y = m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2];
 	T z = m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2];
 
-	return Vec3(x, y, z);
+	return Vec3<A>(x, y, z);
 
 }
 
-template<Arithmetic A, Arithmetic B>
-constexpr Vec4<B> operator*(const Mat4<A>& m, const Vec4<B>& v) {
+template<Float A, Arithmetic B>
+constexpr auto operator*(const Mat4<A>& m, const Vec4<B>& v) {
 
 	T x = m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2] + m[3][0] * v[3];
 	T y = m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2] + m[3][1] * v[3];
 	T z = m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2] + m[3][2] * v[3];
 	T w = m[0][3] * v[0] + m[1][3] * v[1] + m[2][3] * v[2] + m[3][3] * v[3];
 
-	return Vec4(x, y, z, w);
+	return Vec4<A>(x, y, z, w);
 
 }
 

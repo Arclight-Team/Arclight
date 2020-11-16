@@ -154,8 +154,8 @@ public:
 		return Math::acos(dot(v) / (length() * v.length()));
 	}
 
-	constexpr auto getUnitVector() const {
-		Vec2 v = *this;
+	template<Arithmetic A>
+	constexpr static Vec2<A> normalize(Vec2<A> v) {
 		v.normalize();
 		return v;
 	}
@@ -334,8 +334,8 @@ public:
 		return Math::acos(dot(v) / (length() * v.length()));
 	}
 
-	constexpr auto getUnitVector() const {
-		Vec3 v = *this;
+	template<Arithmetic A>
+	constexpr static Vec3<A> normalize(Vec3<A> v) {
 		v.normalize();
 		return v;
 	}
@@ -519,8 +519,8 @@ public:
 		return Math::acos(dot(v) / (length() * v.length()));
 	}
 
-	constexpr auto getUnitVector() const {
-		Vec4 v = *this;
+	template<Arithmetic A>
+	constexpr static Vec4<A> normalize(Vec4<A> v) {
 		v.normalize();
 		return v;
 	}
@@ -534,27 +534,31 @@ public:
 
 
 template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
-constexpr Vector<A> operator+(Vector<A> a, const Vector<B>& b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>){
-	a += b;
-	return a;
+constexpr auto operator+(Vector<A> a, const Vector<B>& b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>){
+	Vector<decltype(a[0] + b[0])> ax = a;
+	ax += b;
+	return ax;
 }
 
 template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
-constexpr Vector<A> operator-(Vector<A> a, const Vector<B>& b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
-	a -= b;
-	return a;
+constexpr auto operator-(Vector<A> a, const Vector<B>& b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
+	Vector<decltype(a[0] - b[0])> ax = a;
+	ax -= b;
+	return ax;
 }
 
 template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
-constexpr Vector<A> operator*(Vector<A> a, B s) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
-	a *= s;
-	return a;
+constexpr auto operator*(Vector<A> a, B b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
+	Vector<decltype(a[0] * b)> ax = a;
+	ax *= b;
+	return ax;
 }
 
 template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
-constexpr Vector<A> operator/(Vector<A> a, B s) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
-	a /= s;
-	return a;
+constexpr auto operator/(Vector<A> a, B b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
+	Vector<decltype(a[0] / b)> ax = a;
+	ax /= b;
+	return ax;
 }
 
 
