@@ -22,7 +22,7 @@ void RenderTest::create(u32 w, u32 h) {
 								out vec4 color;
 
 								void main(){
-									color = vec4(1.0, 0.0, 0.0, 1.0);
+									color = vec4(gl_FragCoord.x / 2000.0, gl_FragCoord.y / 2000.0, 0.0, 1.0);
 								})";
 
 	static float vertexData[] = {
