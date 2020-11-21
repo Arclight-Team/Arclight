@@ -9,5 +9,6 @@
 assets/
 .idea/
 pack/
+tools/
 cmake-build-debug-visual-studio/
 cmake-build-release-visual-studio/
