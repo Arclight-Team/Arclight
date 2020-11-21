@@ -33,12 +33,14 @@ Nodes represent the hierarchy of the model. Each node can have multiple children
 
 | Offset | Type               | Name        | Description           |
 |--------|--------------------|-------------|-----------------------|
-| 0x0    | u16                | id          | Node ID               |
-| 0x2    | u16                | name_length | Length of name string |
-| 0x4    | char[name_length]  | name        | Name of mesh          |
-| +0x0   | Mesh*              | parent      | Parent mesh           |
-| +0x4   | u32                | child_count | Child mesh count      |
-| +0x8   | Mesh*[child_count] | children    | Child meshes          |
+| 0x0    | u32                | id          | Node ID               |
+| 0x4    | u32                | mesh_count  | Number of meshes      |
+| 0x8    | u32[mesh_count]    | meshes      | Mesh IDs              |
+| +0x0   | u16                | name_length | Length of name string |
+| +0x2   | char[name_length]  | name        | Name of mesh          |
+| ++0x0  | Node*              | parent      | Parent node           |
+| ++0x4  | Node*              | child_count | Child node count      |
+| ++0x8  | Node*[child_count] | children    | Child nodes           |
 
 **Mesh Array**
 
