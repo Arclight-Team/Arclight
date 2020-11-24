@@ -7,12 +7,11 @@
 struct ImportConfiguration {
 
     constexpr ImportConfiguration() : flipUVs(false), genNormals(false),
-        smoothNormals(false), limitWeigths(false), maxWeigths(1), genTangents(false) {}
+        smoothNormals(false), maxWeigths(4), genTangents(false) {}
 
     bool flipUVs;
     bool genNormals;
     bool smoothNormals;
-    bool limitWeigths;
     u32 maxWeigths;
     bool genTangents;
 

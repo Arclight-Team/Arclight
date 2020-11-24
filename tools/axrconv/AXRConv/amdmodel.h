@@ -6,11 +6,14 @@
 #include <vector>
 #include <unordered_map>
 
-#define AMD_DATA_TYPE(x, y) (static_cast<u8>(x) | (y - 1) << 6)
+#define AMD_DATA_TYPE(x, y) (static_cast<u8>(static_cast<u8>(x) | (y - 1) << 6))
 #define AMD_ATTR_COLOR(x) (static_cast<AMDAttributeType>(static_cast<u8>(AMDAttributeType::Color0) + x))
 #define AMD_ATTR_UV(x) (static_cast<AMDAttributeType>(static_cast<u8>(AMDAttributeType::Uv0) + x))
 #define AMD_ATTR_GET_ELEMENTS(x) ((x >> 6) + 1)
 #define AMD_ATTR_GET_TYPE(x) (static_cast<AMDDataType>(x & 0x3F))
+#define AMD_ATTR_GET_COLOR(x) (static_cast<u8>(x) - static_cast<u8>(AMDAttributeType::Color0))
+#define AMD_ATTR_GET_UV(x) (static_cast<u8>(x) - static_cast<u8>(AMDAttributeType::Uv0))
+
 
 constexpr static u8 amdMajorVersion = 0;
 constexpr static u8 amdMinorVersion = 1;

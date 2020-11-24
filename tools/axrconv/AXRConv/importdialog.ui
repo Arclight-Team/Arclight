@@ -54,6 +54,13 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout">
+        <item row="1" column="1">
+         <widget class="QRadioButton" name="smoothNormalsRadioButton">
+          <property name="text">
+           <string>Smooth normals</string>
+          </property>
+         </widget>
+        </item>
         <item row="0" column="1">
          <widget class="QRadioButton" name="faceNormalsRadioButton">
           <property name="text">
@@ -80,40 +87,17 @@
           </property>
          </spacer>
         </item>
-        <item row="1" column="1">
-         <widget class="QRadioButton" name="smoothNormalsRadioButton">
-          <property name="text">
-           <string>Smooth normals</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </item>
       <item>
-       <widget class="QCheckBox" name="weightLimitCheckBox">
+       <widget class="QCheckBox" name="calcTangentsCheckBox">
         <property name="text">
-         <string>Limit bone weights</string>
+         <string>Calculate tangents</string>
         </property>
        </widget>
       </item>
       <item>
        <layout class="QHBoxLayout" name="weightLimitHLayout">
-        <item>
-         <spacer name="weightLimitSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Fixed</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
         <item>
          <widget class="QLabel" name="weightLimitLabel">
           <property name="sizePolicy">
@@ -129,22 +113,34 @@
         </item>
         <item>
          <widget class="QSpinBox" name="weightLimitSpinBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimum">
            <number>1</number>
           </property>
           <property name="maximum">
-           <number>32</number>
+           <number>4</number>
           </property>
          </widget>
         </item>
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
        </layout>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="calcTangentsCheckBox">
-        <property name="text">
-         <string>Calculate tangents</string>
-        </property>
-       </widget>
       </item>
      </layout>
     </widget>

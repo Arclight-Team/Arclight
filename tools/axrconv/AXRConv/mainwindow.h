@@ -12,6 +12,7 @@ namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
 
+class QTimer;
 class QLabel;
 class QCloseEvent;
 class EntityTreeModel;
@@ -32,6 +33,9 @@ private slots:
     void onTaskFinished();
 
 private:
+    void showRenderError();
+
+    QTimer* renderTimer;
 
     Ui::MainWindow *ui;
     QString openedFilename;

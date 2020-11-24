@@ -8,6 +8,7 @@
 #include <QFileDialog>
 #include <QLabel>
 #include <QMessageBox>
+#include <QTimer>
 
 
 
@@ -19,13 +20,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     statusLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     statusLabel->setText(tr("Ready"));
 
-    entityTree = new EntityTreeModel();
+    entityTree = new EntityTreeModel(this);
 
     ui->entityTreeView->setModel(entityTree);
     ui->statusbar->addWidget(statusLabel);
 
-    connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(onOpen()));
+    renderTimer = new QTimer(this);
+
+    connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::onOpen);
     connect(&watcher, &QFutureWatcher<void>::finished, this, &MainWindow::onTaskFinished);
+    connect(renderTimer, SIGNAL(timeout()), ui->renderWidget, SLOT(update()));
+
+    renderTimer->start(17);
 
 }
 
@@ -68,7 +74,12 @@ void MainWindow::onTaskFinished(){
 
         statusLabel->setText(tr("Imported ") + filename);
         entityTree->setEntityTree(model);
-        ui->renderWidget->setModel(&model);
+
+        ui->renderWidget->loadModel(&model);
+
+        if(ui->renderWidget->errorOccured()){
+            showRenderError();
+        }
 
     }else{
 
@@ -81,10 +92,15 @@ void MainWindow::onTaskFinished(){
 
 
 
+void MainWindow::showRenderError(){
+    QMessageBox::warning(this, tr("Render preview error"), ui->renderWidget->getErrorMessage());
+}
+
+
+
 void MainWindow::closeEvent(QCloseEvent *event){
 
     watcher.waitForFinished();
-    ui->renderWidget->reset();
     QMainWindow::closeEvent(event);
 
 }
@@ -93,6 +109,5 @@ void MainWindow::closeEvent(QCloseEvent *event){
 
 MainWindow::~MainWindow(){
     delete ui;
-    delete entityTree;
 }
 

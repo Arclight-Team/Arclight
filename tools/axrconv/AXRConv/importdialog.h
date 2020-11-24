@@ -23,7 +23,6 @@ public:
 public slots:
 
     void onGenerateNormalsCheckBoxChanged(int state);
-    void onWeightLimitCheckBoxChanged(int state);
     void onImportAccepted();
 
 private:

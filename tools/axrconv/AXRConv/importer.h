@@ -27,10 +27,7 @@ private:
     void setImportError(const QString& msg);
     AMDPrimitiveMode getPrimitiveMode(const aiMesh* mesh);
 
-    template<class T>
-    inline void addAttributeData(std::vector<u8>& data, u32 offset, T t){
-        std::memcpy(&data[offset], &t, sizeof(t));
-    }
+    void addAttribute(AMDMesh& mesh, const aiMesh* sceneMesh, AMDAttributeType type);
 
     bool imported;
     QString error;
