@@ -2,11 +2,12 @@
 #include "amdmodel.h"
 #include "types.h"
 
-#include <QMessageBox>
+#include <QWheelEvent>
+#include <QApplication>
 
 
 
-RenderWidget::RenderWidget(QWidget* parent) : QOpenGLWidget(parent), model(nullptr){}
+RenderWidget::RenderWidget(QWidget* parent) : QOpenGLWidget(parent), model(nullptr), cameraState(CameraState::Idle) {}
 
 
 
@@ -55,7 +56,10 @@ void RenderWidget::initializeGL() {
 
     glClearColor(0, 0, 0, 1);
 
-    viewMatrix.lookAt(QVector3D(10, 10, 10), QVector3D(1, 10, 1), QVector3D(0, 1, 0));
+    camera.setPosition(QVector3D(0, 0, 10));
+    camera.setCenter(QVector3D(0, 0, 0));
+
+    viewMatrix.lookAt(camera.getPosition(), camera.getCenter(), QVector3D(0, 1, 0));
     projMatrix.perspective(fov, width() / static_cast<double>(height()), nearPlane, farPlane);
 
 }
@@ -67,6 +71,9 @@ void RenderWidget::paintGL() {
     if(!model || !shader.isLinked()){
         return;
     }
+
+    viewMatrix.setToIdentity();
+    viewMatrix.lookAt(camera.getPosition(), camera.getCenter(), QVector3D(0, 1, 0));
 
     glEnable(GL_DEPTH_TEST);
     glViewport(0, 0, width(), height());
@@ -94,6 +101,104 @@ void RenderWidget::resizeGL(int w, int h) {
 
     projMatrix.setToIdentity();
     projMatrix.perspective(fov, w / static_cast<double>(h), nearPlane, farPlane);
+
+}
+
+
+
+void RenderWidget::wheelEvent(QWheelEvent *event) {
+
+    QPoint numPixels = event->pixelDelta();
+    QPoint numDegrees = event->angleDelta() / 8;
+
+    if (!numPixels.isNull()) {
+        camera.zoom(numPixels.y(), zoomFactor, zoomMinDist, zoomMaxDist);
+    } else if (!numDegrees.isNull()) {
+        QPoint numSteps = numDegrees / 15;
+        camera.zoom(numSteps.y(), zoomFactor, zoomMinDist, zoomMaxDist);
+    }
+
+    event->accept();
+
+}
+
+
+
+void RenderWidget::mousePressEvent(QMouseEvent *event) {
+
+    switch(event->button()){
+
+        case Qt::MiddleButton:
+
+            if(QApplication::queryKeyboardModifiers() == Qt::ShiftModifier){
+                cameraState = CameraState::Panning;
+            } else {
+                cameraState = CameraState::Moving;
+            }
+
+            prevMousePos = mapFromGlobal(QCursor::pos());
+            event->accept();
+
+            break;
+
+        default:
+            event->ignore();
+            break;
+
+    }
+
+}
+
+
+
+void RenderWidget::mouseReleaseEvent(QMouseEvent *event) {
+
+    switch(event->button()){
+
+        case Qt::MiddleButton:
+
+            cameraState = CameraState::Idle;
+            event->accept();
+
+            break;
+
+        default:
+            event->ignore();
+            break;
+
+    }
+
+}
+
+
+
+void RenderWidget::mouseMoveEvent(QMouseEvent *event) {
+
+    QPointF currentPos = event->localPos();
+    QPointF moveOffset = prevMousePos - currentPos;
+
+    switch(cameraState) {
+
+        case CameraState::Idle:
+            break;
+
+        case CameraState::Moving:
+            camera.rotate(-moveOffset.x() * rotateFactor, -moveOffset.y() * rotateFactor);
+            break;
+
+        case CameraState::Panning:
+            camera.pan(QVector2D(moveOffset.x(), -moveOffset.y()), panFactor);
+            break;
+
+    }
+
+    if(cameraState != CameraState::Idle){
+        event->accept();
+    } else {
+        event->ignore();
+    }
+
+    prevMousePos = currentPos;
 
 }
 
@@ -150,6 +255,9 @@ void RenderWidget::loadModel(AMDModel* model){
     }
 
     doneCurrent();
+
+    camera.setPosition(QVector3D(0, 0, 10));
+    camera.setCenter(QVector3D(0, 0, 0));
 
 }
 

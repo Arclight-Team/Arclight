@@ -45,6 +45,8 @@ add_executable(AXRConv
     entitytreemodel.h
     renderwidget.cpp
     renderwidget.h
+    rendercamera.cpp
+    rendercamera.h
     resources.qrc
 )
 

@@ -227,7 +227,14 @@
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_7">
                   <item>
-                   <widget class="RenderWidget" name="renderWidget"/>
+                   <widget class="RenderWidget" name="renderWidget">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </widget>

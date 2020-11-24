@@ -7,7 +7,15 @@
 #include <QOpenGLShaderProgram>
 
 #include "amdmodel.h"
+#include "rendercamera.h"
 
+
+
+enum class CameraState {
+    Idle,
+    Moving,
+    Panning
+};
 
 
 class RenderWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
@@ -29,6 +37,11 @@ protected:
     virtual void paintGL() override;
     virtual void resizeGL(int w, int h) override;
 
+    virtual void wheelEvent(QWheelEvent *event) override;
+    virtual void mousePressEvent(QMouseEvent *event) override;
+    virtual void mouseReleaseEvent(QMouseEvent *event) override;
+    virtual void mouseMoveEvent(QMouseEvent *event) override;
+
 private:
 
     u8 getAttributeChannel(AMDAttributeType type);
@@ -48,9 +61,19 @@ private:
     QMatrix4x4 viewMatrix;
     QMatrix4x4 projMatrix;
 
-    constexpr static float fov = 90.0;
-    constexpr static float nearPlane = 0.1;
-    constexpr static float farPlane = 1000.0;
+    RenderCamera camera;
+    QPointF prevMousePos;
+    CameraState cameraState;
+
+    constexpr static double fov = 90.0;
+    constexpr static double nearPlane = 0.1;
+    constexpr static double farPlane = 2000.0;
+
+    constexpr static double zoomFactor = 1.1;
+    constexpr static double zoomMinDist = 0.01;
+    constexpr static double zoomMaxDist = 500;
+    constexpr static double panFactor = 369.0;
+    constexpr static double rotateFactor = 0.005;
 
 };
 
