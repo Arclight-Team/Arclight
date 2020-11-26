@@ -15,3 +15,4 @@ tools/axrconv/AXRConv/*/*
 !tools/axrconv/AXRConv/*
 cmake-build-debug-visual-studio/
 cmake-build-release-visual-studio/
+*.user
