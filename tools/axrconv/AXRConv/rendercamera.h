@@ -29,7 +29,7 @@ private:
     QVector3D position;
     QVector3D center;
 
-    constexpr static double bias = 0.0001;
+    constexpr static float bias = 0.0001f;
     constexpr static double maxPitch = 89.999;
 
 };

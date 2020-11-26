@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QTimer>
+#include <QPushButton>
 
 
 
@@ -16,18 +17,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     ui->setupUi(this);
 
+    ui->mainSplitter->setSizes(QList<int>({1, 1}));
+
     statusLabel = new QLabel(this);
     statusLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     statusLabel->setText(tr("Ready"));
 
     entityTree = new EntityTreeModel(this);
-
     ui->entityTreeView->setModel(entityTree);
     ui->statusbar->addWidget(statusLabel);
 
     renderTimer = new QTimer(this);
 
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::onOpen);
+    connect(ui->resetCameraButton, &QPushButton::pressed, ui->renderWidget,  &RenderWidget::resetCamera);
     connect(&watcher, &QFutureWatcher<void>::finished, this, &MainWindow::onTaskFinished);
     connect(renderTimer, SIGNAL(timeout()), ui->renderWidget, SLOT(update()));
 

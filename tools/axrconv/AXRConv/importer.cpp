@@ -144,7 +144,7 @@ u32 Importer::processAMDNode(AMDModel& model, const aiNode* sceneNode, u32& node
     }
 
     for(u32 i = 0; i < sceneNode->mNumMeshes; i++){
-        model.nodes[i].meshIDs.push_back(sceneNode->mMeshes[i]);
+        model.nodes[id].meshIDs.push_back(sceneNode->mMeshes[i]);
     }
 
     return id;

@@ -37,7 +37,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QSplitter" name="splitter">
+        <widget class="QSplitter" name="mainSplitter">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -57,11 +57,23 @@
            </property>
            <item>
             <widget class="QSplitter" name="splitter_3">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+               <horstretch>2</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
              <widget class="QWidget" name="widget_7" native="true">
-              <layout class="QVBoxLayout" name="verticalLayout_6">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>2</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_6" stretch="0">
                <property name="leftMargin">
                 <number>0</number>
                </property>
@@ -99,6 +111,12 @@
               </layout>
              </widget>
              <widget class="QWidget" name="widget_6" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>2</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <layout class="QVBoxLayout" name="verticalLayout_8">
                <property name="leftMargin">
                 <number>0</number>
@@ -225,7 +243,18 @@
                  <property name="title">
                   <string>Render Preview</string>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_7">
+                 <layout class="QHBoxLayout" name="horizontalLayout_4">
+                  <item>
+                   <layout class="QVBoxLayout" name="verticalLayout_3">
+                    <item>
+                     <widget class="QPushButton" name="resetCameraButton">
+                      <property name="text">
+                       <string>Reset Camera</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
                   <item>
                    <widget class="RenderWidget" name="renderWidget">
                     <property name="sizePolicy">

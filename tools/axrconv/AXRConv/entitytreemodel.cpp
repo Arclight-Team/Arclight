@@ -5,10 +5,12 @@
 
 
 
-EntityTreeModel::EntityTreeModel(QObject* parent) : QAbstractItemModel(parent), root(new EntityTreeItem({QString("Root")})) {
+EntityTreeModel::EntityTreeModel(QObject* parent) : QAbstractItemModel(parent), root(new EntityTreeItem({QString("Unnamed Root")})) {
 
-    entityImages[0].load(":/images/entity_node.jpg");
+    entityImages[0].load(":/images/entity_node.png");
     entityImages[0] = entityImages[0].scaled(16, 16);
+    entityImages[1].load(":/images/entity_mesh.png");
+    entityImages[1] = entityImages[1].scaled(16, 16);
 
 }
 
@@ -195,6 +197,10 @@ void EntityTreeModel::setupModelData(const AMDModel& model, u16 nodeID, EntityTr
 
     for(u32 i = 0; i < node.childIDs.size(); i++){
         setupModelData(model, node.childIDs[i], currentTreeNode);
+    }
+
+    for(u32 i = 0; i < node.meshIDs.size(); i++) {
+        currentTreeNode->appendChild(new EntityTreeItem({entityImages[1], "Mesh " + QString::number(node.meshIDs[i])}, currentTreeNode));
     }
 
 }

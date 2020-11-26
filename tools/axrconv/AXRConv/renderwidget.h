@@ -5,6 +5,7 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <QMatrix4x4>
 #include <QOpenGLShaderProgram>
+#include <QOpenGLFramebufferObject>
 
 #include "amdmodel.h"
 #include "rendercamera.h"
@@ -26,11 +27,18 @@ public:
     RenderWidget(QWidget* parent);
     ~RenderWidget();
 
-    void reset();
     void loadModel(AMDModel* model);
+    void selectMesh(u32 meshID);
 
+    u32 getSelectedMesh() const;
     bool errorOccured() const;
     QString getErrorMessage();
+
+public slots:
+    void resetCamera();
+
+signals:
+    void meshSelected();
 
 protected:
     virtual void initializeGL() override;
@@ -42,7 +50,11 @@ protected:
     virtual void mouseReleaseEvent(QMouseEvent *event) override;
     virtual void mouseMoveEvent(QMouseEvent *event) override;
 
+private slots:
+    void onFramebufferResized();
+
 private:
+    void resetMeshes();
 
     u8 getAttributeChannel(AMDAttributeType type);
     u32 getAttributeTypeEnum(AMDDataType type);
@@ -51,8 +63,20 @@ private:
     QString errorMessage;
     AMDModel* model;
 
-    QOpenGLShaderProgram shader;
+    GLuint fbo;
+    GLuint fboColorTexture;
+    GLuint fboIdTexture;
+    GLuint fboDepthBuffer;
+
+    GLuint quadVao;
+    GLuint quadVbo;
+
+    QOpenGLShaderProgram mainShader;
+    QOpenGLShaderProgram quadShader;
     GLuint mvpUniform;
+    GLuint meshIdUniform;
+    GLuint quadTextureUniform;
+    GLuint idTextureUniform;
 
     QVector<GLuint> vaos;
     QVector<GLuint> vbos;
@@ -64,6 +88,11 @@ private:
     RenderCamera camera;
     QPointF prevMousePos;
     CameraState cameraState;
+
+    QPointF lastClickPos;
+    u32 highlightMeshID;
+
+    static float quadData[24];
 
     constexpr static double fov = 90.0;
     constexpr static double nearPlane = 0.1;
