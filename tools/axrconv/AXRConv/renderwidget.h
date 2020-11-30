@@ -13,96 +13,104 @@
 
 
 enum class CameraState {
-    Idle,
-    Moving,
-    Panning
+	Idle,
+	Moving,
+	Panning
 };
 
 
 class RenderWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
 
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    RenderWidget(QWidget* parent);
-    ~RenderWidget();
+	RenderWidget(QWidget* parent);
+	~RenderWidget();
 
-    void loadModel(AMDModel* model);
-    void selectMesh(u32 meshID);
+	void loadModel(AMDModel* model);
+	void selectMesh(u32 meshID);
 
-    u32 getSelectedMesh() const;
-    bool errorOccured() const;
-    QString getErrorMessage();
+	u32 getSelectedMesh() const;
+	bool errorOccured() const;
+	QString getErrorMessage();
 
 public slots:
-    void resetCamera();
+	void resetCamera();
 
 signals:
-    void meshSelected();
+	void meshSelected();
 
 protected:
-    virtual void initializeGL() override;
-    virtual void paintGL() override;
-    virtual void resizeGL(int w, int h) override;
+	virtual void initializeGL() override;
+	virtual void paintGL() override;
+	virtual void resizeGL(int w, int h) override;
 
-    virtual void wheelEvent(QWheelEvent *event) override;
-    virtual void mousePressEvent(QMouseEvent *event) override;
-    virtual void mouseReleaseEvent(QMouseEvent *event) override;
-    virtual void mouseMoveEvent(QMouseEvent *event) override;
+	virtual void wheelEvent(QWheelEvent *event) override;
+	virtual void mousePressEvent(QMouseEvent *event) override;
+	virtual void mouseReleaseEvent(QMouseEvent *event) override;
+	virtual void mouseMoveEvent(QMouseEvent *event) override;
 
 private slots:
-    void onFramebufferResized();
+	void onFramebufferResized();
 
 private:
-    void resetMeshes();
+	void releaseModel();
+	void bindMaterialTexture(u32 materialID, AMDTextureType type, u32 index, u32 slot);
 
-    u8 getAttributeChannel(AMDAttributeType type);
-    u32 getAttributeTypeEnum(AMDDataType type);
-    u32 getPrimitiveTypeEnum(AMDPrimitiveMode mode);
+	u8 getAttributeChannel(AMDAttributeType type);
+	u32 getAttributeTypeEnum(AMDDataType type);
+	u32 getPrimitiveTypeEnum(AMDPrimitiveMode mode);
+	u32 getTextureMappingEnum(AMDTextureMapping mapping);
 
-    QString errorMessage;
-    AMDModel* model;
+	QString errorMessage;
+	AMDModel* model;
 
-    GLuint fbo;
-    GLuint fboColorTexture;
-    GLuint fboIdTexture;
-    GLuint fboDepthBuffer;
+	GLuint fbo;
+	GLuint fboColorTexture;
+	GLuint fboIdTexture;
+	GLuint fboDepthBuffer;
 
-    GLuint quadVao;
-    GLuint quadVbo;
+	GLuint quadVao;
+	GLuint quadVbo;
 
-    QOpenGLShaderProgram mainShader;
-    QOpenGLShaderProgram quadShader;
-    GLuint mvpUniform;
-    GLuint meshIdUniform;
-    GLuint quadTextureUniform;
-    GLuint idTextureUniform;
+	GLuint defaultTexture;
 
-    QVector<GLuint> vaos;
-    QVector<GLuint> vbos;
+	QOpenGLShaderProgram mainShader;
+	QOpenGLShaderProgram quadShader;
+	GLuint mvpUniform;
+	GLuint meshIdUniform;
+	GLuint quadTextureUniform;
+	GLuint idTextureUniform;
+	GLuint diffuseSamplerUniform;
 
-    QVector<QMatrix4x4> modelMatrices;
-    QMatrix4x4 viewMatrix;
-    QMatrix4x4 projMatrix;
+	QVector<GLuint> vaos;
+	QVector<GLuint> vbos;
+	QVector<GLuint> textures;
 
-    RenderCamera camera;
-    QPointF prevMousePos;
-    CameraState cameraState;
+	QVector<QMatrix4x4> modelMatrices;
+	QMatrix4x4 viewMatrix;
+	QMatrix4x4 projMatrix;
 
-    QPointF lastClickPos;
-    u32 highlightMeshID;
+	RenderCamera camera;
+	QPointF prevMousePos;
+	CameraState cameraState;
 
-    static float quadData[24];
+	QPointF lastClickPos;
+	u32 highlightMeshID;
 
-    constexpr static double fov = 90.0;
-    constexpr static double nearPlane = 0.1;
-    constexpr static double farPlane = 2000.0;
+	bool rendererInitialized;
 
-    constexpr static double zoomFactor = 1.1;
-    constexpr static double zoomMinDist = 0.01;
-    constexpr static double zoomMaxDist = 500;
-    constexpr static double panFactor = 369.0;
-    constexpr static double rotateFactor = 0.005;
+	static float quadData[24];
+
+	constexpr static double fov = 90.0;
+	constexpr static double nearPlane = 0.1;
+	constexpr static double farPlane = 2000.0;
+
+	constexpr static double zoomFactor = 1.1;
+	constexpr static double zoomMinDist = 0.01;
+	constexpr static double zoomMaxDist = 5000;
+	constexpr static double panFactor = 369.0;
+	constexpr static double rotateFactor = 0.005;
 
 };
 
