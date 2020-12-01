@@ -13,6 +13,8 @@
 #define AMD_ATTR_GET_TYPE(x) (static_cast<AMDDataType>(x & 0x3F))
 #define AMD_ATTR_GET_COLOR(x) (static_cast<u8>(x) - static_cast<u8>(AMDAttributeType::Color0))
 #define AMD_ATTR_GET_UV(x) (static_cast<u8>(x) - static_cast<u8>(AMDAttributeType::Uv0))
+#define AMD_ATTR_IS_COLOR(x) ((static_cast<u8>(x) - static_cast<u8>(AMDAttributeType::Color0)) < 8)
+#define AMD_ATTR_IS_UV(x) ((static_cast<u8>(x) - static_cast<u8>(AMDAttributeType::Uv0)) < 8)
 
 
 constexpr static u8 amdMajorVersion = 0;
@@ -74,6 +76,15 @@ enum class AMDBlendMode {
 	Solid,
 	AlphaDiscard,
 	Transparent
+};
+
+
+
+enum class AMDShading {
+	NoLighting,
+	Gouraud,
+	Phong,
+	BlinnPhong
 };
 
 

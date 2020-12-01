@@ -8,8 +8,10 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(ASSIMP_BUILD_TESTS OFF)
 
 # QtCreator supports the following variables for Android, which are identical to qmake Android variables.
 # Check http://doc.qt.io/qt-5/deployment-android.html for more information.
@@ -27,27 +29,29 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 add_executable(AXRConv
-    main.cpp
-    mainwindow.cpp
-    mainwindow.h
-    mainwindow.ui
-    importdialog.cpp
-    importdialog.h
-    importdialog.ui
-    importer.cpp
-    importer.h
-    importconfiguration.h
-    amdmodel.h
-    types.h
-    entitytreeitem.cpp
-    entitytreeitem.h
-    entitytreemodel.cpp
-    entitytreemodel.h
-    renderwidget.cpp
-    renderwidget.h
-    rendercamera.cpp
-    rendercamera.h
-    resources.qrc
+	main.cpp
+	mainwindow.cpp
+	mainwindow.h
+	mainwindow.ui
+	importdialog.cpp
+	importdialog.h
+	importdialog.ui
+	importer.cpp
+	importer.h
+	importconfiguration.h
+	amdmodel.h
+	types.h
+	entitytreeitem.cpp
+	entitytreeitem.h
+	entitytreemodel.cpp
+	entitytreemodel.h
+	renderwidget.cpp
+	renderwidget.h
+	rendercamera.cpp
+	rendercamera.h
+	axrshader.cpp
+	axrshader.h
+	resources.qrc
 )
 
 add_subdirectory(assimp)
