@@ -26,6 +26,7 @@ private:
 	GLE::VertexBuffer vertexBuffer;
 	GLE::VertexArray vertexArray;
 	GLE::ShaderProgram shader;
+	GLE::Uniform mvpUniform;
 
 	Mat4f modelMatrix;
 	Mat4f viewMatrix;

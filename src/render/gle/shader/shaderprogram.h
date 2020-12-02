@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../gc.h"
+#include "uniform.h"
 
 #include <vector>
 
@@ -54,10 +55,17 @@ public:
 	//Activates the shader
 	void start();
 
+	//Aquires a uniform handle
+	Uniform getUniform(const char* name) const;
+
 	//Checks the given states
 	bool isCreated() const;
 	bool isActive() const;
 	bool isLinked() const;
+
+	static bool shaderBinariesSupported();
+	static bool tesselationShadersSupported();
+	static bool computeShadersSupported();
 
 private:
 

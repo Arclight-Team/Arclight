@@ -12,10 +12,11 @@ void RenderTest::create(u32 w, u32 h) {
 
 	static std::string vs = R"(#version 430
 								layout(location = 0) in vec2 vertices;
-								layout(location = 0) uniform mat4 mvp;
+								
+								uniform mat4 mvpMatrix;
 
 								void main(){
-									gl_Position = mvp * vec4(vertices, 0.0, 1.0);
+									gl_Position = mvpMatrix * vec4(vertices, 0.0, 1.0);
 								})";
 
 	static std::string fs = R"(#version 430
@@ -36,6 +37,8 @@ void RenderTest::create(u32 w, u32 h) {
 	shader.addShader(fs.c_str(), fs.size(), GLE::ShaderType::FragmentShader);
 	shader.link();
 
+	mvpUniform = shader.getUniform("mvpMatrix");
+
 	vertexArray.create();
 	vertexArray.bind();
 
@@ -45,7 +48,6 @@ void RenderTest::create(u32 w, u32 h) {
 
 	vertexArray.setAttribute(0, 2, GLE::AttributeType::Float, 0, 0);
 	vertexArray.enableAttribute(0);
-
 
 	camera.setPosition(camStartPos);
 	camera.setRotation(camStartAngleH, camStartAngleV);
@@ -88,7 +90,7 @@ void RenderTest::run() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	shader.start();
-	glUniformMatrix4fv(0, 1, false, &mvpMatrix[0][0]);
+	mvpUniform.setMat4(mvpMatrix);
 	vertexArray.bind();
 	glDrawArrays(GL_TRIANGLES, 0, 9000);
 

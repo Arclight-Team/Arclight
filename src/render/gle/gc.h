@@ -19,6 +19,19 @@
 #include "util/assert.h"
 #include "types.h"
 
+#define GLE_MATRIX_HEADER "util/matrix.h"
+#define GLE_DEFINE_MATRIX	typedef Vec2f GLEVec2; \
+							typedef Vec3f GLEVec3; \
+							typedef Vec4f GLEVec4; \
+							typedef Matrix2f GLEMat2; \
+							typedef Matrix3f GLEMat3; \
+							typedef Matrix4f GLEMat4;
+
+#define GLE_VECTOR_VALUE_PTR(v) (&v.x)
+#define GLE_VECTOR_ARRAY_PTR(v) (&v->x)
+#define GLE_MATRIX_VALUE_PTR(m) (&m[0].x)
+#define GLE_MATRIX_ARRAY_PTR(m) (&(*m)[0].x)
+
 #define gle_assert(cond, msg, ...) arc_assert(cond, msg, __VA_ARGS__)
 
 

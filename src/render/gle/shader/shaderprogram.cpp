@@ -42,6 +42,16 @@ bool ShaderProgram::addShader(const char* source, u32 size, ShaderType type) {
 	gle_assert(!isLinked(), "Attempted to add shader to linked program");
 	gle_assert(shaders[static_cast<u32>(type)] == invalidID, "Cannot attach duplicate shader types to the program");
 
+	if ((type == ShaderType::TessCtrlShader || type == ShaderType::TessEvalShader) && !tesselationShadersSupported()) {
+		GLE::warn("Tesselation shaders are not supported");
+		return false;
+	}
+
+	if (type == ShaderType::ComputeShader && computeShadersSupported()) {
+		GLE::warn("Compute shaders are not supported");
+		return false;
+	}
+
 	u32 shaderEnum = getShaderTypeEnum(type);
 	u32 sid = glCreateShader(shaderEnum);
 
@@ -88,13 +98,13 @@ bool ShaderProgram::loadBinary(void* binary, u32 size) {
 	gle_assert(!isLinked(), "Attempted to load shader program binary into previously linked program");
 	gle_assert(size >= 4, "Shader binary has invalid size");
 
-	if (GLE_EXT_SUPPORTED(ARB_get_program_binary)) {
+	if (shaderBinariesSupported()) {
 
 		glProgramBinary(id, *static_cast<u32*>(binary), static_cast<u8*>(binary) + 4, size - 4);
 		checkLinking();
 
 	} else {
-		gle_assert(false, "Shader binaries are not supported");
+		GLE::warn("Shader binaries are not supported");
 	}
 	
 	return linked;
@@ -109,7 +119,7 @@ std::vector<u8> ShaderProgram::saveBinary() {
 	
 	std::vector<u8> binary;
 
-	if (GLE_EXT_SUPPORTED(ARB_get_program_binary)) {
+	if (shaderBinariesSupported()) {
 
 		i32 binarySize = 0;
 		u32 binaryFormat = 0;
@@ -120,7 +130,7 @@ std::vector<u8> ShaderProgram::saveBinary() {
 		binary.resize(binarySize + 4);
 
 	} else {
-		gle_assert(false, "Shader binaries are not supported");
+		GLE::warn("Shader binaries are not supported");
 	}
 
 	return binary;
@@ -142,6 +152,20 @@ void ShaderProgram::start() {
 
 
 
+Uniform ShaderProgram::getUniform(const char* name) const {
+
+	u32 uniformID = glGetUniformLocation(id, name);
+
+	if (uniformID == invalidID) {
+		GLE::warn("Failed to fetch uniform location for uniform %s (shader program ID=%d)", name, id);
+	}
+
+	return Uniform(uniformID);
+
+}
+
+
+
 bool ShaderProgram::isCreated() const {
 	return id != invalidID;
 }
@@ -156,6 +180,24 @@ bool ShaderProgram::isActive() const {
 
 bool ShaderProgram::isLinked() const {
 	return linked;
+}
+
+
+
+bool ShaderProgram::shaderBinariesSupported() {
+	return GLE_EXT_SUPPORTED(ARB_get_program_binary);
+}
+
+
+
+bool ShaderProgram::tesselationShadersSupported() {
+	return GLE_EXT_SUPPORTED(ARB_tessellation_shader);
+}
+
+
+
+bool ShaderProgram::computeShadersSupported() {
+	return GLE_EXT_SUPPORTED(ARB_compute_shader);
 }
 
 
@@ -244,23 +286,17 @@ u32 ShaderProgram::getShaderTypeEnum(ShaderType type) {
 		case ShaderType::FragmentShader:
 			return GL_FRAGMENT_SHADER;
 
-#if GLE_VERSION_MIN(3, 3)
 		case ShaderType::GeometryShader:
 			return GL_GEOMETRY_SHADER;
-#endif
 
-#if GLE_VERSION_MIN(4, 0)
 		case ShaderType::TessCtrlShader:
 			return GL_TESS_CONTROL_SHADER;
 
 		case ShaderType::TessEvalShader:
 			return GL_TESS_EVALUATION_SHADER;
-#endif
 
-#if GLE_VERSION_MIN(4, 3)
 		case ShaderType::ComputeShader:
 			return GL_COMPUTE_SHADER;
-#endif
 
 		default:
 			gle_assert(false, "Invalid shader type 0x%X", type);

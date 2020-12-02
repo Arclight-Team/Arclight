@@ -31,6 +31,10 @@ namespace Core {
 
 		openglContextVersion = majorVersion << 8 | minorVersion;
 		openglDebugContext = flags & GL_CONTEXT_FLAG_DEBUG_BIT;
+
+		if (openglDebugContext) {
+
+		}
 		
 		GLE::info("OpenGL %d.%d context set up", majorVersion, minorVersion);
 		GLE::info("Debug context %s", (openglDebugContext ? "enabled" : "disabled"));

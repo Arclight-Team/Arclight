@@ -46,7 +46,7 @@ void VertexArray::destroy() {
 
 
 
-void VertexArray::setAttribute(u32 index, u8 elements, AttributeType type, u32 stride, u32 offset) {
+void VertexArray::setAttribute(u32 index, u8 elements, AttributeType type, u32 stride, u32 offset, AttributeClass attrClass) {
 
 	gle_assert(isBound(), "Vertex array %d has not been bound (attempted to set attribute settings)", id);
 	gle_assert(index < maxVertexAttributes, "Vertex array attribute %d exceeds the limit of %d", index, maxVertexAttributes - 1);
@@ -54,18 +54,16 @@ void VertexArray::setAttribute(u32 index, u8 elements, AttributeType type, u32 s
 
 	u32 attrType = getAttributeTypeEnum(type);
 
-	switch (type) {
+	switch (attrClass) {
 
-		case AttributeType::Double:
+		case AttributeClass::Double:
+			gle_assert(type == AttributeType::Double, "Cannot bind type to attribute class 'double' for vertex array %d", id);
 			glVertexAttribLPointer(index, elements, attrType, stride, reinterpret_cast<const void*>(offset));
-			break;
 
-		case AttributeType::Byte:
-		case AttributeType::UByte:
-		case AttributeType::Short:
-		case AttributeType::UShort:
-		case AttributeType::Int:
-		case AttributeType::UInt:
+		case AttributeClass::Int:
+			gle_assert(type == AttributeType::Byte || type == AttributeType::Short || type == AttributeType::Int ||
+					   type == AttributeType::UByte || type == AttributeType::UShort || type == AttributeType::UInt, 
+					   "Cannot bind type to attribute class 'int' for vertex array %d", id);
 			glVertexAttribIPointer(index, elements, attrType, stride, reinterpret_cast<const void*>(offset));
 			break;
 
