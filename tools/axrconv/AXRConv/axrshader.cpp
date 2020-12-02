@@ -5,11 +5,7 @@
 
 
 AXRShader::AXRShader() : renderShading(AMDShading::BlinnPhong), renderBlendMode(AMDBlendMode::Solid), valid(false) {
-
-	for(u32 i = static_cast<u32>(AXRShaderFeature::TransformMVP); i < static_cast<u32>(AXRShaderFeature::None); i++){
-		features[static_cast<AXRShaderFeature>(i)] = featureDisabled;
-	}
-
+	reset();
 }
 
 
@@ -45,13 +41,21 @@ void AXRShader::setFeature(AXRShaderFeature feature, u32 value){
 
 
 bool AXRShader::create(){
+
+	std::string vertexShaderSource;
+
+	//Set version
+	vertexShaderSource += getShaderVersionString() + '\n';
+
+
 	return false;
+
 }
 
 
 
 void AXRShader::destroy(){
-
+	reset();
 }
 
 
@@ -131,6 +135,30 @@ AXRShader AXRShader::generateShader(const AMDModel& model, u32 meshID, AMDShadin
 
 
 
-u32 AXRShader::getFeature(AXRShaderFeature feature){
-	return 0;
+u32 AXRShader::getFeature(AXRShaderFeature feature) const{
+	return features.at(feature);
+}
+
+
+
+bool AXRShader::hasFeature(AXRShaderFeature feature) const{
+	return getFeature(feature) != 0;
+}
+
+
+
+std::string AXRShader::getShaderVersionString(){
+	return "#version 330 core";
+}
+
+
+
+void AXRShader::reset(){
+
+	valid = false;
+
+	for(u32 i = static_cast<u32>(AXRShaderFeature::TransformMVP); i < static_cast<u32>(AXRShaderFeature::None); i++){
+		removeFeature(static_cast<AXRShaderFeature>(i));
+	}
+
 }

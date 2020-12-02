@@ -22,7 +22,18 @@ class ShaderProgram {
 
 public:
 
-	constexpr ShaderProgram() : id(invalidID), linked(false), shaders { invalidID, invalidID , invalidID , invalidID , invalidID, invalidID } {}
+	constexpr static u32 shaderTypeCount = static_cast<u32>(ShaderType::ComputeShader) + 1;
+
+	constexpr ShaderProgram() : id(invalidID), linked(false), shaders { invalidID, invalidID , invalidID , invalidID , invalidID, invalidID } {
+		
+		for (u32 i = 0; i < shaderTypeCount; i++) {
+			shaders[i] = invalidID;
+		}
+
+	}
+
+	ShaderProgram(const ShaderProgram& program) = delete;
+	ShaderProgram& operator=(const ShaderProgram& program) = delete;
 
 	//Creates a shader program if none has been created yet
 	void create();
@@ -58,7 +69,7 @@ private:
 
 	u32 id;			//ID of the shader program
 	bool linked;	//True if it has been linked
-	u32 shaders[6];	//Array of shader ids
+	u32 shaders[shaderTypeCount];	//Array of shader ids
 
 	inline static u32 activeProgramID = invalidBoundID;
 

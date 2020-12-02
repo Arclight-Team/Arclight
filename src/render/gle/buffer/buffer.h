@@ -34,6 +34,9 @@ public:
 
 	constexpr Buffer() : id(invalidID), target(BufferTarget::VertexBuffer), size(-1) {}
 
+	Buffer(const Buffer& buffer) = delete;
+	Buffer& operator=(const Buffer& buffer) = delete;
+
 	//Creates a buffer if none has been created yet
 	void create();
 

@@ -2,6 +2,7 @@
 #include "core/windowhandle.h"
 #include "input/inputsystem.h"
 #include "util/assert.h"
+#include "render/gle/glecore.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -142,7 +143,12 @@ void Window::setWindowConfig(const WindowConfig& config) {
 	glfwWindowHint(GLFW_SAMPLES, config.samples);
 	glfwWindowHint(GLFW_SRGB_CAPABLE, config.srgbRendering);
 
+#ifdef GLE_DISABLE_DEBUG
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, false);
+#else
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config.debugContext);
+#endif
+
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, config.forwardContext);
 
 	switch (config.profile) {
@@ -817,17 +823,7 @@ void Window::shutdown() {
 
 
 bool Window::setupGLContext() {
-	
-	glewExperimental = GL_TRUE;
-	GLenum result = glewInit();
-
-	if (glewInit() != GLEW_OK) {
-		Log::error("Window", "OpenGL context creation failed: %s", glewGetErrorString(result));
-		return false;
-	}
-
-	return true;
-
+	return GLE::Core::init();
 }
 
 

@@ -88,15 +88,15 @@ bool ShaderProgram::loadBinary(void* binary, u32 size) {
 	gle_assert(!isLinked(), "Attempted to load shader program binary into previously linked program");
 	gle_assert(size >= 4, "Shader binary has invalid size");
 
-#if GLE_VERSION_MIN(4, 1)
+	if (GLE_EXT_SUPPORTED(ARB_get_program_binary)) {
 
-	glProgramBinary(id, *static_cast<u32*>(binary), static_cast<u8*>(binary) + 4, size - 4);
-	checkLinking();
+		glProgramBinary(id, *static_cast<u32*>(binary), static_cast<u8*>(binary) + 4, size - 4);
+		checkLinking();
 
-#else
-	gle_assert(false, "Shader binaries are not supported in this version");
-#endif
-
+	} else {
+		gle_assert(false, "Shader binaries are not supported");
+	}
+	
 	return linked;
 
 }
@@ -109,19 +109,19 @@ std::vector<u8> ShaderProgram::saveBinary() {
 	
 	std::vector<u8> binary;
 
-#if GLE_VERSION_MIN(4, 1)
+	if (GLE_EXT_SUPPORTED(ARB_get_program_binary)) {
 
-	i32 binarySize = 0;
-	u32 binaryFormat = 0;
+		i32 binarySize = 0;
+		u32 binaryFormat = 0;
 
-	glGetProgramiv(id, GL_PROGRAM_BINARY_LENGTH, &binarySize);
-	binary.resize(binarySize + 4);
-	glGetProgramBinary(id, binarySize, &binarySize, reinterpret_cast<u32*>(&binary[0]), &binary[4]);
-	binary.resize(binarySize + 4);
+		glGetProgramiv(id, GL_PROGRAM_BINARY_LENGTH, &binarySize);
+		binary.resize(binarySize + 4);
+		glGetProgramBinary(id, binarySize, &binarySize, reinterpret_cast<u32*>(&binary[0]), &binary[4]);
+		binary.resize(binarySize + 4);
 
-#else
-	gle_assert(false, "Shader binaries are not supported in this version");
-#endif
+	} else {
+		gle_assert(false, "Shader binaries are not supported");
+	}
 
 	return binary;
 
@@ -218,7 +218,7 @@ void ShaderProgram::destroyShaders() {
 
 	gle_assert(isCreated(), "Attempted to destroy shaders without creating a program first");
 
-	for (u32 i = 0; i < 6; i++) {
+	for (u32 i = 0; i < shaderTypeCount; i++) {
 
 		if (shaders[i] != invalidID) {
 

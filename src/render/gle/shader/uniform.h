@@ -12,7 +12,7 @@ public:
 
 	constexpr Uniform(u32 location) : id(location) {}
 
-	template<typename T>
+	void set
 
 private:
 

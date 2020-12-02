@@ -73,7 +73,7 @@ void Engine::run() {
 	u64 accum = 0;
 
 	//Play sounds
-	audioEngine.playSound(":/sounds/rickroll.mp3");
+	//audioEngine.playSound(":/sounds/rickroll.mp3");
 
 	//Loop until window close event is requested
 	while (!window.closeRequested()) {
@@ -150,7 +150,7 @@ void Engine::shutdownBackend() {
 
 bool Engine::createWindow() {
 
-	window.setWindowConfig(WindowConfig().setResizable(true).setOpenGLVersion(4, 2));
+	window.setWindowConfig(WindowConfig().setResizable(true).setOpenGLVersion(3, 3));
 	return window.create(200, 200, "Among Us");
 
 }

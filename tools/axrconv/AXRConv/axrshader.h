@@ -17,6 +17,12 @@ enum class AXRShaderFeature {
 
 
 
+struct AXRShaderAttribute {
+
+};
+
+
+
 struct AMDModel;
 
 class AXRShader {
@@ -35,6 +41,8 @@ public:
 	void removeFeature(AXRShaderFeature feature);
 	void setFeature(AXRShaderFeature feature, u32 value);
 
+	void addAttribute(AMDAttributeType attrType, AMDDataType dataType);
+
 	bool create();
 	void destroy();
 
@@ -42,11 +50,16 @@ public:
 
 	static AXRShader generateShader(const AMDModel& model, u32 meshID, AMDShading shading, AMDBlendMode blendMode);
 
-	u32 getFeature(AXRShaderFeature feature);
+	u32 getFeature(AXRShaderFeature feature) const;
+	bool hasFeature(AXRShaderFeature feature) const;
 
 private:
 
+	static std::string getShaderVersionString();
+	void reset();
+
 	std::unordered_map<AXRShaderFeature, u32> features;
+	std::vector<AMDAttribute> attributes;
 	AMDShading renderShading;
 	AMDBlendMode renderBlendMode;
 	bool valid;
