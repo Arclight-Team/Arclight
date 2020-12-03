@@ -31,6 +31,21 @@ namespace Math {
 		return degrees * pi / 180.0;
 	}
 
+	template<Arithmetic A>
+	constexpr auto abs(A value) {
+		return std::abs(value);
+	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr auto max(A a, B b) {
+		return std::max(a, b);
+	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr auto min(A a, B b) {
+		return std::min(a, b);
+	}
+
 	template<Integer I>
 	constexpr bool isZero(I value) {
 		return value == I(0);
@@ -48,7 +63,7 @@ namespace Math {
 		auto y = Math::abs(a);
 		auto z = Math::abs(b);
 
-		return x <= ((y < z ? z : y) * epsilon);
+		return x <= (Math::max(y, z) * epsilon);
 
 	}
 
@@ -100,21 +115,6 @@ namespace Math {
 	template<Arithmetic A, Arithmetic B>
 	constexpr auto atan2(A y, B x) {
 		return std::atan2(y, x);
-	}
-
-	template<Arithmetic A>
-	constexpr auto abs(A value) {
-		return std::abs(value);
-	}
-
-	template<Arithmetic A, Arithmetic B>
-	constexpr auto max(A a, B b) {
-		return std::max(a, b);
-	}
-
-	template<Arithmetic A, Arithmetic B>
-	constexpr auto min(A a, B b) {
-		return std::min(a, b);
 	}
 
 	template<Arithmetic A, Arithmetic B>
