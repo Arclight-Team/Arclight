@@ -92,7 +92,7 @@ void RenderTest::run() {
 	shader.start();
 	mvpUniform.setMat4(mvpMatrix);
 	vertexArray.bind();
-	glDrawArrays(GL_TRIANGLES, 0, 9000);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 
 }
 

@@ -744,19 +744,19 @@ constexpr auto operator*(Matrix<A> m, const Matrix<B>& n) requires (std::is_same
 template<Float A, Arithmetic B>
 constexpr auto operator*(const Mat2<A>& m, const Vec2<B>& v) {
 
-	T x = m[0][0] * v[0] + m[1][0] * v[1];
-	T y = m[0][1] * v[0] + m[1][1] * v[1];
+	auto x = m[0][0] * v[0] + m[1][0] * v[1];
+	auto y = m[0][1] * v[0] + m[1][1] * v[1];
 
 	return Vec2<A>(x, y);
-
+	
 }
 
 template<Float A, Arithmetic B>
 constexpr auto operator*(const Mat3<A>& m, const Vec3<B>& v) {
 
-	T x = m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2];
-	T y = m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2];
-	T z = m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2];
+	auto x = m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2];
+	auto y = m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2];
+	auto z = m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2];
 
 	return Vec3<A>(x, y, z);
 
@@ -765,10 +765,10 @@ constexpr auto operator*(const Mat3<A>& m, const Vec3<B>& v) {
 template<Float A, Arithmetic B>
 constexpr auto operator*(const Mat4<A>& m, const Vec4<B>& v) {
 
-	T x = m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2] + m[3][0] * v[3];
-	T y = m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2] + m[3][1] * v[3];
-	T z = m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2] + m[3][2] * v[3];
-	T w = m[0][3] * v[0] + m[1][3] * v[1] + m[2][3] * v[2] + m[3][3] * v[3];
+	auto x = m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2] + m[3][0] * v[3];
+	auto y = m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2] + m[3][1] * v[3];
+	auto z = m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2] + m[3][2] * v[3];
+	auto w = m[0][3] * v[0] + m[1][3] * v[1] + m[2][3] * v[2] + m[3][3] * v[3];
 
 	return Vec4<A>(x, y, z, w);
 
