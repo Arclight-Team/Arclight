@@ -10,6 +10,11 @@ namespace Core {
 	u32 openglContextVersion = 0;
 	bool openglDebugContext = false;
 
+	u32 maxTextureSize = 0;
+	u32 maxArrayTextureLayers = 0;
+	u32 maxMipmapLevels = 0;
+	float maxAnisotropy = 1.0;
+
 
 	bool init() {
 
@@ -31,13 +36,27 @@ namespace Core {
 
 		openglContextVersion = majorVersion << 8 | minorVersion;
 		openglDebugContext = flags & GL_CONTEXT_FLAG_DEBUG_BIT;
-
-		if (openglDebugContext) {
-
-		}
 		
 		GLE::info("OpenGL %d.%d context set up", majorVersion, minorVersion);
 		GLE::info("Debug context %s", (openglDebugContext ? "enabled" : "disabled"));
+
+		i32 tmp = 0;
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &tmp);
+		maxTextureSize = tmp;
+		glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &tmp);
+		maxArrayTextureLayers = tmp;
+
+		u32 texSize = maxTextureSize;
+		maxMipmapLevels = 0;
+
+		while (texSize != 1) {
+			texSize /= 2;
+			maxMipmapLevels++;
+		}
+
+		if (GLE_EXT_SUPPORTED(ARB_texture_filter_anisotropic)) {
+			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAnisotropy);
+		}
 
 		return true;
 
@@ -96,6 +115,26 @@ namespace Core {
 
 #endif
 
+	}
+
+
+	u32 getMaxTextureSize() {
+		return maxTextureSize;
+	}
+
+
+	u32 getMaxArrayTextureLayers() {
+		return maxArrayTextureLayers;
+	}
+
+
+	u32 getMaxMipmapLevels() {
+		return maxMipmapLevels;
+	}
+
+
+	float getMaxTextureAnisotropy() {
+		return maxAnisotropy;
 	}
 
 }

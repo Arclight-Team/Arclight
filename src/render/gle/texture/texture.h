@@ -15,9 +15,8 @@ enum class TextureType {
 	CubeMapTexture,
 	CubeMapArrayTexture,
 	MultisampleTexture2D,
-	MultisampleTextureArray2D
+	MultisampleArrayTexture2D
 };
-
 
 
 enum class TextureFilter {
@@ -27,10 +26,20 @@ enum class TextureFilter {
 };
 
 
+enum class TextureWrap {
+	Repeat,
+	Clamp,
+	Mirror
+};
+
 
 class Texture {
 
 public:
+
+	//Default mipmap levels
+	constexpr static inline u32 defaultBaseLevel = 0;
+	constexpr static inline u32 defaultMaxLevel = 1000;
 
 	//Creates a texture if none has been created yet
 	void create();
@@ -45,31 +54,47 @@ public:
 	bool isCreated() const;
 	bool isBound() const;
 
+	u32 getMaxDimension() const;
 	u32 getMipmapCount() const;
 
-	void setMipmapBaseLevel(u32 level);
-	void setMipmapMaxLevel(u32 level);
-	void setMipmapRange(u32 base, u32 max);
+	bool isMultisampleTexture() const;
 
+	static u32 getMipmapSize(u32 level, u32 d);
 	static void enableAutomaticMipmapGeneration();
 	static void disableAutomaticMipmapGeneration();
 
 protected:
 
 	//Don't even try creating a raw texture object.
-	constexpr explicit Texture(TextureType type) : id(invalidID), type(type), format(TextureFormat::RGBA8) {}
+	constexpr explicit Texture(TextureType type) : id(invalidID), type(type),
+		width(0), height(0), depth(0), texFormat(TextureFormat::None) {}
 
 	//And no copy-construction.
 	Texture(const Texture& texture) = delete;
 	Texture& operator=(const Texture& texture) = delete;
 
-	void setData(u32 w, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 mipmapLevel = 0);
-	void setData(u32 w, u32 h, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 mipmapLevel = 0);
-	void setData(u32 w, u32 h, u32 d, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 mipmapLevel = 0);
+	void setData(u32 w, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
+	void setData(u32 w, u32 h, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
+	void setData(u32 w, u32 h, u32 d, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
 
-	void update(u32 x, u32 w, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 mipmapLevel = 0);
-	void update(u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 mipmapLevel = 0);
-	void update(u32 x, u32 y, u32 z, u32 w, u32 h, u32 d, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 mipmapLevel = 0);
+	void setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
+
+	void update(u32 x, u32 w, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
+	void update(u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
+	void update(u32 x, u32 y, u32 z, u32 w, u32 h, u32 d, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
+
+	void setWrapU(TextureWrap wrap);
+	void setWrapV(TextureWrap wrap);
+	void setWrapW(TextureWrap wrap);
+
+	void setMipmapBaseLevel(u32 level);
+	void setMipmapMaxLevel(u32 level);
+	void setMipmapRange(u32 base, u32 max);
+
+	void setAnisotropy(float a);
+
+	void setMinFilter(TextureFilter filter, bool mipmapped = true);
+	void setMagFilter(TextureFilter filter);
 
 	void generateMipmaps();
 
@@ -84,14 +109,19 @@ private:
 	}
 
 	static u32 getTextureTypeEnum(TextureType type);
+	static u32 getTextureWrapEnum(TextureWrap wrap);
 	static u32 getTextureFormatEnum(TextureFormat format);
 	static u32 getCompressedTextureFormatEnum(CompressedTextureFormat format);
 	static u32 getTextureSourceFormatEnum(TextureSourceFormat format);
 	static u32 getTextureSourceTypeEnum(TextureSourceType type);
 
 	u32 id;
-	TextureFormat format;
 	const TextureType type;
+
+	u32 width;
+	u32 height;
+	u32 depth;
+	TextureFormat texFormat;
 
 	static inline bool autoGenMipmaps = false;
 	static inline u32 boundTextureIDs[9] = {

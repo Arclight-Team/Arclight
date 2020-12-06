@@ -1,5 +1,6 @@
 #include "texture.h"
 
+#include "../glecore.h"
 #include GLE_HEADER
 
 
@@ -38,7 +39,12 @@ void Texture::destroy() {
 		}
 
 		glDeleteTextures(1, &id);
+
 		id = invalidID;
+		width = 0;
+		height = 0;
+		depth = 0;
+		texFormat = TextureFormat::None;
 
 	}
 
@@ -57,6 +63,153 @@ bool Texture::isBound() const {
 }
 
 
+
+u32 Texture::getMaxDimension() const {
+	return (width > height ? (depth > width ? depth : width) : (depth > height ? depth : height));
+}
+
+
+
+u32 Texture::getMipmapCount() const {
+
+	u32 maxDim = getMaxDimension();
+	u32 count = 0;
+
+	while (maxDim /= 2) {
+		count++;
+	}
+
+	return count;
+
+}
+
+
+
+u32 Texture::getMipmapSize(u32 level, u32 d) {
+	return d >> level;
+}
+
+
+
+void Texture::setMipmapBaseLevel(u32 level) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set base mipmap level)", id);
+	gle_assert(!isMultisampleTexture(), "Texture parameters not allowed for multisample textures");
+
+	glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_BASE_LEVEL, level);
+
+}
+
+
+
+void Texture::setMipmapMaxLevel(u32 level) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set max mipmap level)", id);
+	gle_assert(!isMultisampleTexture(), "Texture parameters not allowed for multisample textures");
+
+	glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_MAX_LEVEL, level);
+
+}
+
+
+
+void Texture::setMipmapRange(u32 base, u32 max) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set mipmap boundary levels)", id);
+	gle_assert(!isMultisampleTexture(), "Texture parameters not allowed for multisample textures");
+	gle_assert(base <= max, "Mipmap base level cannot be greater than the max level (base = %d, max = %d)", base, max);
+
+	setMipmapBaseLevel(base);
+	setMipmapMaxLevel(max);
+
+}
+
+
+
+void Texture::setAnisotropy(float a) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set texture anisotropy)", id);
+	gle_assert(!isMultisampleTexture(), "Texture parameters not allowed for multisample textures");
+
+	float maxAnisotropy = Core::getMaxTextureAnisotropy();
+
+	//Anisotropy has no effect in this case (and is not supported)
+	if (maxAnisotropy == 1.0f) {
+		return;
+	}
+
+	if (a > maxAnisotropy) {
+		GLE::warn("Specified anisotropy level of %d exceeds the maximum of %d (value will be capped)", a, maxAnisotropy);
+		a = maxAnisotropy;
+	}
+
+	glTexParameterf(getTextureTypeEnum(type), GL_TEXTURE_MAX_ANISOTROPY, a);
+
+}
+
+
+
+void Texture::setMinFilter(TextureFilter filter, bool mipmapped) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set texture min filter)", id);
+	gle_assert(!isMultisampleTexture(), "Texture parameters not allowed for multisample textures");
+
+	switch (filter) {
+
+		case TextureFilter::None:
+			glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_MIN_FILTER, mipmapped ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST);
+			break;
+
+		case TextureFilter::Trilinear:
+
+			if (!mipmapped) {
+#if !GLE_TEXTURE_MERGE_FILTERS
+				gle_assert("Attempted to set minifying filter to trilinear in non-mipmapped mode. To auto-merge modes, enable GLE_TEXTURE_MERGE_FILTERS.");
+				//If we're not in debug mode and the program does not exit here, enable standard bilinear filtering
+#endif
+				glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			} else {
+				glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			}
+
+			break;
+
+		case TextureFilter::Bilinear:
+			glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_MIN_FILTER, mipmapped ? GL_NEAREST_MIPMAP_LINEAR : GL_LINEAR);
+			break;
+
+	}
+
+}
+
+
+
+void Texture::setMagFilter(TextureFilter filter) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set texture mag filter)", id);
+	gle_assert(!isMultisampleTexture(), "Texture parameters not allowed for multisample textures");
+
+	switch (filter) {
+
+		case TextureFilter::None:
+			glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			break;
+
+		case TextureFilter::Trilinear:
+#if !GLE_TEXTURE_MERGE_FILTERS
+			gle_assert("Attempted to set magnifying filter to trilinear. To auto-merge modes, enable GLE_TEXTURE_MERGE_FILTERS.");
+			//If we're not in debug mode and the program does not exit here, enable standard bilinear filtering
+#endif
+		case TextureFilter::Bilinear:
+			glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			break;
+
+	}
+
+}
+
+
+
 void Texture::enableAutomaticMipmapGeneration() {
 	autoGenMipmaps = true;
 }
@@ -65,6 +218,239 @@ void Texture::enableAutomaticMipmapGeneration() {
 
 void Texture::disableAutomaticMipmapGeneration() {
 	autoGenMipmaps = false;
+}
+
+
+
+void Texture::setData(u32 w, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
+	gle_assert(type == TextureType::Texture1D, "Invalid texture type %d for setting 1D data", type);
+
+	if (w > Core::getMaxTextureSize()) {
+		GLE::error("1D texture dimension of size %d exceeds maximum texture size of %d", w, Core::getMaxTextureSize());
+		return;
+	}
+
+	width = w;
+	height = 0;
+	depth = 0;
+	texFormat = format;
+
+	glTexImage1D(getTextureTypeEnum(type), 0, getTextureFormatEnum(texFormat), w, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+
+	if (autoGenMipmaps) {
+		generateMipmaps();
+	}
+
+}
+
+
+
+void Texture::setData(u32 w, u32 h, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
+	gle_assert(type == TextureType::Texture2D, "Invalid texture type %d for setting 2D data", type);
+
+	if (w > Core::getMaxTextureSize() || h > Core::getMaxTextureSize()) {
+		GLE::error("2D texture dimension of size %d exceeds maximum texture size of %d", (w > h ? w : h), Core::getMaxTextureSize());
+		return;
+	}
+
+	width = w;
+	height = h;
+	depth = 0;
+	texFormat = format;
+
+	glTexImage2D(getTextureTypeEnum(type), 0, getTextureFormatEnum(texFormat), w, h, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+
+	if (autoGenMipmaps) {
+		generateMipmaps();
+	}
+
+}
+
+
+
+void Texture::setData(u32 w, u32 h, u32 d, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
+	gle_assert(type == TextureType::Texture3D, "Invalid texture type %d for setting 3D data", type);
+
+	if (w > Core::getMaxTextureSize() || h > Core::getMaxTextureSize() || d > Core::getMaxTextureSize()) {
+		GLE::error("3D texture dimension of size %d exceeds maximum texture size of %d", (w > h ? (d > w ? d : h) : (d > h ? d : h)), Core::getMaxTextureSize());
+		return;
+	}
+
+	width = w;
+	height = h;
+	depth = d;
+	texFormat = format;
+
+	glTexImage3D(getTextureTypeEnum(type), 0, getTextureFormatEnum(texFormat), w, h, d, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+
+	if (autoGenMipmaps) {
+		generateMipmaps();
+	}
+
+}
+
+
+
+void Texture::setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set mipmap data)", id);
+
+	if (level > getMipmapCount()) {
+		GLE::error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
+		return;
+	}
+
+	switch (type) {
+
+		case TextureType::Texture1D:
+			glTexImage1D(getTextureTypeEnum(type), level, getTextureFormatEnum(texFormat), getMipmapSize(level, width), 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+			break;
+
+		case TextureType::Texture2D:
+			glTexImage2D(getTextureTypeEnum(type), level, getTextureFormatEnum(texFormat), getMipmapSize(level, width), getMipmapSize(level, height), 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+			break;
+
+		case TextureType::Texture3D:
+			glTexImage3D(getTextureTypeEnum(type), level, getTextureFormatEnum(texFormat), getMipmapSize(level, width), getMipmapSize(level, height), getMipmapSize(level, depth), 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+			break;
+
+	}
+
+}
+
+
+
+
+void Texture::update(u32 x, u32 w, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to update data)", id);
+	gle_assert(type == TextureType::Texture1D, "Invalid texture type %d for updating 1D data", type);
+
+	if ((x + w) > getMipmapSize(level, width)) {
+		GLE::error("Updating 1D texture out of bounds: width = %d, requested: x = %d, w = %d", getMipmapSize(level, width), x, w);
+		return;
+	}
+
+	if (level > getMipmapCount()) {
+		GLE::error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
+		return;
+	}
+
+	glTexSubImage1D(getTextureTypeEnum(type), level, x, w, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+
+}
+
+
+
+void Texture::update(u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to update data)", id);
+	gle_assert(type == TextureType::Texture2D, "Invalid texture type %d for updating 2D data", type);
+
+	if ((x + w) > getMipmapSize(level, width)) {
+		GLE::error("Updating 2D texture out of bounds: width = %d, requested: x = %d, w = %d", getMipmapSize(level, width), x, w);
+		return;
+	}
+
+	if ((y + h) > getMipmapSize(level, height)) {
+		GLE::error("Updating 2D texture out of bounds: height = %d, requested: y = %d, h = %d", getMipmapSize(level, height), y, h);
+		return;
+	}
+
+	if (level > getMipmapCount()) {
+		GLE::error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
+		return;
+	}
+
+	glTexSubImage2D(getTextureTypeEnum(type), level, x, y, w, h, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+
+}
+
+
+
+void Texture::update(u32 x, u32 y, u32 z, u32 w, u32 h, u32 d, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to update data)", id);
+	gle_assert(type == TextureType::Texture3D, "Invalid texture type %d for updating 3D data", type);
+
+	if ((x + w) > getMipmapSize(level, width)) {
+		GLE::error("Updating 3D texture out of bounds: width = %d, requested: x = %d, w = %d", getMipmapSize(level, width), x, w);
+		return;
+	}
+
+	if ((y + h) > getMipmapSize(level, height)) {
+		GLE::error("Updating 3D texture out of bounds: height = %d, requested: y = %d, h = %d", getMipmapSize(level, height), y, h);
+		return;
+	}
+
+	if ((z + d) > getMipmapSize(level, depth)) {
+		GLE::error("Updating 3D texture out of bounds: depth = %d, requested: z = %d, d = %d", getMipmapSize(level, depth), z, d);
+		return;
+	}
+
+	if (level > getMipmapCount()) {
+		GLE::error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
+		return;
+	}
+
+	glTexSubImage3D(getTextureTypeEnum(type), level, x, y, z, w, h, d, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+
+}
+
+
+
+void Texture::setWrapU(TextureWrap wrap) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set wrap mode)", id);
+	gle_assert(!isMultisampleTexture(), "Texture wrap not allowed for multisample textures");
+
+	glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_WRAP_S, getTextureWrapEnum(wrap));
+
+}
+
+
+
+void Texture::setWrapV(TextureWrap wrap) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set wrap mode)", id);
+	gle_assert(!isMultisampleTexture(), "Texture wrap not allowed for multisample textures");
+
+	glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_WRAP_T, getTextureWrapEnum(wrap));
+
+}
+
+
+
+void Texture::setWrapW(TextureWrap wrap) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set wrap mode)", id);
+	gle_assert(!isMultisampleTexture(), "Texture wrap not allowed for multisample textures");
+
+	glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_WRAP_R, getTextureWrapEnum(wrap));
+
+}
+
+
+
+void Texture::generateMipmaps() {
+	
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to generate mipmaps)", id);
+	gle_assert(!isMultisampleTexture(), "Mipmap generation not allowed for multisample textures");
+	
+	glGenerateMipmap(getTextureTypeEnum(type));
+
+}
+
+
+
+bool Texture::isMultisampleTexture() const {
+	return type == TextureType::MultisampleTexture2D || type == TextureType::MultisampleArrayTexture2D;
 }
 
 
@@ -97,11 +483,34 @@ u32 Texture::getTextureTypeEnum(TextureType type) {
 		case TextureType::MultisampleTexture2D:
 			return GL_TEXTURE_2D_MULTISAMPLE;
 
-		case TextureType::MultisampleTextureArray2D:
+		case TextureType::MultisampleArrayTexture2D:
 			return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
 
 		default:
 			gle_assert(false, "Invalid texture type 0x%X", type);
+			return -1;
+
+	}
+
+}
+
+
+
+u32 Texture::getTextureWrapEnum(TextureWrap wrap) {
+
+	switch (wrap) {
+
+		case TextureWrap::Clamp:
+			return GL_CLAMP_TO_EDGE;
+
+		case TextureWrap::Mirror:
+			return GL_MIRRORED_REPEAT;
+
+		case TextureWrap::Repeat:
+			return GL_REPEAT;
+
+		default:
+			gle_assert(false, "Invalid texture wrap 0x%X", wrap);
 			return -1;
 
 	}

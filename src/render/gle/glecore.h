@@ -12,6 +12,11 @@ namespace Core {
 
 	void printErrors();
 
+	u32 getMaxTextureSize();
+	u32 getMaxArrayTextureLayers();
+	u32 getMaxMipmapLevels();
+	float getMaxTextureAnisotropy();
+
 }
 
 

@@ -5,6 +5,7 @@
 GLE_BEGIN
 
 enum class TextureFormat {
+	None,
 	R8,
 	R8sn,
 	R16,

@@ -11,19 +11,13 @@
 
 #define GLE_EXT_SUPPORTED(x) GLEW_##x
 
+//Merges bilinear and trilinear filtering modes
+#define GLE_TEXTURE_MERGE_FILTERS 1
 
 //#define GLE_DISABLE_DEBUG
 
 
-
-#include <string>
-
-//User includes
-#include "util/log.h"
-#include "util/assert.h"
-#include "types.h"
-
-#define GLE_MATRIX_HEADER "util/matrix.h"
+#define GLE_MATRIX_HEADER	"util/matrix.h"
 #define GLE_DEFINE_MATRIX	typedef Vec2f GLEVec2; \
 							typedef Vec3f GLEVec3; \
 							typedef Vec4f GLEVec4; \
@@ -35,6 +29,13 @@
 #define GLE_VECTOR_ARRAY_PTR(v) (&v->x)
 #define GLE_MATRIX_VALUE_PTR(m) (&m[0].x)
 #define GLE_MATRIX_ARRAY_PTR(m) (&(*m)[0].x)
+
+//User includes
+#include "util/log.h"
+#include "util/assert.h"
+#include "types.h"
+
+#include <string>
 
 #define gle_assert(cond, msg, ...) arc_assert(cond, msg, __VA_ARGS__)
 
