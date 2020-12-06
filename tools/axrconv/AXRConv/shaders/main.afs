@@ -1,0 +1,15 @@
+#version 330 core
+
+layout(location = 0) out vec4 color;
+layout(location = 1) out uvec2 id;
+
+in vec2 uvCoord;
+
+uniform uvec2 meshID;
+uniform sampler2D diffuseTexture;
+
+
+void main(){
+	color = texture(diffuseTexture, uvCoord);
+	id = meshID;
+}

@@ -1,0 +1,18 @@
+# Ignore the following paths:
+
+.vs/
+[Oo]ut/
+[Bb]in/
+[Bb]uild/
+[Ll]og/
+[Ll]ib/
+assets/
+.idea/
+pack/
+tools/axrconv/b*
+tools/axrconv/AXRConv/*/*
+!tools/axrconv/AXRConv/shaders/*
+!tools/axrconv/AXRConv/*
+cmake-build-debug-visual-studio/
+cmake-build-release-visual-studio/
+*.user
