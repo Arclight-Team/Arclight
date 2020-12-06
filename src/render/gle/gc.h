@@ -4,6 +4,10 @@
 #define GLE_HEADER	<GL/GLEW.h>
 #define GLE_BEGIN	namespace GLE {
 #define GLE_END		}
+#define GLE_BEGIN_ENUM(t)	struct t { \
+								static u32 get(t x); \
+								enum {
+#define GLE_END_ENUM			};};
 
 #define GLE_EXT_SUPPORTED(x) GLEW_##x
 

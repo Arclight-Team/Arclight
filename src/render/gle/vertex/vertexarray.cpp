@@ -59,6 +59,7 @@ void VertexArray::setAttribute(u32 index, u8 elements, AttributeType type, u32 s
 		case AttributeClass::Double:
 			gle_assert(type == AttributeType::Double, "Cannot bind type to attribute class 'double' for vertex array %d", id);
 			glVertexAttribLPointer(index, elements, attrType, stride, reinterpret_cast<const void*>(offset));
+			break;
 
 		case AttributeClass::Int:
 			gle_assert(type == AttributeType::Byte || type == AttributeType::Short || type == AttributeType::Int ||
@@ -156,11 +157,14 @@ u32 VertexArray::getAttributeTypeEnum(AttributeType type) {
 		case AttributeType::Fixed:
 			return GL_FIXED;
 
-		case AttributeType::Int2_10:
+		case AttributeType::Int2u10R:
 			return GL_INT_2_10_10_10_REV;
 
-		case AttributeType::UInt2_10:
+		case AttributeType::UInt2u10R:
 			return GL_UNSIGNED_INT_2_10_10_10_REV;
+
+		case AttributeType::UInt10f11f11fR:
+			return GL_UNSIGNED_INT_10F_11F_11F_REV;
 
 		default:
 			gle_assert(false, "Invalid attribute type 0x%X", type);

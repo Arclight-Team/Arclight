@@ -44,7 +44,7 @@ void RenderTest::create(u32 w, u32 h) {
 
 	vertexBuffer.create();
 	vertexBuffer.bind();
-	vertexBuffer.setStorage(24, vertexData);
+	vertexBuffer.allocate(24, vertexData);
 
 	vertexArray.setAttribute(0, 2, GLE::AttributeType::Float, 0, 0);
 	vertexArray.enableAttribute(0);

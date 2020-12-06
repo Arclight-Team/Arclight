@@ -16,8 +16,9 @@ enum class AttributeType {
 	Float,
 	Double,
 	Fixed,
-	Int2_10,
-	UInt2_10
+	Int2u10R,
+	UInt2u10R,
+	UInt10f11f11fR
 };
 
 

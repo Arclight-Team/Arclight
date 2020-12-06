@@ -13,7 +13,7 @@ public:
 
 	//Binds to the default target
 	inline void bind() {
-		Buffer::bind(BufferTarget::VertexBuffer);
+		Buffer::bind(BufferType::VertexBuffer);
 	}
 
 };

@@ -5,7 +5,7 @@
 
 GLE_BEGIN
 
-enum class BufferTarget {
+enum class BufferType {
 	VertexBuffer,
 	ElementBuffer,
 	TransformFeedbackBuffer,
@@ -32,26 +32,18 @@ class Buffer {
 
 public:
 
-	constexpr Buffer() : id(invalidID), target(BufferTarget::VertexBuffer), size(-1) {}
-
-	Buffer(const Buffer& buffer) = delete;
-	Buffer& operator=(const Buffer& buffer) = delete;
-
 	//Creates a buffer if none has been created yet
 	void create();
-
-	//Binds the buffer to the given target if not already. Fails if it hasn't been created yet.
-	void bind(BufferTarget target);
 
 	//Destroys a buffer if it was created once
 	void destroy();
 
-	//Sets the buffer's storage. Required for (re-)allocation.
-	void setStorage(u32 size, BufferAccess access = BufferAccess::StaticDraw);
-	void setStorage(u32 size, void* data, BufferAccess access = BufferAccess::StaticDraw);
+	//Allocates the buffer's storage. Required for (re-)allocation.
+	void allocate(u32 size, BufferAccess access = BufferAccess::StaticDraw);
+	void allocate(u32 size, void* data, BufferAccess access = BufferAccess::StaticDraw);
 
 	//Updates the buffer's data. Fails if no storage has been allocated first.
-	void setData(u32 offset, u32 size, void* data);
+	void update(u32 offset, u32 size, void* data);
 
 	//Copies this buffer (or a portion of it) to destBuffer
 	void copy(Buffer& destBuffer);
@@ -61,22 +53,34 @@ public:
 	bool isCreated() const;
 	bool isBound() const;
 
+protected:
+
+	//Yes, protected.
+	constexpr Buffer() : id(invalidID), type(BufferType::VertexBuffer), size(-1) {}
+
+	//No copy-construction
+	Buffer(const Buffer& buffer) = delete;
+	Buffer& operator=(const Buffer& buffer) = delete;
+
+	//Binds the buffer to the given target if not already. Fails if it hasn't been created yet.
+	void bind(BufferType type);
+
 private:
 
-	constexpr void setBoundBufferID(BufferTarget target, u32 id) const {
-		boundBufferIDs[static_cast<u32>(target)] = id;
+	constexpr void setBoundBufferID(BufferType type, u32 id) const {
+		boundBufferIDs[static_cast<u32>(type)] = id;
 	}
 
-	constexpr u32 getBoundBufferID(BufferTarget target) const {
-		return boundBufferIDs[static_cast<u32>(target)];
+	constexpr u32 getBoundBufferID(BufferType type) const {
+		return boundBufferIDs[static_cast<u32>(type)];
 	}
 
-	static u32 getBufferTargetEnum(BufferTarget target);
+	static u32 getBufferTypeEnum(BufferType type);
 	static u32 getBufferAccessEnum(BufferAccess access);
 
 
 	u32 id;						//Buffer ID
-	BufferTarget target;		//Current bound target
+	BufferType type;			//Currently bound type
 	u32 size;					//Buffer size or -1 if none has been allocated
 
 	//Active buffer handles per type

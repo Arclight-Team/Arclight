@@ -16,15 +16,15 @@ void Buffer::create() {
 
 
 
-void Buffer::bind(BufferTarget target) {
+void Buffer::bind(BufferType type) {
 
 	gle_assert(isCreated(), "Buffer object hasn't been created yet");
 
-	this->target = target;
+	this->type = type;
 
 	if (!isBound()) {
-		glBindBuffer(getBufferTargetEnum(target), id);
-		setBoundBufferID(target, id);
+		glBindBuffer(getBufferTypeEnum(type), id);
+		setBoundBufferID(type, id);
 	}
 
 }
@@ -36,7 +36,7 @@ void Buffer::destroy() {
 	if (isCreated()) {
 
 		if (isBound()) {
-			setBoundBufferID(target, invalidBoundID);
+			setBoundBufferID(type, invalidBoundID);
 		}
 
 		glDeleteBuffers(1, &id);
@@ -49,30 +49,30 @@ void Buffer::destroy() {
 
 
 
-void Buffer::setStorage(u32 size, BufferAccess access) {
-	setStorage(size, nullptr, access);
+void Buffer::allocate(u32 size, BufferAccess access) {
+	allocate(size, nullptr, access);
 }
 
 
 
-void Buffer::setStorage(u32 size, void* data, BufferAccess access) {
+void Buffer::allocate(u32 size, void* data, BufferAccess access) {
 
 	gle_assert(isBound(), "Buffer object %d has not been bound (attempted to set buffer storage)", id);
 
 	//TODO: Check if buffer has been mapped non-persistently
 	this->size = size;
-	glBufferData(getBufferTargetEnum(target), size, data, getBufferAccessEnum(access));
+	glBufferData(getBufferTypeEnum(type), size, data, getBufferAccessEnum(access));
 
 }
 
 
 
-void Buffer::setData(u32 offset, u32 size, void* data) {
+void Buffer::update(u32 offset, u32 size, void* data) {
 
 	gle_assert(isBound(), "Buffer object %d has not been bound (attempted to set buffer data)", id);
 	gle_assert((offset + size) <= this->size, "Attempted to write data out of bounds for buffer object %d", id);
 
-	glBufferSubData(getBufferTargetEnum(target), offset, size, data);
+	glBufferSubData(getBufferTypeEnum(type), offset, size, data);
 
 }
 
@@ -90,20 +90,20 @@ void Buffer::copy(Buffer& destBuffer, u32 srcOffset, u32 destOffset, u32 size) {
 	gle_assert((srcOffset + size) <= this->size, "Attempted to read data out of bounds for buffer object %d", id);
 	gle_assert((destOffset + size) <= destBuffer.size, "Attempted to write data out of bounds for buffer object %d", destBuffer.id);
 
-	//Backup old targets
-	BufferTarget srcTarget = this->target;
-	BufferTarget destTarget = destBuffer.target;
+	//Backup old types
+	BufferType srcType = this->type;
+	BufferType destType = destBuffer.type;
 
 	//Bind to copy targets
-	bind(BufferTarget::CopyReadBuffer);
-	destBuffer.bind(BufferTarget::CopyWriteBuffer);
+	bind(BufferType::CopyReadBuffer);
+	destBuffer.bind(BufferType::CopyWriteBuffer);
 
 	//Now copy
-	glCopyBufferSubData(getBufferTargetEnum(BufferTarget::CopyReadBuffer), getBufferTargetEnum(BufferTarget::CopyWriteBuffer), srcOffset, destOffset, size);
+	glCopyBufferSubData(getBufferTypeEnum(BufferType::CopyReadBuffer), getBufferTypeEnum(BufferType::CopyWriteBuffer), srcOffset, destOffset, size);
 
 	//Restore old targets
-	this->target = srcTarget;
-	destBuffer.target = destTarget;
+	this->type = srcType;
+	destBuffer.type = destType;
 
 }
 
@@ -116,35 +116,35 @@ bool Buffer::isCreated() const {
 
 
 bool Buffer::isBound() const {
-	return id == getBoundBufferID(target);
+	return id == getBoundBufferID(type);
 }
 
 
 
-u32 Buffer::getBufferTargetEnum(BufferTarget target) {
+u32 Buffer::getBufferTypeEnum(BufferType type) {
 
-	switch (target) {
+	switch (type) {
 
-		case BufferTarget::VertexBuffer:
+		case BufferType::VertexBuffer:
 			return GL_ARRAY_BUFFER;
 
-		case BufferTarget::ElementBuffer:
+		case BufferType::ElementBuffer:
 			return GL_ELEMENT_ARRAY_BUFFER;
 
-		case BufferTarget::TransformFeedbackBuffer:
+		case BufferType::TransformFeedbackBuffer:
 			return GL_TRANSFORM_FEEDBACK_BUFFER;
 
-		case BufferTarget::UniformBuffer:
+		case BufferType::UniformBuffer:
 			return GL_UNIFORM_BUFFER;
 
-		case BufferTarget::CopyReadBuffer:
+		case BufferType::CopyReadBuffer:
 			return GL_COPY_READ_BUFFER;
 
-		case BufferTarget::CopyWriteBuffer:
+		case BufferType::CopyWriteBuffer:
 			return GL_COPY_WRITE_BUFFER;
 
 		default:
-			gle_assert(false, "Invalid buffer type 0x%X", target);
+			gle_assert(false, "Invalid buffer type 0x%X", type);
 			return -1;
 
 	}
