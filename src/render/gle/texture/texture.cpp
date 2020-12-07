@@ -210,14 +210,9 @@ void Texture::setMagFilter(TextureFilter filter) {
 
 
 
-void Texture::enableAutomaticMipmapGeneration() {
-	autoGenMipmaps = true;
-}
-
-
-
-void Texture::disableAutomaticMipmapGeneration() {
-	autoGenMipmaps = false;
+CubemapFace Texture::getCubemapFace(u32 index) {
+	gle_assert(index > 5, "Invalid cubemap face index %d", index);
+	return static_cast<CubemapFace>(index);
 }
 
 
@@ -238,10 +233,6 @@ void Texture::setData(u32 w, TextureFormat format, TextureSourceFormat srcFormat
 	texFormat = format;
 
 	glTexImage1D(getTextureTypeEnum(type), 0, getTextureFormatEnum(texFormat), w, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
-
-	if (autoGenMipmaps) {
-		generateMipmaps();
-	}
 
 }
 
@@ -264,10 +255,6 @@ void Texture::setData(u32 w, u32 h, TextureFormat format, TextureSourceFormat sr
 
 	glTexImage2D(getTextureTypeEnum(type), 0, getTextureFormatEnum(texFormat), w, h, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
 
-	if (autoGenMipmaps) {
-		generateMipmaps();
-	}
-
 }
 
 
@@ -289,9 +276,33 @@ void Texture::setData(u32 w, u32 h, u32 d, TextureFormat format, TextureSourceFo
 
 	glTexImage3D(getTextureTypeEnum(type), 0, getTextureFormatEnum(texFormat), w, h, d, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
 
-	if (autoGenMipmaps) {
-		generateMipmaps();
+}
+
+
+
+void Texture::setData(CubemapFace face, u32 s, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
+	gle_assert(type == TextureType::CubemapTexture, "Invalid texture type %d for setting 2D cubemap data", type);
+
+	if (s > Core::getMaxTextureSize()) {
+		GLE::error("2D cubemap texture dimension of size %d exceeds maximum texture size of %d", s, Core::getMaxTextureSize());
+		return;
 	}
+
+	if (texFormat == TextureFormat::None) {
+
+		width = s;
+		height = s;
+		depth = 0;
+		texFormat = format;
+
+	} else if (texFormat != format || width != s || height != s) {
+		GLE::error("Cubemap initialization inconsistent");
+		return;
+	}
+
+	glTexImage2D(getCubemapFaceEnum(face), 0, getTextureFormatEnum(texFormat), s, s, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
 
 }
 
@@ -300,6 +311,7 @@ void Texture::setData(u32 w, u32 h, u32 d, TextureFormat format, TextureSourceFo
 void Texture::setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set mipmap data)", id);
+	gle_assert(type == TextureType::Texture1D || type == TextureType::Texture2D || type == TextureType::Texture3D, "Texture type %d invalid for single mipmap update", type);
 
 	if (level > getMipmapCount()) {
 		GLE::error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
@@ -324,6 +336,21 @@ void Texture::setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSou
 
 }
 
+
+
+void Texture::setMipmapData(CubemapFace face, u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set mipmap data)", id);
+	gle_assert(type == TextureType::CubemapTexture, "Texture type %d invalid for cubemap mipmap update", type);
+
+	if (level > getMipmapCount()) {
+		GLE::error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
+		return;
+	}
+
+	glTexImage2D(getCubemapFaceEnum(face), level, getTextureFormatEnum(texFormat), getMipmapSize(level, width), getMipmapSize(level, height), 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+
+}
 
 
 
@@ -405,6 +432,32 @@ void Texture::update(u32 x, u32 y, u32 z, u32 w, u32 h, u32 d, TextureSourceForm
 
 
 
+void Texture::update(CubemapFace face, u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to update data)", id);
+	gle_assert(type == TextureType::CubemapTexture, "Invalid texture type %d for updating cubemap data", type);
+
+	if ((x + w) > getMipmapSize(level, width)) {
+		GLE::error("Updating 2D texture out of bounds: width = %d, requested: x = %d, w = %d", getMipmapSize(level, width), x, w);
+		return;
+	}
+
+	if ((y + h) > getMipmapSize(level, height)) {
+		GLE::error("Updating 2D texture out of bounds: height = %d, requested: y = %d, h = %d", getMipmapSize(level, height), y, h);
+		return;
+	}
+
+	if (level > getMipmapCount()) {
+		GLE::error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
+		return;
+	}
+
+	glTexSubImage2D(getCubemapFaceEnum(face), level, x, y, w, h, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+
+}
+
+
+
 void Texture::setWrapU(TextureWrap wrap) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set wrap mode)", id);
@@ -474,10 +527,10 @@ u32 Texture::getTextureTypeEnum(TextureType type) {
 		case TextureType::ArrayTexture2D:
 			return GL_TEXTURE_2D_ARRAY;
 
-		case TextureType::CubeMapTexture:
+		case TextureType::CubemapTexture:
 			return GL_TEXTURE_CUBE_MAP;
 
-		case TextureType::CubeMapArrayTexture:
+		case TextureType::CubemapArrayTexture:
 			return GL_TEXTURE_CUBE_MAP_ARRAY;
 
 		case TextureType::MultisampleTexture2D:
@@ -937,6 +990,12 @@ u32 Texture::getTextureSourceTypeEnum(TextureSourceType type) {
 
 	}
 
+}
+
+
+
+u32 Texture::getCubemapFaceEnum(CubemapFace face) {
+	return GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<u32>(face);
 }
 
 

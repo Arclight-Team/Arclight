@@ -12,8 +12,8 @@ enum class TextureType {
 	Texture3D,
 	ArrayTexture1D,
 	ArrayTexture2D,
-	CubeMapTexture,
-	CubeMapArrayTexture,
+	CubemapTexture,
+	CubemapArrayTexture,
 	MultisampleTexture2D,
 	MultisampleArrayTexture2D
 };
@@ -30,6 +30,16 @@ enum class TextureWrap {
 	Repeat,
 	Clamp,
 	Mirror
+};
+
+
+enum class CubemapFace {
+	PositiveX,
+	NegativeX,
+	PositiveY,
+	NegativeY,
+	PositiveZ,
+	NegativeZ
 };
 
 
@@ -60,8 +70,7 @@ public:
 	bool isMultisampleTexture() const;
 
 	static u32 getMipmapSize(u32 level, u32 d);
-	static void enableAutomaticMipmapGeneration();
-	static void disableAutomaticMipmapGeneration();
+	static CubemapFace getCubemapFace(u32 index);
 
 protected:
 
@@ -76,12 +85,15 @@ protected:
 	void setData(u32 w, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
 	void setData(u32 w, u32 h, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
 	void setData(u32 w, u32 h, u32 d, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
+	void setData(CubemapFace face, u32 s, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
 
 	void setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
+	void setMipmapData(CubemapFace face, u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
 
 	void update(u32 x, u32 w, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
 	void update(u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
 	void update(u32 x, u32 y, u32 z, u32 w, u32 h, u32 d, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
+	void update(CubemapFace face, u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
 
 	void setWrapU(TextureWrap wrap);
 	void setWrapV(TextureWrap wrap);
@@ -114,6 +126,7 @@ private:
 	static u32 getCompressedTextureFormatEnum(CompressedTextureFormat format);
 	static u32 getTextureSourceFormatEnum(TextureSourceFormat format);
 	static u32 getTextureSourceTypeEnum(TextureSourceType type);
+	static u32 getCubemapFaceEnum(CubemapFace face);
 
 	u32 id;
 	const TextureType type;
@@ -123,7 +136,6 @@ private:
 	u32 depth;
 	TextureFormat texFormat;
 
-	static inline bool autoGenMipmaps = false;
 	static inline u32 boundTextureIDs[9] = {
 		invalidBoundID, invalidBoundID, invalidBoundID,
 		invalidBoundID, invalidBoundID, invalidBoundID,

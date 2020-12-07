@@ -58,6 +58,9 @@ void RenderTest::create(u32 w, u32 h) {
 
 	recalculateMVPMatrix();
 
+	GLE::Texture2D texture;
+	GLE::CubemapTexture cubemap;
+	
 }
 
 
