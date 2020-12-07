@@ -16,6 +16,7 @@ namespace Core {
 	u32 getMaxArrayTextureLayers();
 	u32 getMaxMipmapLevels();
 	float getMaxTextureAnisotropy();
+	u32 getMaxTextureUnits();
 
 }
 

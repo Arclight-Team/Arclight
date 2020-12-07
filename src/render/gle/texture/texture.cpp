@@ -52,6 +52,28 @@ void Texture::destroy() {
 
 
 
+void Texture::activate(u32 unit) {
+
+	activateUnit(unit);
+	bind();
+
+}
+
+
+
+void Texture::activateUnit(u32 unit) {
+
+	gle_assert(unit < Core::getMaxTextureUnits(), "Texture unit %d exceeds the maximum of %d", unit, Core::getMaxTextureUnits());
+
+	if (activeTextureUnit != unit) {
+		activeTextureUnit = unit;
+		glActiveTexture(GL_TEXTURE0 + unit);
+	}
+
+}
+
+
+
 bool Texture::isCreated() const {
 	return id != invalidID;
 }
@@ -211,7 +233,7 @@ void Texture::setMagFilter(TextureFilter filter) {
 
 
 CubemapFace Texture::getCubemapFace(u32 index) {
-	gle_assert(index > 5, "Invalid cubemap face index %d", index);
+	gle_assert(index < 6, "Invalid cubemap face index %d", index);
 	return static_cast<CubemapFace>(index);
 }
 

@@ -60,6 +60,9 @@ public:
 	//Destroys a texture if it was created once
 	void destroy();
 
+	void activate(u32 unit);
+	static void activateUnit(u32 unit);
+
 	//Checks the given states
 	bool isCreated() const;
 	bool isBound() const;
@@ -141,6 +144,8 @@ private:
 		invalidBoundID, invalidBoundID, invalidBoundID,
 		invalidBoundID, invalidBoundID, invalidBoundID 
 	};
+
+	static inline u32 activeTextureUnit = 0;
 
 };
 

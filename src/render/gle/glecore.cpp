@@ -14,6 +14,7 @@ namespace Core {
 	u32 maxArrayTextureLayers = 0;
 	u32 maxMipmapLevels = 0;
 	float maxAnisotropy = 1.0;
+	u32 maxTextureUnits = 0;
 
 
 	bool init() {
@@ -57,6 +58,9 @@ namespace Core {
 		if (GLE_EXT_SUPPORTED(ARB_texture_filter_anisotropic)) {
 			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAnisotropy);
 		}
+
+		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &tmp);
+		maxTextureUnits = tmp;
 
 		return true;
 
@@ -135,6 +139,11 @@ namespace Core {
 
 	float getMaxTextureAnisotropy() {
 		return maxAnisotropy;
+	}
+
+
+	u32 getMaxTextureUnits() {
+		return maxTextureUnits;
 	}
 
 }

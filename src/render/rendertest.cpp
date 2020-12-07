@@ -12,24 +12,30 @@ void RenderTest::create(u32 w, u32 h) {
 
 	static std::string vs = R"(#version 430
 								layout(location = 0) in vec2 vertices;
+								layout(location = 1) in vec2 uvs;
 								
+								out vec2 uv;
 								uniform mat4 mvpMatrix;
 
 								void main(){
+									uv = uvs;
 									gl_Position = mvpMatrix * vec4(vertices, 0.0, 1.0);
 								})";
 
 	static std::string fs = R"(#version 430
 								out vec4 color;
 
+								in vec2 uv;
+								uniform sampler2D diffuseTexture;
+
 								void main(){
-									color = vec4(gl_FragCoord.x / 2000.0, gl_FragCoord.y / 2000.0, 0.0, 1.0);
+									color = texture(diffuseTexture, uv);
 								})";
 
 	static float vertexData[] = {
-		-1.0, -1.0,
-		1.0, -1.0,
-		0.0, 1.0
+		-1.0, -1.0, 0, 0,
+		1.0, -1.0, 1, 0,
+		0.0, 1.0, 0.5, 1
 	};
 	
 	shader.create();
@@ -38,16 +44,28 @@ void RenderTest::create(u32 w, u32 h) {
 	shader.link();
 
 	mvpUniform = shader.getUniform("mvpMatrix");
+	diffuseUniform = shader.getUniform("diffuseTexture");
 
 	vertexArray.create();
 	vertexArray.bind();
 
 	vertexBuffer.create();
 	vertexBuffer.bind();
-	vertexBuffer.allocate(24, vertexData);
+	vertexBuffer.allocate(48, vertexData);
 
-	vertexArray.setAttribute(0, 2, GLE::AttributeType::Float, 0, 0);
+	vertexArray.setAttribute(0, 2, GLE::AttributeType::Float, 16, 0);
+	vertexArray.setAttribute(1, 2, GLE::AttributeType::Float, 16, 8);
 	vertexArray.enableAttribute(0);
+	vertexArray.enableAttribute(1);
+
+	diffuseTexture.create();
+	diffuseTexture.bind();
+	diffuseTexture.setData(4, 4, GLE::TextureFormat::RGB8, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, nullptr);
+
+	diffuseTexture.setMinFilter(GLE::TextureFilter::None);
+	diffuseTexture.setMagFilter(GLE::TextureFilter::None);
+	diffuseTexture.setWrapU(GLE::TextureWrap::Clamp);
+	diffuseTexture.setWrapV(GLE::TextureWrap::Clamp);
 
 	camera.setPosition(camStartPos);
 	camera.setRotation(camStartAngleH, camStartAngleV);
@@ -57,9 +75,6 @@ void RenderTest::create(u32 w, u32 h) {
 	projectionMatrix = Mat4f::perspective(Math::toRadians(fov), w / static_cast<double>(h), nearPlane, farPlane);
 
 	recalculateMVPMatrix();
-
-	GLE::Texture2D texture;
-	GLE::CubemapTexture cubemap;
 	
 }
 
@@ -86,15 +101,41 @@ void RenderTest::run() {
 
 	}
 
+	u8 texData[3 * 4 * 4];
+
+	for (u32 i = 0; i < 4; i++) {
+
+		for (u32 j = 0; j < 4; j++) {
+
+			u32 n = i * 4 + j;
+
+			texData[n * 3 + 0] = (frameCounter + n * 10) % 255;
+			texData[n * 3 + 1] = Math::sin((frameCounter + n * 10) / 100.0) * 255;
+			texData[n * 3 + 2] = Math::cos((frameCounter + n * 10) / 100.0) * 255;
+
+		}
+
+	}	
+	
+	diffuseTexture.bind();
+	diffuseTexture.update(0, 0, 4, 4, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, texData);
+	diffuseTexture.generateMipmaps();
+
 	camera.update(0.1, 0.1);
 	viewMatrix = Mat4f::lookAt(camera.getPosition(), camera.getPosition() + camera.getDirection());
 	recalculateMVPMatrix();
 
+	//OpenGL main
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	shader.start();
+
+	diffuseTexture.activate(0);
+	diffuseUniform.setInt(0);
+
 	mvpUniform.setMat4(mvpMatrix);
 	vertexArray.bind();
+
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
 }
@@ -106,6 +147,7 @@ void RenderTest::destroy() {
 	shader.destroy();
 	vertexArray.destroy();
 	vertexBuffer.destroy();
+	diffuseTexture.destroy();
 
 }
 

@@ -27,6 +27,9 @@ private:
 	GLE::VertexArray vertexArray;
 	GLE::ShaderProgram shader;
 	GLE::Uniform mvpUniform;
+	GLE::Uniform diffuseUniform;
+
+	GLE::Texture2D diffuseTexture;
 
 	Mat4f modelMatrix;
 	Mat4f viewMatrix;
