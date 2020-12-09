@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../gc.h"
+#include "../globject.h"
 
 
 GLE_BEGIN
@@ -29,20 +30,18 @@ enum class AttributeClass {
 };
 
 
-class VertexArray {
+class VertexArray : public GLObject {
 
 public:
 
-	constexpr VertexArray() : id(invalidID) {}
-
 	//Creates a vertex array if none has been created yet
-	void create();
+	virtual bool create() override;
 
 	//Binds the vertex array if not already. Fails if it hasn't been created yet.
 	void bind();
 
 	//Destroys a vertex array if it was created once
-	void destroy();
+	virtual void destroy() override;
 
 	//Sets vertex attribute settings
 	void setAttribute(u32 index, u8 elements, AttributeType type, u32 stride, u32 offset, AttributeClass attrClass = AttributeClass::Float);
@@ -53,14 +52,11 @@ public:
 	void disableAttribute(u32 index);
 
 	//Checks the given states
-	bool isCreated() const;
 	bool isBound() const;
 
 private:
 
 	static u32 getAttributeTypeEnum(AttributeType type);
-
-	u32 id;		//ID of the vertex array
 
 	static inline u32 boundVertexArrayID = invalidBoundID;
 

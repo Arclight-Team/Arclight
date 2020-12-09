@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../gc.h"
+#include "../globject.h"
+
 
 
 GLE_BEGIN
@@ -28,15 +30,15 @@ enum class BufferAccess {
 };
 
 
-class Buffer {
+class Buffer : public GLObject {
 
 public:
 
 	//Creates a buffer if none has been created yet
-	void create();
+	virtual bool create() override;
 
 	//Destroys a buffer if it was created once
-	void destroy();
+	virtual void destroy() override;
 
 	//Allocates the buffer's storage. Required for (re-)allocation.
 	void allocate(u32 size, BufferAccess access = BufferAccess::StaticDraw);
@@ -50,17 +52,12 @@ public:
 	void copy(Buffer& destBuffer, u32 srcOffset, u32 destOffset, u32 size);
 
 	//Checks the given states
-	bool isCreated() const;
 	bool isBound() const;
 
 protected:
 
 	//Yes, protected.
-	constexpr Buffer() : id(invalidID), type(BufferType::VertexBuffer), size(-1) {}
-
-	//No copy-construction
-	Buffer(const Buffer& buffer) = delete;
-	Buffer& operator=(const Buffer& buffer) = delete;
+	constexpr Buffer() : type(BufferType::VertexBuffer), size(-1) {}
 
 	//Binds the buffer to the given target if not already. Fails if it hasn't been created yet.
 	void bind(BufferType type);
@@ -78,8 +75,6 @@ private:
 	static u32 getBufferTypeEnum(BufferType type);
 	static u32 getBufferAccessEnum(BufferAccess access);
 
-
-	u32 id;						//Buffer ID
 	BufferType type;			//Currently bound type
 	u32 size;					//Buffer size or -1 if none has been allocated
 

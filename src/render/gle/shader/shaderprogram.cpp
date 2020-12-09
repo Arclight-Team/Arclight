@@ -6,11 +6,22 @@
 GLE_BEGIN
 
 
-void ShaderProgram::create() {
+bool ShaderProgram::create() {
 
 	if (!isCreated()) {
+
 		id = glCreateProgram();
+
+		if (!id) {
+
+			id = invalidID;
+			return false;
+
+		}
+
 	}
+
+	return true;
 
 }
 
@@ -162,12 +173,6 @@ Uniform ShaderProgram::getUniform(const char* name) const {
 
 	return Uniform(uniformID);
 
-}
-
-
-
-bool ShaderProgram::isCreated() const {
-	return id != invalidID;
 }
 
 

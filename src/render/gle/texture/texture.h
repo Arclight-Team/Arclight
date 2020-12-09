@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../gc.h"
+#include "../globject.h"
 #include "textureformat.h"
 
 GLE_BEGIN
@@ -43,7 +44,7 @@ enum class CubemapFace {
 };
 
 
-class Texture {
+class Texture : public GLObject {
 
 public:
 
@@ -52,13 +53,13 @@ public:
 	constexpr static inline u32 defaultMaxLevel = 1000;
 
 	//Creates a texture if none has been created yet
-	void create();
+	virtual bool create() override;
 
 	//Binds the texture if not already. Fails if it hasn't been created yet.
 	void bind();
 
 	//Destroys a texture if it was created once
-	void destroy();
+	virtual void destroy() override;
 
 	void activate(u32 unit);
 	static void activateUnit(u32 unit);
@@ -85,19 +86,6 @@ protected:
 	Texture(const Texture& texture) = delete;
 	Texture& operator=(const Texture& texture) = delete;
 
-	void setData(u32 w, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
-	void setData(u32 w, u32 h, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
-	void setData(u32 w, u32 h, u32 d, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
-	void setData(CubemapFace face, u32 s, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
-
-	void setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
-	void setMipmapData(CubemapFace face, u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
-
-	void update(u32 x, u32 w, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
-	void update(u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
-	void update(u32 x, u32 y, u32 z, u32 w, u32 h, u32 d, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
-	void update(CubemapFace face, u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
-
 	void setWrapU(TextureWrap wrap);
 	void setWrapV(TextureWrap wrap);
 	void setWrapW(TextureWrap wrap);
@@ -112,16 +100,6 @@ protected:
 	void setMagFilter(TextureFilter filter);
 
 	void generateMipmaps();
-
-private:
-
-	constexpr void setBoundTextureID(TextureType type, u32 id) const {
-		boundTextureIDs[static_cast<u32>(type)] = id;
-	}
-
-	constexpr u32 getBoundTextureID(TextureType type) const {
-		return boundTextureIDs[static_cast<u32>(type)];
-	}
 
 	static u32 getTextureTypeEnum(TextureType type);
 	static u32 getTextureWrapEnum(TextureWrap wrap);
@@ -138,6 +116,16 @@ private:
 	u32 height;
 	u32 depth;
 	TextureFormat texFormat;
+
+private:
+
+	constexpr void setBoundTextureID(TextureType type, u32 id) const {
+		boundTextureIDs[static_cast<u32>(type)] = id;
+	}
+
+	constexpr u32 getBoundTextureID(TextureType type) const {
+		return boundTextureIDs[static_cast<u32>(type)];
+	}
 
 	static inline u32 boundTextureIDs[9] = {
 		invalidBoundID, invalidBoundID, invalidBoundID,

@@ -12,17 +12,9 @@ public:
 
 	constexpr Texture1D() : Texture(TextureType::Texture1D) {}
 
-	inline void setData(u32 w, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
-		Texture::setData(w, format, srcFormat, srcType, data);
-	}
-
-	inline void setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
-		Texture::setMipmapData(level, srcFormat, srcType, data);
-	}
-
-	inline void update(u32 x, u32 w, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0) {
-		Texture::update(x, w, srcFormat, srcType, data, level);
-	}
+	void setData(u32 w, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
+	void setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
+	void update(u32 x, u32 w, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
 
 	using Texture::setWrapU;
 	using Texture::setMipmapBaseLevel;

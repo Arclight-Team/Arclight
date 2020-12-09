@@ -6,11 +6,22 @@
 GLE_BEGIN
 
 
-void Buffer::create() {
+bool Buffer::create() {
 
 	if (!isCreated()) {
+
 		glGenBuffers(1, &id);
+
+		if (!id) {
+
+			id = invalidID;
+			return false;
+
+		}
+
 	}
+
+	return true;
 
 }
 
@@ -105,12 +116,6 @@ void Buffer::copy(Buffer& destBuffer, u32 srcOffset, u32 destOffset, u32 size) {
 	this->type = srcType;
 	destBuffer.type = destType;
 
-}
-
-
-
-bool Buffer::isCreated() const {
-	return id != invalidID;
 }
 
 

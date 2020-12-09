@@ -6,11 +6,22 @@
 GLE_BEGIN
 
 
-void VertexArray::create() {
+bool VertexArray::create() {
 
 	if (!isCreated()) {
+
 		glGenVertexArrays(1, &id);
+
+		if (!id) {
+
+			id = invalidID;
+			return false;
+
+		}
+
 	}
+
+	return true;
 
 }
 
@@ -107,12 +118,6 @@ void VertexArray::disableAttribute(u32 index) {
 
 	glDisableVertexAttribArray(index);
 
-}
-
-
-
-bool VertexArray::isCreated() const {
-	return id != invalidID;
 }
 
 

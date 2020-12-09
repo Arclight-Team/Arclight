@@ -9,7 +9,8 @@ GLE_BEGIN
 class VertexBuffer : public Buffer {
 
 public:
-	constexpr VertexBuffer() : Buffer() {}
+
+	constexpr VertexBuffer() {}
 
 	//Binds to the default target
 	inline void bind() {
