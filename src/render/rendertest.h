@@ -28,8 +28,9 @@ private:
 	GLE::ShaderProgram shader;
 	GLE::Uniform mvpUniform;
 	GLE::Uniform diffuseUniform;
+	GLE::Uniform texSelectorUniform;
 
-	GLE::Texture2D diffuseTexture;
+	GLE::ArrayTexture1D diffuseTexture;
 
 	Mat4f modelMatrix;
 	Mat4f viewMatrix;

@@ -7,4 +7,5 @@
 #include "texture/texture2d.h"
 #include "texture/texture3d.h"
 #include "texture/cubemaptexture.h"
+#include "texture/arraytexture1d.h"
 #include "glecore.h"
