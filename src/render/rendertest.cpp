@@ -2,6 +2,10 @@
 
 #include GLE_HEADER
 #include "util/random.h"
+#include "util/file.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 
 RenderTest::RenderTest() : frameCounter(0) {}
@@ -12,9 +16,9 @@ void RenderTest::create(u32 w, u32 h) {
 
 	static std::string vs = R"(#version 430
 								layout(location = 0) in vec2 vertices;
-								layout(location = 1) in float uvs;
+								layout(location = 1) in vec2 uvs;
 								
-								out float uv;
+								out vec2 uv;
 								uniform mat4 mvpMatrix;
 
 								void main(){
@@ -25,18 +29,20 @@ void RenderTest::create(u32 w, u32 h) {
 	static std::string fs = R"(#version 430
 								out vec4 color;
 
-								in float uv;
-								uniform float texSelector;
-								uniform sampler1DArray diffuseTexture;
+								in vec2 uv;
+								uniform sampler2D diffuseTexture;
 
 								void main(){
-									color = texture(diffuseTexture, vec2(uv, texSelector));
+									color = texture(diffuseTexture, uv);
 								})";
 
 	static float vertexData[] = {
-		-1.0, -1.0, 0,
-		1.0, -1.0, 1,
-		0.0, 1.0, 0.5
+		0, 0, 0, 0,
+		1, 0, 1, 0,
+		1, 1, 1, 1,
+		0, 0, 0, 0,
+		1, 1, 1, 1,
+		0, 1, 0, 1
 	};
 	
 	shader.create();
@@ -46,58 +52,42 @@ void RenderTest::create(u32 w, u32 h) {
 
 	mvpUniform = shader.getUniform("mvpMatrix");
 	diffuseUniform = shader.getUniform("diffuseTexture");
-	texSelectorUniform = shader.getUniform("texSelector");
 
 	vertexArray.create();
 	vertexArray.bind();
 
 	vertexBuffer.create();
 	vertexBuffer.bind();
-	vertexBuffer.allocate(36, vertexData);
+	vertexBuffer.allocate(96, vertexData);
 
-	vertexArray.setAttribute(0, 2, GLE::AttributeType::Float, 12, 0);
-	vertexArray.setAttribute(1, 1, GLE::AttributeType::Float, 12, 8);
+	vertexArray.setAttribute(0, 2, GLE::AttributeType::Float, 16, 0);
+	vertexArray.setAttribute(1, 2, GLE::AttributeType::Float, 16, 8);
 	vertexArray.enableAttribute(0);
 	vertexArray.enableAttribute(1);
 
 	diffuseTexture.create();
 	diffuseTexture.bind();
 
-	u8 texData[3 * 4 * 4];
+	i32 width = 0;
+	i32 height = 0;
 
-	for (u32 i = 0; i < 3; i++) {
+	stbi_set_flip_vertically_on_load(true);
 
-		for (u32 j = 0; j < 4; j++) {
+	u8* data = stbi_load(Uri(":/textures/okarona.png").getPath().c_str(), &width, &height, nullptr, STBI_rgb);
 
-			u32 n = i * 4 + j;
-
-			texData[n * 3 + 0] = random.getInt(0, 255);
-			texData[n * 3 + 1] = random.getInt(0, 255);
-			texData[n * 3 + 2] = random.getInt(0, 255);
-
-		}
-
+	if (!data) {
+		Log::error("Render Test", "Failed to load image data");
+		return;
 	}
 
-	for (u32 i = 3; i < 4; i++) {
-
-		for (u32 j = 0; j < 4; j++) {
-
-			u32 n = i * 4 + j;
-
-			texData[n * 3 + 0] = 255;
-			texData[n * 3 + 1] = 0;
-			texData[n * 3 + 2] = 0;
-
-		}
-
-	}
-
-	diffuseTexture.setData(4, 4, GLE::TextureFormat::RGB8, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, nullptr);
-	diffuseTexture.update(0, 4, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, texData);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	diffuseTexture.setData(width, height, GLE::TextureFormat::RGB8, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, data);
 	diffuseTexture.generateMipmaps();
 
-	diffuseTexture.setMinFilter(GLE::TextureFilter::None);
+	stbi_image_free(data);
+
+
+	diffuseTexture.setMinFilter(GLE::TextureFilter::Trilinear);
 	diffuseTexture.setMagFilter(GLE::TextureFilter::None);
 	diffuseTexture.setWrapU(GLE::TextureWrap::Clamp);
 	diffuseTexture.setWrapV(GLE::TextureWrap::Clamp);
@@ -110,7 +100,7 @@ void RenderTest::create(u32 w, u32 h) {
 	projectionMatrix = Mat4f::perspective(Math::toRadians(fov), w / static_cast<double>(h), nearPlane, farPlane);
 
 	recalculateMVPMatrix();
-	
+
 }
 
 
@@ -124,7 +114,7 @@ void RenderTest::run() {
 		frameCounter = 0;
 	}
 
-	modelMatrix = Mat4f::fromTranslation(0, 10 * (1 + Math::sin(frameCounter / 20.0) * Math::sin(frameCounter / 20.0)) / (frameCounter / 14.0), 0).rotate(Vec3f(0, 1, 0), Math::toRadians(10 * frameCounter * (1 / (1 + (frameCounter / 360.0)))));
+	//modelMatrix = Mat4f::fromTranslation(0, 10 * (1 + Math::sin(frameCounter / 20.0) * Math::sin(frameCounter / 20.0)) / (frameCounter / 14.0), 0).rotate(Vec3f(0, 1, 0), Math::toRadians(10 * frameCounter * (1 / (1 + (frameCounter / 360.0)))));
 
 	if (camMovement != Vec3i(0, 0, 0) || camRotation != Vec3i(0, 0, 0)) {
 
@@ -147,12 +137,11 @@ void RenderTest::run() {
 
 	diffuseTexture.activate(0);
 	diffuseUniform.setInt(0);
-	texSelectorUniform.setFloat(frameCounter / 125);
 
 	mvpUniform.setMat4(mvpMatrix);
 	vertexArray.bind();
 
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 }
 

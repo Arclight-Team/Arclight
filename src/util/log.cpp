@@ -20,7 +20,7 @@ namespace Log {
 
 	void openLogFile() {
 
-		URI logfileURI(Config::getLogDirectoryName());
+		Uri logfileURI(Config::getLogDirectoryName());
 		bool dirCreated = logfileURI.createDirectory();
 
 		if (!dirCreated) {

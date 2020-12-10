@@ -18,9 +18,12 @@ find_package(GLEW REQUIRED)
 include_directories("src")
 include_directories("lib/FMOD/include")
 include_directories("lib/GLFW/include")
+include_directories("lib/libpng")
+include_directories("lib/pngpp")
+include_directories("lib/stb_image")
 include_directories(${GLEW_INCLUDE_DIR})
 
 file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp")
 
 add_executable (arclight ${SOURCES} )
-target_link_libraries(arclight GLEW::GLEW opengl32 glfw ${CMAKE_CURRENT_SOURCE_DIR}/lib/FMOD/fmodL_vc.lib)
+target_link_libraries(arclight GLEW::GLEW opengl32 glfw ${CMAKE_CURRENT_SOURCE_DIR}/lib/FMOD/fmodL_vc.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/libpng/bin/libpng16.lib)

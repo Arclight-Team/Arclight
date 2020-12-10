@@ -1,7 +1,7 @@
 #pragma once
 
 
-class URI;
+class Uri;
 
 namespace FMOD {
 	class System;
@@ -17,7 +17,7 @@ public:
 	void update();
 	void shutdown();
 
-	void playSound(const URI& soundAsset);
+	void playSound(const Uri& soundAsset);
 
 private:
 	FMOD::System* system;

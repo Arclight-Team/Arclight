@@ -6,21 +6,21 @@
 #include <vector>
 
 
-URI::URI() : path() {}
+Uri::Uri() : path() {}
 
 
-URI::URI(const char* path) {
+Uri::Uri(const char* path) {
 	setPath(path);
 };
 
 
-URI::URI(const std::string& path) {
+Uri::Uri(const std::string& path) {
 	setPath(path);
 };
 
 
 
-void URI::setPath(const std::string& path) {
+void Uri::setPath(const std::string& path) {
 
 	if (!path.empty() && path[0] == ':') {
 		this->path = Config::getURIRootPath() + path.substr(1);
@@ -32,7 +32,7 @@ void URI::setPath(const std::string& path) {
 
 
 
-bool URI::createDirectory() {
+bool Uri::createDirectory() {
 
 	if (validDirectory()) {
 		return true;
@@ -58,25 +58,25 @@ bool URI::createDirectory() {
 
 
 
-void URI::move(const std::string& path) {
+void Uri::move(const std::string& path) {
 	this->path /= path;
 }
 
 
 
-bool URI::validFile() const {
+bool Uri::validFile() const {
 	return std::filesystem::exists(path) && std::filesystem::is_regular_file(path);
 }
 
 
 
-bool URI::validDirectory() const {
+bool Uri::validDirectory() const {
 	return std::filesystem::exists(path) && std::filesystem::is_directory(path);
 }
 
 
 
-std::string URI::getPath() const {
+std::string Uri::getPath() const {
 	return path.string();
 }
 
@@ -86,11 +86,11 @@ std::string URI::getPath() const {
 File::File() : openFlags(0) {}
 
 
-File::File(const URI& path, File::Flags flags) : filepath(path), openFlags(flags) {};
+File::File(const Uri& path, File::Flags flags) : filepath(path), openFlags(flags) {};
 
 
 
-bool File::open(const URI& path, File::Flags flags) {
+bool File::open(const Uri& path, File::Flags flags) {
 
 	arc_assert((flags & File::In) || (flags & File::Out), "Invalid file flags requested: %02X", flags);
 
@@ -255,7 +255,7 @@ u64 File::getFileSize() const {
 
 
 
-URI File::getURI() const {
+Uri File::getUri() const {
 	return filepath;
 }
 

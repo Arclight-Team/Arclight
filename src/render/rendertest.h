@@ -28,9 +28,8 @@ private:
 	GLE::ShaderProgram shader;
 	GLE::Uniform mvpUniform;
 	GLE::Uniform diffuseUniform;
-	GLE::Uniform texSelectorUniform;
 
-	GLE::ArrayTexture1D diffuseTexture;
+	GLE::Texture2D diffuseTexture;
 
 	Mat4f modelMatrix;
 	Mat4f viewMatrix;
@@ -46,7 +45,7 @@ private:
 	constexpr inline static double fov = 90;
 	constexpr inline static double nearPlane = 0.01;
 	constexpr inline static double farPlane = 1000;
-	constexpr inline static Vec3f camStartPos = Vec3f(0, 0, 10);
+	constexpr inline static Vec3f camStartPos = Vec3f(0.5, 0.5, 10);
 	constexpr inline static double camStartAngleH = Math::toRadians(-90);
 	constexpr inline static double camStartAngleV = Math::toRadians(0);
 	constexpr inline static double camVelocityScale = 0.3;
