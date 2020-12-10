@@ -118,6 +118,24 @@ u32 Texture::getMipmapCount() const {
 
 
 
+u32 Texture::getWidth() const {
+	return width;
+}
+
+
+
+u32 Texture::getHeight() const {
+	return height;
+}
+
+
+
+u32 Texture::getDepth() const {
+	return depth;
+}
+
+
+
 u32 Texture::getMipmapSize(u32 level, u32 d) {
 	return d >> level;
 }
@@ -296,6 +314,12 @@ void Texture::generateMipmaps() {
 
 bool Texture::isMultisampleTexture() const {
 	return type == TextureType::MultisampleTexture2D || type == TextureType::MultisampleArrayTexture2D;
+}
+
+
+
+TextureType Texture::getTextureType() const {
+	return type;
 }
 
 

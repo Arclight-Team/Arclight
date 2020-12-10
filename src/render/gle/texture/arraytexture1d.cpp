@@ -7,7 +7,7 @@
 GLE_BEGIN
 
 
-void ArrayTexture1D::setData(u32 w, u32 count, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+void ArrayTexture1D::setData(u32 w, u32 layers, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
 
@@ -16,17 +16,17 @@ void ArrayTexture1D::setData(u32 w, u32 count, TextureFormat format, TextureSour
 		return;
 	}
 
-	if (count > Core::getMaxArrayTextureLayers()) {
+	if (layers > Core::getMaxArrayTextureLayers()) {
 		GLE::error("1D array texture layer count of %d exceeds maximum array layer count of %d", w, Core::getMaxArrayTextureLayers());
 		return;
 	}
 
 	width = w;
-	height = count;
+	height = layers;
 	depth = 0;
 	texFormat = format;
 
-	glTexImage2D(getTextureTypeEnum(type), 0, getTextureFormatEnum(texFormat), w, count, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexImage2D(getTextureTypeEnum(type), 0, getTextureFormatEnum(texFormat), w, layers, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
 
 }
 

@@ -115,5 +115,5 @@ Vec3f Camera::getDirection() const {
 
 
 void Camera::clampPitch() {
-	pitch = Math::clamp(Math::toRadians(-89.999), Math::toRadians(89.999), pitch);
+	pitch = Math::clamp(pitch, Math::toRadians(-89.99), Math::toRadians(89.99));
 }

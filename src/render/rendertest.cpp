@@ -99,7 +99,7 @@ void RenderTest::create(u32 w, u32 h) {
 	skyboxVertexArray.setAttribute(0, 3, GLE::AttributeType::Float, 12, 0);
 	skyboxVertexArray.enableAttribute(0);
 
-	Loader::loadTexture2D(diffuseTexture, Uri(":/textures/eugene.png"));
+	Loader::loadTexture2D(diffuseTexture, Uri(":/textures/therapy.png"));
 	Loader::loadCubemap(skyboxTexture, {
 		Uri(":/textures/cubemaps/dikhololo/px.png"),
 		Uri(":/textures/cubemaps/dikhololo/nx.png"),

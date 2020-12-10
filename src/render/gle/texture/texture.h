@@ -71,7 +71,12 @@ public:
 	u32 getMaxDimension() const;
 	u32 getMipmapCount() const;
 
+	u32 getWidth() const;
+	u32 getHeight() const;
+	u32 getDepth() const;
+
 	bool isMultisampleTexture() const;
+	TextureType getTextureType() const;
 
 	static u32 getMipmapSize(u32 level, u32 d);
 	static CubemapFace getCubemapFace(u32 index);
