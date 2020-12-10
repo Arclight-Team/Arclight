@@ -1,0 +1,15 @@
+#version 430
+out vec4 color;
+
+in vec2 uv;
+uniform mat2 srtMatrix;
+uniform sampler2D diffuseTexture;
+uniform sampler2D imageTexture;
+
+
+void main(){
+	vec2 transformedUV = srtMatrix * uv;
+	vec4 diffuse = texture(diffuseTexture, transformedUV);
+	vec4 image = texture(imageTexture, transformedUV);
+	color = mix(diffuse, image, image.a);
+}

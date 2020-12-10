@@ -3,9 +3,7 @@
 #include GLE_HEADER
 #include "util/random.h"
 #include "util/file.h"
-
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "loader.h"
 
 
 RenderTest::RenderTest() : frameCounter(0) {}
@@ -14,29 +12,7 @@ RenderTest::RenderTest() : frameCounter(0) {}
 
 void RenderTest::create(u32 w, u32 h) {
 
-	static std::string vs = R"(#version 430
-								layout(location = 0) in vec2 vertices;
-								layout(location = 1) in vec2 uvs;
-								
-								out vec2 uv;
-								uniform mat4 mvpMatrix;
-
-								void main(){
-									uv = uvs;
-									gl_Position = mvpMatrix * vec4(vertices, 0.0, 1.0);
-								})";
-
-	static std::string fs = R"(#version 430
-								out vec4 color;
-
-								in vec2 uv;
-								uniform sampler2D diffuseTexture;
-
-								void main(){
-									color = texture(diffuseTexture, uv);
-								})";
-
-	static float vertexData[] = {
+	static float squareVertices[] = {
 		0, 0, 0, 0,
 		1, 0, 1, 0,
 		1, 1, 1, 1,
@@ -44,53 +20,127 @@ void RenderTest::create(u32 w, u32 h) {
 		1, 1, 1, 1,
 		0, 1, 0, 1
 	};
-	
-	shader.create();
-	shader.addShader(vs.c_str(), vs.size(), GLE::ShaderType::VertexShader);
-	shader.addShader(fs.c_str(), fs.size(), GLE::ShaderType::FragmentShader);
-	shader.link();
 
-	mvpUniform = shader.getUniform("mvpMatrix");
-	diffuseUniform = shader.getUniform("diffuseTexture");
+	static float skyboxVertices[] = {
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
 
-	vertexArray.create();
-	vertexArray.bind();
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
 
-	vertexBuffer.create();
-	vertexBuffer.bind();
-	vertexBuffer.allocate(96, vertexData);
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
 
-	vertexArray.setAttribute(0, 2, GLE::AttributeType::Float, 16, 0);
-	vertexArray.setAttribute(1, 2, GLE::AttributeType::Float, 16, 8);
-	vertexArray.enableAttribute(0);
-	vertexArray.enableAttribute(1);
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
 
-	diffuseTexture.create();
-	diffuseTexture.bind();
+		-1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
 
-	i32 width = 0;
-	i32 height = 0;
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f
+	};
 
-	stbi_set_flip_vertically_on_load(true);
 
-	u8* data = stbi_load(Uri(":/textures/okarona.png").getPath().c_str(), &width, &height, nullptr, STBI_rgb);
+	Loader::loadShader(basicShader, Uri(":/shaders/basic.avs"), Uri(":/shaders/basic.afs"));
+	Loader::loadShader(cubemapShader, Uri(":/shaders/cubemap.avs"), Uri(":/shaders/cubemap.afs"));
 
-	if (!data) {
-		Log::error("Render Test", "Failed to load image data");
-		return;
+	mvpBasicUniform = basicShader.getUniform("mvpMatrix");
+	diffuseBasicUniform = basicShader.getUniform("diffuseTexture");
+	srtUniform = basicShader.getUniform("srtMatrix");
+	imageUniform = basicShader.getUniform("imageTexture");
+
+	mvpCubemapUniform = cubemapShader.getUniform("mvpMatrix");
+	cubemapUniform = cubemapShader.getUniform("cubemap");
+
+	squareVertexArray.create();
+	squareVertexArray.bind();
+
+	squareVertexBuffer.create();
+	squareVertexBuffer.bind();
+	squareVertexBuffer.allocate(96, squareVertices);
+
+	squareVertexArray.setAttribute(0, 2, GLE::AttributeType::Float, 16, 0);
+	squareVertexArray.setAttribute(1, 2, GLE::AttributeType::Float, 16, 8);
+	squareVertexArray.enableAttribute(0);
+	squareVertexArray.enableAttribute(1);
+
+	skyboxVertexArray.create();
+	skyboxVertexArray.bind();
+
+	skyboxVertexBuffer.create();
+	skyboxVertexBuffer.bind();
+	skyboxVertexBuffer.allocate(432, skyboxVertices);
+
+	skyboxVertexArray.setAttribute(0, 3, GLE::AttributeType::Float, 12, 0);
+	skyboxVertexArray.enableAttribute(0);
+
+	Loader::loadTexture2D(diffuseTexture, Uri(":/textures/eugene.png"));
+	Loader::loadCubemap(skyboxTexture, {
+		Uri(":/textures/cubemaps/dikhololo/px.png"),
+		Uri(":/textures/cubemaps/dikhololo/nx.png"),
+		Uri(":/textures/cubemaps/dikhololo/py.png"),
+		Uri(":/textures/cubemaps/dikhololo/ny.png"),
+		Uri(":/textures/cubemaps/dikhololo/pz.png"),
+		Uri(":/textures/cubemaps/dikhololo/nz.png")
+	});
+
+	for (u32 i = 0; i < 12; i++) {
+
+		Loader::loadTexture2D(amongUsTextures[i], Uri(":/textures/orange/cm" + std::to_string(i + 1) + ".png"));
+
+		amongUsTextures[i].setMinFilter(GLE::TextureFilter::None);
+		amongUsTextures[i].setMagFilter(GLE::TextureFilter::None);
+		amongUsTextures[i].setWrapU(GLE::TextureWrap::Repeat);
+		amongUsTextures[i].setWrapV(GLE::TextureWrap::Repeat);
+
 	}
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	diffuseTexture.setData(width, height, GLE::TextureFormat::RGB8, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, data);
-	diffuseTexture.generateMipmaps();
+	Loader::loadTexture2D(eugeneTexture, Uri(":/textures/eugene.png"));
+	eugeneTexture.setMinFilter(GLE::TextureFilter::None);
+	eugeneTexture.setMagFilter(GLE::TextureFilter::None);
+	eugeneTexture.setWrapU(GLE::TextureWrap::Repeat);
+	eugeneTexture.setWrapV(GLE::TextureWrap::Repeat);
 
-	stbi_image_free(data);
-
-
-	diffuseTexture.setMinFilter(GLE::TextureFilter::Trilinear);
+	diffuseTexture.bind();
+	diffuseTexture.setMinFilter(GLE::TextureFilter::None);
 	diffuseTexture.setMagFilter(GLE::TextureFilter::None);
-	diffuseTexture.setWrapU(GLE::TextureWrap::Clamp);
-	diffuseTexture.setWrapV(GLE::TextureWrap::Clamp);
+	diffuseTexture.setWrapU(GLE::TextureWrap::Repeat);
+	diffuseTexture.setWrapV(GLE::TextureWrap::Repeat);
+
+	skyboxTexture.bind();
+	skyboxTexture.setMinFilter(GLE::TextureFilter::Trilinear);
+	skyboxTexture.setMagFilter(GLE::TextureFilter::Bilinear);
+	skyboxTexture.setWrapU(GLE::TextureWrap::Clamp);
+	skyboxTexture.setWrapV(GLE::TextureWrap::Clamp);
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	camera.setPosition(camStartPos);
 	camera.setRotation(camStartAngleH, camStartAngleV);
@@ -131,15 +181,40 @@ void RenderTest::run() {
 	recalculateMVPMatrix();
 
 	//OpenGL main
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	shader.start();
+	glDepthMask(false);
+	cubemapShader.start();
+
+	skyboxTexture.activate(0);
+	cubemapUniform.setInt(0);
+
+	Mat4f nontransformedView = viewMatrix;
+	nontransformedView[3] = Vec4f(0, 0, 0, 1);
+	Mat4f skyboxMvp = projectionMatrix * nontransformedView;
+
+	mvpCubemapUniform.setMat4(skyboxMvp);
+	skyboxVertexArray.bind();
+
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glDepthMask(true);
+
+
+	basicShader.start();
 
 	diffuseTexture.activate(0);
-	diffuseUniform.setInt(0);
+	//amongUsTextures[(frameCounter / 8) % 12].activate(0);
+	diffuseBasicUniform.setInt(0);
+	amongUsTextures[(frameCounter / 8) % 12].activate(1);
+	imageUniform.setInt(1);
 
-	mvpUniform.setMat4(mvpMatrix);
-	vertexArray.bind();
+	Mat2f srtMatrix;
+	srtMatrix[0][0] = 1 + frameCounter / 50.0;
+	srtMatrix[1][1] = 1 + frameCounter / 50.0;
+
+	srtUniform.setMat2(srtMatrix);
+	mvpBasicUniform.setMat4(mvpMatrix);
+	squareVertexArray.bind();
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -149,10 +224,14 @@ void RenderTest::run() {
 
 void RenderTest::destroy() {
 
-	shader.destroy();
-	vertexArray.destroy();
-	vertexBuffer.destroy();
+	basicShader.destroy();
+	cubemapShader.destroy();
+	squareVertexArray.destroy();
+	skyboxVertexArray.destroy();
+	squareVertexBuffer.destroy();
+	skyboxVertexBuffer.destroy();
 	diffuseTexture.destroy();
+	skyboxTexture.destroy();
 
 }
 

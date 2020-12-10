@@ -149,4 +149,15 @@ namespace Core {
 }
 
 
+void setRowUnpackAlignment(Alignment a) {
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1 << static_cast<u32>(a));
+}
+
+
+
+void setRowPackAlignment(Alignment a) {
+	glPixelStorei(GL_PACK_ALIGNMENT, 1 << static_cast<u32>(a));
+}
+
+
 GLE_END

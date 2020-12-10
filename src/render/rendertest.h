@@ -23,13 +23,25 @@ private:
 
 	void recalculateMVPMatrix();
 
-	GLE::VertexBuffer vertexBuffer;
-	GLE::VertexArray vertexArray;
-	GLE::ShaderProgram shader;
-	GLE::Uniform mvpUniform;
-	GLE::Uniform diffuseUniform;
+	GLE::VertexBuffer squareVertexBuffer;
+	GLE::VertexArray squareVertexArray;
 
+	GLE::VertexBuffer skyboxVertexBuffer;
+	GLE::VertexArray skyboxVertexArray;
+
+	GLE::ShaderProgram basicShader;
+	GLE::ShaderProgram cubemapShader;
+	GLE::Uniform mvpBasicUniform;
+	GLE::Uniform diffuseBasicUniform;
+	GLE::Uniform mvpCubemapUniform;
+	GLE::Uniform cubemapUniform;
+	GLE::Uniform srtUniform;
+	GLE::Uniform imageUniform;
+
+	GLE::Texture2D eugeneTexture;
+	GLE::Texture2D amongUsTextures[12];
 	GLE::Texture2D diffuseTexture;
+	GLE::CubemapTexture skyboxTexture;
 
 	Mat4f modelMatrix;
 	Mat4f viewMatrix;
