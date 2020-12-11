@@ -16,6 +16,10 @@ namespace Core {
 	float maxAnisotropy = 1.0;
 	u32 maxTextureUnits = 0;
 
+	u32 maxDepthSamples = 0;
+	u32 maxColorSamples = 0;
+	u32 maxIntegerSamples = 0;
+
 
 	bool init() {
 
@@ -61,6 +65,13 @@ namespace Core {
 
 		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &tmp);
 		maxTextureUnits = tmp;
+
+		glGetIntegerv(GL_MAX_DEPTH_TEXTURE_SAMPLES, &tmp);
+		maxDepthSamples = tmp;
+		glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &tmp);
+		maxColorSamples = tmp;
+		glGetIntegerv(GL_MAX_INTEGER_SAMPLES, &tmp);
+		maxIntegerSamples = tmp;
 
 		return true;
 
@@ -144,6 +155,21 @@ namespace Core {
 
 	u32 getMaxTextureUnits() {
 		return maxTextureUnits;
+	}
+
+
+	u32 getMaxDepthSamples() {
+		return maxDepthSamples;
+	}
+
+
+	u32 getMaxColorSamples() {
+		return maxColorSamples;
+	}
+
+
+	u32 getMaxIntegerSamples() {
+		return maxIntegerSamples;
 	}
 
 }

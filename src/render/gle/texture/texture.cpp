@@ -274,7 +274,6 @@ CubemapFace Texture::getCubemapFace(u32 index) {
 void Texture::setWrapU(TextureWrap wrap) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set wrap mode)", id);
-	gle_assert(!isMultisampleTexture(), "Texture wrap not allowed for multisample textures");
 
 	glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_WRAP_S, getTextureWrapEnum(wrap));
 
@@ -285,7 +284,6 @@ void Texture::setWrapU(TextureWrap wrap) {
 void Texture::setWrapV(TextureWrap wrap) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set wrap mode)", id);
-	gle_assert(!isMultisampleTexture(), "Texture wrap not allowed for multisample textures");
 
 	glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_WRAP_T, getTextureWrapEnum(wrap));
 
@@ -296,7 +294,6 @@ void Texture::setWrapV(TextureWrap wrap) {
 void Texture::setWrapW(TextureWrap wrap) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set wrap mode)", id);
-	gle_assert(!isMultisampleTexture(), "Texture wrap not allowed for multisample textures");
 
 	glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_WRAP_R, getTextureWrapEnum(wrap));
 
@@ -307,16 +304,9 @@ void Texture::setWrapW(TextureWrap wrap) {
 void Texture::generateMipmaps() {
 	
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to generate mipmaps)", id);
-	gle_assert(!isMultisampleTexture(), "Mipmap generation not allowed for multisample textures");
 	
 	glGenerateMipmap(getTextureTypeEnum(type));
 
-}
-
-
-
-bool Texture::isMultisampleTexture() const {
-	return type == TextureType::MultisampleTexture2D || type == TextureType::MultisampleArrayTexture2D;
 }
 
 

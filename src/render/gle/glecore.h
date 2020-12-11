@@ -25,6 +25,10 @@ namespace Core {
 	float getMaxTextureAnisotropy();
 	u32 getMaxTextureUnits();
 
+	u32 getMaxDepthSamples();
+	u32 getMaxColorSamples();
+	u32 getMaxIntegerSamples();
+
 }
 
 

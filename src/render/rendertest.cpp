@@ -154,6 +154,11 @@ void RenderTest::create(u32 w, u32 h) {
 
 	recalculateMVPMatrix();
 
+	GLE::MultisampleTexture2D ms;
+	ms.create();
+	ms.bind();
+	ms.init(1, 1, 4, GLE::TextureFormat::RGB10, true);
+
 }
 
 
