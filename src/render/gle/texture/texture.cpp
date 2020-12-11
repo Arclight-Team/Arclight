@@ -66,7 +66,10 @@ void Texture::destroy() {
 void Texture::activate(u32 unit) {
 
 	activateUnit(unit);
-	bind();
+
+	//Force-bind
+	glBindTexture(getTextureTypeEnum(type), id);
+	setBoundTextureID(type, id);
 
 }
 

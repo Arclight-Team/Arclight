@@ -32,14 +32,15 @@ private:
 	GLE::ShaderProgram basicShader;
 	GLE::ShaderProgram cubemapShader;
 	GLE::Uniform mvpBasicUniform;
-	GLE::Uniform diffuseBasicUniform;
+	GLE::Uniform diffuseTextureUniform;
 	GLE::Uniform mvpCubemapUniform;
 	GLE::Uniform cubemapUniform;
 	GLE::Uniform srtUniform;
-	GLE::Uniform imageUniform;
+	GLE::Uniform amongUsFrameUniform;
+	GLE::Uniform amongUsTextureUniform;
 
 	GLE::Texture2D eugeneTexture;
-	GLE::Texture2D amongUsTextures[12];
+	GLE::ArrayTexture2D amongUsTextureArray;
 	GLE::Texture2D diffuseTexture;
 	GLE::CubemapTexture skyboxTexture;
 

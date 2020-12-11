@@ -8,4 +8,5 @@
 #include "texture/texture3d.h"
 #include "texture/cubemaptexture.h"
 #include "texture/arraytexture1d.h"
+#include "texture/arraytexture2d.h"
 #include "glecore.h"

@@ -47,7 +47,7 @@ void ArrayTexture2D::setMipmapData(u32 level, TextureSourceFormat srcFormat, Tex
 
 
 
-void ArrayTexture2D::update(u32 x, u32 y, u32 w, u32 h, u32 layerStart, u32 layerCount, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0) {
+void ArrayTexture2D::update(u32 x, u32 y, u32 w, u32 h, u32 layerStart, u32 layerCount, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to update data)", id);
 

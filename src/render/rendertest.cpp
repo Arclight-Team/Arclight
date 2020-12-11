@@ -70,9 +70,10 @@ void RenderTest::create(u32 w, u32 h) {
 	Loader::loadShader(cubemapShader, Uri(":/shaders/cubemap.avs"), Uri(":/shaders/cubemap.afs"));
 
 	mvpBasicUniform = basicShader.getUniform("mvpMatrix");
-	diffuseBasicUniform = basicShader.getUniform("diffuseTexture");
+	diffuseTextureUniform = basicShader.getUniform("diffuseTexture");
 	srtUniform = basicShader.getUniform("srtMatrix");
-	imageUniform = basicShader.getUniform("imageTexture");
+	amongUsFrameUniform = basicShader.getUniform("amongUsFrame");
+	amongUsTextureUniform = basicShader.getUniform("amongUsTexture");
 
 	mvpCubemapUniform = cubemapShader.getUniform("mvpMatrix");
 	cubemapUniform = cubemapShader.getUniform("cubemap");
@@ -109,16 +110,18 @@ void RenderTest::create(u32 w, u32 h) {
 		Uri(":/textures/cubemaps/dikhololo/nz.png")
 	});
 
+	std::vector<Uri> amongUsFrameUris;
+
 	for (u32 i = 0; i < 12; i++) {
-
-		Loader::loadTexture2D(amongUsTextures[i], Uri(":/textures/orange/cm" + std::to_string(i + 1) + ".png"));
-
-		amongUsTextures[i].setMinFilter(GLE::TextureFilter::None);
-		amongUsTextures[i].setMagFilter(GLE::TextureFilter::None);
-		amongUsTextures[i].setWrapU(GLE::TextureWrap::Repeat);
-		amongUsTextures[i].setWrapV(GLE::TextureWrap::Repeat);
-
+		amongUsFrameUris.emplace_back(":/textures/orange/cm" + std::to_string(i + 1) + ".png");
 	}
+
+	Loader::loadArrayTexture2D(amongUsTextureArray, amongUsFrameUris);
+
+	amongUsTextureArray.setMinFilter(GLE::TextureFilter::None);
+	amongUsTextureArray.setMagFilter(GLE::TextureFilter::None);
+	amongUsTextureArray.setWrapU(GLE::TextureWrap::Repeat);
+	amongUsTextureArray.setWrapV(GLE::TextureWrap::Repeat);
 
 	Loader::loadTexture2D(eugeneTexture, Uri(":/textures/eugene.png"));
 	eugeneTexture.setMinFilter(GLE::TextureFilter::None);
@@ -194,19 +197,18 @@ void RenderTest::run() {
 	Mat4f skyboxMvp = projectionMatrix * nontransformedView;
 
 	mvpCubemapUniform.setMat4(skyboxMvp);
-	skyboxVertexArray.bind();
 
+	skyboxVertexArray.bind();
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glDepthMask(true);
-
 
 	basicShader.start();
 
 	diffuseTexture.activate(0);
-	//amongUsTextures[(frameCounter / 8) % 12].activate(0);
-	diffuseBasicUniform.setInt(0);
-	amongUsTextures[(frameCounter / 8) % 12].activate(1);
-	imageUniform.setInt(1);
+	diffuseTextureUniform.setInt(0);
+	amongUsTextureArray.activate(1);
+	amongUsTextureUniform.setInt(1);
+	amongUsFrameUniform.setFloat((frameCounter / 8) % 12 + 0.5);
 
 	Mat2f srtMatrix;
 	srtMatrix[0][0] = 1 + frameCounter / 50.0;
@@ -214,8 +216,8 @@ void RenderTest::run() {
 
 	srtUniform.setMat2(srtMatrix);
 	mvpBasicUniform.setMat4(mvpMatrix);
-	squareVertexArray.bind();
 
+	squareVertexArray.bind();
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 }
@@ -226,12 +228,17 @@ void RenderTest::destroy() {
 
 	basicShader.destroy();
 	cubemapShader.destroy();
+
 	squareVertexArray.destroy();
 	skyboxVertexArray.destroy();
+
 	squareVertexBuffer.destroy();
 	skyboxVertexBuffer.destroy();
+
+	amongUsTextureArray.destroy();
 	diffuseTexture.destroy();
 	skyboxTexture.destroy();
+	eugeneTexture.destroy();
 
 }
 

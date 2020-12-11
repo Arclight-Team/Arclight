@@ -57,6 +57,7 @@ namespace Loader {
 	}
 
 
+
 	bool loadTexture2D(GLE::Texture2D& texture, const Uri& path) {
 
 		i32 width = 0;
@@ -73,12 +74,11 @@ namespace Loader {
 
 		if (channels < 3 || channels > 4) {
 			Log::error("Loader", "Invalid number of channels (%d) in %s", channels, path.getPath().c_str());
+			stbi_image_free(data);
 			return false;
 		}
 
 		bool hasAlpha = (channels == 4);
-
-		GLE::setRowUnpackAlignment(GLE::Alignment::None);
 
 		texture.create();
 		texture.bind();
@@ -95,11 +95,88 @@ namespace Loader {
 	}
 
 
+
+	bool loadArrayTexture2D(GLE::ArrayTexture2D& texture, const std::vector<Uri>& paths) {
+
+		i32 width = 0;
+		i32 height = 0;
+		i32 channels = 0;
+		u32 layers = paths.size();
+		GLE::TextureFormat format;
+		GLE::TextureSourceFormat srcFormat;
+
+		stbi_set_flip_vertically_on_load(true);
+
+		texture.create();
+		texture.bind();
+
+		for (u32 i = 0; i < layers; i++) {
+
+			u8* data = nullptr;
+			const Uri& path = paths[i];
+
+			if (!width) {
+
+				data = stbi_load(path.getPath().c_str(), &width, &height, &channels, 0);
+
+				if (!data) {
+					Log::error("Loader", "Failed to load 2D texture %s", path.getPath().c_str());
+					return false;
+				}
+
+				if (channels != 3 && channels != 4) {
+					Log::error("Loader", "Invalid number of channels (%d) in %s", channels, path.getPath().c_str());
+					stbi_image_free(data);
+					return false;
+				}
+
+				format = (channels == 4) ? GLE::TextureFormat::RGBA8 : GLE::TextureFormat::RGB8;
+				srcFormat = (channels == 4) ? GLE::TextureSourceFormat::RGBA : GLE::TextureSourceFormat::RGB;
+				texture.setData(width, height, layers, format, srcFormat, GLE::TextureSourceType::UByte, nullptr);
+
+			} else {
+
+				i32 w = 0;
+				i32 h = 0;
+				i32 c = 0;
+				data = stbi_load(path.getPath().c_str(), &w, &h, &c, 0);
+
+				if (!data) {
+					Log::error("Loader", "Failed to load 2D texture %s", path.getPath().c_str());
+					return false;
+				}
+
+				if (width != w || height != h || channels != c) {
+					Log::error("Loader", "2D array texture configuration mismatch of %s", path.getPath().c_str());
+					stbi_image_free(data);
+					return false;
+				}
+
+			}
+
+			texture.update(0, 0, width, height, i, srcFormat, GLE::TextureSourceType::UByte, data);
+
+			stbi_image_free(data);
+
+		}
+
+		texture.generateMipmaps();
+
+		Log::info("Loader", "Loaded 2D array texture (size = %d)", layers);
+
+		return true;
+
+	}
+
+
+
 	bool loadCubemap(GLE::CubemapTexture& cubemap, const std::vector<Uri>& paths) {
 
 		i32 width = 0;
 		i32 height = 0;
 		i32 channels = 0;
+		GLE::TextureFormat format;
+		GLE::TextureSourceFormat srcFormat;
 
 		stbi_set_flip_vertically_on_load(false);
 
@@ -113,31 +190,56 @@ namespace Loader {
 
 		for (u32 i = 0; i < 6; i++) {
 
+			u8* data = nullptr;
 			const Uri& path = paths[i];
 
-			u8* data = stbi_load(path.getPath().c_str(), &width, &height, &channels, 0);
+			if (!width) {
 
-			if (!data) {
-				Log::error("Loader", "Failed to load cubemap texture %s", path.getPath().c_str());
-				return false;
+				data = stbi_load(path.getPath().c_str(), &width, &height, &channels, 0);
+
+				if (!data) {
+					Log::error("Loader", "Failed to load cubemap texture %s", path.getPath().c_str());
+					return false;
+				}
+
+				if (width != height) {
+					Log::error("Loader", "Width and height of cubemap face %s are not equal", path.getPath().c_str());
+					stbi_image_free(data);
+					return false;
+				}
+
+				if (channels != 3 && channels != 4) {
+					Log::error("Loader", "Invalid number of channels (%d) in %s", channels, path.getPath().c_str());
+					stbi_image_free(data);
+					return false;
+				}
+
+				format = (channels == 4) ? GLE::TextureFormat::RGBA8 : GLE::TextureFormat::RGB8;
+				srcFormat = (channels == 4) ? GLE::TextureSourceFormat::RGBA : GLE::TextureSourceFormat::RGB;
+				cubemap.setData(i, width, format, srcFormat, GLE::TextureSourceType::UByte, data);
+
+			} else {
+
+				i32 w = 0;
+				i32 h = 0;
+				i32 c = 0;
+				data = stbi_load(path.getPath().c_str(), &w, &h, &c, 0);
+
+				if (!data) {
+					Log::error("Loader", "Failed to load cubemap texture %s", path.getPath().c_str());
+					return false;
+				}
+
+				if (width != w || height != h || channels != c) {
+					Log::error("Loader", "Cubemap texture configuration mismatch of %s", path.getPath().c_str());
+					stbi_image_free(data);
+					return false;
+				}
+
 			}
 
-			if (width != height) {
-				Log::error("Loader", "Width and height of cubemap face %s are not equal", path.getPath().c_str());
-				return false;
-			}
 
-			if (channels < 3 || channels > 4) {
-				Log::error("Loader", "Invalid number of channels (%d) in %s", channels, path.getPath().c_str());
-				return false;
-			}
-
-			bool hasAlpha = (channels == 4);
-
-			GLE::setRowUnpackAlignment(GLE::Alignment::None);
-
-			cubemap.setData(i, width, hasAlpha ? GLE::TextureFormat::RGBA8 : GLE::TextureFormat::RGB8,
-							hasAlpha ? GLE::TextureSourceFormat::RGBA : GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, data);
+			cubemap.setData(i, width, format, srcFormat, GLE::TextureSourceType::UByte, data);
 
 			stbi_image_free(data);
 

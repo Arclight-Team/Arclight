@@ -12,7 +12,7 @@ public:
 
 	constexpr ArrayTexture2D() : Texture(TextureType::ArrayTexture2D) {}
 
-	inline void update(u32 x, u32 y, u32 w, u32 y, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0) {
+	inline void update(u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0) {
 		update(x, y, w, h, 0, depth, srcFormat, srcType, data, level);
 	}
 
@@ -26,7 +26,6 @@ public:
 
 	using Texture::setWrapU;
 	using Texture::setWrapV;
-	using Texture::setWrapW;
 	using Texture::setMipmapBaseLevel;
 	using Texture::setMipmapMaxLevel;
 	using Texture::setMipmapRange;
