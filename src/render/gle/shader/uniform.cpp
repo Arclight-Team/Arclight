@@ -102,7 +102,7 @@ void Uniform::setIntArray(const i32* v, u32 elements, u32 count) {
 			break;
 
 		default:
-			gle_assert(false, "Illegal element count of %d for uniform int array", elements);
+			gle_force_assert("Illegal element count of %d for uniform int array", elements);
 			break;
 
 	}
@@ -132,7 +132,7 @@ void Uniform::setUnsignedArray(const u32* v, u32 elements, u32 count) {
 			break;
 
 		default:
-			gle_assert(false, "Illegal element count of %d for uniform unsigned int array", elements);
+			gle_force_assert("Illegal element count of %d for uniform unsigned int array", elements);
 			break;
 
 	}
@@ -162,7 +162,7 @@ void Uniform::setFloatArray(const float* v, u32 elements, u32 count) {
 			break;
 
 		default:
-			gle_assert(false, "Illegal element count of %d for uniform int array", elements);
+			gle_force_assert("Illegal element count of %d for uniform int array", elements);
 			break;
 
 	}

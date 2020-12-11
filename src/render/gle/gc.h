@@ -38,6 +38,7 @@
 #include <string>
 
 #define gle_assert(cond, msg, ...) arc_assert(cond, msg, __VA_ARGS__)
+#define gle_force_assert(msg, ...) arc_assert(false, msg, __VA_ARGS__)
 
 
 GLE_BEGIN

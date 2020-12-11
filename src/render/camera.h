@@ -11,9 +11,6 @@ public:
 	explicit Camera(const Vec3f& pos);
 	Camera(const Vec3f& pos, double angleH, double angleV);
 
-
-	void update(double posBlendInc, double dirBlendInc);
-
 	void move(const Vec3f& movement);
 	void rotate(double angleH, double angleV);
 
@@ -27,13 +24,9 @@ private:
 
 	void clampPitch();
 	
-	Vec3f newPosition;
-	Vec3f oldPosition;
-	Vec3f newFront;
-	Vec3f oldFront;
+	Vec3f position;
+	Vec3f direction;
 	double yaw;
 	double pitch;
-	double blendPosition;
-	double blendRotation;
 
 };

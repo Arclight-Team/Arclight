@@ -149,7 +149,7 @@ u32 Buffer::getBufferTypeEnum(BufferType type) {
 			return GL_COPY_WRITE_BUFFER;
 
 		default:
-			gle_assert(false, "Invalid buffer type 0x%X", type);
+			gle_force_assert("Invalid buffer type 0x%X", type);
 			return -1;
 
 	}
@@ -190,7 +190,7 @@ u32 Buffer::getBufferAccessEnum(BufferAccess access) {
 			return GL_STREAM_COPY;
 
 		default:
-			gle_assert(false, "Invalid buffer access mode 0x%X", access);
+			gle_force_assert("Invalid buffer access mode 0x%X", access);
 			return -1;
 
 	}

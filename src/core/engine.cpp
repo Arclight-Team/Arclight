@@ -1,9 +1,7 @@
 #include "core/engine.h"
 #include "util/file.h"
 #include "util/log.h"
-#include "render/gle/gc.h"
-#include "util/vector.h"
-#include "util/matrix.h"
+
 
 
 Engine::Engine() : profiler(Timer::Unit::Seconds, 3) {}
@@ -50,11 +48,14 @@ bool Engine::initialize() {
 	//Create render test
 	renderTest.create(window.getWidth(), window.getHeight());
 
-	//Enable V-Sync
-	window.enableVSync();
+	//Disable V-Sync
+	window.disableVSync();
 
 	//We're successfully running
 	Log::info("Core", "Starting engine");
+
+	//Start FPS tracker
+	tracker.start();
 
 	return true;
 
@@ -102,6 +103,9 @@ void Engine::run() {
 
 		//Swap render buffers
 		window.swapBuffers();
+
+		//Debug FPS
+		window.setTitle("Among Us | FPS: " + std::to_string(tracker.getFPS()));
 
 	}
 

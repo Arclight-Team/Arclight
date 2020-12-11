@@ -11,8 +11,8 @@ void Texture3D::setData(u32 w, u32 h, u32 d, TextureFormat format, TextureSource
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
 
-	if (w > Core::getMaxTextureSize() || h > Core::getMaxTextureSize() || d > Core::getMaxTextureSize()) {
-		GLE::error("3D texture dimension of size %d exceeds maximum texture size of %d", (w > h ? (d > w ? d : h) : (d > h ? d : h)), Core::getMaxTextureSize());
+	if (w > Limits::getMaxTextureSize() || h > Limits::getMaxTextureSize() || d > Limits::getMaxTextureSize()) {
+		GLE::error("3D texture dimension of size %d exceeds maximum texture size of %d", (w > h ? (d > w ? d : h) : (d > h ? d : h)), Limits::getMaxTextureSize());
 		return;
 	}
 

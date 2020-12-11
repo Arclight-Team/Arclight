@@ -12,8 +12,8 @@ void Texture1D::setData(u32 w, TextureFormat format, TextureSourceFormat srcForm
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
 
-	if (w > Core::getMaxTextureSize()) {
-		GLE::error("1D texture dimension of size %d exceeds maximum texture size of %d", w, Core::getMaxTextureSize());
+	if (w > Limits::getMaxTextureSize()) {
+		GLE::error("1D texture dimension of size %d exceeds maximum texture size of %d", w, Limits::getMaxTextureSize());
 		return;
 	}
 

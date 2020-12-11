@@ -304,7 +304,7 @@ u32 ShaderProgram::getShaderTypeEnum(ShaderType type) {
 			return GL_COMPUTE_SHADER;
 
 		default:
-			gle_assert(false, "Invalid shader type 0x%X", type);
+			gle_force_assert("Invalid shader type 0x%X", type);
 			return -1;
 
 	}

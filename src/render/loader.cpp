@@ -1,7 +1,11 @@
 #include "loader.h"
 #include "util/file.h"
 #include "gle/gle.h"
-
+/*
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
+#include <assimp/Importer.hpp>
+*/
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -249,6 +253,39 @@ namespace Loader {
 
 		Log::info("Loader", "Loaded cubemap texture");
 
+		return true;
+
+	}
+
+
+
+	bool Loader::loadModel(Model& model, const Uri& path) {
+		/*
+		u32 flags = aiProcess_ValidateDataStructure
+			| aiProcess_SortByPType
+			| aiProcess_FindInvalidData
+			| aiProcess_OptimizeMeshes
+			| aiProcess_Triangulate
+			| aiProcess_ImproveCacheLocality
+			| aiProcess_GenBoundingBoxes
+			| aiProcess_LimitBoneWeights;
+
+		Assimp::Importer imp;
+		const aiScene* scene = imp.ReadFile(path.getPath().c_str(), flags);
+
+		if (!scene) {
+			Log::error("Loader", imp.GetErrorString());
+			return false;
+		}
+
+		for (u32 i = 0; i < scene->mNumMeshes; i++) {
+
+			aiMesh* mesh = scene->mMeshes[i];
+
+			mesh->mFace
+
+		}
+		*/
 		return true;
 
 	}

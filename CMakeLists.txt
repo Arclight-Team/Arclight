@@ -19,6 +19,7 @@ include_directories("src")
 include_directories("lib/FMOD/include")
 include_directories("lib/GLFW/include")
 include_directories("lib/stb_image")
+#include_directories("lib/assimp/include")
 include_directories(${GLEW_INCLUDE_DIR})
 
 file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp")

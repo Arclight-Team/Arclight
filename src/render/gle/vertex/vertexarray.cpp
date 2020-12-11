@@ -172,7 +172,7 @@ u32 VertexArray::getAttributeTypeEnum(AttributeType type) {
 			return GL_UNSIGNED_INT_10F_11F_11F_REV;
 
 		default:
-			gle_assert(false, "Invalid attribute type 0x%X", type);
+			gle_force_assert("Invalid attribute type 0x%X", type);
 			return -1;
 
 	}

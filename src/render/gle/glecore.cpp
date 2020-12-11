@@ -5,7 +5,7 @@
 
 GLE_BEGIN
 
-namespace Core {
+namespace {
 
 	u32 openglContextVersion = 0;
 	bool openglDebugContext = false;
@@ -20,6 +20,10 @@ namespace Core {
 	u32 maxColorSamples = 0;
 	u32 maxIntegerSamples = 0;
 
+}
+
+
+namespace Core {
 
 	bool init() {
 
@@ -41,7 +45,7 @@ namespace Core {
 
 		openglContextVersion = majorVersion << 8 | minorVersion;
 		openglDebugContext = flags & GL_CONTEXT_FLAG_DEBUG_BIT;
-		
+
 		GLE::info("OpenGL %d.%d context set up", majorVersion, minorVersion);
 		GLE::info("Debug context %s", (openglDebugContext ? "enabled" : "disabled"));
 
@@ -80,7 +84,7 @@ namespace Core {
 
 	void printErrors() {
 
-#ifndef GLE_DISABLE_DEBUG
+	#ifndef GLE_DISABLE_DEBUG
 
 		GLenum errorNumber = 0;
 
@@ -90,31 +94,31 @@ namespace Core {
 
 			switch (errorNumber) {
 
-				case GL_INVALID_ENUM:                  
+				case GL_INVALID_ENUM:
 					errorMessage = "An invalid enum has been specified.";
 					break;
 
-				case GL_INVALID_VALUE:                 
+				case GL_INVALID_VALUE:
 					errorMessage = "An invalid value has been specified";
 					break;
 
-				case GL_INVALID_OPERATION:             
+				case GL_INVALID_OPERATION:
 					errorMessage = "An invalid operation has been performed.";
 					break;
 
-				case GL_STACK_OVERFLOW:                
+				case GL_STACK_OVERFLOW:
 					errorMessage = "Stack overflown.";
 					break;
 
-				case GL_STACK_UNDERFLOW:               
+				case GL_STACK_UNDERFLOW:
 					errorMessage = "Stack underflown.";
 					break;
 
-				case GL_OUT_OF_MEMORY:                 
+				case GL_OUT_OF_MEMORY:
 					errorMessage = "Out of memory.";
 					break;
 
-				case GL_INVALID_FRAMEBUFFER_OPERATION: 
+				case GL_INVALID_FRAMEBUFFER_OPERATION:
 					errorMessage = "An invalid framebuffer operation has been performed.";
 					break;
 
@@ -128,10 +132,13 @@ namespace Core {
 
 		}
 
-#endif
+	#endif
 
 	}
 
+}
+
+namespace Limits {
 
 	u32 getMaxTextureSize() {
 		return maxTextureSize;

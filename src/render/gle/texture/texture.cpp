@@ -77,7 +77,7 @@ void Texture::activate(u32 unit) {
 
 void Texture::activateUnit(u32 unit) {
 
-	gle_assert(unit < Core::getMaxTextureUnits(), "Texture unit %d exceeds the maximum of %d", unit, Core::getMaxTextureUnits());
+	gle_assert(unit < Limits::getMaxTextureUnits(), "Texture unit %d exceeds the maximum of %d", unit, Limits::getMaxTextureUnits());
 
 	if (activeTextureUnit != unit) {
 		activeTextureUnit = unit;
@@ -148,7 +148,6 @@ u32 Texture::getMipmapSize(u32 level, u32 d) {
 void Texture::setMipmapBaseLevel(u32 level) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set base mipmap level)", id);
-	gle_assert(!isMultisampleTexture(), "Texture parameters not allowed for multisample textures");
 
 	glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_BASE_LEVEL, level);
 
@@ -159,7 +158,6 @@ void Texture::setMipmapBaseLevel(u32 level) {
 void Texture::setMipmapMaxLevel(u32 level) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set max mipmap level)", id);
-	gle_assert(!isMultisampleTexture(), "Texture parameters not allowed for multisample textures");
 
 	glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_MAX_LEVEL, level);
 
@@ -170,7 +168,6 @@ void Texture::setMipmapMaxLevel(u32 level) {
 void Texture::setMipmapRange(u32 base, u32 max) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set mipmap boundary levels)", id);
-	gle_assert(!isMultisampleTexture(), "Texture parameters not allowed for multisample textures");
 	gle_assert(base <= max, "Mipmap base level cannot be greater than the max level (base = %d, max = %d)", base, max);
 
 	setMipmapBaseLevel(base);
@@ -183,9 +180,8 @@ void Texture::setMipmapRange(u32 base, u32 max) {
 void Texture::setAnisotropy(float a) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set texture anisotropy)", id);
-	gle_assert(!isMultisampleTexture(), "Texture parameters not allowed for multisample textures");
 
-	float maxAnisotropy = Core::getMaxTextureAnisotropy();
+	float maxAnisotropy = Limits::getMaxTextureAnisotropy();
 
 	//Anisotropy has no effect in this case (and is not supported)
 	if (maxAnisotropy == 1.0f) {
@@ -206,7 +202,6 @@ void Texture::setAnisotropy(float a) {
 void Texture::setMinFilter(TextureFilter filter, bool mipmapped) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set texture min filter)", id);
-	gle_assert(!isMultisampleTexture(), "Texture parameters not allowed for multisample textures");
 
 	switch (filter) {
 
@@ -241,7 +236,6 @@ void Texture::setMinFilter(TextureFilter filter, bool mipmapped) {
 void Texture::setMagFilter(TextureFilter filter) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set texture mag filter)", id);
-	gle_assert(!isMultisampleTexture(), "Texture parameters not allowed for multisample textures");
 
 	switch (filter) {
 
@@ -349,7 +343,7 @@ u32 Texture::getTextureTypeEnum(TextureType type) {
 			return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
 
 		default:
-			gle_assert(false, "Invalid texture type 0x%X", type);
+			gle_force_assert("Invalid texture type 0x%X", type);
 			return -1;
 
 	}
@@ -372,7 +366,7 @@ u32 Texture::getTextureWrapEnum(TextureWrap wrap) {
 			return GL_REPEAT;
 
 		default:
-			gle_assert(false, "Invalid texture wrap 0x%X", wrap);
+			gle_force_assert("Invalid texture wrap 0x%X", wrap);
 			return -1;
 
 	}
@@ -590,7 +584,7 @@ u32 Texture::getTextureFormatEnum(TextureFormat format) {
 			return GL_STENCIL_INDEX8;
 
 		default:
-			gle_assert(false, "Invalid texture format 0x%X", format);
+			gle_force_assert("Invalid texture format 0x%X", format);
 			return -1;
 
 	}
@@ -652,7 +646,7 @@ u32 Texture::getCompressedTextureFormatEnum(CompressedTextureFormat format) {
 			return GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
 
 		default:
-			gle_assert(false, "Invalid compressed texture format 0x%X", format);
+			gle_force_assert("Invalid compressed texture format 0x%X", format);
 			return -1;
 
 	}
@@ -723,7 +717,7 @@ u32 Texture::getTextureSourceFormatEnum(TextureSourceFormat format) {
 			return GL_DEPTH_STENCIL;
 
 		default:
-			gle_assert(false, "Invalid texture source format 0x%X", format);
+			gle_force_assert("Invalid texture source format 0x%X", format);
 			return -1;
 
 	}
@@ -794,7 +788,7 @@ u32 Texture::getTextureSourceTypeEnum(TextureSourceType type) {
 			return GL_UNSIGNED_INT_2_10_10_10_REV;
 
 		default:
-			gle_assert(false, "Invalid texture source type 0x%X", type);
+			gle_force_assert("Invalid texture source type 0x%X", type);
 			return -1;
 
 	}

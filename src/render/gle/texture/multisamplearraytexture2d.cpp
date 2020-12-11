@@ -11,13 +11,13 @@ void MultisampleArrayTexture2D::init(u32 w, u32 h, u32 layers, u32 samples, Text
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to initialize)", id);
 
-	if (w > Core::getMaxTextureSize() || h > Core::getMaxTextureSize()) {
-		GLE::error("2D multisample array texture dimension of size %d exceeds maximum texture size of %d", (w > h ? w : h), Core::getMaxTextureSize());
+	if (w > Limits::getMaxTextureSize() || h > Limits::getMaxTextureSize()) {
+		GLE::error("2D multisample array texture dimension of size %d exceeds maximum texture size of %d", (w > h ? w : h), Limits::getMaxTextureSize());
 		return;
 	}
 
-	if (layers > Core::getMaxArrayTextureLayers()) {
-		GLE::error("2D multisample array texture layer count of %d exceeds maximum array layer count of %d", w, Core::getMaxArrayTextureLayers());
+	if (layers > Limits::getMaxArrayTextureLayers()) {
+		GLE::error("2D multisample array texture layer count of %d exceeds maximum array layer count of %d", w, Limits::getMaxArrayTextureLayers());
 		return;
 	}
 
@@ -28,6 +28,10 @@ void MultisampleArrayTexture2D::init(u32 w, u32 h, u32 layers, u32 samples, Text
 
 	switch (format) {
 
+		case TextureFormat::None:
+			GLE::error("Format for 2D multisample array texture not specified");
+			break;
+
 		case TextureFormat::Depth16:
 		case TextureFormat::Depth24:
 		case TextureFormat::Depth32:
@@ -36,8 +40,8 @@ void MultisampleArrayTexture2D::init(u32 w, u32 h, u32 layers, u32 samples, Text
 		case TextureFormat::Depth32fStencil8:
 		case TextureFormat::Stencil8:
 
-			if (samples > Core::getMaxDepthSamples()) {
-				GLE::error("2d multisample array texture with depth/stencil-renderable format cannot hold more than %d samples (got %d)", Core::getMaxDepthSamples(), samples);
+			if (samples > Limits::getMaxDepthSamples()) {
+				GLE::error("2D multisample array texture with depth/stencil-renderable format cannot hold more than %d samples (got %d)", Limits::getMaxDepthSamples(), samples);
 				return;
 			}
 
@@ -69,8 +73,8 @@ void MultisampleArrayTexture2D::init(u32 w, u32 h, u32 layers, u32 samples, Text
 		case TextureFormat::RGBA32ui:
 		case TextureFormat::RGB10A2ui:
 
-			if (samples > Core::getMaxIntegerSamples()) {
-				GLE::error("2d multisample array texture with integer format cannot hold more than %d samples (got %d)", Core::getMaxIntegerSamples(), samples);
+			if (samples > Limits::getMaxIntegerSamples()) {
+				GLE::error("2D multisample array texture with integer format cannot hold more than %d samples (got %d)", Limits::getMaxIntegerSamples(), samples);
 				return;
 			}
 
@@ -78,8 +82,8 @@ void MultisampleArrayTexture2D::init(u32 w, u32 h, u32 layers, u32 samples, Text
 
 		default:
 
-			if (samples > Core::getMaxColorSamples()) {
-				GLE::error("2d multisample array texture with color-renderable format cannot hold more than %d samples (got %d)", Core::getMaxColorSamples(), samples);
+			if (samples > Limits::getMaxColorSamples()) {
+				GLE::error("2D multisample array texture with color-renderable format cannot hold more than %d samples (got %d)", Limits::getMaxColorSamples(), samples);
 				return;
 			}
 

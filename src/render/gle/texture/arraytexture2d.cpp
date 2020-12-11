@@ -11,13 +11,13 @@ void ArrayTexture2D::setData(u32 w, u32 h, u32 layers, TextureFormat format, Tex
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
 
-	if (w > Core::getMaxTextureSize() || h > Core::getMaxTextureSize()) {
-		GLE::error("2D array texture dimension of size %d exceeds maximum texture size of %d", (w > h ? w : h), Core::getMaxTextureSize());
+	if (w > Limits::getMaxTextureSize() || h > Limits::getMaxTextureSize()) {
+		GLE::error("2D array texture dimension of size %d exceeds maximum texture size of %d", (w > h ? w : h), Limits::getMaxTextureSize());
 		return;
 	}
 
-	if (layers > Core::getMaxArrayTextureLayers()) {
-		GLE::error("2D array texture layer count of %d exceeds maximum array layer count of %d", w, Core::getMaxArrayTextureLayers());
+	if (layers > Limits::getMaxArrayTextureLayers()) {
+		GLE::error("2D array texture layer count of %d exceeds maximum array layer count of %d", w, Limits::getMaxArrayTextureLayers());
 		return;
 	}
 

@@ -61,7 +61,7 @@ private:
 	constexpr inline static Vec3f camStartPos = Vec3f(0.5, 0.5, 10);
 	constexpr inline static double camStartAngleH = Math::toRadians(-90);
 	constexpr inline static double camStartAngleV = Math::toRadians(0);
-	constexpr inline static double camVelocityScale = 0.3;
-	constexpr inline static double camRotationScale = 0.03;
+	constexpr inline static double camVelocityScale = 0.2;
+	constexpr inline static double camRotationScale = 0.06;
 
 };

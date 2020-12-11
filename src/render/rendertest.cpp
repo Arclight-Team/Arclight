@@ -65,6 +65,7 @@ void RenderTest::create(u32 w, u32 h) {
 		 1.0f, -1.0f,  1.0f
 	};
 
+	GLE::setRowUnpackAlignment(GLE::Alignment::None);
 
 	Loader::loadShader(basicShader, Uri(":/shaders/basic.avs"), Uri(":/shaders/basic.afs"));
 	Loader::loadShader(cubemapShader, Uri(":/shaders/cubemap.avs"), Uri(":/shaders/cubemap.afs"));
@@ -77,6 +78,8 @@ void RenderTest::create(u32 w, u32 h) {
 
 	mvpCubemapUniform = cubemapShader.getUniform("mvpMatrix");
 	cubemapUniform = cubemapShader.getUniform("cubemap");
+
+	//Loader::loadModel(Uri(":/models/Melascula/Melascula.obj"));
 
 	squareVertexArray.create();
 	squareVertexArray.bind();
@@ -154,11 +157,6 @@ void RenderTest::create(u32 w, u32 h) {
 
 	recalculateMVPMatrix();
 
-	GLE::MultisampleTexture2D ms;
-	ms.create();
-	ms.bind();
-	ms.init(1, 1, 4, GLE::TextureFormat::RGB10, true);
-
 }
 
 
@@ -179,12 +177,11 @@ void RenderTest::run() {
 		camera.move(camMovement * camVelocityScale);
 		camera.rotate(camRotation.x * camRotationScale, camRotation.y * camRotationScale);
 
-		camMovement = Vec3f(0, 0, 0);
-		camRotation = Vec3f(0, 0, 0);
+		camMovement = Vec3i(0, 0, 0);
+		camRotation = Vec3i(0, 0, 0);
 
 	}
 
-	camera.update(0.1, 0.1);
 	viewMatrix = Mat4f::lookAt(camera.getPosition(), camera.getPosition() + camera.getDirection());
 	recalculateMVPMatrix();
 

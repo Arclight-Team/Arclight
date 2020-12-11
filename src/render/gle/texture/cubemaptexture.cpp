@@ -11,8 +11,8 @@ void CubemapTexture::setData(CubemapFace face, u32 s, TextureFormat format, Text
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
 
-	if (s > Core::getMaxTextureSize()) {
-		GLE::error("2D cubemap texture dimension of size %d exceeds maximum texture size of %d", s, Core::getMaxTextureSize());
+	if (s > Limits::getMaxTextureSize()) {
+		GLE::error("2D cubemap texture dimension of size %d exceeds maximum texture size of %d", s, Limits::getMaxTextureSize());
 		return;
 	}
 

@@ -9,6 +9,7 @@
 #include "texture/cubemaptexture.h"
 #include "texture/arraytexture1d.h"
 #include "texture/arraytexture2d.h"
+#include "texture/cubemaparraytexture.h"
 #include "texture/multisampletexture2d.h"
 #include "texture/multisamplearraytexture2d.h"
 #include "glecore.h"
