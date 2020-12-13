@@ -46,10 +46,10 @@ bool Engine::initialize() {
 	Log::info("Core", "Audio engine initialized");
 
 	//Create render test
-	renderTest.create(window.getWidth(), window.getHeight());
+	renderTest.create(window.getFramebufferWidth(), window.getFramebufferHeight());
 
 	//Disable V-Sync
-	window.disableVSync();
+	//window.disableVSync();
 
 	//We're successfully running
 	Log::info("Core", "Starting engine");
@@ -177,6 +177,7 @@ void Engine::setupInputSystem() {
 	rootContext.addAction(6, KeyTrigger({ 68 }), true);
 	rootContext.addAction(7, KeyTrigger({ 83 }), true);
 	rootContext.addAction(8, KeyTrigger({ 87 }), true);
+	rootContext.addAction(9, KeyTrigger({ 291 }), false);
 	rootContext.registerAction(0, 1);
 	rootContext.registerAction(0, 2);
 	rootContext.registerAction(0, 3);
@@ -185,16 +186,18 @@ void Engine::setupInputSystem() {
 	rootContext.registerAction(0, 6);
 	rootContext.registerAction(0, 7);
 	rootContext.registerAction(0, 8);
+	rootContext.registerAction(0, 9);
 
 	//Define input handler callbacks
 	inputHandler.setCoActionListener([this](KeyAction action, double scale) {
 		//Log::info("Input Context", "Action triggered: %d", action);
-		renderTest.onCameraKeyAction(action);
+		renderTest.onKeyAction(action);
 		return true;
 	});
 
 	inputHandler.setActionListener([this](KeyAction action) {
 		//Log::info("Input Context", "Action triggered: %d", action);
+		renderTest.onKeyAction(action);
 		return true;
 	});
 

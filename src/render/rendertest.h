@@ -5,6 +5,8 @@
 #include "render/gle/gle.h"
 #include "util/matrix.h"
 
+#include "loader.h"
+
 
 class RenderTest {
 
@@ -17,9 +19,15 @@ public:
 	void destroy();
 
 	void resizeWindowFB(u32 w, u32 h);
-	void onCameraKeyAction(KeyAction action);
+	void onKeyAction(KeyAction action);
 
 private:
+
+	void renderModels();
+	void renderNode(Model& model, ModelNode& node);
+
+	void setTextureFilters(u32 modelID, GLE::TextureFilter min, GLE::TextureFilter mag);
+	void setTextureWrap(u32 modelID, GLE::TextureWrap wrapU, GLE::TextureWrap wrapV);
 
 	void recalculateMVPMatrix();
 
@@ -44,6 +52,14 @@ private:
 	GLE::Texture2D diffuseTexture;
 	GLE::CubemapTexture skyboxTexture;
 
+	GLE::ShaderProgram modelShader;
+	GLE::Uniform modelMUniform;
+	GLE::Uniform modelMVPUniform;
+	GLE::Uniform modelDiffuseUniform;
+	GLE::Uniform modelLightUniform;
+	GLE::Uniform modelViewUniform;
+	std::vector<Model> models;
+
 	Mat4f modelMatrix;
 	Mat4f viewMatrix;
 	Mat4f projectionMatrix;
@@ -54,6 +70,8 @@ private:
 	Camera camera;
 
 	u64 frameCounter;
+	u32 fbWidth;
+	u32 fbHeight;
 
 	constexpr inline static double fov = 90;
 	constexpr inline static double nearPlane = 0.01;

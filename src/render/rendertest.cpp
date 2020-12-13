@@ -3,10 +3,9 @@
 #include GLE_HEADER
 #include "util/random.h"
 #include "util/file.h"
-#include "loader.h"
 
 
-RenderTest::RenderTest() : frameCounter(0) {}
+RenderTest::RenderTest() : frameCounter(0), fbWidth(0), fbHeight(0) {}
 
 
 
@@ -66,6 +65,7 @@ void RenderTest::create(u32 w, u32 h) {
 	};
 
 	GLE::setRowUnpackAlignment(GLE::Alignment::None);
+	GLE::setRowPackAlignment(GLE::Alignment::None);
 
 	Loader::loadShader(basicShader, Uri(":/shaders/basic.avs"), Uri(":/shaders/basic.afs"));
 	Loader::loadShader(cubemapShader, Uri(":/shaders/cubemap.avs"), Uri(":/shaders/cubemap.afs"));
@@ -79,7 +79,18 @@ void RenderTest::create(u32 w, u32 h) {
 	mvpCubemapUniform = cubemapShader.getUniform("mvpMatrix");
 	cubemapUniform = cubemapShader.getUniform("cubemap");
 
-	//Loader::loadModel(Uri(":/models/Melascula/Melascula.obj"));
+	Loader::loadShader(modelShader, Uri(":/shaders/model/diffuse.avs"), Uri(":/shaders/model/diffuse.afs"));
+	modelMUniform = modelShader.getUniform("modelMatrix");
+	modelMVPUniform = modelShader.getUniform("mvpMatrix");
+	modelDiffuseUniform = modelShader.getUniform("diffuseTexture");
+	modelLightUniform = modelShader.getUniform("lightPos");
+	modelViewUniform = modelShader.getUniform("viewPos");
+
+	models.resize(4);
+	Loader::loadModel(models[0], Uri(":/models/mario/mario.fbx"));
+	Loader::loadModel(models[1], Uri(":/models/luigi/luigi.fbx"));
+	Loader::loadModel(models[2], Uri(":/models/Level Models/Castle Grounds/grounds.fbx"), true);
+	Loader::loadModel(models[3], Uri(":/models/Melascula/Melascula.obj"), false);
 
 	squareVertexArray.create();
 	squareVertexArray.bind();
@@ -111,7 +122,7 @@ void RenderTest::create(u32 w, u32 h) {
 		Uri(":/textures/cubemaps/dikhololo/ny.png"),
 		Uri(":/textures/cubemaps/dikhololo/pz.png"),
 		Uri(":/textures/cubemaps/dikhololo/nz.png")
-	});
+	}, true);
 
 	std::vector<Uri> amongUsFrameUris;
 
@@ -156,6 +167,24 @@ void RenderTest::create(u32 w, u32 h) {
 	projectionMatrix = Mat4f::perspective(Math::toRadians(fov), w / static_cast<double>(h), nearPlane, farPlane);
 
 	recalculateMVPMatrix();
+
+	fbWidth = w;
+	fbHeight = h;
+
+	models[0].transform = Mat4f::fromTranslation(-20, 20, 0);
+	models[1].transform = Mat4f::fromTranslation(+20, 20, 0);
+	models[3].transform = Mat4f::fromScale(10, 10, 10).translate(0, 2, 0);
+	models[3].root.children[4].visible = false;
+	models[3].root.children[0].visible = false;
+
+	setTextureFilters(0, GLE::TextureFilter::None, GLE::TextureFilter::None);
+	setTextureFilters(1, GLE::TextureFilter::None, GLE::TextureFilter::None);
+	setTextureFilters(2, GLE::TextureFilter::None, GLE::TextureFilter::None);
+	setTextureFilters(3, GLE::TextureFilter::None, GLE::TextureFilter::None);
+	setTextureWrap(0, GLE::TextureWrap::Repeat, GLE::TextureWrap::Repeat);
+	setTextureWrap(1, GLE::TextureWrap::Mirror, GLE::TextureWrap::Mirror);
+	setTextureWrap(2, GLE::TextureWrap::Mirror, GLE::TextureWrap::Mirror);
+	setTextureWrap(3, GLE::TextureWrap::Clamp, GLE::TextureWrap::Clamp);
 
 }
 
@@ -210,7 +239,7 @@ void RenderTest::run() {
 	diffuseTextureUniform.setInt(0);
 	amongUsTextureArray.activate(1);
 	amongUsTextureUniform.setInt(1);
-	amongUsFrameUniform.setFloat((frameCounter / 8) % 12 + 0.5);
+	amongUsFrameUniform.setFloat((frameCounter / 32) % 12 + 0.5);
 
 	Mat2f srtMatrix;
 	srtMatrix[0][0] = 1 + frameCounter / 50.0;
@@ -221,6 +250,8 @@ void RenderTest::run() {
 
 	squareVertexArray.bind();
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	renderModels();
 
 }
 
@@ -246,17 +277,109 @@ void RenderTest::destroy() {
 
 
 
+void RenderTest::renderModels() {
+
+	modelShader.start();
+
+	for (Model& model : models) {
+
+		renderNode(model, model.root);
+
+	}
+
+}
+
+
+
+
+void RenderTest::renderNode(Model& model, ModelNode& node) {
+
+	if (!node.visible) {
+		return;
+	}
+
+	for (u32 i = 0; i < node.meshIndices.size(); i++) {
+
+		Mesh& mesh = model.meshes[node.meshIndices[i]];
+		Material& material = model.materials[mesh.materialIndex];
+		GLE::Texture2D& texture = material.textures["diffuse0"];
+
+		texture.activate(0);
+		modelDiffuseUniform.setInt(0);
+		
+		Mat4f modelMatrix = model.transform * node.baseTransform;
+		Mat4f mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
+		modelMUniform.setMat4(modelMatrix);
+		modelMVPUniform.setMat4(mvpMatrix);
+
+		Vec3f lightPos(100, 110, 10);
+		Vec3f viewPos(camera.getPosition());
+		modelLightUniform.setVec3(viewPos);
+		modelViewUniform.setVec3(viewPos);
+
+		mesh.vao.bind();
+		glDrawElements(GL_TRIANGLES, mesh.vertexCount, GL_UNSIGNED_INT, 0);
+
+	}
+
+	for (u32 i = 0; i < node.children.size(); i++) {
+		renderNode(model, node.children[i]);
+	}
+
+}
+
+
+
+void RenderTest::setTextureFilters(u32 modelID, GLE::TextureFilter min, GLE::TextureFilter mag) {
+
+	for (Material& material : models[modelID].materials) {
+
+		for (auto& [name, texture] : material.textures) {
+
+			texture.bind();
+			texture.setMinFilter(min);
+			texture.setMagFilter(mag);
+
+		}
+
+	}
+
+}
+
+
+
+void RenderTest::setTextureWrap(u32 modelID, GLE::TextureWrap wrapU, GLE::TextureWrap wrapV) {
+
+	for (Material& material : models[modelID].materials) {
+
+		for (auto& [name, texture] : material.textures) {
+
+			texture.bind();
+			texture.setWrapU(wrapU);
+			texture.setWrapV(wrapV);
+
+		}
+
+	}
+
+}
+
+
+
 void RenderTest::resizeWindowFB(u32 w, u32 h) {
 
 	glViewport(0, 0, w, h);
 	projectionMatrix = Mat4f::perspective(Math::toRadians(fov), w / static_cast<double>(h), nearPlane, farPlane);
 	recalculateMVPMatrix();
 
+	fbWidth = w;
+	fbHeight = h;
+
 }
 
 
 
-void RenderTest::onCameraKeyAction(KeyAction action) {
+void RenderTest::onKeyAction(KeyAction action) {
 
 	switch (action) {
 
@@ -283,6 +406,20 @@ void RenderTest::onCameraKeyAction(KeyAction action) {
 			break;
 		case 8:
 			camMovement.z += 1;
+			break;
+
+		case 9:
+
+			{
+				u8* data = new u8[fbWidth * fbHeight * 3];
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				glReadPixels(0, 0, fbWidth, fbHeight, GL_RGB, GL_UNSIGNED_BYTE, data);
+				Loader::saveTexture(fbWidth, fbHeight, data);
+
+				delete[] data;
+
+			}
+
 			break;
 
 	}

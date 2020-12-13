@@ -1,0 +1,44 @@
+#version 430
+out vec4 color;
+
+in vec3 pos;
+in vec2 uv;
+in vec3 nrml;
+
+uniform sampler2D diffuseTexture;
+uniform vec3 lightPos;
+uniform vec3 viewPos;
+
+
+void main(){
+
+    vec4 fullTexcolor = texture(diffuseTexture, uv);
+    vec3 texcolor = fullTexcolor.rgb;
+	
+    // ambient
+    vec3 ambient = 0.05 * texcolor;
+	
+    // diffuse
+    vec3 lightDir = normalize(lightPos - pos);
+    vec3 normal = normalize(nrml);
+    float diff = max(dot(lightDir, normal), 0.0);
+    vec3 diffuse = diff * texcolor;
+	
+    // specular
+    vec3 viewDir = normalize(viewPos - pos);
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = 0.0;
+	
+    vec3 halfwayDir = normalize(lightDir + viewDir);  
+    spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
+    
+    vec3 specular = vec3(0.3) * spec; // assuming bright white light color
+	vec3 blinnPhongColor = ambient + diffuse + specular;
+	
+	float distance = length(lightPos - pos);
+	float attenuation = 1.0 / (1.0 + .09 * distance + .032 * distance * distance);
+	blinnPhongColor *= attenuation;
+	
+    color = vec4(blinnPhongColor, fullTexcolor.a);
+
+}

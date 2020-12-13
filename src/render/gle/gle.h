@@ -1,6 +1,7 @@
 #pragma once
 
 #include "buffer/vertexbuffer.h"
+#include "buffer/indexbuffer.h"
 #include "vertex/vertexarray.h"
 #include "shader/shaderprogram.h"
 #include "texture/texture1d.h"
@@ -12,4 +13,5 @@
 #include "texture/cubemaparraytexture.h"
 #include "texture/multisampletexture2d.h"
 #include "texture/multisamplearraytexture2d.h"
+
 #include "glecore.h"

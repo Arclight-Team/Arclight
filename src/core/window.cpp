@@ -427,7 +427,7 @@ u32 Window::getWidth() const {
 	i32 w = 0;
 	glfwGetWindowSize(windowHandle->handle, &w, nullptr);
 	return w;
-		
+
 }
 
 
@@ -438,6 +438,31 @@ u32 Window::getHeight() const {
 
 	i32 h = 0;
 	glfwGetWindowSize(windowHandle->handle, nullptr, &h);
+	return h;
+
+}
+
+
+
+
+u32 Window::getFramebufferWidth() const {
+
+	arc_assert(isOpen(), "Tried to get window framebuffer width for non-existing window");
+
+	i32 w = 0;
+	glfwGetFramebufferSize(windowHandle->handle, &w, nullptr);
+	return w;
+
+}
+
+
+
+u32 Window::getFramebufferHeight() const {
+
+	arc_assert(isOpen(), "Tried to get window framebuffer height for non-existing window");
+
+	i32 h = 0;
+	glfwGetFramebufferSize(windowHandle->handle, nullptr, &h);
 	return h;
 
 }

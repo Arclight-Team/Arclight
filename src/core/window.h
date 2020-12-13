@@ -125,6 +125,8 @@ public:
 
 	u32 getWidth() const;
 	u32 getHeight() const;
+	u32 getFramebufferWidth() const;
+	u32 getFramebufferHeight() const;
 	u32 getX() const;
 	u32 getY() const;
 

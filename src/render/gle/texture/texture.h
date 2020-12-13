@@ -49,8 +49,8 @@ class Texture : public GLObject {
 public:
 
 	//Default mipmap levels
-	constexpr static inline u32 defaultBaseLevel = 0;
-	constexpr static inline u32 defaultMaxLevel = 1000;
+	constexpr static u32 defaultBaseLevel = 0;
+	constexpr static u32 defaultMaxLevel = 1000;
 
 	//Creates a texture if none has been created yet
 	virtual bool create() override;
@@ -85,10 +85,6 @@ protected:
 	//Don't even try creating a raw texture object.
 	constexpr explicit Texture(TextureType type) : id(invalidID), type(type),
 		width(0), height(0), depth(0), texFormat(TextureFormat::None) {}
-
-	//And no copy-construction.
-	Texture(const Texture& texture) = delete;
-	Texture& operator=(const Texture& texture) = delete;
 
 	void setWrapU(TextureWrap wrap);
 	void setWrapV(TextureWrap wrap);

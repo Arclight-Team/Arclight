@@ -14,12 +14,12 @@ public:
     GLObject(const GLObject& obj) = delete;
     GLObject& operator=(const GLObject& obj) = delete;
 
-    GLObject(GLObject&& obj) {
+    GLObject(GLObject&& obj) noexcept {
         id = obj.id;
         obj.id = invalidID;
     }
 
-    GLObject& operator=(GLObject&& obj) {
+    GLObject& operator=(GLObject&& obj) noexcept {
         id = obj.id;
         obj.id = invalidID;
     }
