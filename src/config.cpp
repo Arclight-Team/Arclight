@@ -4,26 +4,31 @@
 
 namespace Config {
 
-	const char* appName = "Project Arclight";
-	const char* uriRoot = "../../assets";
-	const char* logDirName = "../../log";
-	const char* logFileName = "appname-%version-%date-%u32.txt";
+	const std::string appName = "Project Arclight";
+	const std::string uriRoot = "../../";
+	const std::string uriAsset = "assets/";
+	const std::string uriLog = "log/";
+	const std::string uriScreenshot = "screenshots/";
 
 
-	const char* getApplicationName() {
+	const std::string& getApplicationName() {
 		return appName;
 	}
 
-	const char* getURIRootPath() {
+	const std::string& getUriRootPath() {
 		return uriRoot;
 	}
 
-	const char* getLogDirectoryName() {
-		return logDirName;
+	const std::string& getUriAssetPath() {
+		return uriAsset;
 	}
 
-	const char* getLogFileName() {
-		return logFileName;
+	const std::string& getUriLogPath() {
+		return uriLog;
+	}
+
+	const std::string& getUriScreenshotPath() {
+		return uriScreenshot;
 	}
 
 }

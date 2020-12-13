@@ -1,6 +1,7 @@
 #include "screenshot.h"
-
 #include "util/file.h"
+#include "util/time.h"
+#include "util/log.h"
 #include "config.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -10,13 +11,36 @@
 
 bool Screenshot::save(u32 w, u32 h, u8* data) {
 
-	Uri fileUri(Config::getURIRootPath());
-	fileUri.move("..");
-	fileUri.move("screenshots");
-	fileUri.createDirectory();
-	fileUri.move("arclight_scshot.png");
+	Uri fileUri(Config::getUriScreenshotPath());
+	bool ssDirExists = fileUri.createDirectory();
 
-	stbi_flip_vertically_on_write(true);
-	return stbi_write_png(fileUri.getPath().c_str(), w, h, 3, data, w * 3);
+	if (!ssDirExists) {
+		Log::error("Screenshotter", "Failed to create directory 'screenshots/'");
+		return false;
+	}
+
+	std::string timestamp = Time::getTimestamp();
+
+	for (u32 i = 0; i < maxScreenshotsPerTimestamp; i++) {
+
+		if (!i) {
+			fileUri.setPath(Config::getUriScreenshotPath() + "arc_" + timestamp + ".png");
+		} else {
+			fileUri.setPath(Config::getUriScreenshotPath() + "arc_" + timestamp + "_" + std::to_string(i) + ".png");
+		}
+
+		if (!fileUri.fileExists()) {
+
+			stbi_flip_vertically_on_write(true);
+			return stbi_write_png(fileUri.getPath().c_str(), w, h, 3, data, w * 3);
+
+		} else {
+			continue;
+		}
+
+	}
+
+	Log::error("Screenshotter", "Failed to create more than %d screenshots per second (timestamp = %s)", maxScreenshotsPerTimestamp, timestamp.c_str());
+	return false;
 
 }

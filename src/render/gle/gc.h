@@ -4,10 +4,6 @@
 #define GLE_HEADER	<GL/GLEW.h>
 #define GLE_BEGIN	namespace GLE {
 #define GLE_END		}
-#define GLE_BEGIN_ENUM(t)	struct t { \
-								static u32 get(t x); \
-								enum {
-#define GLE_END_ENUM			};};
 
 #define GLE_EXT_SUPPORTED(x) GLEW_##x
 
@@ -38,7 +34,7 @@
 #include <string>
 
 #define gle_assert(cond, msg, ...) arc_assert(cond, msg, __VA_ARGS__)
-#define gle_force_assert(msg, ...) arc_assert(false, msg, __VA_ARGS__)
+#define gle_force_assert(msg, ...) arc_force_assert(msg, __VA_ARGS__)
 
 
 GLE_BEGIN

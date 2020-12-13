@@ -4,11 +4,13 @@
 
 
 
-Engine::Engine() : profiler(Timer::Unit::Seconds, 3) {}
+Engine::Engine() : profiler(Time::Unit::Seconds, 3) {}
 
 
 
 bool Engine::initialize() {
+
+	Uri::setApplicationUriRoot(Config::getUriRootPath());
 
 	//Open up log file
 	Log::openLogFile();

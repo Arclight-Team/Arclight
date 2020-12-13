@@ -2,38 +2,9 @@
 
 #include <string>
 #include <fstream>
-#include <filesystem>
 
+#include "uri.h"
 #include "types.h"
-
-
-class Uri {
-
-public:
-
-	typedef std::filesystem::directory_iterator DirectoryIterator;
-	typedef std::filesystem::recursive_directory_iterator RecursiveDirectoryIterator;
-	
-
-	Uri();
-	Uri(const char* path);
-	Uri(const std::string& path);
-
-	void setPath(const std::string& path);
-	bool createDirectory();
-	void move(const std::string& path);
-
-	bool validFile() const;
-	bool validDirectory() const;
-	std::string getPath() const;
-
-
-private:
-	std::filesystem::path path;
-
-};
-
-
 
 
 class File {

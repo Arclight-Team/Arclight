@@ -1,85 +1,5 @@
-#include "util/file.h"
-#include "util/log.h"
-#include "util/assert.h"
-#include "config.h"
-
-#include <vector>
-
-
-Uri::Uri() : path() {}
-
-
-Uri::Uri(const char* path) {
-	setPath(path);
-};
-
-
-Uri::Uri(const std::string& path) {
-	setPath(path);
-};
-
-
-
-void Uri::setPath(const std::string& path) {
-
-	if (!path.empty() && path[0] == ':') {
-		this->path = Config::getURIRootPath() + path.substr(1);
-	} else {
-		this->path = path;
-	}
-
-}
-
-
-
-bool Uri::createDirectory() {
-
-	if (validDirectory()) {
-		return true;
-	}
-
-	bool created = false;
-
-	try {
-		created = std::filesystem::create_directories(path);
-	} catch (std::exception&) {
-		Log::error("Logger", "Failed to create directory '%s'", path.string().c_str());
-		return false;
-	}
-
-	if (!created) {
-		Log::error("Logger", "Failed to create directory '%s'", path.string().c_str());
-		return false;
-	}
-
-	return true;
-
-}
-
-
-
-void Uri::move(const std::string& path) {
-	this->path /= path;
-}
-
-
-
-bool Uri::validFile() const {
-	return std::filesystem::exists(path) && std::filesystem::is_regular_file(path);
-}
-
-
-
-bool Uri::validDirectory() const {
-	return std::filesystem::exists(path) && std::filesystem::is_directory(path);
-}
-
-
-
-std::string Uri::getPath() const {
-	return path.string();
-}
-
+#include "file.h"
+#include "assert.h"
 
 
 
@@ -249,7 +169,7 @@ bool File::isOpen() const {
 
 
 u64 File::getFileSize() const {
-	arc_assert(filepath.validFile(), "Invalid URI '%s'", filepath.getPath().c_str());
+	arc_assert(filepath.fileExists(), "Invalid URI '%s'", filepath.getPath().c_str());
 	return std::filesystem::file_size(filepath.getPath());
 }
 
@@ -268,6 +188,6 @@ File::Flags File::getStreamFlags() const {
 
 
 u64 File::getLastWriteTime() const {
-	arc_assert(filepath.validFile(), "Invalid URI '%s'", filepath.getPath().c_str());
+	arc_assert(filepath.fileExists(), "Invalid URI '%s'", filepath.getPath().c_str());
 	return std::filesystem::last_write_time(filepath.getPath()).time_since_epoch().count();
 }

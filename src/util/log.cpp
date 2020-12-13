@@ -1,5 +1,6 @@
 #include "util/log.h"
 #include "util/file.h"
+#include "util/time.h"
 #include "config.h"
 
 #include <iostream>
@@ -20,19 +21,19 @@ namespace Log {
 
 	void openLogFile() {
 
-		Uri logfileURI(Config::getLogDirectoryName());
-		bool dirCreated = logfileURI.createDirectory();
+		Uri logfileUri(Config::getUriLogPath());
+		bool dirCreated = logfileUri.createDirectory();
 
 		if (!dirCreated) {
-			Log::error("Log", "Failed to create log file directory '%s'", logfileURI.getPath().c_str());
+			Log::error("Log", "Failed to create log file directory '%s'", logfileUri.getPath().c_str());
 			return;
 		}
 
-		logfileURI.move(Config::getLogFileName());
-		logfile.open(logfileURI, File::Out);
+		logfileUri.move("log_" + Time::getTimestamp() + ".txt");
+		logfile.open(logfileUri, File::Out);
 
 		if (!logfile.isOpen()) {
-			Log::error("Logger", "Failed to open log file '%s'", logfileURI.getPath().c_str());
+			Log::error("Logger", "Failed to open log file '%s'", logfileUri.getPath().c_str());
 		}
 
 	}

@@ -24,5 +24,5 @@ include_directories(${GLEW_INCLUDE_DIR})
 
 file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp")
 
-add_executable (arclight ${SOURCES} )
+add_executable (arclight ${SOURCES}  "src/util/uri.h")
 target_link_libraries(arclight GLEW::GLEW opengl32 glfw ${CMAKE_CURRENT_SOURCE_DIR}/lib/FMOD/fmodL_vc.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/lib/Release/assimp-vc142-mt.lib)

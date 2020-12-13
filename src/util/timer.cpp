@@ -7,20 +7,18 @@
 
 
 void Timer::start() {
-	startTime = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+	startTime = Time::getTimeSinceEpoch(Time::Unit::Nanoseconds);
 }
 
 
 
-double Timer::getElapsedTime(Unit unit) const {
+double Timer::getElapsedTime(Time::Unit unit) const {
 
 	arc_assert(startTime, "Profiler timer must be started first");
 
-	u64 stopTime = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+	u64 stopTime = Time::getTimeSinceEpoch(Time::Unit::Nanoseconds);
 	u64 deltaNS = stopTime - startTime;
-
-	u32 res = static_cast<u32>(unit);
-	double delta = deltaNS / static_cast<double>(std::pow(1000, 3 - res));
+	double delta = Time::convert(deltaNS, Time::Unit::Nanoseconds, unit);
 
 	return delta;
 
