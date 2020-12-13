@@ -59,6 +59,4 @@ namespace Loader {
 	bool loadCubemap(GLE::CubemapTexture& cubemap, const std::vector<Uri>& paths, bool flipY = false);
 	bool loadModel(Model& model, const Uri& path, bool flipY = false);
 
-	bool saveTexture(u32 w, u32 h, u8* data);
-
 }

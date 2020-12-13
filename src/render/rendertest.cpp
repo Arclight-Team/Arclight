@@ -3,6 +3,7 @@
 #include GLE_HEADER
 #include "util/random.h"
 #include "util/file.h"
+#include "screenshot.h"
 
 
 RenderTest::RenderTest() : frameCounter(0), fbWidth(0), fbHeight(0) {}
@@ -414,7 +415,7 @@ void RenderTest::onKeyAction(KeyAction action) {
 				u8* data = new u8[fbWidth * fbHeight * 3];
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 				glReadPixels(0, 0, fbWidth, fbHeight, GL_RGB, GL_UNSIGNED_BYTE, data);
-				Loader::saveTexture(fbWidth, fbHeight, data);
+				Screenshot::save(fbWidth, fbHeight, data);
 
 				delete[] data;
 

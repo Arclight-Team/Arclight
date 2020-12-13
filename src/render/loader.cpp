@@ -9,8 +9,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
 
 
 namespace Loader {
@@ -491,20 +489,6 @@ namespace Loader {
 		}
 		
 		return true;
-
-	}
-
-
-
-	bool saveTexture(u32 w, u32 h, u8* data) {
-
-		Uri fileUri(Config::getURIRootPath());
-		fileUri.move("..");
-		fileUri.move("screenshots");
-		fileUri.createDirectory();
-		fileUri.move("arclight_scshot.png");
-
-		return stbi_write_png(fileUri.getPath().c_str(), w, h, 3, data, w);
 
 	}
 
