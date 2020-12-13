@@ -1,0 +1,25 @@
+#version 430
+layout (triangles) in;
+layout (line_strip, max_vertices = 6) out;
+
+in vec3 nrml[];
+
+const float normalScale = 0.3;
+uniform mat4 projectionMatrix;
+uniform mat4 unprojectionMatrix;
+
+
+void generateNormal(int index){
+	vec4 pos = unprojectionMatrix * gl_in[index].gl_Position;
+    gl_Position = gl_in[index].gl_Position;
+    EmitVertex();
+    gl_Position = projectionMatrix * vec4(pos + vec4(nrml[index], 0.0) * normalScale);
+    EmitVertex();
+    EndPrimitive();
+}
+
+void main(){
+    generateNormal(0);
+    generateNormal(1);
+    generateNormal(2);
+}  

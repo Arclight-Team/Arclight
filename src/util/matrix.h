@@ -68,7 +68,7 @@ public:
 		v[1][0] = t;
 	}
 
-	constexpr Mat2 transpose() const {
+	constexpr Mat2 transposed() const {
 		return Mat2(v[0][0], v[0][1], v[1][0], v[1][1]);
 	}
 
@@ -179,6 +179,9 @@ public:
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
 	constexpr Mat3(const Vec3<A>& a, const Vec3<B>& b, const Vec3<C>& c) : v{ a, b, c } {}
 
+	Mat2<T> toMat2() const {
+		return Mat2<T>(v[0][0], v[1][0], v[0][1], v[1][1]);
+	}
 
 	template<Float A>
 	constexpr Mat3& add(const Mat3<A>& m) {
@@ -243,7 +246,7 @@ public:
 
 	}
 
-	constexpr Mat3 transpose() const {
+	constexpr Mat3 transposed() const {
 		return Mat3(v[0][0], v[0][1], v[0][2], v[1][0], v[1][1], v[1][2], v[2][0], v[2][1], v[2][2]);
 	}
 
@@ -373,6 +376,17 @@ public:
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
 	constexpr Mat4(const Vec4<A>& a, const Vec4<B>& b, const Vec4<C>& c, const Vec4<D>& d) : v{ a, b, c, d } {}
 
+	Mat2<T> toMat2() const {
+		return Mat2<T>(v[0][0], v[1][0], v[0][1], v[1][1]);
+	}
+
+	Mat3<T> toMat3() const {
+
+		return Mat3<T>(	v[0][0], v[1][0], v[2][0],
+						v[0][1], v[1][1], v[2][1],
+						v[0][2], v[1][2], v[2][2]);
+
+	}
 
 	template<Float A>
 	constexpr Mat4& add(const Mat4<A>& m) {
@@ -460,7 +474,7 @@ public:
 
 	}
 
-	constexpr Mat4 transpose() const {
+	constexpr Mat4 transposed() const {
 		return Mat4(v[0][0], v[0][1], v[0][2], v[0][3], v[1][0], v[1][1], v[1][2], v[1][3],
 					v[2][0], v[2][1], v[2][2], v[2][3], v[3][0], v[3][1], v[3][2], v[3][3]);
 	}

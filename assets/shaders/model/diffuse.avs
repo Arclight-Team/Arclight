@@ -6,13 +6,14 @@ layout(location = 2) in vec3 normal;
 out vec3 pos;					
 out vec2 uv;
 out vec3 nrml;
+uniform mat4 modelViewMatrix;
+uniform mat3 normalMatrix;
 uniform mat4 mvpMatrix;
-uniform mat4 modelMatrix;
+
 
 void main(){
-	pos = vec3(modelMatrix * vec4(vertex, 1.0));
+	pos = vec3(modelViewMatrix * vec4(vertex, 1.0));
 	uv = texcoord;
-	//nrml = vec3(modelMatrix * vec4(normal, 1.0));
-	nrml = normal;
+	nrml = normalize(normalMatrix * normal);
 	gl_Position = mvpMatrix * vec4(vertex, 1.0);
 }

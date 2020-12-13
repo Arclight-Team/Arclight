@@ -25,6 +25,7 @@ private:
 
 	void renderModels();
 	void renderNode(Model& model, ModelNode& node);
+	void renderDebugNode(Model& model, ModelNode& node);
 
 	void setTextureFilters(u32 modelID, GLE::TextureFilter min, GLE::TextureFilter mag);
 	void setTextureWrap(u32 modelID, GLE::TextureWrap wrapU, GLE::TextureWrap wrapV);
@@ -53,12 +54,19 @@ private:
 	GLE::CubemapTexture skyboxTexture;
 
 	GLE::ShaderProgram modelShader;
-	GLE::Uniform modelMUniform;
+	GLE::Uniform modelNUniform;
+	GLE::Uniform modelMVUniform;
 	GLE::Uniform modelMVPUniform;
 	GLE::Uniform modelDiffuseUniform;
 	GLE::Uniform modelLightUniform;
 	GLE::Uniform modelViewUniform;
 	std::vector<Model> models;
+
+	GLE::ShaderProgram debugShader;
+	GLE::Uniform debugPUniform;
+	GLE::Uniform debugUPUniform;
+	GLE::Uniform debugNUniform;
+	GLE::Uniform debugMVPUniform;
 
 	Mat4f modelMatrix;
 	Mat4f viewMatrix;

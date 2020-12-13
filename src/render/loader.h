@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gle/gle.h"
+#include "util/uri.h"
 #include <vector>
 #include <unordered_map>
 
@@ -49,11 +50,11 @@ struct Model {
 };
 
 
-class Uri;
-
 namespace Loader {
 
 	bool loadShader(GLE::ShaderProgram& program, const Uri& vsPath, const Uri& fsPath);
+	bool loadShader(GLE::ShaderProgram& program, const Uri& vsPath, const Uri& gsPath, const Uri& fsPath);
+
 	bool loadTexture2D(GLE::Texture2D& texture, const Uri& path, bool flipY = false);
 	bool loadArrayTexture2D(GLE::ArrayTexture2D& texture, const std::vector<Uri>& paths, bool flipY = false);
 	bool loadCubemap(GLE::CubemapTexture& cubemap, const std::vector<Uri>& paths, bool flipY = false);

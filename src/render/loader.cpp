@@ -63,6 +63,71 @@ namespace Loader {
 
 
 
+	bool loadShader(GLE::ShaderProgram& program, const Uri& vsPath, const Uri& gsPath, const Uri& fsPath) {
+
+		File vsFile;
+		vsFile.open(vsPath);
+
+		if (!vsFile.isOpen()) {
+			Log::error("Loader", "Failed to open vertex shader file %s", vsPath.getPath().c_str());
+			return false;
+		}
+
+		const std::string vs = vsFile.readAll();
+		vsFile.close();
+
+		File gsFile;
+		gsFile.open(gsPath);
+
+		if (!gsFile.isOpen()) {
+			Log::error("Loader", "Failed to open geometry shader file %s", gsPath.getPath().c_str());
+			return false;
+		}
+
+		const std::string gs = gsFile.readAll();
+		gsFile.close();
+
+		File fsFile;
+		fsFile.open(fsPath);
+
+		if (!fsFile.isOpen()) {
+			Log::error("Loader", "Failed to open fragment shader file %s", fsPath.getPath().c_str());
+			return false;
+		}
+
+		const std::string fs = fsFile.readAll();
+		fsFile.close();
+
+		program.create();
+
+		if (!program.addShader(vs.c_str(), vs.size(), GLE::ShaderType::VertexShader)) {
+			Log::error("Loader", "Compilation of vertex shader %s failed", vsPath.getPath().c_str());
+			return false;
+		}
+
+		if (!program.addShader(gs.c_str(), gs.size(), GLE::ShaderType::GeometryShader)) {
+			Log::error("Loader", "Compilation of geometry shader %s failed", gsPath.getPath().c_str());
+			return false;
+		}
+
+		if (!program.addShader(fs.c_str(), fs.size(), GLE::ShaderType::FragmentShader)) {
+			Log::error("Loader", "Compilation of fragment shader %s failed", fsPath.getPath().c_str());
+			return false;
+		}
+
+		if (!program.link()) {
+			Log::error("Loader", "Linking of shader program failed", fsPath.getPath().c_str());
+			return false;
+		}
+
+		Log::info("Loader", "Shader program successfully compiled (vs = %s, gs = %s, fs = %s)", vsPath.getPath().c_str(), gsPath.getPath().c_str(), fsPath.getPath().c_str());
+
+		return true;
+
+	}
+
+
+
 	bool loadTexture2D(GLE::Texture2D& texture, const Uri& path, bool flipY) {
 
 		i32 width = 0;
@@ -264,11 +329,10 @@ namespace Loader {
 	void loadNode(const aiNode* sceneNode, ModelNode& node, const Mat4f& transform) {
 
 		aiMatrix4x4 sceneTransform = sceneNode->mTransformation;
-		Mat4f thisTransform(sceneTransform[0][0], sceneTransform[1][0], sceneTransform[2][0], sceneTransform[3][0],
-							sceneTransform[0][1], sceneTransform[1][1], sceneTransform[2][1], sceneTransform[3][1],
-							sceneTransform[0][2], sceneTransform[1][2], sceneTransform[2][2], sceneTransform[3][2],
-							sceneTransform[0][3], sceneTransform[1][3], sceneTransform[2][3], sceneTransform[3][3]);
-		thisTransform.transpose();
+		Mat4f thisTransform(sceneTransform[0][0], sceneTransform[0][1], sceneTransform[0][2], sceneTransform[0][3],
+							sceneTransform[1][0], sceneTransform[1][1], sceneTransform[1][2], sceneTransform[1][3],
+							sceneTransform[2][0], sceneTransform[2][1], sceneTransform[2][2], sceneTransform[2][3],
+							sceneTransform[3][0], sceneTransform[3][1], sceneTransform[3][2], sceneTransform[3][3]);
 
 		node.baseTransform = thisTransform * transform;
 		node.visible = true;
