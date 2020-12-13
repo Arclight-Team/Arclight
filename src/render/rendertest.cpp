@@ -68,8 +68,8 @@ void RenderTest::create(u32 w, u32 h) {
 	GLE::setRowUnpackAlignment(GLE::Alignment::None);
 	GLE::setRowPackAlignment(GLE::Alignment::None);
 
-	Loader::loadShader(basicShader, Uri(":/shaders/basic.avs"), Uri(":/shaders/basic.afs"));
-	Loader::loadShader(cubemapShader, Uri(":/shaders/cubemap.avs"), Uri(":/shaders/cubemap.afs"));
+	Loader::loadShader(basicShader, ":/shaders/basic.avs", ":/shaders/basic.afs");
+	Loader::loadShader(cubemapShader, ":/shaders/cubemap.avs", ":/shaders/cubemap.afs");
 
 	mvpBasicUniform = basicShader.getUniform("mvpMatrix");
 	diffuseTextureUniform = basicShader.getUniform("diffuseTexture");
@@ -80,18 +80,25 @@ void RenderTest::create(u32 w, u32 h) {
 	mvpCubemapUniform = cubemapShader.getUniform("mvpMatrix");
 	cubemapUniform = cubemapShader.getUniform("cubemap");
 
-	Loader::loadShader(modelShader, Uri(":/shaders/model/diffuse.avs"), Uri(":/shaders/model/diffuse.afs"));
-	modelMUniform = modelShader.getUniform("modelMatrix");
+	Loader::loadShader(modelShader, ":/shaders/model/diffuse.avs", ":/shaders/model/diffuse.afs");
+	modelNUniform = modelShader.getUniform("normalMatrix");
+	modelMVUniform = modelShader.getUniform("modelViewMatrix");
 	modelMVPUniform = modelShader.getUniform("mvpMatrix");
 	modelDiffuseUniform = modelShader.getUniform("diffuseTexture");
 	modelLightUniform = modelShader.getUniform("lightPos");
 	modelViewUniform = modelShader.getUniform("viewPos");
 
+	Loader::loadShader(debugShader, ":/shaders/model/diffuse.avs", ":/shaders/debug.ags", ":/shaders/debug.afs");
+	debugPUniform = debugShader.getUniform("projectionMatrix");
+	debugUPUniform = debugShader.getUniform("unprojectionMatrix");
+	debugNUniform = debugShader.getUniform("normalMatrix");
+	debugMVPUniform = debugShader.getUniform("mvpMatrix");
+
 	models.resize(4);
-	Loader::loadModel(models[0], Uri(":/models/mario/mario.fbx"));
-	Loader::loadModel(models[1], Uri(":/models/luigi/luigi.fbx"));
-	Loader::loadModel(models[2], Uri(":/models/Level Models/Castle Grounds/grounds.fbx"), true);
-	Loader::loadModel(models[3], Uri(":/models/Melascula/Melascula.obj"), false);
+	Loader::loadModel(models[0], ":/models/mario/mario.fbx");
+	Loader::loadModel(models[1], ":/models/luigi/luigi.fbx");
+	Loader::loadModel(models[2], ":/models/Level Models/Castle Grounds/grounds.fbx", true);
+	Loader::loadModel(models[3], ":/models/Melascula/Melascula.obj", false);
 
 	squareVertexArray.create();
 	squareVertexArray.bind();
@@ -117,12 +124,12 @@ void RenderTest::create(u32 w, u32 h) {
 
 	Loader::loadTexture2D(diffuseTexture, Uri(":/textures/therapy.png"));
 	Loader::loadCubemap(skyboxTexture, {
-		Uri(":/textures/cubemaps/dikhololo/px.png"),
-		Uri(":/textures/cubemaps/dikhololo/nx.png"),
-		Uri(":/textures/cubemaps/dikhololo/py.png"),
-		Uri(":/textures/cubemaps/dikhololo/ny.png"),
-		Uri(":/textures/cubemaps/dikhololo/pz.png"),
-		Uri(":/textures/cubemaps/dikhololo/nz.png")
+		":/textures/cubemaps/dikhololo/px.png",
+		":/textures/cubemaps/dikhololo/nx.png",
+		":/textures/cubemaps/dikhololo/py.png",
+		":/textures/cubemaps/dikhololo/ny.png",
+		":/textures/cubemaps/dikhololo/pz.png",
+		":/textures/cubemaps/dikhololo/nz.png"
 	}, true);
 
 	std::vector<Uri> amongUsFrameUris;
@@ -138,7 +145,7 @@ void RenderTest::create(u32 w, u32 h) {
 	amongUsTextureArray.setWrapU(GLE::TextureWrap::Repeat);
 	amongUsTextureArray.setWrapV(GLE::TextureWrap::Repeat);
 
-	Loader::loadTexture2D(eugeneTexture, Uri(":/textures/eugene.png"));
+	Loader::loadTexture2D(eugeneTexture, ":/textures/eugene.png");
 	eugeneTexture.setMinFilter(GLE::TextureFilter::None);
 	eugeneTexture.setMagFilter(GLE::TextureFilter::None);
 	eugeneTexture.setWrapU(GLE::TextureWrap::Repeat);
@@ -176,7 +183,6 @@ void RenderTest::create(u32 w, u32 h) {
 	models[1].transform = Mat4f::fromTranslation(+20, 20, 0);
 	models[3].transform = Mat4f::fromScale(10, 10, 10).translate(0, 2, 0);
 	models[3].root.children[4].visible = false;
-	models[3].root.children[0].visible = false;
 
 	setTextureFilters(0, GLE::TextureFilter::None, GLE::TextureFilter::None);
 	setTextureFilters(1, GLE::TextureFilter::None, GLE::TextureFilter::None);
@@ -283,9 +289,13 @@ void RenderTest::renderModels() {
 	modelShader.start();
 
 	for (Model& model : models) {
-
 		renderNode(model, model.root);
+	}
 
+	debugShader.start();
+
+	for (Model& model : models) {
+		renderDebugNode(model, model.root);
 	}
 
 }
@@ -309,14 +319,19 @@ void RenderTest::renderNode(Model& model, ModelNode& node) {
 		modelDiffuseUniform.setInt(0);
 		
 		Mat4f modelMatrix = model.transform * node.baseTransform;
-		Mat4f mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
-		modelMUniform.setMat4(modelMatrix);
+		Mat4f modelViewMatrix = viewMatrix * modelMatrix;
+		Mat3f normalMatrix = Mat3f(modelViewMatrix.toMat3()).inverse().transposed();
+		Mat4f mvpMatrix = projectionMatrix * modelViewMatrix;
+
+		modelNUniform.setMat3(normalMatrix);
+		modelMVUniform.setMat4(modelViewMatrix);
 		modelMVPUniform.setMat4(mvpMatrix);
 
-		Vec3f lightPos(100, 110, 10);
-		Vec3f viewPos(camera.getPosition());
-		modelLightUniform.setVec3(viewPos);
-		modelViewUniform.setVec3(viewPos);
+		Vec4f lightPos = viewMatrix * Vec4f(100, 110, 10, 1.0);
+		Vec4f viewPos = viewMatrix * Vec4f(camera.getPosition().x, camera.getPosition().y, camera.getPosition().z, 1.0);
+
+		modelLightUniform.setVec3(&viewPos[0]);
+		modelViewUniform.setVec3(&viewPos[0]);
 
 		mesh.vao.bind();
 		glDrawElements(GL_TRIANGLES, mesh.vertexCount, GL_UNSIGNED_INT, 0);
@@ -325,6 +340,40 @@ void RenderTest::renderNode(Model& model, ModelNode& node) {
 
 	for (u32 i = 0; i < node.children.size(); i++) {
 		renderNode(model, node.children[i]);
+	}
+
+}
+
+
+
+void RenderTest::renderDebugNode(Model& model, ModelNode& node) {
+
+	if (!node.visible) {
+		return;
+	}
+
+	for (u32 i = 0; i < node.meshIndices.size(); i++) {
+
+		Mesh& mesh = model.meshes[node.meshIndices[i]];
+
+		Mat4f modelMatrix = model.transform * node.baseTransform;
+		Mat4f modelViewMatrix = viewMatrix * modelMatrix;
+		Mat3f normalMatrix = Mat3f(modelViewMatrix.toMat3()).inverse().transposed();
+		Mat4f unprojectionMatrix = projectionMatrix.inverse();
+		Mat4f mvpMatrix = projectionMatrix * modelViewMatrix;
+
+		debugPUniform.setMat4(projectionMatrix);
+		debugUPUniform.setMat4(unprojectionMatrix);
+		debugNUniform.setMat3(normalMatrix);
+		debugMVPUniform.setMat4(mvpMatrix);
+
+		mesh.vao.bind();
+		glDrawElements(GL_TRIANGLES, mesh.vertexCount, GL_UNSIGNED_INT, 0);
+
+	}
+
+	for (u32 i = 0; i < node.children.size(); i++) {
+		renderDebugNode(model, node.children[i]);
 	}
 
 }
