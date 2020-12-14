@@ -210,6 +210,12 @@ void RenderTest::destroy() {
 
 
 void RenderTest::loadShaders() {
+
+	basicShader.destroy();
+	cubemapShader.destroy();
+	modelShader.destroy();
+	debugShader.destroy();
+
 	Loader::loadShader(basicShader, ":/shaders/basic.avs", ":/shaders/basic.afs");
 	Loader::loadShader(cubemapShader, ":/shaders/cubemap.avs", ":/shaders/cubemap.afs");
 
@@ -243,6 +249,17 @@ void RenderTest::loadShaders() {
 
 
 void RenderTest::loadResources() {
+
+	for (auto& m : models) {
+		m.destroy();
+	}
+
+	diffuseTexture.destroy();
+	amongUsTextureArray.destroy();
+	eugeneTexture.destroy();
+	skyboxTexture.destroy();
+
+	models.clear();
 	models.resize(4);
 	Loader::loadModel(models[ModelID::Mario], ":/models/mario/mario.fbx");
 	Loader::loadModel(models[ModelID::Luigi], ":/models/luigi/luigi.fbx");
@@ -317,12 +334,14 @@ void RenderTest::loadResources() {
 
 
 void RenderTest::saveScreenshot() {
+
 	u8* data = new u8[fbWidth * fbHeight * 3];
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glReadPixels(0, 0, fbWidth, fbHeight, GL_RGB, GL_UNSIGNED_BYTE, data);
 	Screenshot::save(fbWidth, fbHeight, data);
 
 	delete[] data;
+
 }
 
 
@@ -334,13 +353,13 @@ void RenderTest::renderModels() {
 	for (Model& model : models) {
 		renderNode(model, model.root);
 	}
-
+	/*
 	debugShader.start();
 
 	for (Model& model : models) {
 		renderDebugNode(model, model.root);
 	}
-
+	*/
 }
 
 
