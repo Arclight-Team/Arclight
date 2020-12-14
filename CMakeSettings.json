@@ -65,18 +65,6 @@
 					"type": "BOOL"
 				}
 			]
-		},
-		{
-			"name": "x64-RelWithDebug",
-			"generator": "Visual Studio 16 2019 Win64",
-			"configurationType": "RelWithDebInfo",
-			"buildRoot": "${projectDir}\\build",
-			"installRoot": "${projectDir}\\bin",
-			"cmakeCommandArgs": "",
-			"buildCommandArgs": "",
-			"ctestCommandArgs": "",
-			"inheritEnvironments": [ "msvc_x64_x64" ],
-			"variables": []
 		}
 	]
 }
