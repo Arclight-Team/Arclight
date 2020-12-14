@@ -95,7 +95,7 @@ void RenderTest::create(u32 w, u32 h) {
 	debugMVPUniform = debugShader.getUniform("mvpMatrix");
 
 	models.resize(4);
-	Loader::loadModel(models[0], ":/models/mario/mario.fbx");
+	Loader::loadModel(models[0], ":/models/mario/mariox.fbx");
 	Loader::loadModel(models[1], ":/models/luigi/luigi.fbx");
 	Loader::loadModel(models[2], ":/models/Level Models/Castle Grounds/grounds.fbx", true);
 	Loader::loadModel(models[3], ":/models/Melascula/Melascula.obj", false);
@@ -291,13 +291,13 @@ void RenderTest::renderModels() {
 	for (Model& model : models) {
 		renderNode(model, model.root);
 	}
-
+	/*
 	debugShader.start();
 
 	for (Model& model : models) {
 		renderDebugNode(model, model.root);
 	}
-
+	*/
 }
 
 
