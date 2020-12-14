@@ -605,7 +605,7 @@ public:
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
 	constexpr Mat4& translate(A x, B y, C z) {
-		v[3] = v[0] * x + v[1] * y + v[2] * z + v[3];
+		v[3] += Vec4<T>(x, y, z, 0.0);
 		return *this;
 	}
 

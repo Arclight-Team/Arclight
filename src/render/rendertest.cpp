@@ -260,11 +260,12 @@ void RenderTest::loadResources() {
 	skyboxTexture.destroy();
 
 	models.clear();
-	models.resize(4);
+	models.resize(5);
 	Loader::loadModel(models[ModelID::Mario], ":/models/mario/mario.fbx");
 	Loader::loadModel(models[ModelID::Luigi], ":/models/luigi/luigi.fbx");
 	Loader::loadModel(models[ModelID::CastleGrounds], ":/models/Level Models/Castle Grounds/grounds.fbx", true);
 	Loader::loadModel(models[ModelID::Melascula], ":/models/Melascula/Melascula.obj", false);
+	Loader::loadModel(models[ModelID::Galand], ":/models/galand_realistic/Galand.obj", false);
 
 	Loader::loadTexture2D(diffuseTexture, Uri(":/textures/therapy.png"));
 	Loader::loadCubemap(skyboxTexture, {
@@ -309,17 +310,20 @@ void RenderTest::loadResources() {
 
 	models[ModelID::Mario].transform = Mat4f::fromTranslation(-20, 20, 0);
 	models[ModelID::Luigi].transform = Mat4f::fromTranslation(+20, 20, 0);
-	models[ModelID::Melascula].transform = Mat4f::fromScale(10, 10, 10).translate(0, 2, 0);
+	models[ModelID::Melascula].transform = Mat4f::fromScale(10, 10, 10).translate(0, 20, 0);
+	models[ModelID::Galand].transform = Mat4f::fromScale(1, 1, 1).translate(0, -50, -50);
 	models[ModelID::Melascula].root.children[4].visible = false;
-
-	setTextureFilters(0, GLE::TextureFilter::None, GLE::TextureFilter::None);
-	setTextureFilters(1, GLE::TextureFilter::None, GLE::TextureFilter::None);
-	setTextureFilters(2, GLE::TextureFilter::None, GLE::TextureFilter::None);
-	setTextureFilters(3, GLE::TextureFilter::None, GLE::TextureFilter::None);
-	setTextureWrap(0, GLE::TextureWrap::Repeat, GLE::TextureWrap::Repeat);
-	setTextureWrap(1, GLE::TextureWrap::Mirror, GLE::TextureWrap::Mirror);
-	setTextureWrap(2, GLE::TextureWrap::Mirror, GLE::TextureWrap::Mirror);
-	setTextureWrap(3, GLE::TextureWrap::Clamp, GLE::TextureWrap::Clamp);
+	
+	setTextureFilters(ModelID::Mario, GLE::TextureFilter::None, GLE::TextureFilter::None);
+	setTextureFilters(ModelID::Luigi, GLE::TextureFilter::None, GLE::TextureFilter::None);
+	setTextureFilters(ModelID::CastleGrounds, GLE::TextureFilter::None, GLE::TextureFilter::None);
+	setTextureFilters(ModelID::Melascula, GLE::TextureFilter::None, GLE::TextureFilter::None);
+	setTextureFilters(ModelID::Galand, GLE::TextureFilter::None, GLE::TextureFilter::None);
+	setTextureWrap(ModelID::Mario, GLE::TextureWrap::Repeat, GLE::TextureWrap::Repeat);
+	setTextureWrap(ModelID::Luigi, GLE::TextureWrap::Mirror, GLE::TextureWrap::Mirror);
+	setTextureWrap(ModelID::CastleGrounds, GLE::TextureWrap::Mirror, GLE::TextureWrap::Mirror);
+	setTextureWrap(ModelID::Melascula, GLE::TextureWrap::Repeat, GLE::TextureWrap::Repeat);
+	setTextureWrap(ModelID::Galand, GLE::TextureWrap::Repeat, GLE::TextureWrap::Repeat);
 
 	std::vector<Material>& m = models[ModelID::CastleGrounds].materials;
 

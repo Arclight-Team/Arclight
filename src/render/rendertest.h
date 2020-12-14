@@ -44,7 +44,8 @@ public:
 		Mario,
 		Luigi,
 		CastleGrounds,
-		Melascula
+		Melascula,
+		Galand
 	};
 
 private:
