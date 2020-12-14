@@ -10,6 +10,28 @@
 #include "stb_image.h"
 
 
+void Material::destroy() {
+	program.destroy();
+}
+
+
+void Mesh::destroy() {
+	vao.destroy();
+	vbo.destroy();
+	ibo.destroy();
+}
+
+
+void Model::destroy() {
+	for (auto& m : meshes) {
+		m.destroy();
+	}
+
+	for (auto& m : materials) {
+		m.destroy();
+	}
+}
+
 
 namespace Loader {
 

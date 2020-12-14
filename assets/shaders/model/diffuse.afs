@@ -5,16 +5,17 @@ in vec3 pos;
 in vec2 uv;
 in vec3 nrml;
 
-uniform mat3 normalMatrix;
 uniform sampler2D diffuseTexture;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
-
+uniform vec4 baseCol;
+uniform mat3 srtMatrix;
 
 void main(){
 
-    vec4 fullTexcolor = texture(diffuseTexture, uv);
-    vec3 texcolor = fullTexcolor.rgb;
+    vec2 transformedUV = vec2(srtMatrix * vec3(uv, 1.0));
+    vec4 fullTexColor = texture(diffuseTexture, transformedUV);
+    vec3 texcolor = fullTexColor.rgb;
 	
     // ambient
     vec3 ambient = 0.05 * texcolor;
@@ -22,7 +23,6 @@ void main(){
     // diffuse
     vec3 lightDir = normalize(lightPos - pos);
     vec3 normal = nrml;
-	//vec3 normal = normalize(normalMatrix * nrml);
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = diff * texcolor;
 	
@@ -37,9 +37,21 @@ void main(){
 	vec3 blinnPhongColor = ambient + diffuse + specular;
 	
 	float distance = length(lightPos - pos);
-	float attenuation = 1.0 / (1 + .09 * distance + .0032 * distance * distance);
+
+    // attenuation
+
+    float a = 1.0;
+    float b = 0.09;
+    float c = 0.032;
+    float x = distance;
+
+    // a / (1 + b * x + c * x ^ 2)
+
+	float attenuation = a / (1.0 + b * x + c * x * x);
 	blinnPhongColor *= attenuation;
 	
-    color = vec4(blinnPhongColor, fullTexcolor.a);
+    color = vec4(blinnPhongColor, fullTexColor.a);
+
+    color *= baseCol;
 
 }
