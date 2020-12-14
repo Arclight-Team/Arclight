@@ -16,6 +16,8 @@ struct Material {
 	GLE::ShaderProgram program;
 	std::unordered_map<std::string, GLE::Texture2D> textures;
 
+	void destroy();
+
 };
 
 
@@ -26,6 +28,8 @@ struct Mesh {
 	GLE::VertexBuffer vbo;
 	GLE::IndexBuffer ibo;
 	u32 materialIndex;
+
+	void destroy();
 
 };
 
@@ -46,6 +50,8 @@ struct Model {
 	std::vector<Material> materials;
 	ModelNode root;
 	Mat4f transform;
+
+	void destroy();
 
 };
 

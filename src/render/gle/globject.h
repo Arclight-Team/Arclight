@@ -22,6 +22,7 @@ public:
     GLObject& operator=(GLObject&& obj) noexcept {
         id = obj.id;
         obj.id = invalidID;
+        return *this;
     }
 
     constexpr bool isCreated() const {

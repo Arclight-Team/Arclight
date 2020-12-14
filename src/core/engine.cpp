@@ -171,24 +171,40 @@ void Engine::setupInputSystem() {
 	//Create the root context and add actions to it
 	InputContext& rootContext = inputSystem.createContext(0);
 	rootContext.addState(0);
-	rootContext.addAction(1, KeyTrigger({ 262 }), true);
-	rootContext.addAction(2, KeyTrigger({ 263 }), true);
-	rootContext.addAction(3, KeyTrigger({ 264 }), true);
-	rootContext.addAction(4, KeyTrigger({ 265 }), true);	
-	rootContext.addAction(5, KeyTrigger({ 65 }), true);
-	rootContext.addAction(6, KeyTrigger({ 68 }), true);
-	rootContext.addAction(7, KeyTrigger({ 83 }), true);
-	rootContext.addAction(8, KeyTrigger({ 87 }), true);
-	rootContext.addAction(9, KeyTrigger({ 291 }), false);
-	rootContext.registerAction(0, 1);
-	rootContext.registerAction(0, 2);
-	rootContext.registerAction(0, 3);
-	rootContext.registerAction(0, 4);
-	rootContext.registerAction(0, 5);
-	rootContext.registerAction(0, 6);
-	rootContext.registerAction(0, 7);
-	rootContext.registerAction(0, 8);
-	rootContext.registerAction(0, 9);
+
+	rootContext.addAction(RenderTest::ActionID::CameraRotRight,		KeyTrigger({ 262 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraRotLeft,		KeyTrigger({ 263 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraRotDown,		KeyTrigger({ 264 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraRotUp,		KeyTrigger({ 265 }), true);	
+	rootContext.addAction(RenderTest::ActionID::CameraMoveLeft,		KeyTrigger({ 65 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveRight,	KeyTrigger({ 68 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveBackward,	KeyTrigger({ 83 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveForward,	KeyTrigger({ 87 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveDown,		KeyTrigger({ 81 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveUp,		KeyTrigger({ 69 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraSpeedUp,		KeyTrigger({ 340 }, KeyState::Pressed), true);
+	rootContext.addAction(RenderTest::ActionID::CameraSlowDown,		KeyTrigger({ 340 }, KeyState::Released), true);
+
+	rootContext.addAction(RenderTest::ActionID::QuickScreenshot,	KeyTrigger({ 291 }), false);
+	rootContext.addAction(RenderTest::ActionID::ReloadShaders,		KeyTrigger({ 292 }), false);
+	rootContext.addAction(RenderTest::ActionID::ReloadResources,	KeyTrigger({ 293 }), false);
+
+	rootContext.registerAction(0, RenderTest::ActionID::CameraRotLeft);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraRotRight);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraRotDown);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraRotUp);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveLeft);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveRight);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveBackward);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveForward);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveDown);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveUp);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraSpeedUp);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraSlowDown);
+
+	rootContext.registerAction(0, RenderTest::ActionID::QuickScreenshot);
+	rootContext.registerAction(0, RenderTest::ActionID::ReloadShaders);
+	rootContext.registerAction(0, RenderTest::ActionID::ReloadResources);
 
 	//Define input handler callbacks
 	inputHandler.setCoActionListener([this](KeyAction action, double scale) {
