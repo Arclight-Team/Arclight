@@ -37,6 +37,7 @@ public:
 		QuickScreenshot,
 		ReloadShaders,
 		ReloadResources,
+		ToggleDebug
 	};
 
 	enum ModelID : int {
@@ -115,6 +116,8 @@ private:
 	u64 frameCounter;
 	u32 fbWidth;
 	u32 fbHeight;
+
+	bool showNormals;
 
 	constexpr inline static double fov = 90;
 	constexpr inline static double nearPlane = 0.01;

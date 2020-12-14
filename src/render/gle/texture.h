@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../gc.h"
-#include "../globject.h"
+#include "gc.h"
+#include "globject.h"
 #include "textureformat.h"
 
 GLE_BEGIN

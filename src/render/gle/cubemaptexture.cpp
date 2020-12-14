@@ -1,6 +1,6 @@
 #include "cubemaptexture.h"
 
-#include "../glecore.h"
+#include "glecore.h"
 #include GLE_HEADER
 
 

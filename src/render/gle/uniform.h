@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../gc.h"
+#include "gc.h"
 
 #include GLE_MATRIX_HEADER
 GLE_DEFINE_MATRIX

@@ -107,7 +107,7 @@ void Engine::run() {
 		window.swapBuffers();
 
 		//Debug FPS
-		window.setTitle("Among Us | FPS: " + std::to_string(tracker.getFPS()));
+		window.setTitle(Config::getBaseWindowTitle() + " | FPS: " + std::to_string(tracker.getFPS()));
 
 	}
 
@@ -157,7 +157,7 @@ void Engine::shutdownBackend() {
 bool Engine::createWindow() {
 
 	window.setWindowConfig(WindowConfig().setResizable(true).setOpenGLVersion(3, 3));
-	return window.create(200, 200, "Among Us");
+	return window.create(Config::getDefaultWindowWidth(), Config::getDefaultWindowHeight(), Config::getBaseWindowTitle());
 
 }
 
@@ -188,6 +188,7 @@ void Engine::setupInputSystem() {
 	rootContext.addAction(RenderTest::ActionID::QuickScreenshot,	KeyTrigger({ 291 }), false);
 	rootContext.addAction(RenderTest::ActionID::ReloadShaders,		KeyTrigger({ 292 }), false);
 	rootContext.addAction(RenderTest::ActionID::ReloadResources,	KeyTrigger({ 293 }), false);
+	rootContext.addAction(RenderTest::ActionID::ToggleDebug,		KeyTrigger({ 294 }), false);
 
 	rootContext.registerAction(0, RenderTest::ActionID::CameraRotLeft);
 	rootContext.registerAction(0, RenderTest::ActionID::CameraRotRight);
@@ -205,6 +206,7 @@ void Engine::setupInputSystem() {
 	rootContext.registerAction(0, RenderTest::ActionID::QuickScreenshot);
 	rootContext.registerAction(0, RenderTest::ActionID::ReloadShaders);
 	rootContext.registerAction(0, RenderTest::ActionID::ReloadResources);
+	rootContext.registerAction(0, RenderTest::ActionID::ToggleDebug);
 
 	//Define input handler callbacks
 	inputHandler.setCoActionListener([this](KeyAction action, double scale) {

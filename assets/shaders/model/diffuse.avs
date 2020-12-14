@@ -14,7 +14,7 @@ uniform mat4 mvpMatrix;
 void main(){
 	pos = vec3(modelViewMatrix * vec4(vertex, 1.0));
 	uv = texcoord;
-	nrml = normalize(normalMatrix * normal);
+	nrml = normalMatrix * normal;
 	//nrml = normal;
 	gl_Position = mvpMatrix * vec4(vertex, 1.0);
 }

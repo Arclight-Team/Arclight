@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../gc.h"
+#include "gc.h"
 
 GLE_BEGIN
 

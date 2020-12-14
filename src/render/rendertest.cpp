@@ -6,7 +6,7 @@
 #include "screenshot.h"
 
 
-RenderTest::RenderTest() : frameCounter(0), fbWidth(0), fbHeight(0) {}
+RenderTest::RenderTest() : frameCounter(0), fbWidth(0), fbHeight(0), showNormals(false) {}
 
 
 
@@ -353,13 +353,17 @@ void RenderTest::renderModels() {
 	for (Model& model : models) {
 		renderNode(model, model.root);
 	}
-	/*
-	debugShader.start();
+	
+	if (showNormals) {
 
-	for (Model& model : models) {
-		renderDebugNode(model, model.root);
+		debugShader.start();
+
+		for (Model& model : models) {
+			renderDebugNode(model, model.root);
+		}
+
 	}
-	*/
+	
 }
 
 
@@ -551,6 +555,10 @@ void RenderTest::onKeyAction(KeyAction action) {
 			break;
 		case ActionID::ReloadResources:
 			loadResources();
+			break;
+
+		case ActionID::ToggleDebug:
+			showNormals = !showNormals;
 			break;
 
 	}

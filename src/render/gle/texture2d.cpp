@@ -1,6 +1,6 @@
 #include "texture2d.h"
 
-#include "../glecore.h"
+#include "glecore.h"
 #include GLE_HEADER
 
 
