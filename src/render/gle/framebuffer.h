@@ -6,24 +6,43 @@
 GLE_BEGIN
 
 
+class Texture;
+class Renderbuffer;
+
 class Framebuffer : public GLObject {
 
 public:
 
+    enum AttachmentIndex {
+        DepthIndex,
+        StencilIndex,
+        DepthStencilIndex,
+        ColorIndex
+    };
+
+    static inline u32 defaultFramebufferID = 0;
+
     virtual bool create() override;
-
     void bind();
-    void bindRead();
-    void bindRender();
-
     virtual void destroy() override;
 
-    bool isBound();
+    bool isBound() const;
+
+    bool validate() const;
+    void attachTexture(u32 attachmentIndex, Texture& texture);
+    void attachTexture(u32 attachmentIndex, Texture& texture, u32 layer);
+    void attachRenderbuffer(u32 attachmentIndex, Renderbuffer& renderbuffer);
+
+    static void bindDefault();
+    static void setViewport(u32 w, u32 h);
+    static void setViewport(u32 x, u32 y, u32 w, u32 h);
 
 private:
 
-    static inline u32 boundReadID = invalidBoundID;
-    static inline u32 boundDrawID = invalidBoundID;
+    static bool validAttachmentIndex(u32 index);
+    static u32 getAttachmentEnum(u32 index);
+
+    static inline u32 boundFramebufferID = defaultFramebufferID;
 
 };
 

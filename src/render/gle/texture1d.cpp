@@ -8,12 +8,12 @@ GLE_BEGIN
 
 
 
-void Texture1D::setData(u32 w, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+void Texture1D::setData(u32 w, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
 
 	if (w > Limits::getMaxTextureSize()) {
-		GLE::error("1D texture dimension of size %d exceeds maximum texture size of %d", w, Limits::getMaxTextureSize());
+		error("1D texture dimension of size %d exceeds maximum texture size of %d", w, Limits::getMaxTextureSize());
 		return;
 	}
 
@@ -22,7 +22,7 @@ void Texture1D::setData(u32 w, TextureFormat format, TextureSourceFormat srcForm
 	depth = 0;
 	texFormat = format;
 
-	glTexImage1D(getTextureTypeEnum(type), 0, getTextureFormatEnum(texFormat), w, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexImage1D(getTextureTypeEnum(type), 0, Image::getImageFormatEnum(texFormat), w, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
 
 }
 
@@ -33,11 +33,11 @@ void Texture1D::setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureS
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set mipmap data)", id);
 
 	if (level > getMipmapCount()) {
-		GLE::error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
+		error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
 		return;
 	}
 
-	glTexImage1D(getTextureTypeEnum(type), level, getTextureFormatEnum(texFormat), getMipmapSize(level, width), 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexImage1D(getTextureTypeEnum(type), level, Image::getImageFormatEnum(texFormat), getMipmapSize(level, width), 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
 
 }
 
@@ -48,12 +48,12 @@ void Texture1D::update(u32 x, u32 w, TextureSourceFormat srcFormat, TextureSourc
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to update data)", id);
 
 	if ((x + w) > getMipmapSize(level, width)) {
-		GLE::error("Updating 1D texture out of bounds: width = %d, requested: x = %d, w = %d", getMipmapSize(level, width), x, w);
+		error("Updating 1D texture out of bounds: width = %d, requested: x = %d, w = %d", getMipmapSize(level, width), x, w);
 		return;
 	}
 
 	if (level > getMipmapCount()) {
-		GLE::error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
+		error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
 		return;
 	}
 

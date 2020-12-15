@@ -7,16 +7,16 @@
 GLE_BEGIN
 
 
-void CubemapTexture::setData(CubemapFace face, u32 s, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+void CubemapTexture::setData(CubemapFace face, u32 s, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
 
 	if (s > Limits::getMaxTextureSize()) {
-		GLE::error("2D cubemap texture dimension of size %d exceeds maximum texture size of %d", s, Limits::getMaxTextureSize());
+		error("2D cubemap texture dimension of size %d exceeds maximum texture size of %d", s, Limits::getMaxTextureSize());
 		return;
 	}
 
-	if (texFormat == TextureFormat::None) {
+	if (texFormat == ImageFormat::None) {
 
 		width = s;
 		height = s;
@@ -24,11 +24,11 @@ void CubemapTexture::setData(CubemapFace face, u32 s, TextureFormat format, Text
 		texFormat = format;
 
 	} else if (texFormat != format || width != s || height != s) {
-		GLE::error("Cubemap initialization inconsistent");
+		error("Cubemap initialization inconsistent");
 		return;
 	}
 
-	glTexImage2D(getCubemapFaceEnum(face), 0, getTextureFormatEnum(texFormat), s, s, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexImage2D(getCubemapFaceEnum(face), 0, Image::getImageFormatEnum(texFormat), s, s, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
 
 }
 
@@ -39,11 +39,11 @@ void CubemapTexture::setMipmapData(CubemapFace face, u32 level, TextureSourceFor
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set mipmap data)", id);
 
 	if (level > getMipmapCount()) {
-		GLE::error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
+		error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
 		return;
 	}
 
-	glTexImage2D(getCubemapFaceEnum(face), level, getTextureFormatEnum(texFormat), getMipmapSize(level, width), getMipmapSize(level, height), 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexImage2D(getCubemapFaceEnum(face), level, Image::getImageFormatEnum(texFormat), getMipmapSize(level, width), getMipmapSize(level, height), 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
 
 }
 
@@ -54,17 +54,17 @@ void CubemapTexture::update(CubemapFace face, u32 x, u32 y, u32 w, u32 h, Textur
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to update data)", id);
 
 	if ((x + w) > getMipmapSize(level, width)) {
-		GLE::error("Updating 2D texture out of bounds: width = %d, requested: x = %d, w = %d", getMipmapSize(level, width), x, w);
+		error("Updating 2D texture out of bounds: width = %d, requested: x = %d, w = %d", getMipmapSize(level, width), x, w);
 		return;
 	}
 
 	if ((y + h) > getMipmapSize(level, height)) {
-		GLE::error("Updating 2D texture out of bounds: height = %d, requested: y = %d, h = %d", getMipmapSize(level, height), y, h);
+		error("Updating 2D texture out of bounds: height = %d, requested: y = %d, h = %d", getMipmapSize(level, height), y, h);
 		return;
 	}
 
 	if (level > getMipmapCount()) {
-		GLE::error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
+		error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
 		return;
 	}
 

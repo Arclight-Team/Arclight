@@ -4,7 +4,7 @@
 
 GLE_BEGIN
 
-enum class TextureFormat {
+enum class ImageFormat {
 	None,
 	R8,
 	R8sn,
@@ -77,7 +77,7 @@ enum class TextureFormat {
 };
 
 
-enum class CompressedTextureFormat {
+enum class CompressedImageFormat {
 	RGTC1,
 	RGTC1s,
 	RGTC2,
@@ -97,50 +97,16 @@ enum class CompressedTextureFormat {
 };
 
 
-enum class TextureSourceFormat {
-	Red,
-	Green,
-	Blue,
-	RG,
-	RGB,
-	BGR,
-	RGBA,
-	BGRA,
-	Ri,
-	Gi,
-	Bi,
-	RGi,
-	RGBi,
-	BGRi,
-	RGBAi,
-	BGRAi,
-	Depth,
-	Stencil,
-	DepthStencil
-};
+namespace Image {
 
+	//Returns the corresponding enum value of format
+	u32 getImageFormatEnum(ImageFormat format);
+	u32 getCompressedImageFormatEnum(CompressedImageFormat format);
 
-enum class TextureSourceType {
-	UByte,
-	Byte,
-	UShort,
-	Short,
-	UInt,
-	Int,
-	Float,
-	UByte332,
-	UByte233R,
-	UShort565,
-	UShort565R,
-	UShort4444,
-	UShort4444R,
-	UShort5551,
-	UShort1555R,
-	UInt8888,
-	UInt8888R,
-	UInt10_2,
-	UInt2_10R
-};
+	//Returns the maximum number of samples of the given format
+	u32 getMaxSamples(ImageFormat format);
+
+}
 
 
 GLE_END

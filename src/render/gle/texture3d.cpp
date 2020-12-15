@@ -7,12 +7,12 @@
 GLE_BEGIN
 
 
-void Texture3D::setData(u32 w, u32 h, u32 d, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+void Texture3D::setData(u32 w, u32 h, u32 d, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
 
-	if (w > Limits::getMaxTextureSize() || h > Limits::getMaxTextureSize() || d > Limits::getMaxTextureSize()) {
-		GLE::error("3D texture dimension of size %d exceeds maximum texture size of %d", (w > h ? (d > w ? d : h) : (d > h ? d : h)), Limits::getMaxTextureSize());
+	if (w > Limits::getMaxTextureSize() || h > Limits::getMaxTextureSize() || d > Limits::getMax3DTextureSize()) {
+		error("3D texture dimension of size %d exceeds maximum texture size of %d", (w > h ? (d > w ? d : h) : (d > h ? d : h)), Limits::getMaxTextureSize());
 		return;
 	}
 
@@ -21,7 +21,7 @@ void Texture3D::setData(u32 w, u32 h, u32 d, TextureFormat format, TextureSource
 	depth = d;
 	texFormat = format;
 
-	glTexImage3D(getTextureTypeEnum(type), 0, getTextureFormatEnum(texFormat), w, h, d, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexImage3D(getTextureTypeEnum(type), 0, Image::getImageFormatEnum(texFormat), w, h, d, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
 
 }
 
@@ -32,11 +32,11 @@ void Texture3D::setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureS
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set mipmap data)", id);
 
 	if (level > getMipmapCount()) {
-		GLE::error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
+		error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
 		return;
 	}
 
-	glTexImage3D(getTextureTypeEnum(type), level, getTextureFormatEnum(texFormat), getMipmapSize(level, width), getMipmapSize(level, height), getMipmapSize(level, depth), 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexImage3D(getTextureTypeEnum(type), level, Image::getImageFormatEnum(texFormat), getMipmapSize(level, width), getMipmapSize(level, height), getMipmapSize(level, depth), 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
 
 }
 
@@ -47,22 +47,22 @@ void Texture3D::update(u32 x, u32 y, u32 z, u32 w, u32 h, u32 d, TextureSourceFo
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to update data)", id);
 
 	if ((x + w) > getMipmapSize(level, width)) {
-		GLE::error("Updating 3D texture out of bounds: width = %d, requested: x = %d, w = %d", getMipmapSize(level, width), x, w);
+		error("Updating 3D texture out of bounds: width = %d, requested: x = %d, w = %d", getMipmapSize(level, width), x, w);
 		return;
 	}
 
 	if ((y + h) > getMipmapSize(level, height)) {
-		GLE::error("Updating 3D texture out of bounds: height = %d, requested: y = %d, h = %d", getMipmapSize(level, height), y, h);
+		error("Updating 3D texture out of bounds: height = %d, requested: y = %d, h = %d", getMipmapSize(level, height), y, h);
 		return;
 	}
 
 	if ((z + d) > getMipmapSize(level, depth)) {
-		GLE::error("Updating 3D texture out of bounds: depth = %d, requested: z = %d, d = %d", getMipmapSize(level, depth), z, d);
+		error("Updating 3D texture out of bounds: depth = %d, requested: z = %d, d = %d", getMipmapSize(level, depth), z, d);
 		return;
 	}
 
 	if (level > getMipmapCount()) {
-		GLE::error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
+		error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
 		return;
 	}
 

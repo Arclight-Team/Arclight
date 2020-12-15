@@ -16,6 +16,7 @@ if(MSVC)
 	endforeach()
 endif()
 
+
 #Set output directories
 set(BINARY_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})

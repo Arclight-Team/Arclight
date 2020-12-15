@@ -12,7 +12,7 @@ public:
 
 	constexpr MultisampleArrayTexture2D() : Texture(TextureType::MultisampleArrayTexture2D) {}
 
-	void init(u32 w, u32 h, u32 layers, u32 samples, TextureFormat format, bool fixedSamples = false);
+	void init(u32 w, u32 h, u32 layers, u32 samples, ImageFormat format, bool fixedSamples = false);
 
 };
 

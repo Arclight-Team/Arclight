@@ -52,7 +52,7 @@ void Buffer::destroy() {
 
 		glDeleteBuffers(1, &id);
 		id = invalidID;
-		size = -1;
+		size = 0;
 
 	}
 
@@ -122,6 +122,12 @@ void Buffer::copy(Buffer& destBuffer, u32 srcOffset, u32 destOffset, u32 size) {
 
 bool Buffer::isBound() const {
 	return id == getBoundBufferID(type);
+}
+
+
+
+bool Buffer::isInitialized() const {
+	return size;
 }
 
 

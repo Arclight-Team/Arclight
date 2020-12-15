@@ -12,7 +12,7 @@ public:
 
 	constexpr Texture3D() : Texture(TextureType::Texture3D) {}
 
-	void setData(u32 w, u32 h, u32 d, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
+	void setData(u32 w, u32 h, u32 d, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
 	void setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
 	void update(u32 x, u32 y, u32 z, u32 w, u32 h, u32 d, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
 

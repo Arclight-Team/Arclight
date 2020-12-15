@@ -52,11 +52,12 @@ public:
 
 	//Checks the given states
 	bool isBound() const;
+	bool isInitialized() const;
 
 protected:
 
 	//Yes, protected.
-	constexpr Buffer() : type(BufferType::VertexBuffer), size(-1) {}
+	constexpr Buffer(BufferType type) : type(type), size(0) {}
 
 	//Binds the buffer to the given target if not already. Fails if it hasn't been created yet.
 	void bind(BufferType type);

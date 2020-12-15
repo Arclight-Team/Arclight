@@ -10,7 +10,7 @@ class VertexBuffer : public Buffer {
 
 public:
 
-	constexpr VertexBuffer() {}
+	constexpr VertexBuffer() : Buffer(BufferType::VertexBuffer) {}
 
 	//Binds to the default target
 	inline void bind() {

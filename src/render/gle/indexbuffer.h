@@ -10,7 +10,7 @@ class IndexBuffer : public Buffer {
 
 public:
 
-	constexpr IndexBuffer() {}
+	constexpr IndexBuffer() : Buffer(BufferType::ElementBuffer) {}
 
 	//Binds to the default target
 	inline void bind() {

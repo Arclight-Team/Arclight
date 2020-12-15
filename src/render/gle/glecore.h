@@ -20,6 +20,7 @@ namespace Core {
 namespace Limits {
 
 	u32 getMaxTextureSize();
+	u32 getMax3DTextureSize();
 	u32 getMaxArrayTextureLayers();
 	u32 getMaxMipmapLevels();
 	float getMaxTextureAnisotropy();
@@ -28,6 +29,9 @@ namespace Limits {
 	u32 getMaxDepthSamples();
 	u32 getMaxColorSamples();
 	u32 getMaxIntegerSamples();
+
+	u32 getMaxColorAttachments();
+	u32 getMaxDrawBuffers();
 
 }
 

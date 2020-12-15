@@ -2,7 +2,7 @@
 
 #include "gc.h"
 #include "globject.h"
-#include "textureformat.h"
+#include "imageformat.h"
 
 GLE_BEGIN
 
@@ -44,6 +44,52 @@ enum class CubemapFace {
 };
 
 
+enum class TextureSourceFormat {
+	Red,
+	Green,
+	Blue,
+	RG,
+	RGB,
+	BGR,
+	RGBA,
+	BGRA,
+	Ri,
+	Gi,
+	Bi,
+	RGi,
+	RGBi,
+	BGRi,
+	RGBAi,
+	BGRAi,
+	Depth,
+	Stencil,
+	DepthStencil
+};
+
+
+enum class TextureSourceType {
+	UByte,
+	Byte,
+	UShort,
+	Short,
+	UInt,
+	Int,
+	Float,
+	UByte332,
+	UByte233R,
+	UShort565,
+	UShort565R,
+	UShort4444,
+	UShort4444R,
+	UShort5551,
+	UShort1555R,
+	UInt8888,
+	UInt8888R,
+	UInt10_2,
+	UInt2_10R
+};
+
+
 class Texture : public GLObject {
 
 public:
@@ -65,8 +111,8 @@ public:
 	static void activateUnit(u32 unit);
 
 	//Checks the given states
-	bool isCreated() const;
 	bool isBound() const;
+	bool isInitialized() const;
 
 	u32 getMaxDimension() const;
 	u32 getMipmapCount() const;
@@ -74,6 +120,7 @@ public:
 	u32 getWidth() const;
 	u32 getHeight() const;
 	u32 getDepth() const;
+	ImageFormat getImageFormat() const;
 
 	TextureType getTextureType() const;
 
@@ -82,9 +129,11 @@ public:
 
 protected:
 
+	friend class Framebuffer;
+
 	//Don't even try creating a raw texture object.
 	constexpr explicit Texture(TextureType type) : id(invalidID), type(type),
-		width(0), height(0), depth(0), texFormat(TextureFormat::None) {}
+		width(0), height(0), depth(0), texFormat(ImageFormat::None) {}
 
 	void setWrapU(TextureWrap wrap);
 	void setWrapV(TextureWrap wrap);
@@ -103,8 +152,6 @@ protected:
 
 	static u32 getTextureTypeEnum(TextureType type);
 	static u32 getTextureWrapEnum(TextureWrap wrap);
-	static u32 getTextureFormatEnum(TextureFormat format);
-	static u32 getCompressedTextureFormatEnum(CompressedTextureFormat format);
 	static u32 getTextureSourceFormatEnum(TextureSourceFormat format);
 	static u32 getTextureSourceTypeEnum(TextureSourceType type);
 	static u32 getCubemapFaceEnum(CubemapFace face);
@@ -115,7 +162,7 @@ protected:
 	u32 width;
 	u32 height;
 	u32 depth;
-	TextureFormat texFormat;
+	ImageFormat texFormat;
 
 private:
 

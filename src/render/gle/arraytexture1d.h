@@ -20,7 +20,7 @@ public:
 		update(x, w, layer, 1, srcFormat, srcType, data, level);
 	}
 
-	void setData(u32 w, u32 layers, TextureFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
+	void setData(u32 w, u32 layers, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
 	void setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
 	void update(u32 x, u32 w, u32 layerStart, u32 layerCount, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
 

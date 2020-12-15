@@ -11,6 +11,7 @@ namespace {
 	bool openglDebugContext = false;
 
 	u32 maxTextureSize = 0;
+	u32 max3DTextureSize = 0;
 	u32 maxArrayTextureLayers = 0;
 	u32 maxMipmapLevels = 0;
 	float maxAnisotropy = 1.0;
@@ -19,6 +20,9 @@ namespace {
 	u32 maxDepthSamples = 0;
 	u32 maxColorSamples = 0;
 	u32 maxIntegerSamples = 0;
+
+	u32 maxColorAttachments = 0;
+	u32 maxDrawBuffers = 0;
 
 }
 
@@ -31,7 +35,7 @@ namespace Core {
 		GLenum result = glewInit();
 
 		if (result != GLEW_OK) {
-			GLE::error("OpenGL context creation failed: %s", glewGetErrorString(result));
+			error("OpenGL context creation failed: %s", glewGetErrorString(result));
 			return false;
 		}
 
@@ -52,6 +56,8 @@ namespace Core {
 		i32 tmp = 0;
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &tmp);
 		maxTextureSize = tmp;
+		glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &tmp);
+		max3DTextureSize = tmp;
 		glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &tmp);
 		maxArrayTextureLayers = tmp;
 
@@ -76,6 +82,11 @@ namespace Core {
 		maxColorSamples = tmp;
 		glGetIntegerv(GL_MAX_INTEGER_SAMPLES, &tmp);
 		maxIntegerSamples = tmp;
+
+		glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &tmp);
+		maxColorAttachments = tmp;
+		glGetIntegerv(GL_MAX_DRAW_BUFFERS, &tmp);
+		maxDrawBuffers = tmp;
 
 		return true;
 
@@ -128,7 +139,7 @@ namespace Core {
 
 			}
 
-			GLE::error("OpenGL error %d: %s", errorNumber, errorMessage);
+			error("OpenGL error %d: %s", errorNumber, errorMessage);
 
 		}
 
@@ -144,39 +155,44 @@ namespace Limits {
 		return maxTextureSize;
 	}
 
+	u32 getMax3DTextureSize() {
+		return max3DTextureSize;
+	}
 
 	u32 getMaxArrayTextureLayers() {
 		return maxArrayTextureLayers;
 	}
 
-
 	u32 getMaxMipmapLevels() {
 		return maxMipmapLevels;
 	}
-
 
 	float getMaxTextureAnisotropy() {
 		return maxAnisotropy;
 	}
 
-
 	u32 getMaxTextureUnits() {
 		return maxTextureUnits;
 	}
-
 
 	u32 getMaxDepthSamples() {
 		return maxDepthSamples;
 	}
 
-
 	u32 getMaxColorSamples() {
 		return maxColorSamples;
 	}
 
-
 	u32 getMaxIntegerSamples() {
 		return maxIntegerSamples;
+	}
+
+	u32 getMaxColorAttachments() {
+		return maxColorAttachments;
+	}
+
+	u32 getMaxDrawBuffers() {
+		return maxDrawBuffers;
 	}
 
 }

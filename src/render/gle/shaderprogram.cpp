@@ -223,7 +223,7 @@ bool ShaderProgram::checkCompilation(u32 sid) {
 		glGetShaderInfoLog(sid, log.size(), &logLength, log.data());
 		log.resize(logLength);
 
-		GLE::error("Failed to compile shader program with ID %d\n" + log, sid);
+		error("Failed to compile shader program with ID %d\n" + log, sid);
 
 	}
 
@@ -251,7 +251,7 @@ void ShaderProgram::checkLinking() {
 		glGetProgramInfoLog(id, log.size(), &logLength, log.data());
 		log.resize(logLength);
 
-		GLE::error("Failed to link shader program with ID %d\n" + log, id);
+		error("Failed to link shader program with ID %d\n" + log, id);
 
 		destroy();
 
