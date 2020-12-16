@@ -11,6 +11,7 @@
 #define GLE_TEXTURE_MERGE_FILTERS 1
 
 //#define GLE_DISABLE_DEBUG
+#define GLE_PASS_UNLINKED_SHADERS 1
 
 
 #define GLE_MATRIX_HEADER	"util/matrix.h"

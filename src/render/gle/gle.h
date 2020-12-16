@@ -13,5 +13,7 @@
 #include "cubemaparraytexture.h"
 #include "multisampletexture2d.h"
 #include "multisamplearraytexture2d.h"
+#include "framebuffer.h"
+#include "renderbuffer.h"
 
 #include "glecore.h"

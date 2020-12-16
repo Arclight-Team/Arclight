@@ -77,6 +77,7 @@ bool Framebuffer::validate() const {
 	switch (state) {
 
 		case GL_FRAMEBUFFER_COMPLETE:
+			info("Framebuffer %d has been successfully validated", id);
 			return true;
 
 		case GL_FRAMEBUFFER_UNDEFINED:
@@ -123,7 +124,7 @@ bool Framebuffer::validate() const {
 
 
 
-void Framebuffer::attachTexture(u32 attachmentIndex, Texture& texture) {
+void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture) {
 
 	gle_assert(isBound(), "Framebuffer %d has not been bound (attempted to attach texture)", id);
 	gle_assert(texture.isInitialized(), "Texture %d has not been initialized (attempted to attach texture)", id);
@@ -138,7 +139,7 @@ void Framebuffer::attachTexture(u32 attachmentIndex, Texture& texture) {
 
 
 
-void Framebuffer::attachTexture(u32 attachmentIndex, Texture& texture, u32 layer) {
+void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture, u32 layer) {
 
 	gle_assert(isBound(), "Framebuffer %d has not been bound (attempted to attach texture)", id);
 	gle_assert(texture.isInitialized(), "Texture %d has not been initialized (attempted to attach texture)", id);
@@ -191,10 +192,10 @@ void Framebuffer::attachTexture(u32 attachmentIndex, Texture& texture, u32 layer
 
 
 
-void Framebuffer::attachRenderbuffer(u32 attachmentIndex, Renderbuffer& renderbuffer) {
+void Framebuffer::attachRenderbuffer(u32 attachmentIndex, const Renderbuffer& renderbuffer) {
 
 	gle_assert(isBound(), "Framebuffer %d has not been bound (attempted to attach renderbuffer)", id);
-	gle_assert(renderbuffer.isInitialized(), "Texture %d has not been initialized (attempted to attach texture)", id);
+	gle_assert(renderbuffer.isInitialized(), "Renderbuffer %d has not been initialized (attempted to attach renderbuffer)", id);
 	gle_assert(validAttachmentIndex(attachmentIndex), "Framebuffer attachment index %d is invalid (id = %d)", attachmentIndex, id);
 
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, getAttachmentEnum(attachmentIndex), GL_RENDERBUFFER, renderbuffer.id);

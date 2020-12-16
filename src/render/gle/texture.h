@@ -132,7 +132,7 @@ protected:
 	friend class Framebuffer;
 
 	//Don't even try creating a raw texture object.
-	constexpr explicit Texture(TextureType type) : id(invalidID), type(type),
+	constexpr explicit Texture(TextureType type) : type(type),
 		width(0), height(0), depth(0), texFormat(ImageFormat::None) {}
 
 	void setWrapU(TextureWrap wrap);
@@ -156,13 +156,11 @@ protected:
 	static u32 getTextureSourceTypeEnum(TextureSourceType type);
 	static u32 getCubemapFaceEnum(CubemapFace face);
 
-	u32 id;
-	const TextureType type;
-
 	u32 width;
 	u32 height;
 	u32 depth;
 	ImageFormat texFormat;
+	const TextureType type;
 
 private:
 

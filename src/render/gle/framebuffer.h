@@ -27,11 +27,11 @@ public:
     virtual void destroy() override;
 
     bool isBound() const;
-
     bool validate() const;
-    void attachTexture(u32 attachmentIndex, Texture& texture);
-    void attachTexture(u32 attachmentIndex, Texture& texture, u32 layer);
-    void attachRenderbuffer(u32 attachmentIndex, Renderbuffer& renderbuffer);
+
+    void attachTexture(u32 attachmentIndex, const Texture& texture);
+    void attachTexture(u32 attachmentIndex, const Texture& texture, u32 layer);
+    void attachRenderbuffer(u32 attachmentIndex, const Renderbuffer& renderbuffer);
 
     static void bindDefault();
     static void setViewport(u32 w, u32 h);

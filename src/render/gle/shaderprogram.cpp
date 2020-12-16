@@ -152,7 +152,9 @@ std::vector<u8> ShaderProgram::saveBinary() {
 
 void ShaderProgram::start() {
 
+#if !GLE_PASS_UNLINKED_SHADERS
 	gle_assert(isLinked(), "Cannot activate non-linked shader with ID %d", id);
+#endif
 
 	if (!isActive()) {
 		glUseProgram(id);

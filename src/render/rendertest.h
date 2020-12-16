@@ -50,19 +50,25 @@ public:
 
 private:
 
+	enum class ShaderPass {
+		Shadow,
+		Main,
+		Debug
+	};
+
 	void loadShaders();
 	void loadResources();
 
 	void saveScreenshot();
 
-	void renderModels();
-	void renderNode(Model& model, ModelNode& node);
-	void renderDebugNode(Model& model, ModelNode& node);
+	void renderModels(ShaderPass pass);
+	void renderNode(Model& model, ModelNode& node, ShaderPass pass);
 
 	void setTextureFilters(u32 modelID, GLE::TextureFilter min, GLE::TextureFilter mag);
 	void setTextureWrap(u32 modelID, GLE::TextureWrap wrapU, GLE::TextureWrap wrapV);
 
 	void recalculateMVPMatrix();
+	void setupFramebuffers();
 
 	GLE::VertexBuffer squareVertexBuffer;
 	GLE::VertexArray squareVertexArray;
@@ -91,6 +97,8 @@ private:
 	GLE::Uniform modelMVPUniform;
 	GLE::Uniform modelDiffuseUniform;
 	GLE::Uniform modelLightUniform;
+	GLE::Uniform modelShadowMatrixUniform;
+	GLE::Uniform modelShadowMapUniform;
 	GLE::Uniform modelViewUniform;
 	GLE::Uniform modelSrtUniform;
 	GLE::Uniform modelBaseColUniform;
@@ -101,6 +109,21 @@ private:
 	GLE::Uniform debugUPUniform;
 	GLE::Uniform debugNUniform;
 	GLE::Uniform debugMVPUniform;
+
+	GLE::VertexArray screenVertexArray;
+	GLE::VertexBuffer screenVertexBuffer;
+	GLE::ShaderProgram screenShader;
+	GLE::Uniform screenTextureUniform;
+
+	GLE::ShaderProgram shadowShader;
+	GLE::Uniform lightMatrixUniform;
+
+	GLE::Framebuffer renderFramebuffer;
+	GLE::Texture2D renderColorTexture;
+	GLE::Renderbuffer renderDepthBuffer;
+
+	GLE::Framebuffer shadowFramebuffer;
+	GLE::Texture2D shadowDepthTexture;
 
 	Mat4f modelMatrix;
 	Mat4f viewMatrix;
@@ -121,7 +144,7 @@ private:
 	bool showNormals;
 
 	constexpr inline static double fov = 90;
-	constexpr inline static double nearPlane = 0.01;
+	constexpr inline static double nearPlane = 0.1;
 	constexpr inline static double farPlane = 1000;
 	constexpr inline static Vec3f camStartPos = Vec3f(0.5, 0.5, 10);
 	constexpr inline static double camStartAngleH = Math::toRadians(-90);

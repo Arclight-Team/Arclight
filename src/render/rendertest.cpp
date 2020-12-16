@@ -4,6 +4,7 @@
 #include "util/random.h"
 #include "util/file.h"
 #include "screenshot.h"
+#include "util/profiler.h"
 
 
 RenderTest::RenderTest() : frameCounter(0), fbWidth(0), fbHeight(0), showNormals(false) {}
@@ -19,6 +20,15 @@ void RenderTest::create(u32 w, u32 h) {
 		0, 0, 0, 0,
 		1, 1, 1, 1,
 		0, 1, 0, 1
+	};
+
+	static float screenVertices[] = {
+		-1, -1, 0, 0,
+		1, -1, 1, 0,
+		1, 1, 1, 1,
+		-1, -1, 0, 0,
+		1, 1, 1, 1,
+		-1, 1, 0, 1
 	};
 
 	static float skyboxVertices[] = {
@@ -65,11 +75,26 @@ void RenderTest::create(u32 w, u32 h) {
 		 1.0f, -1.0f,  1.0f
 	};
 
+	fbWidth = w;
+	fbHeight = h;
+
 	GLE::setRowUnpackAlignment(GLE::Alignment::None);
 	GLE::setRowPackAlignment(GLE::Alignment::None);
 
 	loadShaders();
 	loadResources();
+
+	screenVertexArray.create();
+	screenVertexArray.bind();
+
+	screenVertexBuffer.create();
+	screenVertexBuffer.bind();
+	screenVertexBuffer.allocate(96, screenVertices);
+
+	screenVertexArray.setAttribute(0, 2, GLE::AttributeType::Float, 16, 0);
+	screenVertexArray.setAttribute(1, 2, GLE::AttributeType::Float, 16, 8);
+	screenVertexArray.enableAttribute(0);
+	screenVertexArray.enableAttribute(1);
 
 	squareVertexArray.create();
 	squareVertexArray.bind();
@@ -105,9 +130,7 @@ void RenderTest::create(u32 w, u32 h) {
 	projectionMatrix = Mat4f::perspective(Math::toRadians(fov), w / static_cast<double>(h), nearPlane, farPlane);
 
 	recalculateMVPMatrix();
-
-	fbWidth = w;
-	fbHeight = h;
+	setupFramebuffers();
 
 }
 
@@ -138,8 +161,20 @@ void RenderTest::run() {
 	recalculateMVPMatrix();
 
 	//OpenGL main
+
+	//Render to shadow map
+	shadowFramebuffer.bind();
+	glViewport(0, 0, 2048, 2048);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	renderModels(ShaderPass::Shadow);
+
+	//Render to render framebuffer
+	renderFramebuffer.bind();
+	glViewport(0, 0, fbWidth, fbHeight);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	//Render cubemap
 	glDepthMask(false);
 	cubemapShader.start();
 
@@ -156,6 +191,7 @@ void RenderTest::run() {
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glDepthMask(true);
 
+	//Render test shader
 	basicShader.start();
 
 	diffuseTexture.activate(0);
@@ -176,7 +212,26 @@ void RenderTest::run() {
 	squareVertexArray.bind();
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	renderModels();
+	//Render models
+	renderModels(ShaderPass::Main);
+
+	if (showNormals) {
+		renderModels(ShaderPass::Debug);
+	}
+
+	//Postprocess
+	GLE::Framebuffer::bindDefault();
+	glDisable(GL_DEPTH_TEST);
+
+	screenShader.start();
+	
+	renderColorTexture.activate(0);
+	screenTextureUniform.setInt(0);
+
+	screenVertexArray.bind();
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glEnable(GL_DEPTH_TEST);
 
 }
 
@@ -205,6 +260,14 @@ void RenderTest::destroy() {
 		m.destroy();
 	}
 
+	screenShader.destroy();
+	screenVertexArray.destroy();
+	screenVertexBuffer.destroy();
+
+	renderColorTexture.destroy();
+	renderDepthBuffer.destroy();
+	renderFramebuffer.destroy();
+
 }
 
 
@@ -215,6 +278,8 @@ void RenderTest::loadShaders() {
 	cubemapShader.destroy();
 	modelShader.destroy();
 	debugShader.destroy();
+	screenShader.destroy();
+	shadowShader.destroy();
 
 	Loader::loadShader(basicShader, ":/shaders/basic.avs", ":/shaders/basic.afs");
 	Loader::loadShader(cubemapShader, ":/shaders/cubemap.avs", ":/shaders/cubemap.afs");
@@ -233,7 +298,9 @@ void RenderTest::loadShaders() {
 	modelMVUniform = modelShader.getUniform("modelViewMatrix");
 	modelMVPUniform = modelShader.getUniform("mvpMatrix");
 	modelDiffuseUniform = modelShader.getUniform("diffuseTexture");
-	modelLightUniform = modelShader.getUniform("lightPos");
+	modelLightUniform = modelShader.getUniform("lightDir");
+	modelShadowMatrixUniform = modelShader.getUniform("shadowMatrix");
+	modelShadowMapUniform = modelShader.getUniform("shadowMap");
 	modelViewUniform = modelShader.getUniform("viewPos");
 	modelBaseColUniform = modelShader.getUniform("baseCol");
 	modelSrtUniform = modelShader.getUniform("srtMatrix");
@@ -243,6 +310,12 @@ void RenderTest::loadShaders() {
 	debugUPUniform = debugShader.getUniform("unprojectionMatrix");
 	debugNUniform = debugShader.getUniform("normalMatrix");
 	debugMVPUniform = debugShader.getUniform("mvpMatrix");
+
+	Loader::loadShader(screenShader, ":/shaders/final.avs", ":/shaders/final.afs");
+	screenTextureUniform = screenShader.getUniform("screenTexture");
+
+	Loader::loadShader(shadowShader, ":/shaders/shadow.avs", ":/shaders/shadow.afs");
+	lightMatrixUniform = shadowShader.getUniform("lightMVPMatrix");
 
 }
 
@@ -350,22 +423,30 @@ void RenderTest::saveScreenshot() {
 
 
 
-void RenderTest::renderModels() {
+void RenderTest::renderModels(ShaderPass pass) {
 
-	modelShader.start();
+	switch (pass) {
+
+		case ShaderPass::Shadow:
+			shadowShader.start();
+			break;
+
+		case ShaderPass::Main:
+			modelShader.start();
+			break;
+
+		case ShaderPass::Debug:
+			debugShader.start();
+			break;
+
+		default:
+			arc_force_assert("Unknown shader pass %d", pass);
+			break;
+
+	}
 
 	for (Model& model : models) {
-		renderNode(model, model.root);
-	}
-	
-	if (showNormals) {
-
-		debugShader.start();
-
-		for (Model& model : models) {
-			renderDebugNode(model, model.root);
-		}
-
+		renderNode(model, model.root, pass);
 	}
 	
 }
@@ -373,7 +454,7 @@ void RenderTest::renderModels() {
 
 
 
-void RenderTest::renderNode(Model& model, ModelNode& node) {
+void RenderTest::renderNode(Model& model, ModelNode& node, ShaderPass pass) {
 
 	if (!node.visible) {
 		return;
@@ -384,75 +465,91 @@ void RenderTest::renderNode(Model& model, ModelNode& node) {
 		Mesh& mesh = model.meshes[node.meshIndices[i]];
 		Material& material = model.materials[mesh.materialIndex];
 		GLE::Texture2D& texture = material.textures["diffuse0"];
-
-		texture.activate(0);
-		modelDiffuseUniform.setInt(0);
-		
 		Mat4f modelMatrix = model.transform * node.baseTransform;
-		Mat4f modelViewMatrix = viewMatrix * modelMatrix;
-		Mat3f normalMatrix = Mat3f(modelViewMatrix.toMat3()).inverse().transposed();
-		Mat4f mvpMatrix = projectionMatrix * modelViewMatrix;
 
-		modelNUniform.setMat3(normalMatrix);
-		modelMVUniform.setMat4(modelViewMatrix);
-		modelMVPUniform.setMat4(mvpMatrix);
+		float orthoBounds = 50;
+		Vec3f lightVector(-1.0, -2.0, -0.5);
+		Vec3f lightPos = -lightVector * 100;
 
-		Vec4f lightPos = viewMatrix * Vec4f(100, 110, 10, 1.0);
-		Vec4f viewPos = viewMatrix * Vec4f(camera.getPosition().x, camera.getPosition().y, camera.getPosition().z, 1.0);
+		Mat4f lightViewMatrix = Mat4f::lookAt(lightPos, Vec3f(0));
+		Mat4f lightOrthoMatrix = Mat4f::ortho(-orthoBounds, orthoBounds, -orthoBounds, orthoBounds, 0.5, 300.0);
+		Mat4f lightMVPMatrix = lightOrthoMatrix * lightViewMatrix * modelMatrix;
 
-		modelLightUniform.setVec3(&viewPos[0]);
-		modelViewUniform.setVec3(&viewPos[0]);
+		switch (pass) {
 
-		if (mesh.materialIndex == 22) {
-			modelBaseColUniform.setVec4(Vec4f(1, 1, 1, 0.75));
-			modelSrtUniform.setMat3(waterSrtMatrix);
+			case ShaderPass::Shadow:
+				{
+					lightMatrixUniform.setMat4(lightMVPMatrix);
+
+					mesh.vao.bind();
+					glDrawElements(GL_TRIANGLES, mesh.vertexCount, GL_UNSIGNED_INT, 0);
+				}
+				break;
+
+			case ShaderPass::Main:
+				{
+					texture.activate(0);
+					modelDiffuseUniform.setInt(0);
+
+					Mat4f modelViewMatrix = viewMatrix * modelMatrix;
+					Mat3f normalMatrix = Mat3f(modelViewMatrix.toMat3()).inverse().transposed();
+					Mat4f mvpMatrix = projectionMatrix * modelViewMatrix;
+
+					modelNUniform.setMat3(normalMatrix);
+					modelMVUniform.setMat4(modelViewMatrix);
+					modelMVPUniform.setMat4(mvpMatrix);
+					modelShadowMatrixUniform.setMat4(lightMVPMatrix);
+
+					Vec4f lightDir = -Vec4f::normalize(viewMatrix * Vec4f(lightVector.x, lightVector.y, lightVector.z, 0.0));
+					Vec4f viewPos = viewMatrix * Vec4f(camera.getPosition().x, camera.getPosition().y, camera.getPosition().z, 1.0);
+
+					modelLightUniform.setVec3(&lightDir[0]);
+					modelViewUniform.setVec3(&viewPos[0]);
+
+					if (mesh.materialIndex == 22) {
+						modelBaseColUniform.setVec4(Vec4f(1, 1, 1, 0.75));
+						modelSrtUniform.setMat3(waterSrtMatrix);
+					} else {
+						modelBaseColUniform.setVec4(Vec4f(1, 1, 1, 1));
+						modelSrtUniform.setMat3(Mat3f());
+					}
+
+					shadowDepthTexture.activate(1);
+					modelShadowMapUniform.setInt(1);
+
+					mesh.vao.bind();
+					glDrawElements(GL_TRIANGLES, mesh.vertexCount, GL_UNSIGNED_INT, 0);
+				}
+				break;
+
+			case ShaderPass::Debug:
+				{
+					Mat4f modelViewMatrix = viewMatrix * modelMatrix;
+					Mat3f normalMatrix = Mat3f(modelViewMatrix.toMat3()).inverse().transposed();
+					Mat4f unprojectionMatrix = projectionMatrix.inverse();
+					Mat4f mvpMatrix = projectionMatrix * modelViewMatrix;
+
+					debugPUniform.setMat4(projectionMatrix);
+					debugUPUniform.setMat4(unprojectionMatrix);
+					debugNUniform.setMat3(normalMatrix);
+					debugMVPUniform.setMat4(mvpMatrix);
+
+					mesh.vao.bind();
+					glDrawElements(GL_TRIANGLES, mesh.vertexCount, GL_UNSIGNED_INT, 0);
+
+				}
+				break;
+
+			default:
+				arc_force_assert("Unknown shader pass %d", pass);
+				break;
+
 		}
-		else {
-			modelBaseColUniform.setVec4(Vec4f(1, 1, 1, 1));
-			modelSrtUniform.setMat3(Mat3f());
-		}
-
-		mesh.vao.bind();
-		glDrawElements(GL_TRIANGLES, mesh.vertexCount, GL_UNSIGNED_INT, 0);
 
 	}
 
 	for (u32 i = 0; i < node.children.size(); i++) {
-		renderNode(model, node.children[i]);
-	}
-
-}
-
-
-
-void RenderTest::renderDebugNode(Model& model, ModelNode& node) {
-
-	if (!node.visible) {
-		return;
-	}
-
-	for (u32 i = 0; i < node.meshIndices.size(); i++) {
-
-		Mesh& mesh = model.meshes[node.meshIndices[i]];
-
-		Mat4f modelMatrix = model.transform * node.baseTransform;
-		Mat4f modelViewMatrix = viewMatrix * modelMatrix;
-		Mat3f normalMatrix = Mat3f(modelViewMatrix.toMat3()).inverse().transposed();
-		Mat4f unprojectionMatrix = projectionMatrix.inverse();
-		Mat4f mvpMatrix = projectionMatrix * modelViewMatrix;
-
-		debugPUniform.setMat4(projectionMatrix);
-		debugUPUniform.setMat4(unprojectionMatrix);
-		debugNUniform.setMat3(normalMatrix);
-		debugMVPUniform.setMat4(mvpMatrix);
-
-		mesh.vao.bind();
-		glDrawElements(GL_TRIANGLES, mesh.vertexCount, GL_UNSIGNED_INT, 0);
-
-	}
-
-	for (u32 i = 0; i < node.children.size(); i++) {
-		renderDebugNode(model, node.children[i]);
+		renderNode(model, node.children[i], pass);
 	}
 
 }
@@ -497,12 +594,13 @@ void RenderTest::setTextureWrap(u32 modelID, GLE::TextureWrap wrapU, GLE::Textur
 
 void RenderTest::resizeWindowFB(u32 w, u32 h) {
 
+	fbWidth = w;
+	fbHeight = h;
+
 	glViewport(0, 0, w, h);
 	projectionMatrix = Mat4f::perspective(Math::toRadians(fov), w / static_cast<double>(h), nearPlane, farPlane);
 	recalculateMVPMatrix();
-
-	fbWidth = w;
-	fbHeight = h;
+	setupFramebuffers();
 
 }
 
@@ -573,4 +671,50 @@ void RenderTest::onKeyAction(KeyAction action) {
 
 void RenderTest::recalculateMVPMatrix() {
 	mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
+}
+
+
+
+void RenderTest::setupFramebuffers() {
+
+	Profiler fboProfiler;
+	fboProfiler.start();
+
+	shadowDepthTexture.destroy();
+	shadowFramebuffer.destroy();
+
+	renderColorTexture.destroy();
+	renderDepthBuffer.destroy();
+	renderFramebuffer.destroy();
+
+	shadowDepthTexture.create();
+	shadowDepthTexture.bind();
+	shadowDepthTexture.setData(2048, 2048, GLE::ImageFormat::Depth24, GLE::TextureSourceFormat::Depth, GLE::TextureSourceType::UByte, nullptr);
+	shadowDepthTexture.setMipmapMaxLevel(0);
+
+	shadowFramebuffer.create();
+	shadowFramebuffer.bind();
+	shadowFramebuffer.attachTexture(GLE::Framebuffer::DepthIndex, shadowDepthTexture);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	shadowFramebuffer.validate();
+
+	renderColorTexture.create();
+	renderColorTexture.bind();
+	renderColorTexture.setData(fbWidth, fbHeight, GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, nullptr);
+	renderColorTexture.setMipmapMaxLevel(0);
+
+	renderDepthBuffer.create();
+	renderDepthBuffer.bind();
+	renderDepthBuffer.setStorage(fbWidth, fbHeight, GLE::ImageFormat::Depth24Stencil8);
+
+	renderFramebuffer.create();
+	renderFramebuffer.bind();
+	renderFramebuffer.attachTexture(GLE::Framebuffer::ColorIndex, renderColorTexture);
+	renderFramebuffer.attachRenderbuffer(GLE::Framebuffer::DepthStencilIndex, renderDepthBuffer);
+	renderFramebuffer.validate();
+	GLE::Framebuffer::bindDefault();
+
+	fboProfiler.stop("FBO Profiler");
+
 }
