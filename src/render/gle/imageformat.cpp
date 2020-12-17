@@ -86,10 +86,10 @@ u32 Image::getImageFormatEnum(ImageFormat format) {
 		case ImageFormat::RGBA16:
 			return GL_RGBA16;
 
-		case ImageFormat::SRGB:
+		case ImageFormat::SRGB8:
 			return GL_SRGB8;
 
-		case ImageFormat::SRGBA:
+		case ImageFormat::SRGBA8:
 			return GL_SRGB8_ALPHA8;
 
 		case ImageFormat::R16f:

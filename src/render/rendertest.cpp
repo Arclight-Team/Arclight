@@ -7,7 +7,7 @@
 #include "util/profiler.h"
 
 
-RenderTest::RenderTest() : frameCounter(0), fbWidth(0), fbHeight(0), showNormals(false) {}
+RenderTest::RenderTest() : frameCounter(0), fbWidth(0), fbHeight(0), exposure(1), showNormals(false) {}
 
 
 
@@ -118,6 +118,7 @@ void RenderTest::create(u32 w, u32 h) {
 	skyboxVertexArray.setAttribute(0, 3, GLE::AttributeType::Float, 12, 0);
 	skyboxVertexArray.enableAttribute(0);
 
+	//glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -125,11 +126,9 @@ void RenderTest::create(u32 w, u32 h) {
 	camera.setPosition(camStartPos);
 	camera.setRotation(camStartAngleH, camStartAngleV);
 
-	modelMatrix = Mat4f::fromTranslation(0, 0, 0);
 	viewMatrix = Mat4f::lookAt(camera.getPosition(), camera.getPosition() + camera.getDirection());
-	projectionMatrix = Mat4f::perspective(Math::toRadians(fov), w / static_cast<double>(h), nearPlane, farPlane);
-
-	recalculateMVPMatrix();
+	
+	recalculateProjection();
 	setupFramebuffers();
 
 }
@@ -145,28 +144,25 @@ void RenderTest::run() {
 		frameCounter = 0;
 	}
 
-	//modelMatrix = Mat4f::fromTranslation(0, 10 * (1 + Math::sin(frameCounter / 20.0) * Math::sin(frameCounter / 20.0)) / (frameCounter / 14.0), 0).rotate(Vec3f(0, 1, 0), Math::toRadians(10 * frameCounter * (1 / (1 + (frameCounter / 360.0)))));
-
 	if (camMovement != Vec3i(0, 0, 0) || camRotation != Vec3i(0, 0, 0)) {
 
 		camera.move(camMovement * camVelocity);
 		camera.rotate(camRotation.x * camRotationScale, camRotation.y * camRotationScale);
+		viewMatrix = Mat4f::lookAt(camera.getPosition(), camera.getPosition() + camera.getDirection());
 
 		camMovement = Vec3i(0, 0, 0);
 		camRotation = Vec3i(0, 0, 0);
 
 	}
 
-	viewMatrix = Mat4f::lookAt(camera.getPosition(), camera.getPosition() + camera.getDirection());
-	recalculateMVPMatrix();
+	recalculateProjection();
 
 	//OpenGL main
 
 	//Render to shadow map
 	shadowFramebuffer.bind();
-	glViewport(0, 0, 2048, 2048);
+	glViewport(0, 0, shadowMapSize, shadowMapSize);
 	glClear(GL_DEPTH_BUFFER_BIT);
-
 	renderModels(ShaderPass::Shadow);
 
 	//Render to render framebuffer
@@ -207,7 +203,7 @@ void RenderTest::run() {
 	srtMatrix[1][1] = 1 + frameCounter / 50.0;
 
 	srtUniform.setMat2(srtMatrix);
-	mvpBasicUniform.setMat4(mvpMatrix);
+	mvpBasicUniform.setMat4(projectionMatrix * viewMatrix);
 
 	squareVertexArray.bind();
 	glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -223,10 +219,11 @@ void RenderTest::run() {
 	GLE::Framebuffer::bindDefault();
 	glDisable(GL_DEPTH_TEST);
 
-	screenShader.start();
+	pprocessShader.start();
 	
 	renderColorTexture.activate(0);
-	screenTextureUniform.setInt(0);
+	pprocessTextureUniform.setInt(0);
+	pprocessExposureUniform.setFloat(exposure);
 
 	screenVertexArray.bind();
 	glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -260,7 +257,7 @@ void RenderTest::destroy() {
 		m.destroy();
 	}
 
-	screenShader.destroy();
+	pprocessShader.destroy();
 	screenVertexArray.destroy();
 	screenVertexBuffer.destroy();
 
@@ -278,7 +275,7 @@ void RenderTest::loadShaders() {
 	cubemapShader.destroy();
 	modelShader.destroy();
 	debugShader.destroy();
-	screenShader.destroy();
+	pprocessShader.destroy();
 	shadowShader.destroy();
 
 	Loader::loadShader(basicShader, ":/shaders/basic.avs", ":/shaders/basic.afs");
@@ -311,8 +308,9 @@ void RenderTest::loadShaders() {
 	debugNUniform = debugShader.getUniform("normalMatrix");
 	debugMVPUniform = debugShader.getUniform("mvpMatrix");
 
-	Loader::loadShader(screenShader, ":/shaders/final.avs", ":/shaders/final.afs");
-	screenTextureUniform = screenShader.getUniform("screenTexture");
+	Loader::loadShader(pprocessShader, ":/shaders/final.avs", ":/shaders/final.afs");
+	pprocessTextureUniform = pprocessShader.getUniform("screenTexture");
+	pprocessExposureUniform = pprocessShader.getUniform("exposure");
 
 	Loader::loadShader(shadowShader, ":/shaders/shadow.avs", ":/shaders/shadow.afs");
 	lightMatrixUniform = shadowShader.getUniform("lightMVPMatrix");
@@ -597,9 +595,7 @@ void RenderTest::resizeWindowFB(u32 w, u32 h) {
 	fbWidth = w;
 	fbHeight = h;
 
-	glViewport(0, 0, w, h);
-	projectionMatrix = Mat4f::perspective(Math::toRadians(fov), w / static_cast<double>(h), nearPlane, farPlane);
-	recalculateMVPMatrix();
+	recalculateProjection();
 	setupFramebuffers();
 
 }
@@ -648,6 +644,15 @@ void RenderTest::onKeyAction(KeyAction action) {
 			camVelocity = camVelocitySlow;
 			break;
 
+		case ActionID::FovIn:
+			fov = fovZoom;
+			recalculateProjection();
+			break;
+		case ActionID::FovOut:
+			fov = fovNormal;
+			recalculateProjection();
+			break;
+
 		case ActionID::QuickScreenshot:
 			saveScreenshot();
 			break;
@@ -669,8 +674,18 @@ void RenderTest::onKeyAction(KeyAction action) {
 
 
 
-void RenderTest::recalculateMVPMatrix() {
-	mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
+void RenderTest::onScroll(float s) {
+
+	exposure += s * 0.1;
+	exposure = Math::clamp(exposure, 0.1, 30.0);
+	Log::info("Render Test", "Exposure set to %f", exposure);
+
+}
+
+
+
+void RenderTest::recalculateProjection() {
+	projectionMatrix = Mat4f::perspective(Math::toRadians(fov), fbWidth / static_cast<double>(fbHeight), nearPlane, farPlane);
 }
 
 
@@ -689,8 +704,14 @@ void RenderTest::setupFramebuffers() {
 
 	shadowDepthTexture.create();
 	shadowDepthTexture.bind();
-	shadowDepthTexture.setData(2048, 2048, GLE::ImageFormat::Depth24, GLE::TextureSourceFormat::Depth, GLE::TextureSourceType::UByte, nullptr);
+	shadowDepthTexture.setData(shadowMapSize, shadowMapSize, GLE::ImageFormat::Depth24, GLE::TextureSourceFormat::Depth, GLE::TextureSourceType::UByte, nullptr);
 	shadowDepthTexture.setMipmapMaxLevel(0);
+	shadowDepthTexture.setWrapU(GLE::TextureWrap::Border);
+	shadowDepthTexture.setWrapV(GLE::TextureWrap::Border);
+	shadowDepthTexture.setBorderColor(1, 1, 1, 1);
+	shadowDepthTexture.setMinFilter(GLE::TextureFilter::Bilinear);
+	shadowDepthTexture.setMagFilter(GLE::TextureFilter::Bilinear);
+	shadowDepthTexture.enableComparisonMode(GLE::TextureOperator::LessEqual);
 
 	shadowFramebuffer.create();
 	shadowFramebuffer.bind();
@@ -701,7 +722,7 @@ void RenderTest::setupFramebuffers() {
 
 	renderColorTexture.create();
 	renderColorTexture.bind();
-	renderColorTexture.setData(fbWidth, fbHeight, GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, nullptr);
+	renderColorTexture.setData(fbWidth, fbHeight, GLE::ImageFormat::RGB16f, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::Float, nullptr);
 	renderColorTexture.setMipmapMaxLevel(0);
 
 	renderDepthBuffer.create();

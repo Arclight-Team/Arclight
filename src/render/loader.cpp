@@ -175,7 +175,7 @@ namespace Loader {
 
 		texture.create();
 		texture.bind();
-		texture.setData(width, height,	hasAlpha ? GLE::ImageFormat::RGBA8 : GLE::ImageFormat::RGB8, 
+		texture.setData(width, height,	hasAlpha ? GLE::ImageFormat::SRGBA8 : GLE::ImageFormat::SRGB8, 
 										hasAlpha ? GLE::TextureSourceFormat::RGBA : GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, data);
 
 		stbi_image_free(data);
@@ -223,8 +223,10 @@ namespace Loader {
 					return false;
 				}
 
-				format = (channels == 4) ? GLE::ImageFormat::RGBA8 : GLE::ImageFormat::RGB8;
-				srcFormat = (channels == 4) ? GLE::TextureSourceFormat::RGBA : GLE::TextureSourceFormat::RGB;
+				bool hasAlpha = (channels == 4);
+
+				format = hasAlpha ? GLE::ImageFormat::SRGBA8 : GLE::ImageFormat::SRGB8;
+				srcFormat = hasAlpha ? GLE::TextureSourceFormat::RGBA : GLE::TextureSourceFormat::RGB;
 				texture.setData(width, height, layers, format, srcFormat, GLE::TextureSourceType::UByte, nullptr);
 
 			} else {
@@ -307,8 +309,10 @@ namespace Loader {
 					return false;
 				}
 
-				format = (channels == 4) ? GLE::ImageFormat::RGBA8 : GLE::ImageFormat::RGB8;
-				srcFormat = (channels == 4) ? GLE::TextureSourceFormat::RGBA : GLE::TextureSourceFormat::RGB;
+				bool hasAlpha = (channels == 4);
+
+				format = hasAlpha ? GLE::ImageFormat::RGBA8 : GLE::ImageFormat::RGB8;
+				srcFormat = hasAlpha ? GLE::TextureSourceFormat::RGBA : GLE::TextureSourceFormat::RGB;
 				cubemap.setData(i, width, format, srcFormat, GLE::TextureSourceType::UByte, data);
 
 			} else {

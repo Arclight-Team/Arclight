@@ -17,6 +17,7 @@ public:
 	void update(u32 x, u32 w, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
 
 	using Texture::setWrapU;
+	using Texture::setBorderColor;
 	using Texture::setMipmapBaseLevel;
 	using Texture::setMipmapMaxLevel;
 	using Texture::setMipmapRange;
@@ -24,6 +25,8 @@ public:
 	using Texture::setMinFilter;
 	using Texture::setMagFilter;
 	using Texture::generateMipmaps;
+	using Texture::enableComparisonMode;
+	using Texture::disableComparisonMode;
 
 };
 

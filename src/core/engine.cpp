@@ -180,10 +180,12 @@ void Engine::setupInputSystem() {
 	rootContext.addAction(RenderTest::ActionID::CameraMoveRight,	KeyTrigger({ 68 }), true);
 	rootContext.addAction(RenderTest::ActionID::CameraMoveBackward,	KeyTrigger({ 83 }), true);
 	rootContext.addAction(RenderTest::ActionID::CameraMoveForward,	KeyTrigger({ 87 }), true);
-	rootContext.addAction(RenderTest::ActionID::CameraMoveDown,		KeyTrigger({ 81 }), true);
-	rootContext.addAction(RenderTest::ActionID::CameraMoveUp,		KeyTrigger({ 69 }), true);
-	rootContext.addAction(RenderTest::ActionID::CameraSpeedUp,		KeyTrigger({ 340 }, KeyState::Pressed), true);
-	rootContext.addAction(RenderTest::ActionID::CameraSlowDown,		KeyTrigger({ 340 }, KeyState::Released), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveDown,		KeyTrigger({ 340 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveUp,		KeyTrigger({ 32 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraSpeedUp,		KeyTrigger({ 341 }, KeyState::Released), false);
+	rootContext.addAction(RenderTest::ActionID::CameraSlowDown,		KeyTrigger({ 341 }, KeyState::Pressed), false);
+	rootContext.addAction(RenderTest::ActionID::FovIn,				KeyTrigger({ 320 }, KeyState::Pressed), false);
+	rootContext.addAction(RenderTest::ActionID::FovOut,				KeyTrigger({ 320 }, KeyState::Released), false);
 
 	rootContext.addAction(RenderTest::ActionID::QuickScreenshot,	KeyTrigger({ 291 }), false);
 	rootContext.addAction(RenderTest::ActionID::ReloadShaders,		KeyTrigger({ 292 }), false);
@@ -201,7 +203,9 @@ void Engine::setupInputSystem() {
 	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveDown);
 	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveUp);
 	rootContext.registerAction(0, RenderTest::ActionID::CameraSpeedUp);
-	rootContext.registerAction(0, RenderTest::ActionID::CameraSlowDown);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraSlowDown);	
+	rootContext.registerAction(0, RenderTest::ActionID::FovIn);
+	rootContext.registerAction(0, RenderTest::ActionID::FovOut);
 
 	rootContext.registerAction(0, RenderTest::ActionID::QuickScreenshot);
 	rootContext.registerAction(0, RenderTest::ActionID::ReloadShaders);
@@ -222,7 +226,7 @@ void Engine::setupInputSystem() {
 	});
 
 	inputHandler.setKeyListener([this](Key key, KeyState state) {
-		//Log::info("Input Context", "Key triggered: %d, %d", key, state);
+		Log::info("Input Context", "Key triggered: %d, %d", key, state);
 		return true;
 	});
 
@@ -238,6 +242,7 @@ void Engine::setupInputSystem() {
 
 	inputHandler.setScrollListener([this](double x, double y) {
 		//Log::info("Input Context", "Scrolled: %f, %f", x, y);
+		renderTest.onScroll(y);
 		return true;
 	});
 

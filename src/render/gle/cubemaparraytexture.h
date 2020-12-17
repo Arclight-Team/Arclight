@@ -17,6 +17,7 @@ public:
 	using Texture::setWrapU;
 	using Texture::setWrapV;
 	using Texture::setWrapW;
+	using Texture::setBorderColor;
 	using Texture::setMipmapBaseLevel;
 	using Texture::setMipmapMaxLevel;
 	using Texture::setMipmapRange;
@@ -24,6 +25,8 @@ public:
 	using Texture::setMinFilter;
 	using Texture::setMagFilter;
 	using Texture::generateMipmaps;
+	using Texture::enableComparisonMode;
+	using Texture::disableComparisonMode;
 
 };
 

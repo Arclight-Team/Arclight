@@ -20,6 +20,7 @@ public:
 
 	void resizeWindowFB(u32 w, u32 h);
 	void onKeyAction(KeyAction action);
+	void onScroll(float s);
 
 	enum ActionID : int {
 		CameraRotLeft = 1,
@@ -34,6 +35,8 @@ public:
 		CameraMoveUp,
 		CameraSpeedUp,
 		CameraSlowDown,
+		FovIn,
+		FovOut,
 		QuickScreenshot,
 		ReloadShaders,
 		ReloadResources,
@@ -67,7 +70,7 @@ private:
 	void setTextureFilters(u32 modelID, GLE::TextureFilter min, GLE::TextureFilter mag);
 	void setTextureWrap(u32 modelID, GLE::TextureWrap wrapU, GLE::TextureWrap wrapV);
 
-	void recalculateMVPMatrix();
+	void recalculateProjection();
 	void setupFramebuffers();
 
 	GLE::VertexBuffer squareVertexBuffer;
@@ -112,8 +115,9 @@ private:
 
 	GLE::VertexArray screenVertexArray;
 	GLE::VertexBuffer screenVertexBuffer;
-	GLE::ShaderProgram screenShader;
-	GLE::Uniform screenTextureUniform;
+	GLE::ShaderProgram pprocessShader;
+	GLE::Uniform pprocessTextureUniform;
+	GLE::Uniform pprocessExposureUniform;
 
 	GLE::ShaderProgram shadowShader;
 	GLE::Uniform lightMatrixUniform;
@@ -125,10 +129,8 @@ private:
 	GLE::Framebuffer shadowFramebuffer;
 	GLE::Texture2D shadowDepthTexture;
 
-	Mat4f modelMatrix;
 	Mat4f viewMatrix;
 	Mat4f projectionMatrix;
-	Mat4f mvpMatrix;
 
 	Mat3f waterSrtMatrix;
 	Vec2f waterBaseCol;
@@ -141,9 +143,10 @@ private:
 	u32 fbWidth;
 	u32 fbHeight;
 
+	float exposure;
+
 	bool showNormals;
 
-	constexpr inline static double fov = 90;
 	constexpr inline static double nearPlane = 0.1;
 	constexpr inline static double farPlane = 1000;
 	constexpr inline static Vec3f camStartPos = Vec3f(0.5, 0.5, 10);
@@ -151,7 +154,12 @@ private:
 	constexpr inline static double camStartAngleV = Math::toRadians(0);
 	constexpr inline static double camVelocityFast = 0.51;
 	constexpr inline static double camVelocitySlow = 0.08;
-	inline static double camVelocity = camVelocitySlow;
 	constexpr inline static double camRotationScale = 0.06;
+	constexpr inline static double fovNormal = 90;
+	constexpr inline static double fovZoom = 30;
+	constexpr inline static u32 shadowMapSize = 2048;
+
+	static inline double fov = fovNormal;
+	static inline double camVelocity = camVelocityFast;
 
 };

@@ -264,6 +264,27 @@ void Texture::setMagFilter(TextureFilter filter) {
 
 
 
+void Texture::enableComparisonMode(TextureOperator op) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to enable texture comparison)", id);
+
+	glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_COMPARE_FUNC, getTextureOperatorEnum(op));
+
+}
+
+
+
+void Texture::disableComparisonMode() {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to disable texture comparison)", id);
+
+	glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_COMPARE_MODE, GL_NONE);
+
+}
+
+
+
 CubemapFace Texture::getCubemapFace(u32 index) {
 	gle_assert(index < 6, "Invalid cubemap face index %d", index);
 	return static_cast<CubemapFace>(index);
@@ -296,6 +317,17 @@ void Texture::setWrapW(TextureWrap wrap) {
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set wrap mode)", id);
 
 	glTexParameteri(getTextureTypeEnum(type), GL_TEXTURE_WRAP_R, getTextureWrapEnum(wrap));
+
+}
+
+
+
+void Texture::setBorderColor(float r, float g, float b, float a) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set border color)", id);
+
+	float color[4] = {r, g, b, a};
+	glTexParameterfv(getTextureTypeEnum(type), GL_TEXTURE_BORDER_COLOR, color);
 
 }
 
@@ -370,6 +402,9 @@ u32 Texture::getTextureWrapEnum(TextureWrap wrap) {
 
 		case TextureWrap::Repeat:
 			return GL_REPEAT;
+
+		case TextureWrap::Border:
+			return GL_CLAMP_TO_BORDER;
 
 		default:
 			gle_force_assert("Invalid texture wrap 0x%X", wrap);
@@ -525,6 +560,44 @@ u32 Texture::getTextureSourceTypeEnum(TextureSourceType type) {
 
 u32 Texture::getCubemapFaceEnum(CubemapFace face) {
 	return GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<u32>(face);
+}
+
+
+
+u32 Texture::getTextureOperatorEnum(TextureOperator op) {
+
+	switch (op) {
+
+		case TextureOperator::Never:
+			return GL_NEVER;
+
+		case TextureOperator::Always:
+			return GL_ALWAYS;
+
+		case TextureOperator::Less:
+			return GL_LESS;
+
+		case TextureOperator::LessEqual:
+			return GL_LEQUAL;
+
+		case TextureOperator::Equal:
+			return GL_EQUAL;
+
+		case TextureOperator::NotEqual:
+			return GL_NOTEQUAL;
+
+		case TextureOperator::GreaterEqual:
+			return GL_GEQUAL;
+
+		case TextureOperator::Greater:
+			return GL_GREATER;
+
+		default:
+			gle_force_assert("Invalid texture operator 0x%X", op);
+			return -1;
+
+	}
+
 }
 
 

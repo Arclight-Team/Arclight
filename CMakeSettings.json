@@ -5,7 +5,7 @@
 			"generator": "Visual Studio 16 2019 Win64",
 			"configurationType": "Debug",
 			"inheritEnvironments": [ "msvc_x64_x64" ],
-			"buildRoot": "${projectDir}\\build",
+			"buildRoot": "${projectDir}\\build\\Debug",
 			"installRoot": "${projectDir}\\bin",
 			"cmakeCommandArgs": "",
 			"buildCommandArgs": "",
@@ -47,7 +47,7 @@
 			"name": "x64-Release",
 			"generator": "Visual Studio 16 2019 Win64",
 			"configurationType": "Release",
-			"buildRoot": "${projectDir}\\build",
+			"buildRoot": "${projectDir}\\build\\Release",
 			"installRoot": "${projectDir}\\bin",
 			"cmakeCommandArgs": "",
 			"buildCommandArgs": "",
@@ -61,6 +61,26 @@
 				},
 				{
 					"name": "USE_MSVC_RUNTIME_LIBRARY_DLL",
+					"value": "False",
+					"type": "BOOL"
+				},
+				{
+					"name": "GLFW_BUILD_DOCS",
+					"value": "False",
+					"type": "BOOL"
+				},
+				{
+					"name": "GLFW_BUILD_EXAMPLES",
+					"value": "False",
+					"type": "BOOL"
+				},
+				{
+					"name": "GLFW_BUILD_TESTS",
+					"value": "False",
+					"type": "BOOL"
+				},
+				{
+					"name": "GLFW_INSTALL",
 					"value": "False",
 					"type": "BOOL"
 				}

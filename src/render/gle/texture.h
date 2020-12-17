@@ -30,7 +30,8 @@ enum class TextureFilter {
 enum class TextureWrap {
 	Repeat,
 	Clamp,
-	Mirror
+	Mirror,
+	Border
 };
 
 
@@ -90,6 +91,19 @@ enum class TextureSourceType {
 };
 
 
+enum class TextureOperator {
+	Never,
+	Always,
+	Less,
+	LessEqual,
+	Equal,
+	NotEqual,
+	GreaterEqual,
+	Greater
+};
+
+
+
 class Texture : public GLObject {
 
 public:
@@ -139,6 +153,8 @@ protected:
 	void setWrapV(TextureWrap wrap);
 	void setWrapW(TextureWrap wrap);
 
+	void setBorderColor(float r, float g, float b, float a);
+
 	void setMipmapBaseLevel(u32 level);
 	void setMipmapMaxLevel(u32 level);
 	void setMipmapRange(u32 base, u32 max);
@@ -148,6 +164,9 @@ protected:
 	void setMinFilter(TextureFilter filter, bool mipmapped = true);
 	void setMagFilter(TextureFilter filter);
 
+	void enableComparisonMode(TextureOperator op = TextureOperator::Less);
+	void disableComparisonMode();
+
 	void generateMipmaps();
 
 	static u32 getTextureTypeEnum(TextureType type);
@@ -155,6 +174,7 @@ protected:
 	static u32 getTextureSourceFormatEnum(TextureSourceFormat format);
 	static u32 getTextureSourceTypeEnum(TextureSourceType type);
 	static u32 getCubemapFaceEnum(CubemapFace face);
+	static u32 getTextureOperatorEnum(TextureOperator op);
 
 	u32 width;
 	u32 height;
