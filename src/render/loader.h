@@ -6,10 +6,6 @@
 #include <unordered_map>
 
 
-struct Texture {
-	GLE::Texture2D texture;
-};
-
 
 struct Material {
 

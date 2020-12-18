@@ -138,6 +138,10 @@ public:
 		divide(length());
 	}
 
+	constexpr auto normalized() const {
+		return normalize(*this);
+	}
+
 	template<Arithmetic A>
 	constexpr auto dot(const Vec2<A>& v) const {
 		return x * v.x + y * v.y;
@@ -313,9 +317,13 @@ public:
 		divide(length());
 	}
 
+	constexpr auto normalized() const {
+		return normalize(*this);
+	}
+
 	template<Arithmetic A>
 	constexpr auto cross(const Vec3<A>& v) const {
-		return Vec3<decltype(y* v.z - z * v.y)>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
+		return Vec3<decltype(y * v.z - z * v.y)>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
 	}
 
 	template<Arithmetic A>
@@ -501,6 +509,10 @@ public:
 
 	constexpr void normalize() {
 		divide(length());
+	}
+
+	constexpr auto normalized() const {
+		return normalize(*this);
 	}
 
 	template<Arithmetic A>

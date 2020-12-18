@@ -11,18 +11,27 @@
 
 
 void Material::destroy() {
+
 	program.destroy();
+
+	for (auto& [name, texture] : textures) {
+		texture.destroy();
+	}
+
 }
 
 
 void Mesh::destroy() {
+
 	vao.destroy();
 	vbo.destroy();
 	ibo.destroy();
+
 }
 
 
 void Model::destroy() {
+
 	for (auto& m : meshes) {
 		m.destroy();
 	}
@@ -30,6 +39,7 @@ void Model::destroy() {
 	for (auto& m : materials) {
 		m.destroy();
 	}
+
 }
 
 

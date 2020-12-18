@@ -114,46 +114,97 @@ void Lights::setLight(u32 id, const SpotLight& light) {
 
 
 
-void Lights::updateLights() {
+const PointLight& Lights::getPointLight(u32 id) {
 
+	if (id >= pls.size()) {
+		Log::error("Lights", "Point light array index out of range");
+	}
+
+	return pls[id];
+
+}
+
+
+
+const DirectionalLight& Lights::getDirectionalLight(u32 id) {
+
+	if (id >= dls.size()) {
+		Log::error("Lights", "Directional light array index out of range");
+	}
+
+	return dls[id];
+
+}
+
+
+
+const SpotLight& Lights::getSpotLight(u32 id) {
+
+	if (id >= sls.size()) {
+		Log::error("Lights", "Spot light array index out of range");
+	}
+
+	return sls[id];
+
+}
+
+
+
+void Lights::updateLights(const Mat4f& viewMatrix, const Mat3f& normalMatrix) {
+
+	Mat3f lightViewMatrix = viewMatrix.toMat3();
 	float* lightData = new float[buffer.getSize() / 4];
 	u32 offset = 0;
 
 	for (u32 i = 0; i < pls.size(); i++) {
-		lightData[offset + 0] = pls[i].position.x;
-		lightData[offset + 1] = pls[i].position.y;
-		lightData[offset + 2] = pls[i].position.z;
+
+		Vec4f viewPos = viewMatrix * Vec4f(pls[i].position.x, pls[i].position.y, pls[i].position.z, 1.0);
+
+		lightData[offset + 0] = viewPos.x;
+		lightData[offset + 1] = viewPos.y;
+		lightData[offset + 2] = viewPos.z;
 		lightData[offset + 4] = pls[i].color.x;
 		lightData[offset + 5] = pls[i].color.y;
 		lightData[offset + 6] = pls[i].color.z;
 		lightData[offset + 7] = pls[i].radius;
 		lightData[offset + 8] = pls[i].intensity;
+
 		offset += Lights::pointLightDataSize / 4;
+
 	}
 
 	offset = Lights::pointLightDataSize * maxPointLights / 4;
 
 	for (u32 i = 0; i < dls.size(); i++) {
-		lightData[offset + 0] = dls[i].direction.x;
-		lightData[offset + 1] = dls[i].direction.y;
-		lightData[offset + 2] = dls[i].direction.z;
+
+		Vec3f viewDir = Vec3f(normalMatrix * dls[i].direction).normalized();
+
+		lightData[offset + 0] = viewDir.x;
+		lightData[offset + 1] = viewDir.y;
+		lightData[offset + 2] = viewDir.z;
 		lightData[offset + 4] = dls[i].color.x;
 		lightData[offset + 5] = dls[i].color.y;
 		lightData[offset + 6] = dls[i].color.z;
 		lightData[offset + 7] = dls[i].intensity;
+
 		offset += Lights::directionalLightDataSize / 4;
+
 	}
 
 	offset = Lights::pointLightDataSize * maxPointLights / 4 
 		   + Lights::directionalLightDataSize * maxDirectionalLights / 4;
 
 	for (u32 i = 0; i < sls.size(); i++) {
-		lightData[offset + 0] = sls[i].position.x;
-		lightData[offset + 1] = sls[i].position.y;
-		lightData[offset + 2] = sls[i].position.z;
-		lightData[offset + 4] = sls[i].direction.x;
-		lightData[offset + 5] = sls[i].direction.y;
-		lightData[offset + 6] = sls[i].direction.z;
+
+		Vec4f viewPos = viewMatrix * Vec4f(sls[i].position.x, sls[i].position.y, sls[i].position.z, 1.0);
+		Vec3f viewDir = Vec3f(normalMatrix * sls[i].direction).normalized();
+
+		lightData[offset + 0] = viewPos.x;
+		lightData[offset + 1] = viewPos.y;
+		lightData[offset + 2] = viewPos.z;
+		lightData[offset + 4] = viewDir.x;
+		lightData[offset + 5] = viewDir.y;
+		lightData[offset + 6] = viewDir.z;
 		lightData[offset + 8] = sls[i].color.x;
 		lightData[offset + 9] = sls[i].color.y;
 		lightData[offset + 10] = sls[i].color.z;
@@ -161,7 +212,9 @@ void Lights::updateLights() {
 		lightData[offset + 12] = sls[i].innerAngle;
 		lightData[offset + 13] = sls[i].radius;
 		lightData[offset + 14] = sls[i].intensity;
+
 		offset += Lights::spotLightDataSize / 4;
+
 	}
 
 	offset = Lights::pointLightDataSize * maxPointLights / 4
@@ -175,8 +228,8 @@ void Lights::updateLights() {
 	sizes[2] = sls.size();
 
 	buffer.bind();
-	buffer.update(0, buffer.getSize() - 8, lightData);
-	buffer.update(buffer.getSize() - 8, 8, sizes);
+	buffer.update(0, buffer.getSize() - 12, lightData);
+	buffer.update(buffer.getSize() - 12, 12, sizes);
 
 	delete[] lightData;
 

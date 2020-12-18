@@ -5,8 +5,8 @@
 #include "render/gle/gle.h"
 #include "util/matrix.h"
 
-#include "loader.h"
 #include "light.h"
+#include "scene.h"
 
 
 class RenderTest {
@@ -44,14 +44,6 @@ public:
 		ToggleDebug
 	};
 
-	enum ModelID : int {
-		Mario,
-		Luigi,
-		CastleGrounds,
-		Melascula,
-		Galand
-	};
-
 private:
 
 	enum class ShaderPass {
@@ -61,52 +53,34 @@ private:
 	};
 
 	void loadShaders();
-	void loadResources();
-
 	void saveScreenshot();
 
 	void renderModels(ShaderPass pass);
 	void renderNode(Model& model, ModelNode& node, ShaderPass pass);
 
-	void setTextureFilters(u32 modelID, GLE::TextureFilter min, GLE::TextureFilter mag);
-	void setTextureWrap(u32 modelID, GLE::TextureWrap wrapU, GLE::TextureWrap wrapV);
-
+	void updateLights();
+	void recalculateView();
 	void recalculateProjection();
 	void setupFramebuffers();
 
-	GLE::VertexBuffer squareVertexBuffer;
-	GLE::VertexArray squareVertexArray;
+	Scene scene;
 
 	GLE::VertexBuffer skyboxVertexBuffer;
 	GLE::VertexArray skyboxVertexArray;
 
-	GLE::ShaderProgram basicShader;
 	GLE::ShaderProgram cubemapShader;
-	GLE::Uniform mvpBasicUniform;
-	GLE::Uniform diffuseTextureUniform;
 	GLE::Uniform mvpCubemapUniform;
-	GLE::Uniform cubemapUniform;
-	GLE::Uniform srtUniform;
-	GLE::Uniform amongUsFrameUniform;
-	GLE::Uniform amongUsTextureUniform;
-
-	GLE::Texture2D eugeneTexture;
-	GLE::ArrayTexture2D amongUsTextureArray;
-	GLE::Texture2D diffuseTexture;
-	GLE::CubemapTexture skyboxTexture;
+	GLE::Uniform cubemapTextureUniform;
 
 	GLE::ShaderProgram modelShader;
 	GLE::Uniform modelNUniform;
 	GLE::Uniform modelMVUniform;
 	GLE::Uniform modelMVPUniform;
 	GLE::Uniform modelDiffuseUniform;
-	GLE::Uniform modelLightUniform;
 	GLE::Uniform modelShadowMatrixUniform;
 	GLE::Uniform modelShadowMapUniform;
-	GLE::Uniform modelViewUniform;
 	GLE::Uniform modelSrtUniform;
 	GLE::Uniform modelBaseColUniform;
-	std::vector<Model> models;
 
 	GLE::ShaderProgram debugShader;
 	GLE::Uniform debugPUniform;

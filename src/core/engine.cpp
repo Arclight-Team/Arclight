@@ -226,7 +226,7 @@ void Engine::setupInputSystem() {
 	});
 
 	inputHandler.setKeyListener([this](Key key, KeyState state) {
-		Log::info("Input Context", "Key triggered: %d, %d", key, state);
+		//Log::info("Input Context", "Key triggered: %d, %d", key, state);
 		return true;
 	});
 
