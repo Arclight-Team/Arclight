@@ -311,7 +311,7 @@ namespace Loader {
 
 				bool hasAlpha = (channels == 4);
 
-				format = hasAlpha ? GLE::ImageFormat::RGBA8 : GLE::ImageFormat::RGB8;
+				format = hasAlpha ? GLE::ImageFormat::SRGBA8 : GLE::ImageFormat::SRGB8;
 				srcFormat = hasAlpha ? GLE::TextureSourceFormat::RGBA : GLE::TextureSourceFormat::RGB;
 				cubemap.setData(i, width, format, srcFormat, GLE::TextureSourceType::UByte, data);
 

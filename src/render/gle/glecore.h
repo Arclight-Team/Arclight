@@ -33,6 +33,8 @@ namespace Limits {
 	u32 getMaxColorAttachments();
 	u32 getMaxDrawBuffers();
 
+	u32 getMaxUniformBlockBindings();
+
 }
 
 

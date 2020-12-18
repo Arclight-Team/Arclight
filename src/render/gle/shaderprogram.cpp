@@ -1,5 +1,6 @@
 #include "shaderprogram.h"
 
+#include "glecore.h"
 #include GLE_HEADER
 
 
@@ -167,6 +168,10 @@ void ShaderProgram::start() {
 
 Uniform ShaderProgram::getUniform(const char* name) const {
 
+#if !GLE_PASS_UNLINKED_SHADERS
+	gle_assert(isLinked(), "Cannot query uniform from non-linked shader with ID %d", id);
+#endif
+
 	u32 uniformID = glGetUniformLocation(id, name);
 
 	if (uniformID == invalidID) {
@@ -174,6 +179,46 @@ Uniform ShaderProgram::getUniform(const char* name) const {
 	}
 
 	return Uniform(uniformID);
+
+}
+
+
+
+u32 ShaderProgram::getUniformBlockIndex(const char* name) const {
+
+#if !GLE_PASS_UNLINKED_SHADERS
+	gle_assert(isLinked(), "Cannot query uniform block from non-linked shader with ID %d", id);
+#endif
+
+	u32 uniformID = glGetUniformBlockIndex(id, name);
+
+	if (uniformID == invalidID) {
+		GLE::warn("Failed to fetch uniform block index for uniform block %s (shader program ID=%d)", name, id);
+	}
+
+	return uniformID;
+
+}
+
+
+
+bool ShaderProgram::bindUniformBlock(u32 block, u32 index) {
+
+#if !GLE_PASS_UNLINKED_SHADERS
+	gle_assert(isLinked(), "Cannot bind uniform block from non-linked shader with ID %d", id);
+#endif
+
+	if (block == invalidID) {
+		GLE::warn("Attempted to bind invalid uniform block (shader program ID=%d)", id);
+		return false;
+	}
+
+	if (index >= Limits::getMaxUniformBlockBindings()) {
+		GLE::warn("Given uniform block binding index %d exceeds the maximum of %d (shader program ID=%d)", index, Limits::getMaxUniformBlockBindings(), id);
+		return false;
+	}
+
+	glUniformBlockBinding(id, block, index);
 
 }
 

@@ -132,6 +132,12 @@ bool Buffer::isInitialized() const {
 
 
 
+u32 Buffer::getSize() const {
+	return size;
+}
+
+
+
 u32 Buffer::getBufferTypeEnum(BufferType type) {
 
 	switch (type) {

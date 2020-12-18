@@ -6,6 +6,45 @@ in vec2 uv;
 in vec3 nrml;
 in vec4 shadowPos;
 
+struct PointLight {
+	vec3 position;
+	vec3 color;
+	float radius;
+	float intensity;
+};
+
+struct DirectionalLight {
+	vec3 direction;
+	vec3 color;
+	float intensity;
+};
+
+struct SpotLight {
+	vec3 position;
+	vec3 direction;
+	vec3 color;
+	float outerAngle;
+	float innerAngle;
+	float radius;
+	float intensity;
+};
+
+const int maxPointLights = 4;
+const int maxDirectionalLights = 4;
+const int maxSpotLights = 4;
+
+layout (std140) uniform Lights {
+
+	PointLight pointLights[maxPointLights];
+	DirectionalLight directionalLights[maxDirectionalLights];
+	SpotLight spotLights[maxSpotLights];
+	
+	int plCount;
+	int dlCount;
+	int slCount;
+	
+};
+
 uniform sampler2DShadow shadowMap;
 uniform sampler2D diffuseTexture;
 uniform vec3 lightDir;
@@ -114,31 +153,48 @@ float fetchShadow(vec4 pos){
 }
 
 
+vec3 blinnPhong(vec3 diffuseColor){
+	
+	vec3 ambient = 0.01 * diffuseColor;
+	vec3 diffuse = vec3(0.0);
+	vec3 specular = vec3(0.0);
+
+	vec3 viewDir = normalize(viewPos - pos);
+
+	for(int i = 0; i < dlCount; i++){
+
+		vec3 lightDir = directionalLights[i].direction;
+		vec3 lightColor = directionalLights[i].color;
+		float intensity = directionalLights[i].intensity;
+		
+		vec3 normal = normalize(nrml);
+		float diff = max(dot(lightDir, normal), 0.0);
+		diffuse += diff * lightColor * intensity;
+				
+		float spec = 0.0;
+		vec3 halfwayDir = normalize(lightDir + viewDir);  
+		spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
+		
+		specular += spec * lightColor * intensity;
+		
+	}
+	
+	diffuse *= diffuseColor;
+	
+	float shadow = fetchShadow(shadowPos);
+
+	return ambient + shadow * (diffuse + specular);
+
+}
+
+
 void main(){
 
     vec2 transformedUV = vec2(srtMatrix * vec3(uv, 1.0));
     vec4 fullTexColor = texture(diffuseTexture, transformedUV);
-    vec3 texcolor = fullTexColor.rgb;
+    vec3 texColor = fullTexColor.rgb;
 	
-    // ambient
-    vec3 ambient = 0.05 * texcolor;
-
-    // diffuse
-    vec3 normal = normalize(nrml);
-    float diff = max(dot(lightDir, normal), 0.0);
-    vec3 diffuse = diff * texcolor;
-	
-    // specular
-    vec3 viewDir = normalize(viewPos - pos);
-    float spec = 0.0;
-	
-    vec3 halfwayDir = normalize(lightDir + viewDir);  
-    spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
-    
-    vec3 specular = vec3(0.3) * spec; // assuming bright white light color
-
-	float shadow = fetchShadow(shadowPos);
-	vec3 blinnPhongColor = ambient + shadow * (diffuse + specular);
+	vec3 blinnPhongColor = blinnPhong(texColor);
 	
 	/*
 		float distance = length(lightPos - pos);

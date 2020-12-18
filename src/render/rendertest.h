@@ -6,6 +6,7 @@
 #include "util/matrix.h"
 
 #include "loader.h"
+#include "light.h"
 
 
 class RenderTest {

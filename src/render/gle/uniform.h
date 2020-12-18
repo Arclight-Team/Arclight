@@ -8,6 +8,7 @@ GLE_DEFINE_MATRIX
 
 GLE_BEGIN
 
+
 class Uniform {
 
 public:

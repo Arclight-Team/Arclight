@@ -55,6 +55,8 @@ public:
 
 	//Aquires a uniform handle
 	Uniform getUniform(const char* name) const;
+	u32 getUniformBlockIndex(const char* name) const;
+	bool bindUniformBlock(u32 block, u32 index);
 
 	//Checks the given states
 	bool isActive() const;

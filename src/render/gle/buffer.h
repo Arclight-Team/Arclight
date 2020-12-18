@@ -54,6 +54,8 @@ public:
 	bool isBound() const;
 	bool isInitialized() const;
 
+	u32 getSize() const;
+
 protected:
 
 	//Yes, protected.
@@ -62,7 +64,8 @@ protected:
 	//Binds the buffer to the given target if not already. Fails if it hasn't been created yet.
 	void bind(BufferType type);
 
-private:
+	static u32 getBufferTypeEnum(BufferType type);
+	static u32 getBufferAccessEnum(BufferAccess access);
 
 	constexpr void setBoundBufferID(BufferType type, u32 id) const {
 		boundBufferIDs[static_cast<u32>(type)] = id;
@@ -72,11 +75,10 @@ private:
 		return boundBufferIDs[static_cast<u32>(type)];
 	}
 
-	static u32 getBufferTypeEnum(BufferType type);
-	static u32 getBufferAccessEnum(BufferAccess access);
+	BufferType type;	//Currently bound type
+	u32 size;			//Buffer size or -1 if none has been allocated
 
-	BufferType type;			//Currently bound type
-	u32 size;					//Buffer size or -1 if none has been allocated
+private:
 
 	//Active buffer handles per type
 	static inline u32 boundBufferIDs[6] = { invalidBoundID, invalidBoundID, invalidBoundID, invalidBoundID, invalidBoundID, invalidBoundID };

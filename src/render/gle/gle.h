@@ -3,6 +3,7 @@
 #include "vertexarray.h"
 #include "vertexbuffer.h"
 #include "indexbuffer.h"
+#include "uniformbuffer.h"
 #include "shaderprogram.h"
 #include "texture1d.h"
 #include "texture2d.h"

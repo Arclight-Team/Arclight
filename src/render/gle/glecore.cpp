@@ -24,6 +24,8 @@ namespace {
 	u32 maxColorAttachments = 0;
 	u32 maxDrawBuffers = 0;
 
+	u32 maxUniformBlockBindings = 0;
+
 }
 
 
@@ -87,6 +89,9 @@ namespace Core {
 		maxColorAttachments = tmp;
 		glGetIntegerv(GL_MAX_DRAW_BUFFERS, &tmp);
 		maxDrawBuffers = tmp;
+
+		glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &tmp);
+		maxUniformBlockBindings = tmp;
 
 		return true;
 
@@ -193,6 +198,10 @@ namespace Limits {
 
 	u32 getMaxDrawBuffers() {
 		return maxDrawBuffers;
+	}
+
+	u32 getMaxUniformBlockBindings() {
+		return maxUniformBlockBindings;
 	}
 
 }

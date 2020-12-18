@@ -118,6 +118,14 @@ void RenderTest::create(u32 w, u32 h) {
 	skyboxVertexArray.setAttribute(0, 3, GLE::AttributeType::Float, 12, 0);
 	skyboxVertexArray.enableAttribute(0);
 
+	Lights::createLightBuffer();
+	Lights::addLight(DirectionalLight(Vec3f(-1.0, -2.0, -0.5), Vec3f(1.0, 1.0, 0.5), 1.0));
+	Lights::addLight(SpotLight(Vec3f(20, 20, 20), Vec3f(-1.0, -2.0, -0.5), Vec3f(1.0, 1.0, 0.5), 0.2, 0.1, 30, 1));
+	Lights::addLight(SpotLight(Vec3f(20, 20, 20), Vec3f(-1.0, -2.0, -0.5), Vec3f(1.0, 1.0, 0.5), 0.2, 0.1, 30, 1));
+	Lights::addLight(SpotLight(Vec3f(20, 20, 20), Vec3f(-1.0, -2.0, -0.5), Vec3f(1.0, 1.0, 0.5), 0.2, 0.1, 30, 1));
+	Lights::addLight(SpotLight(Vec3f(20, 20, 20), Vec3f(-1.0, -2.0, -0.5), Vec3f(1.0, 1.0, 0.5), 0.2, 0.1, 30, 0.3));
+	Lights::updateLights();
+
 	//glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -265,6 +273,8 @@ void RenderTest::destroy() {
 	renderDepthBuffer.destroy();
 	renderFramebuffer.destroy();
 
+	Lights::destroyLightBuffer();
+
 }
 
 
@@ -301,6 +311,9 @@ void RenderTest::loadShaders() {
 	modelViewUniform = modelShader.getUniform("viewPos");
 	modelBaseColUniform = modelShader.getUniform("baseCol");
 	modelSrtUniform = modelShader.getUniform("srtMatrix");
+
+	u32 lightBlock = modelShader.getUniformBlockIndex("Lights");
+	modelShader.bindUniformBlock(lightBlock, Lights::uniformBindingIndex);
 
 	Loader::loadShader(debugShader, ":/shaders/model/diffuse.avs", ":/shaders/debug.ags", ":/shaders/debug.afs");
 	debugPUniform = debugShader.getUniform("projectionMatrix");
