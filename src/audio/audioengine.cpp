@@ -58,7 +58,7 @@ void AudioEngine::shutdown() {
 
 
 
-void AudioEngine::playSound(const URI& soundAsset) {
+void AudioEngine::playSound(const Uri& soundAsset) {
 
     FMOD::Sound* sound = nullptr;
     FMOD_RESULT result = system->createSound(soundAsset.getPath().c_str(), FMOD_DEFAULT, FMOD_DEFAULT, &sound);

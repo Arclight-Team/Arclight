@@ -104,7 +104,7 @@ public:
 			case 0:	return x;
 			case 1:	return y;
 			default:
-				arc_assert(false, "Vec2 access out of bounds (index=%d)", index);
+				arc_force_assert("Vec2 access out of bounds (index=%d)", index);
 				return x;
 
 		}
@@ -118,7 +118,7 @@ public:
 			case 0:	return x;
 			case 1:	return y;
 			default:
-				arc_assert(false, "Vec2 access out of bounds (index=%d)", index);
+				arc_force_assert("Vec2 access out of bounds (index=%d)", index);
 				return x;
 
 		}
@@ -136,6 +136,10 @@ public:
 
 	constexpr void normalize() {
 		divide(length());
+	}
+
+	constexpr auto normalized() const {
+		return normalize(*this);
 	}
 
 	template<Arithmetic A>
@@ -278,7 +282,7 @@ public:
 			case 1:	return y;
 			case 2:	return z;
 			default:
-				arc_assert(false, "Vec3 access out of bounds (index=%d)", index);
+				arc_force_assert("Vec3 access out of bounds (index=%d)", index);
 				return x;
 
 		}
@@ -293,7 +297,7 @@ public:
 			case 1:	return y;
 			case 2:	return z;
 			default:
-				arc_assert(false, "Vec3 access out of bounds (index=%d)", index);
+				arc_force_assert("Vec3 access out of bounds (index=%d)", index);
 				return x;
 
 		}
@@ -313,9 +317,13 @@ public:
 		divide(length());
 	}
 
+	constexpr auto normalized() const {
+		return normalize(*this);
+	}
+
 	template<Arithmetic A>
 	constexpr auto cross(const Vec3<A>& v) const {
-		return Vec3<decltype(y* v.z - z * v.y)>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
+		return Vec3<decltype(y * v.z - z * v.y)>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
 	}
 
 	template<Arithmetic A>
@@ -467,7 +475,7 @@ public:
 			case 2:	return z;
 			case 3:	return w;
 			default:
-				arc_assert(false, "Vec4 access out of bounds (index=%d)", index);
+				arc_force_assert("Vec4 access out of bounds (index=%d)", index);
 				return x;
 
 		}
@@ -483,7 +491,7 @@ public:
 			case 2:	return z;
 			case 3:	return w;
 			default:
-				arc_assert(false, "Vec4 access out of bounds (index=%d)", index);
+				arc_force_assert("Vec4 access out of bounds (index=%d)", index);
 				return x;
 
 		}
@@ -501,6 +509,10 @@ public:
 
 	constexpr void normalize() {
 		divide(length());
+	}
+
+	constexpr auto normalized() const {
+		return normalize(*this);
 	}
 
 	template<Arithmetic A>

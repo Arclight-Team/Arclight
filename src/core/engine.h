@@ -3,8 +3,9 @@
 #include "audio/audioengine.h"
 #include "input/inputsystem.h"
 #include "core/window.h"
-#include "util/profiler.h"
 #include "render/rendertest.h"
+#include "util/profiler.h"
+#include "util/fpstracker.h"
 
 
 class Engine {
@@ -32,5 +33,6 @@ private:
 	InputHandler inputHandler;
 	AudioEngine audioEngine;
 	RenderTest renderTest;
+	FPSTracker tracker;
 
 };

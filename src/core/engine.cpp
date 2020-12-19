@@ -1,16 +1,16 @@
 #include "core/engine.h"
 #include "util/file.h"
 #include "util/log.h"
-#include "render/gle/gc.h"
-#include "util/vector.h"
-#include "util/matrix.h"
 
 
-Engine::Engine() : profiler(Timer::Unit::Seconds, 3) {}
+
+Engine::Engine() : profiler(Time::Unit::Seconds, 3) {}
 
 
 
 bool Engine::initialize() {
+
+	Uri::setApplicationUriRoot(Config::getUriRootPath());
 
 	//Open up log file
 	Log::openLogFile();
@@ -48,13 +48,16 @@ bool Engine::initialize() {
 	Log::info("Core", "Audio engine initialized");
 
 	//Create render test
-	renderTest.create(window.getWidth(), window.getHeight());
+	renderTest.create(window.getFramebufferWidth(), window.getFramebufferHeight());
 
-	//Enable V-Sync
-	window.enableVSync();
+	//Disable V-Sync
+	//window.disableVSync();
 
 	//We're successfully running
 	Log::info("Core", "Starting engine");
+
+	//Start FPS tracker
+	tracker.start();
 
 	return true;
 
@@ -102,6 +105,9 @@ void Engine::run() {
 
 		//Swap render buffers
 		window.swapBuffers();
+
+		//Debug FPS
+		window.setTitle(Config::getBaseWindowTitle() + " | FPS: " + std::to_string(tracker.getFPS()));
 
 	}
 
@@ -151,7 +157,7 @@ void Engine::shutdownBackend() {
 bool Engine::createWindow() {
 
 	window.setWindowConfig(WindowConfig().setResizable(true).setOpenGLVersion(3, 3));
-	return window.create(200, 200, "Among Us");
+	return window.create(Config::getDefaultWindowWidth(), Config::getDefaultWindowHeight(), Config::getBaseWindowTitle());
 
 }
 
@@ -165,32 +171,57 @@ void Engine::setupInputSystem() {
 	//Create the root context and add actions to it
 	InputContext& rootContext = inputSystem.createContext(0);
 	rootContext.addState(0);
-	rootContext.addAction(1, KeyTrigger({ 262 }), true);
-	rootContext.addAction(2, KeyTrigger({ 263 }), true);
-	rootContext.addAction(3, KeyTrigger({ 264 }), true);
-	rootContext.addAction(4, KeyTrigger({ 265 }), true);	
-	rootContext.addAction(5, KeyTrigger({ 65 }), true);
-	rootContext.addAction(6, KeyTrigger({ 68 }), true);
-	rootContext.addAction(7, KeyTrigger({ 83 }), true);
-	rootContext.addAction(8, KeyTrigger({ 87 }), true);
-	rootContext.registerAction(0, 1);
-	rootContext.registerAction(0, 2);
-	rootContext.registerAction(0, 3);
-	rootContext.registerAction(0, 4);
-	rootContext.registerAction(0, 5);
-	rootContext.registerAction(0, 6);
-	rootContext.registerAction(0, 7);
-	rootContext.registerAction(0, 8);
+
+	rootContext.addAction(RenderTest::ActionID::CameraRotRight,		KeyTrigger({ 262 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraRotLeft,		KeyTrigger({ 263 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraRotDown,		KeyTrigger({ 264 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraRotUp,		KeyTrigger({ 265 }), true);	
+	rootContext.addAction(RenderTest::ActionID::CameraMoveLeft,		KeyTrigger({ 65 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveRight,	KeyTrigger({ 68 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveBackward,	KeyTrigger({ 83 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveForward,	KeyTrigger({ 87 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveDown,		KeyTrigger({ 340 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveUp,		KeyTrigger({ 32 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraSpeedUp,		KeyTrigger({ 341 }, KeyState::Released), false);
+	rootContext.addAction(RenderTest::ActionID::CameraSlowDown,		KeyTrigger({ 341 }, KeyState::Pressed), false);
+	rootContext.addAction(RenderTest::ActionID::FovIn,				KeyTrigger({ 320 }, KeyState::Pressed), false);
+	rootContext.addAction(RenderTest::ActionID::FovOut,				KeyTrigger({ 320 }, KeyState::Released), false);
+
+	rootContext.addAction(RenderTest::ActionID::QuickScreenshot,	KeyTrigger({ 291 }), false);
+	rootContext.addAction(RenderTest::ActionID::ReloadShaders,		KeyTrigger({ 292 }), false);
+	rootContext.addAction(RenderTest::ActionID::ReloadResources,	KeyTrigger({ 293 }), false);
+	rootContext.addAction(RenderTest::ActionID::ToggleDebug,		KeyTrigger({ 294 }), false);
+
+	rootContext.registerAction(0, RenderTest::ActionID::CameraRotLeft);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraRotRight);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraRotDown);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraRotUp);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveLeft);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveRight);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveBackward);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveForward);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveDown);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveUp);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraSpeedUp);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraSlowDown);	
+	rootContext.registerAction(0, RenderTest::ActionID::FovIn);
+	rootContext.registerAction(0, RenderTest::ActionID::FovOut);
+
+	rootContext.registerAction(0, RenderTest::ActionID::QuickScreenshot);
+	rootContext.registerAction(0, RenderTest::ActionID::ReloadShaders);
+	rootContext.registerAction(0, RenderTest::ActionID::ReloadResources);
+	rootContext.registerAction(0, RenderTest::ActionID::ToggleDebug);
 
 	//Define input handler callbacks
 	inputHandler.setCoActionListener([this](KeyAction action, double scale) {
 		//Log::info("Input Context", "Action triggered: %d", action);
-		renderTest.onCameraKeyAction(action);
+		renderTest.onKeyAction(action);
 		return true;
 	});
 
 	inputHandler.setActionListener([this](KeyAction action) {
 		//Log::info("Input Context", "Action triggered: %d", action);
+		renderTest.onKeyAction(action);
 		return true;
 	});
 
@@ -211,6 +242,7 @@ void Engine::setupInputSystem() {
 
 	inputHandler.setScrollListener([this](double x, double y) {
 		//Log::info("Input Context", "Scrolled: %f, %f", x, y);
+		renderTest.onScroll(y);
 		return true;
 	});
 

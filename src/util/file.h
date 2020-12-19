@@ -2,38 +2,9 @@
 
 #include <string>
 #include <fstream>
-#include <filesystem>
 
+#include "uri.h"
 #include "types.h"
-
-
-class URI {
-
-public:
-
-	typedef std::filesystem::directory_iterator DirectoryIterator;
-	typedef std::filesystem::recursive_directory_iterator RecursiveDirectoryIterator;
-	
-
-	URI();
-	URI(const char* path);
-	URI(const std::string& path);
-
-	void setPath(const std::string& path);
-	bool createDirectory();
-	void move(const std::string& path);
-
-	bool validFile() const;
-	bool validDirectory() const;
-	std::string getPath() const;
-
-
-private:
-	std::filesystem::path path;
-
-};
-
-
 
 
 class File {
@@ -50,9 +21,9 @@ public:
 	static constexpr u8 Trunc	= std::ios::trunc;
 
 	File();
-	explicit File(const URI& path, File::Flags flags = File::In);
+	explicit File(const Uri& path, File::Flags flags = File::In);
 
-	bool open(const URI& path, File::Flags flags = File::In);
+	bool open(const Uri& path, File::Flags flags = File::In);
 	void close();
 
 	std::string read(u64 count);
@@ -71,14 +42,14 @@ public:
 	bool isOpen() const;
 	u64 getFileSize() const;
 
-	URI getURI() const;
+	Uri getUri() const;
 	Flags getStreamFlags() const;
 	u64 getLastWriteTime() const;
 	
 
 private:
 	std::fstream stream;
-	URI filepath;
+	Uri filepath;
 	Flags openFlags;
 
 };

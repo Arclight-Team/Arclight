@@ -4,26 +4,17 @@
 #define GLE_HEADER	<GL/GLEW.h>
 #define GLE_BEGIN	namespace GLE {
 #define GLE_END		}
-#define GLE_BEGIN_ENUM(t)	struct t { \
-								static u32 get(t x); \
-								enum {
-#define GLE_END_ENUM			};};
 
 #define GLE_EXT_SUPPORTED(x) GLEW_##x
 
+//Merges bilinear and trilinear filtering modes
+#define GLE_TEXTURE_MERGE_FILTERS 1
 
 //#define GLE_DISABLE_DEBUG
+#define GLE_PASS_UNLINKED_SHADERS 1
 
 
-
-#include <string>
-
-//User includes
-#include "util/log.h"
-#include "util/assert.h"
-#include "types.h"
-
-#define GLE_MATRIX_HEADER "util/matrix.h"
+#define GLE_MATRIX_HEADER	"util/matrix.h"
 #define GLE_DEFINE_MATRIX	typedef Vec2f GLEVec2; \
 							typedef Vec3f GLEVec3; \
 							typedef Vec4f GLEVec4; \
@@ -36,7 +27,15 @@
 #define GLE_MATRIX_VALUE_PTR(m) (&m[0].x)
 #define GLE_MATRIX_ARRAY_PTR(m) (&(*m)[0].x)
 
+//User includes
+#include "util/log.h"
+#include "util/assert.h"
+#include "types.h"
+
+#include <string>
+
 #define gle_assert(cond, msg, ...) arc_assert(cond, msg, __VA_ARGS__)
+#define gle_force_assert(msg, ...) arc_force_assert(msg, __VA_ARGS__)
 
 
 GLE_BEGIN

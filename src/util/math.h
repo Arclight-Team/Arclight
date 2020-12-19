@@ -194,7 +194,7 @@ namespace Math {
 	}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
-	constexpr auto clamp(A lowerBound, B upperBound, C value) {
+	constexpr auto clamp(A value, B lowerBound, C upperBound) {
 		return value < lowerBound ? lowerBound : (value > upperBound ? upperBound : value);
 	}
 

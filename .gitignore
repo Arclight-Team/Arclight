@@ -6,7 +6,10 @@
 [Bb]uild/
 [Ll]og/
 [Ll]ib/
-assets/
+assets/textures
+assets/sounds
+assets/models
+screenshots/saved
 .idea/
 pack/
 tools/axrconv/b*
