@@ -1,10 +1,10 @@
 #pragma once
 
 #include "input/keydefs.h"
-#include "render/camera.h"
 #include "render/gle/gle.h"
 #include "util/matrix.h"
 
+#include "camera.h"
 #include "light.h"
 #include "scene.h"
 

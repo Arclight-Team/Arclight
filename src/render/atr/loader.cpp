@@ -1,6 +1,6 @@
 #include "loader.h"
 #include "util/file.h"
-#include "gle/gle.h"
+#include "render/gle/gle.h"
 
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>

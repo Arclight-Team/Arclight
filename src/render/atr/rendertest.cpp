@@ -98,8 +98,8 @@ void RenderTest::create(u32 w, u32 h) {
 	skyboxVertexArray.enableAttribute(0);
 
 	Lights::createLightBuffer();
-	Lights::addLight(DirectionalLight(Vec3f(1.0, -3.0, 2.5), Vec3f(1.0, 1.0, 0.5), 1.0));
-	//Lights::addLight(DirectionalLight(Vec3f(2.0, -2.0, 4.2), Vec3f(1.0, 1.0, 0.5), 1.0));
+	Lights::addLight(DirectionalLight(Vec3f(1.0, -3.0, 2.5), Vec3f(1.0, 1.0, 0.5), 20.0));
+	Lights::addLight(PointLight(Vec3f(0, 0, 0), Vec3f(1.0, 0.0, 0.0), 20.0, 1.0));
 	Lights::addLight(SpotLight(Vec3f(20, 20, 20), Vec3f(-1.0, -2.0, -0.5), Vec3f(1.0, 1.0, 0.5), 0.2, 0.1, 30, 1));
 	Lights::addLight(SpotLight(Vec3f(20, 20, 20), Vec3f(-1.0, -2.0, -0.5), Vec3f(1.0, 1.0, 0.5), 0.2, 0.1, 30, 1));
 	Lights::addLight(SpotLight(Vec3f(20, 20, 20), Vec3f(-1.0, -2.0, -0.5), Vec3f(1.0, 1.0, 0.5), 0.2, 0.1, 30, 1));
@@ -137,6 +137,13 @@ void RenderTest::run() {
 		camRotation = Vec3i(0, 0, 0);
 
 	}
+
+	Vec3f& redLightPos = Lights::getPointLight(0).position;
+	Vec3f& redLightColor = Lights::getPointLight(0).color;
+	redLightPos.x += Random::getRandom().getInt(-100, 100) / 1000.0;
+	redLightPos.y += Random::getRandom().getInt(-100, 100) / 1000.0;
+	redLightPos.z += Random::getRandom().getInt(-100, 100) / 1000.0;
+	updateLights();
 
 	waterSrtMatrix[2].y += 0.04;
 
@@ -253,7 +260,7 @@ void RenderTest::loadShaders() {
 	debugNUniform = debugShader.getUniform("normalMatrix");
 	debugMVPUniform = debugShader.getUniform("mvpMatrix");
 
-	Loader::loadShader(pprocessShader, ":/shaders/final.avs", ":/shaders/final.afs");
+	Loader::loadShader(pprocessShader, ":/shaders/quad.avs", ":/shaders/final.afs");
 	pprocessTextureUniform = pprocessShader.getUniform("screenTexture");
 	pprocessExposureUniform = pprocessShader.getUniform("exposure");
 

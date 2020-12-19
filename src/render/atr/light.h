@@ -67,9 +67,9 @@ namespace Lights {
 	void setLight(u32 id, const DirectionalLight& light);
 	void setLight(u32 id, const SpotLight& light);
 
-	const PointLight& getPointLight(u32 id);
-	const DirectionalLight& getDirectionalLight(u32 id);
-	const SpotLight& getSpotLight(u32 id);
+	PointLight& getPointLight(u32 id);
+	DirectionalLight& getDirectionalLight(u32 id);
+	SpotLight& getSpotLight(u32 id);
 	
 	void updateLights(const Mat4f& viewMatrix, const Mat3f& normalMatrix);
 

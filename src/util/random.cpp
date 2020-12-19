@@ -6,7 +6,6 @@
 
 static void kekw() {}
 
-Random random;
 
 Random::Random() {
 
@@ -44,4 +43,11 @@ u64 Random::getUint() {
 u64 Random::getUint(u64 min, u64 max) {
 	arc_assert(min < max, "Requested random minimum value greater than maximum");
 	return std::uniform_int_distribution<u64>{min, max}(rng);
+}
+
+
+
+Random& Random::getRandom() {
+	static Random random;
+	return random;
 }

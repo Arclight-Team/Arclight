@@ -5,7 +5,7 @@
 
 enum class SceneID {
 	MarioSDS,
-	City
+	Forest
 };
 
 namespace SceneModel {
@@ -16,6 +16,10 @@ namespace SceneModel {
 		CastleGrounds,
 		Melascula,
 		Galand
+	};
+
+	enum class ForestID : int {
+		ForestMain
 	};
 
 	template<typename T>

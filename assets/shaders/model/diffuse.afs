@@ -160,25 +160,46 @@ vec3 blinnPhong(vec3 diffuseColor){
 	vec3 normal = normalize(nrml);
 	vec3 viewDir = normalize(-pos);
 
+	for(int i = 0; i < plCount; i++){
+
+		vec3 lightPos = pointLights[i].position;
+		vec3 lightColor = pointLights[i].color / 1;
+		float intensity = pointLights[i].intensity;
+		float radius = pointLights[i].radius;
+		float distance = length(lightPos - pos);
+		float attenuation = smoothstep(radius, 0, distance);
+		
+		vec3 lightDir = normalize(lightPos - pos);
+
+		float diff = max(dot(lightDir, normal), 0.0);
+		diffuse += diff * lightColor * intensity * attenuation;
+				
+		vec3 halfwayDir = normalize(lightDir + viewDir);  
+		float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
+		specular += spec * lightColor * intensity * vec3(0.1) * attenuation;
+
+	}
+
 	for(int i = 0; i < dlCount; i++){
+
+		float shadow = fetchShadow(shadowPos);
 
 		vec3 lightDir = -directionalLights[i].direction;
 		vec3 lightColor = directionalLights[i].color;
 		float intensity = directionalLights[i].intensity;
 
 		float diff = max(dot(lightDir, normal), 0.0);
-		diffuse += diff * lightColor * intensity;
+		diffuse += shadow * diff * lightColor * intensity;
 				
 		vec3 halfwayDir = normalize(lightDir + viewDir);  
 		float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
-		specular += spec * lightColor * intensity * vec3(0.1);
+		specular += shadow * spec * lightColor * intensity * vec3(0.1);
 		
 	}
 
 	diffuse *= diffuseColor;
-	float shadow = fetchShadow(shadowPos);
 
-	return ambient + shadow * (diffuse + specular);
+	return ambient + diffuse + specular;
 
 }
 

@@ -16,12 +16,10 @@ public:
 	u64 getUint();
 	u64 getUint(u64 min, u64 max);
 
+	static Random& getRandom();
 
 private:
 	std::mt19937_64 rng;
 
 };
 
-
-//Global random device
-extern Random random;

@@ -114,7 +114,7 @@ void Lights::setLight(u32 id, const SpotLight& light) {
 
 
 
-const PointLight& Lights::getPointLight(u32 id) {
+PointLight& Lights::getPointLight(u32 id) {
 
 	if (id >= pls.size()) {
 		Log::error("Lights", "Point light array index out of range");
@@ -126,7 +126,7 @@ const PointLight& Lights::getPointLight(u32 id) {
 
 
 
-const DirectionalLight& Lights::getDirectionalLight(u32 id) {
+DirectionalLight& Lights::getDirectionalLight(u32 id) {
 
 	if (id >= dls.size()) {
 		Log::error("Lights", "Directional light array index out of range");
@@ -138,7 +138,7 @@ const DirectionalLight& Lights::getDirectionalLight(u32 id) {
 
 
 
-const SpotLight& Lights::getSpotLight(u32 id) {
+SpotLight& Lights::getSpotLight(u32 id) {
 
 	if (id >= sls.size()) {
 		Log::error("Lights", "Spot light array index out of range");
