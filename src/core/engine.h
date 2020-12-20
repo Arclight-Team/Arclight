@@ -3,7 +3,7 @@
 #include "audio/audioengine.h"
 #include "input/inputsystem.h"
 #include "core/window.h"
-#include "render/rendertest.h"
+#include "render/atr/rendertest.h"
 #include "util/profiler.h"
 #include "util/fpstracker.h"
 

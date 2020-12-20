@@ -42,6 +42,11 @@ public:
 
 	void updateContinuous(u32 ticks);
 
+	void setCursorPosition(double x, double y);
+	void disableCursor();
+	void hideCursor();
+	void showCursor();
+
 private:
 
 	void setupKeyMap();

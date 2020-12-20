@@ -272,6 +272,58 @@ void InputSystem::updateContinuous(u32 ticks) {
 
 
 
+void InputSystem::setCursorPosition(double x, double y) {
+	if (!connected()) {
+		return;
+	}
+
+	auto handle = getWindowHandle();
+	arc_assert(handle != nullptr, "Handle unexpectedly null");
+
+	glfwSetCursorPos(handle->handle, x, y);
+}
+
+
+
+void InputSystem::disableCursor() {
+	if (!connected()) {
+		return;
+	}
+
+	auto handle = getWindowHandle();
+	arc_assert(handle != nullptr, "Handle unexpectedly null");
+
+	glfwSetInputMode(handle->handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+
+
+
+void InputSystem::hideCursor() {
+	if (!connected()) {
+		return;
+	}
+
+	auto handle = getWindowHandle();
+	arc_assert(handle != nullptr, "Handle unexpectedly null");
+
+	glfwSetInputMode(handle->handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+}
+
+
+
+void InputSystem::showCursor() {
+	if (!connected()) {
+		return;
+	}
+
+	auto handle = getWindowHandle();
+	arc_assert(handle != nullptr, "Handle unexpectedly null");
+
+	glfwSetInputMode(handle->handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+
+
+
 std::shared_ptr<WindowHandle> InputSystem::getWindowHandle() const {
 	return windowHandle.lock();
 }
