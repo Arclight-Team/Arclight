@@ -1,0 +1,86 @@
+AXR Documentation:
+
+
+Model:
+- Mesh& meshes[];			//Meshs of the model
+- Material& materials[];	//Materials of the model
+- Mat4f transform;			//World-space transform
+- bool visible;				//True if visible
+
+AttributeType:
+- Position
+- UV0, UV1, UV2, UV3
+- Color
+- Normal
+- Tangent
+- Bitangent
+- BoneIndex,
+- BoneWeight
+OR
+- a custom index that can be aquired from the shader [material.shader.getAttributeIndex("AttrName")]
+All enum values are reserved
+
+
+AttributeLayout:
+- u32 tag;				//Tag used to link to attributes
+- AttributeType type;	//Source type
+- u32 elements;			//Element count
+
+
+Mesh:
+- AttributeLayout attrLayout[];	//Attribute layout (used to check mesh validity against the shader interface)
+- u32 vertexCount;		//Number of vertices
+- bool visible;			//True if mesh instance should be visible
+- bool indexed;			//True if mesh data is indexed and uses an IBO
+- bool dataChanged;		//True if the data has changed
+- bool dataPresent;		//True if the data is available on the CPU
+
+
+Material:
+- Shader& shader;		//The shader used in conjunction with the material
+- MaterialData& globalData;	//Reference to global material data
+- 
+
+
+Shader:
+- String name;			//Name of the shader
+- String variant[];		//Variant combination of the shader
+- u32 version;			//Version tag
+- u32 passes;			//Number of passes
+- ShaderPassInfo passInfo[];	//Binary interface per pass
+
+
+ShaderPassInfo:
+- AttributeLayout attrLayout[];	//Shader attribute interface
+- RenderTarget renderTargets[];	//Shader render target interface
+- u32 shaderMask;		//Defines which shader types are used
+- CullMode culling;		//Culling mode
+- bool depthTest;		//Whether depth-testing is enabled
+- DepthFunc depthFunc;	//Depth function used when comparing a pixel to the depth buffer's contents
+- bool writeDepth;		//Whether depth values are written at all
+- bool blending;		//True if blending is enabled
+- BlendFunction blendColorFunc;	//Blend function for color channels
+- BlendFunction blendAlphaFunc;	//Blend function for alpha channels
+- BlendEquation blendColorEq;	//Blend equation for color channels
+- BlendEquation blendAlphaEq;	//Blend equation for alpha channels
+- Vec4f blendColor;				//Blend color for blend function parameter Constant
+- bool stencilTest;		//True if stencil-testing is enabled
+- u8 stencilMask;		//Stencil mask for values updating the stencil buffer
+- StencilFunction stencilFrontFunc;	//Stencil function for front faces
+- StencilFunction stencilBackFunc;	//Stencil function for back faces
+- StencilOperation stencilFrontOp;	//Stencil operation for front faces
+- StencilOperation stencilBackOp;	//Stencil operation for back faces
+
+
+Renderer:
+Base class handling the rendering process (setting up the pipeline, parameters, shader control)
+
+
+RenderPipeline:
+Class handling control between different pipeline stages
+
+
+RenderPipelineStage:
+Class representing a single part of the pipeline
+
+
