@@ -542,21 +542,25 @@ namespace Loader {
 
 			offset += size;
 
-			u32 uvComps = sceneMesh->mNumUVComponents[0];
-			size = vertexCount * uvComps * 4;
+			if (sceneMesh->HasTextureCoords(0)) {
 
-			for (u32 j = 0; j < vertexCount; j++) {
+				u32 uvComps = sceneMesh->mNumUVComponents[0];
+				size = vertexCount * uvComps * 4;
+
+				for (u32 j = 0; j < vertexCount; j++) {
 					
-				for (u32 k = 0; k < uvComps; k++) {
-					vertexData[offset / 4 + j * uvComps + k] = sceneMesh->mTextureCoords[0][j][k];
+					for (u32 k = 0; k < uvComps; k++) {
+						vertexData[offset / 4 + j * uvComps + k] = sceneMesh->mTextureCoords[0][j][k];
+					}
+
 				}
 
+				mesh.vao.setAttribute(1, uvComps, GLE::AttributeType::Float, 0, offset);
+				mesh.vao.enableAttribute(1);
+
+				offset += size;
+
 			}
-
-			mesh.vao.setAttribute(1, uvComps, GLE::AttributeType::Float, 0, offset);
-			mesh.vao.enableAttribute(1);
-
-			offset += size;
 
 			size = vertexCount * 12;
 			std::memcpy(&vertexData[offset / 4], sceneMesh->mNormals, size);

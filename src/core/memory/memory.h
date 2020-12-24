@@ -1,6 +1,6 @@
 #pragma once
-#include "../types.h"
-#include "log.h"
+#include "types.h"
+#include "util/log.h"
 #include <cstring>		// for std::memset, std::memcpy
 #include <algorithm>	// for std::min
 
