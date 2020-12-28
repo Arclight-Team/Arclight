@@ -1,7 +1,7 @@
 #include "core/engine.h"
 #include "util/file.h"
 #include "util/log.h"
-
+#include "thread/concurrentqueue.h"
 
 
 Engine::Engine() : profiler(Time::Unit::Seconds, 3) {}
@@ -58,6 +58,8 @@ bool Engine::initialize() {
 
 	//Start FPS tracker
 	tracker.start();
+
+	ConcurrentQueue<int> queue;
 
 	return true;
 
