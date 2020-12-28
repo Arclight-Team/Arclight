@@ -15,6 +15,11 @@ public:
 	Thread();
 	~Thread();
 
+	Thread(const Thread& thread) = delete;
+	Thread& operator=(const Thread& thread) = delete;
+	Thread(Thread&& thread) noexcept;
+	Thread& operator=(Thread&& thread) noexcept;
+
 	template<class Function, class... Args>
 	bool start(Function&& f, Args&&... args) {
 
@@ -40,10 +45,10 @@ public:
 
 	bool running() const;
 	bool finished() const;
-	bool done() const;
-	u64 getID() const;
+	bool done() const noexcept;
+	u64 getID() const noexcept;
 
-	static u32 getHardwareThreadCount();
+	static u32 getHardwareThreadCount() noexcept;
 	
 private:
 
