@@ -32,7 +32,12 @@ public:
 	}
 
 	~ConcurrentQueue() {
-		::operator delete(data, std::align_val_t(alignof(T)));
+
+		if (data) {
+			::operator delete(data, std::align_val_t(alignof(T)));
+			data = nullptr;
+		}
+
 	}
 
 	ConcurrentQueue(const ConcurrentQueue& queue) = delete;
@@ -76,7 +81,7 @@ public:
 
 		//Increment tail
 		tail.store(indexWrap(tailIndex));
-	
+
 		return true;
 
 	}
@@ -120,9 +125,9 @@ public:
 		u32 capSize = cap.load();
 	
 		if (headIndex < tailIndex) {
-			return headIndex + capSize - tailIndex;
+			return tailIndex - headIndex;
 		} else {
-			return headIndex - tailIndex;
+			return tailIndex + capSize - headIndex;
 		}
 	
 	}
@@ -145,6 +150,7 @@ public:
 
 		u32 elements = size();
 
+		//Check if the new size exceeds the given maximum size
 		if (newSize > MaxSize) {
 			Log::debug("Concurrent Queue", "Queue cannot grow bigger than %d. Requested size: %d.", MaxSize, newSize);
 			return false;
@@ -165,17 +171,17 @@ public:
 			return true;
 		}
 
-		T* newData = ::operator new(newSize * sizeof(T), std::align_val_t(alignof(T)));
+		T* newData = static_cast<T*>(::operator new(newSize * sizeof(T), std::align_val_t(alignof(T))));
 
 		//Move old data
 		if (tailIndex < headIndex) {
 				
-			std::move(std::begin(data) + headIndex, std::begin(data) + capSize, std::begin(newData));
-			std::move(std::begin(data), std::begin(data) + tailIndex, std::begin(newData) + capSize - headIndex);
+			std::move(data + headIndex, data + capSize, newData);
+			std::move(data, data + tailIndex, newData + capSize - headIndex);
 
 		} else {
 
-			std::move(std::begin(data) + headIndex, std::begin(data) + tailIndex, std::begin(newData));
+			std::move(data + headIndex, data + tailIndex, newData);
 
 		}
 
@@ -185,6 +191,8 @@ public:
 		cap = newSize;
 		head.store(0);
 		tail.store(elements);
+
+		return true;
 	
 	}
 
@@ -200,7 +208,7 @@ private:
 
 	//Returns the next index on push/pop
 	u32 indexWrap(u32 index) {
-		return (index == (capacity() - 1)) ? 0 : index++;
+		return (index == (capacity() - 1)) ? 0 : (index + 1);
 	}
 
 	T* data;

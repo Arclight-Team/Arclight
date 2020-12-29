@@ -1,19 +1,7 @@
 #pragma once
 
-#include <type_traits>
 #include <cmath>
-
 #include "types.h"
-
-
-template<typename T>
-concept Arithmetic = std::is_arithmetic_v<T>;
-
-template<typename T>
-concept Float = std::is_floating_point_v<T>;
-
-template<typename T>
-concept Integer = std::is_integral_v<T>;
 
 
 namespace Math {
@@ -36,9 +24,19 @@ namespace Math {
 		return std::abs(value);
 	}
 
+	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic... Args>
+	constexpr auto max(A a, B b, C c, Args... args) {
+		return std::max({ a, b, c, args... });
+	}
+
 	template<Arithmetic A, Arithmetic B>
 	constexpr auto max(A a, B b) {
 		return std::max(a, b);
+	}
+
+	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic... Args>
+	constexpr auto min(A a, B b, C c, Args... args) {
+		return std::min({ a, b, c, args... });
 	}
 
 	template<Arithmetic A, Arithmetic B>
@@ -180,6 +178,11 @@ namespace Math {
 	template<Arithmetic A>
 	constexpr auto round(A value) {
 		return std::round(value);
+	}
+
+	template<Arithmetic A>
+	constexpr auto round(A value, u32 digits) {
+		return (value * Math::pow(10, digits) + 0.5) / Math::pow(10, digits);
 	}
 
 	template<Arithmetic A>
