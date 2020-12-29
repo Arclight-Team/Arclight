@@ -60,6 +60,14 @@ bool Engine::initialize() {
 	tracker.start();
 
 	ConcurrentQueue<int> queue;
+	queue.push(3);
+	queue.push(2);
+	queue.push(1);
+	int a = queue.pop();
+	int b = queue.pop();
+	int c = queue.pop();
+	int d = queue.pop();
+	Log::info("", "%d %d %d %d", a, b, c, d);
 
 	return true;
 
