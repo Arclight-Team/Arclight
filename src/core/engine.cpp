@@ -62,7 +62,11 @@ bool Engine::initialize() {
 	ConcurrentQueue<int> queue;
 	queue.push(3);
 	queue.push(2);
-	queue.push(1);
+
+	for (u32 i = 0; i < 512; i++) {
+		queue.push(1);
+	}
+
 	int a = queue.pop();
 	int b = queue.pop();
 	int c = queue.pop();
