@@ -7,13 +7,13 @@
 struct StandardResizePolicy {
 
 	static constexpr u32 increment(u32 base) {
-		return base / 2;
+		return base + 1;
 	}
 
 };
 
 
-template<class T, u32 InitialSize = 32, u32 MaxSize = 512, class ResizePolicy = StandardResizePolicy>
+template<class T, u32 InitialSize = 32, u32 MaxSize = 513, class ResizePolicy = StandardResizePolicy>
 class ConcurrentQueue final {
 
 public:
@@ -34,8 +34,23 @@ public:
 	~ConcurrentQueue() {
 
 		if (data) {
+
+			u32 capSize = capacity();
+			u32 headIndex = head.load();
+			u32 tailIndex = tail.load();
+
+			//Invoke the destructor on the remaining elements
+			if (tailIndex < headIndex) {
+				std::destroy(data + headIndex, data + capSize);
+				std::destroy(data, data + tailIndex);
+			} else {
+				std::destroy(data + headIndex, data + tailIndex);
+			}
+
+			//Finally destroy the storage
 			::operator delete(data, std::align_val_t(alignof(T)));
 			data = nullptr;
+
 		}
 
 	}
@@ -77,7 +92,7 @@ public:
 		u32 tailIndex = tail.load();
 
 		//Push to tail
-		data[tailIndex] = std::move(element);
+		::new(data + tailIndex) T(std::move(element));
 
 		//Increment tail
 		tail.store(indexWrap(tailIndex));
@@ -114,7 +129,27 @@ public:
 
 
 
-	T waitPop() {}
+	bool tryPop(T& element) {
+
+		if (!empty()) {
+
+			u32 headIndex = head.load();
+
+			//Pop from head to element
+			element = std::move(data[headIndex]);
+
+			//Increment head
+			head.store(indexWrap(headIndex));
+
+			//Signal that element has been modified
+			return true;
+
+		} else {
+			//Signal that element has not been modified
+			return false;
+		}
+
+	}
 
 
 
@@ -149,11 +184,20 @@ public:
 	bool resize(u32 newSize) {
 
 		u32 elements = size();
+		u32 capSize = capacity();
 
 		//Check if the new size exceeds the given maximum size
 		if (newSize > MaxSize) {
-			Log::debug("Concurrent Queue", "Queue cannot grow bigger than %d. Requested size: %d.", MaxSize, newSize);
-			return false;
+
+			//If we can still grow, resize to maximum
+			if (capSize != MaxSize) {
+				Log::debug("Concurrent Queue", "Queue cannot grow bigger than %d, resizing to maximum size. Requested: %d.", MaxSize, newSize);
+				newSize = MaxSize;
+			} else {
+				Log::debug("Concurrent Queue", "Queue cannot grow bigger than %d. Requested size: %d.", MaxSize, newSize);
+				return false;
+			}
+
 		}
 
 		//If we have more elements than the new capacity can hold, no resizing occurs.
@@ -164,7 +208,6 @@ public:
 		
 		u32 headIndex = head.load();
 		u32 tailIndex = tail.load();
-		u32 capSize = capacity();
 
 		//No reallocation
 		if (newSize == capSize) {
@@ -176,12 +219,12 @@ public:
 		//Move old data
 		if (tailIndex < headIndex) {
 				
-			std::move(data + headIndex, data + capSize, newData);
-			std::move(data, data + tailIndex, newData + capSize - headIndex);
+			std::uninitialized_move(data + headIndex, data + capSize, newData);
+			std::uninitialized_move(data, data + tailIndex, newData + capSize - headIndex);
 
 		} else {
 
-			std::move(data + headIndex, data + tailIndex, newData);
+			std::uninitialized_move(data + headIndex, data + tailIndex, newData);
 
 		}
 
