@@ -4,52 +4,59 @@
 #include "types.h"
 
 
-struct StandardResizePolicy {
 
-	static constexpr u32 increment(u32 base) {
-		return base + 1;
-	}
-
-};
-
-
-template<class T, u32 InitialSize = 32, u32 MaxSize = 513, class ResizePolicy = StandardResizePolicy>
+template<class T, u32 Size>
 class ConcurrentQueue final {
+
+	constexpr static inline std::size_t hdiSize = std::hardware_destructive_interference_size;
+
+	struct alignas(hdiSize) Storage {
+
+		Storage() {
+			index.store(0, std::memory_order_relaxed);
+		}
+
+		~Storage() {
+
+			if (index & (activeBit << activeShift)) {
+				reinterpret_cast<T*>(&data)->~T();
+			}
+
+		}
+
+		constexpr static inline u64 activeBit = 1;
+		constexpr static inline u8	activeShift = 0;
+		constexpr static inline u8	indexShift = 1;
+
+		std::atomic<u64> index;
+		std::aligned_storage_t<sizeof(T), alignof(T)> data;
+
+	};
 
 public:
 
-	static_assert(std::is_default_constructible_v<T>, "ConcurrentQueue requires T to be default-constructible");
-	static_assert(std::is_move_constructible_v<T> && std::is_move_assignable_v<T>, "ConcurrentQueue requires T to be move-constructible and move-assignable");
+	static_assert(std::is_nothrow_move_constructible_v<T>, "ConcurrentQueue requires T to be no-throw move-constructible");
 
-	constexpr ConcurrentQueue() : ConcurrentQueue(InitialSize) {}
+	constexpr ConcurrentQueue() {
 
-	constexpr ConcurrentQueue(u32 size) {
-
-		initialAllocate(size);
-		head.store(0);
-		tail.store(0);
+		storage = new Storage[Size];
+		head.store(0, std::memory_order_relaxed);
+		tail.store(0, std::memory_order_relaxed);
+		std::atomic_thread_fence(std::memory_order_release);
 
 	}
 
 	~ConcurrentQueue() {
 
-		if (data) {
+		if (storage) {
 
-			u32 capSize = capacity();
-			u32 headIndex = head.load();
-			u32 tailIndex = tail.load();
-
-			//Invoke the destructor on the remaining elements
-			if (tailIndex < headIndex) {
-				std::destroy(data + headIndex, data + capSize);
-				std::destroy(data, data + tailIndex);
-			} else {
-				std::destroy(data + headIndex, data + tailIndex);
-			}
+			std::atomic_thread_fence(std::memory_order_acquire);
+			u64 headIndex = head.load(std::memory_order_relaxed);
+			u64 tailIndex = tail.load(std::memory_order_relaxed);
 
 			//Finally destroy the storage
-			::operator delete(data, std::align_val_t(alignof(T)));
-			data = nullptr;
+			delete[] storage;
+			storage = nullptr;
 
 		}
 
@@ -58,206 +65,142 @@ public:
 	ConcurrentQueue(const ConcurrentQueue& queue) = delete;
 	ConcurrentQueue& operator=(const ConcurrentQueue& queue) = delete;
 
-	constexpr ConcurrentQueue(ConcurrentQueue&& queue) noexcept : 
-		data(std::exchange(queue.data, nullptr)),
-		cap(queue.cap.load()),
-		head(queue.head.load()),
-		tail(queue.tail.load()) {}
+	constexpr ConcurrentQueue(ConcurrentQueue&& queue) noexcept {
+
+		std::atomic_thread_fence(std::memory_order_acquire);
+		this->storage = std::exchange(queue.storage, nullptr);
+		this->head.store(queue.head.load(std::memory_order_relaxed), std::memory_order_relaxed);
+		this->tail.store(queue.tail.load(std::memory_order_relaxed), std::memory_order_relaxed);
+		std::atomic_thread_fence(std::memory_order_release);
+
+	}
 
 
 	constexpr ConcurrentQueue& operator=(ConcurrentQueue&& queue) noexcept {
 	
-		this->data = std::exchange(queue.data, nullptr);
-		this->cap = queue.cap.load();
-		this->head = queue.head.load();
-		this->tail = queue.tail.load();
+		std::atomic_thread_fence(std::memory_order_acquire);
+		this->storage = std::exchange(queue.storage, nullptr);
+		this->head.store(queue.head.load(std::memory_order_relaxed), std::memory_order_relaxed);
+		this->tail.store(queue.tail.load(std::memory_order_relaxed), std::memory_order_relaxed);
+		std::atomic_thread_fence(std::memory_order_release);
 
 	}
 
-	bool push(T&& element) {
+	bool push(T&& element) noexcept {
 
-		u32 elements = size();
+		u64 currentTail = tail.load(std::memory_order_acquire);
 
-		//Resize if necessary
-		if ((elements + 1) == capacity()) {
+		while (true) {
 
-			u32 newSize = elements + 1 + ResizePolicy::increment(elements);
+			Storage& s = storage[currentTail % Size];
 
-			if (!resize(newSize)) {
-				return false;
-			}
-
-		}
-
-		u32 tailIndex = tail.load();
-
-		//Push to tail
-		::new(data + tailIndex) T(std::move(element));
-
-		//Increment tail
-		tail.store(indexWrap(tailIndex));
-
-		return true;
-
-	}
-
-
-
-	T pop() {
-	
-		if (!empty()) {
-
-			u32 headIndex = head.load();
-
-			//Pop from head
-			T&& element = std::move(data[headIndex]);
-
-			//Increment head
-			head.store(indexWrap(headIndex));
-
-			//Return the object
-			return element;
-
-		} else {
-
-			//Return a default-constructed element
-			return T();
-
-		}
-
-	}
-
-
-
-	bool tryPop(T& element) {
-
-		if (!empty()) {
-
-			u32 headIndex = head.load();
-
-			//Pop from head to element
-			element = std::move(data[headIndex]);
-
-			//Increment head
-			head.store(indexWrap(headIndex));
-
-			//Signal that element has been modified
-			return true;
-
-		} else {
-			//Signal that element has not been modified
-			return false;
-		}
-
-	}
-
-
-
-	u32 size() const noexcept {
-
-		u32 headIndex = head.load();
-		u32 tailIndex = tail.load();
-		u32 capSize = cap.load();
-	
-		if (headIndex < tailIndex) {
-			return tailIndex - headIndex;
-		} else {
-			return tailIndex + capSize - headIndex;
-		}
-	
-	}
-
-
-
-	u32 capacity() const noexcept {
-		return cap.load();
-	}
-
-
-
-	bool empty() const noexcept {
-		return head.load() == tail.load();
-	}
-
-
-
-	bool resize(u32 newSize) {
-
-		u32 elements = size();
-		u32 capSize = capacity();
-
-		//Check if the new size exceeds the given maximum size
-		if (newSize > MaxSize) {
-
-			//If we can still grow, resize to maximum
-			if (capSize != MaxSize) {
-				Log::debug("Concurrent Queue", "Queue cannot grow bigger than %d, resizing to maximum size. Requested: %d.", MaxSize, newSize);
-				newSize = MaxSize;
-			} else {
-				Log::debug("Concurrent Queue", "Queue cannot grow bigger than %d. Requested size: %d.", MaxSize, newSize);
-				return false;
-			}
-
-		}
-
-		//If we have more elements than the new capacity can hold, no resizing occurs.
-		if (newSize < (elements + 1)) {
-			Log::debug("Concurrent Queue", "Failed to resize queue from %d to %d. Elements cannot be discarded to accommodate the new size.", elements, newSize);
-			return false;
-		}
-		
-		u32 headIndex = head.load();
-		u32 tailIndex = tail.load();
-
-		//No reallocation
-		if (newSize == capSize) {
-			return true;
-		}
-
-		T* newData = static_cast<T*>(::operator new(newSize * sizeof(T), std::align_val_t(alignof(T))));
-
-		//Move old data
-		if (tailIndex < headIndex) {
+			//When the index holds the correct state, attempt to push later
+			if ((currentTail / Size) << Storage::indexShift == s.index.load(std::memory_order_acquire)) {
 				
-			std::uninitialized_move(data + headIndex, data + capSize, newData);
-			std::uninitialized_move(data, data + tailIndex, newData + capSize - headIndex);
+				//Try incrementing the tail now. Fails if it has been modified by a different thread, retry in that case.
+				if (tail.compare_exchange_strong(currentTail, currentTail + 1, std::memory_order_acq_rel, std::memory_order_acquire)) {
 
-		} else {
+					::new(&s.data) T(std::move(element));
+					s.index.store(((currentTail / Size) << Storage::indexShift) | (Storage::activeBit << Storage::activeShift), std::memory_order_release);
+					return true;
 
-			std::uninitialized_move(data + headIndex, data + tailIndex, newData);
+				}
+
+			} else {
+
+				//Wrong state, return if tail hasn't changed (meaning the queue is full)
+				u64 oldTail = currentTail;
+				currentTail = tail.load(std::memory_order_acquire);
+
+				if (oldTail == currentTail) {
+					break;
+				}
+
+			}
 
 		}
 
-		//Update container
-		::operator delete(data, std::align_val_t(alignof(T)));
-		data = newData;
-		cap = newSize;
-		head.store(0);
-		tail.store(elements);
+		return false;
 
-		return true;
+	}
+
+
+
+	bool pop(T& element) {
 	
+		u64 currentHead = head.load(std::memory_order_acquire);
+
+		while (true) {
+
+			Storage& s = storage[currentHead % Size];
+
+			//When the index holds the correct state, attempt to push later
+			if (((currentHead / Size) << Storage::indexShift) | (Storage::activeBit << Storage::activeShift) == s.index.load(std::memory_order_acquire)) {
+
+				//Try incrementing the head now. Fails if it has been modified by a different thread, retry in that case.
+				if (head.compare_exchange_strong(currentHead, currentHead + 1, std::memory_order_acq_rel, std::memory_order_acquire)) {
+
+					::new(&s.data) T(std::move(element));
+					s.index.store((currentHead / Size + 1) << Storage::indexShift, std::memory_order_release);
+					return true;
+
+				}
+
+			} else {
+
+				//Wrong state, return if head hasn't changed (meaning the queue is empty)
+				u64 oldHead = currentHead;
+				currentHead = head.load(std::memory_order_acquire);
+
+				if (oldHead == currentHead) {
+					break;
+				}
+
+			}
+
+		}
+
+		return false;
+
+	}
+
+
+
+	//Returns the total capacity
+	u32 capacity() const noexcept {
+		return Size;
+	}
+
+
+
+	//Returns the size of the queue. It's NOT a qualitative measurement since it might not represent the actual current state!
+	bool size() const noexcept {
+
+		std::atomic_thread_fence(std::memory_order_acquire);
+		u64 headIndex = head.load(std::memory_order_relaxed);
+		u64 tailIndex = head.load(std::memory_order_relaxed);
+
+		return tailIndex - headIndex;
+
+	}
+
+
+
+	//Returns whether the queue is empty. It's NOT a qualitative measurement since it might not represent the actual current state!
+	bool empty() const noexcept {
+
+		std::atomic_thread_fence(std::memory_order_acquire);
+		u64 headIndex = head.load(std::memory_order_relaxed);
+		u64 tailIndex = head.load(std::memory_order_relaxed);
+
+		return headIndex == tailIndex;
+
 	}
 
 private:
 
-	//Performs the initial allocation
-	void initialAllocate(u32 size) {
-
-		data = static_cast<T*>(::operator new(size * sizeof(T), std::align_val_t(alignof(T))));
-		cap.store(size);
-
-	}
-
-	//Returns the next index on push/pop
-	u32 indexWrap(u32 index) {
-		return (index == (capacity() - 1)) ? 0 : (index + 1);
-	}
-
-	T* data;
-	std::atomic_uint32_t cap;
-	std::atomic_flag mutating;
-	std::atomic_uint32_t head;
-	std::atomic_uint32_t tail;
+	Storage* storage;
+	alignas(hdiSize) std::atomic<u64> head;
+	alignas(hdiSize) std::atomic<u64> tail;
 
 };
