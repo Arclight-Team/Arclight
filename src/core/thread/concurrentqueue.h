@@ -44,31 +44,36 @@ class ConcurrentQueue final {
 
 	struct alignas(hdiSize) Storage {
 
-		Storage() {
-			index.store(0, std::memory_order_relaxed);
-		}
-
 		~Storage() {
 
 			if (index & (activeBit << activeShift)) {
-				reinterpret_cast<T*>(&data)->~T();
+				reinterpret_cast<T*>(data)->~T();
 			}
 
 		}
 
 		void acquire(T&& object) noexcept {
-			::new(&data) T(std::move(object));
+			::new(data) T(std::move(object));
 		}
 
-		T&& release() noexcept {
-			T&& object = reinterpret_cast<T&&>(data); 
-			reinterpret_cast<T*>(&data)->~T();
-			return std::move(object);
+		void release(T& object) noexcept {
+			object = std::move(*reinterpret_cast<T*>(data)); 
+			reinterpret_cast<T*>(data)->~T();
+		}
+
+		u64 getIndex() const noexcept {
+			return index.load(std::memory_order_acquire);
+		}
+
+		void setIndex(u64 i) noexcept {
+			index.store(i, std::memory_order_release);
 		}
 
 		constexpr static inline u64 activeBit = 1;
 		constexpr static inline u8	activeShift = 0;
 		constexpr static inline u8	indexShift = 1;
+
+	private:
 
 		std::atomic<u64> index;
 		alignas(T) std::byte data[sizeof(T)];
@@ -134,13 +139,13 @@ public:
 			Storage& s = storage[currentTail % Size];
 
 			//When the index holds the correct state, attempt to push later
-			if ((currentTail / Size) << Storage::indexShift == s.index.load(std::memory_order_acquire)) {
+			if ((currentTail / Size) << Storage::indexShift == s.getIndex()) {
 				
 				//Try incrementing the tail now. Fails if it has been modified by a different thread, retry in that case.
 				if (tail.compare_exchange_strong(currentTail, currentTail + 1, std::memory_order_acq_rel, std::memory_order_acquire)) {
 
 					s.acquire(std::move(element));
-					s.index.store(((currentTail / Size) << Storage::indexShift) | (Storage::activeBit << Storage::activeShift), std::memory_order_release);
+					s.setIndex(((currentTail / Size) << Storage::indexShift) | (Storage::activeBit << Storage::activeShift));
 					return true;
 
 				}
@@ -174,13 +179,13 @@ public:
 			Storage& s = storage[currentHead % Size];
 
 			//When the index holds the correct state, attempt to push later
-			if ((((currentHead / Size) << Storage::indexShift) | (Storage::activeBit << Storage::activeShift)) == s.index.load(std::memory_order_acquire)) {
+			if ((((currentHead / Size) << Storage::indexShift) | (Storage::activeBit << Storage::activeShift)) == s.getIndex()) {
 
 				//Try incrementing the head now. Fails if it has been modified by a different thread, retry in that case.
 				if (head.compare_exchange_strong(currentHead, currentHead + 1, std::memory_order_acq_rel, std::memory_order_acquire)) {
 
-					element = s.release();
-					s.index.store((currentHead / Size + 1) << Storage::indexShift, std::memory_order_release);
+					s.release(element);
+					s.setIndex((currentHead / Size + 1) << Storage::indexShift);
 					return true;
 
 				}

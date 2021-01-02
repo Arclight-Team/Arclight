@@ -21,3 +21,5 @@ void __arc_assert(bool condition, const std::string& file, int line, const std::
 	#define arc_assert(cond, msg, ...)
 	#define arc_force_assert(msg, ...)
 #endif
+	
+#define arc_abort()						do { std::abort(); } while (false)
