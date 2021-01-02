@@ -59,18 +59,19 @@ bool Engine::initialize() {
 	//Start FPS tracker
 	tracker.start();
 
-	ConcurrentQueue<int> queue;
+	ConcurrentQueue<int, 512> queue;
 	queue.push(3);
 	queue.push(2);
 
 	for (u32 i = 0; i < 512; i++) {
-		queue.push(1);
+		Log::info("", "%d", queue.push(1));
 	}
 
-	int a = queue.pop();
-	int b = queue.pop();
-	int c = queue.pop();
-	int d = queue.pop();
+	int s[4];
+	bool a = queue.pop(s[0]);
+	bool b = queue.pop(s[1]);
+	bool c = queue.pop(s[2]);
+	bool d = queue.pop(s[3]);
 	Log::info("", "%d %d %d %d", a, b, c, d);
 
 	return true;
