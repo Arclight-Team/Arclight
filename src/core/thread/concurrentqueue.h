@@ -1,6 +1,38 @@
+/*
+
+	Original work: Copyright (c) 2020 Erik Rigtorp <erik@rigtorp.se>
+	Modified work: Copyright (c) 2021 Overblade
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in all
+	copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+	SOFTWARE.
+
+*/
+
+/*
+	Concurrent Queue for multiple consumers/producers with atomic operations.
+	This code has been optimized to relax atomic reordering.
+	All functions except constructor and destructor guarantee no-throw behaviour with the given constraints of T.
+*/
+
 #pragma once
 
 #include <atomic>
+#include <cstddef>
 #include "types.h"
 
 
@@ -24,18 +56,29 @@ class ConcurrentQueue final {
 
 		}
 
+		void acquire(T&& object) noexcept {
+			::new(&data) T(std::move(object));
+		}
+
+		T&& release() noexcept {
+			T&& object = reinterpret_cast<T&&>(data); 
+			reinterpret_cast<T*>(&data)->~T();
+			return std::move(object);
+		}
+
 		constexpr static inline u64 activeBit = 1;
 		constexpr static inline u8	activeShift = 0;
 		constexpr static inline u8	indexShift = 1;
 
 		std::atomic<u64> index;
-		std::aligned_storage_t<sizeof(T), alignof(T)> data;
+		alignas(T) std::byte data[sizeof(T)];
 
 	};
 
 public:
 
-	static_assert(std::is_nothrow_move_constructible_v<T>, "ConcurrentQueue requires T to be no-throw move-constructible");
+	static_assert(std::is_nothrow_move_constructible_v<T>, "ConcurrentQueue requires T to be nothrow move-constructible");
+	static_assert(std::is_nothrow_destructible_v<T>, "ConcurrentQueue requires T to be nothrow destructible");
 
 	constexpr ConcurrentQueue() {
 
@@ -49,10 +92,6 @@ public:
 	~ConcurrentQueue() {
 
 		if (storage) {
-
-			std::atomic_thread_fence(std::memory_order_acquire);
-			u64 headIndex = head.load(std::memory_order_relaxed);
-			u64 tailIndex = tail.load(std::memory_order_relaxed);
 
 			//Finally destroy the storage
 			delete[] storage;
@@ -100,7 +139,7 @@ public:
 				//Try incrementing the tail now. Fails if it has been modified by a different thread, retry in that case.
 				if (tail.compare_exchange_strong(currentTail, currentTail + 1, std::memory_order_acq_rel, std::memory_order_acquire)) {
 
-					::new(&s.data) T(std::move(element));
+					s.acquire(std::move(element));
 					s.index.store(((currentTail / Size) << Storage::indexShift) | (Storage::activeBit << Storage::activeShift), std::memory_order_release);
 					return true;
 
@@ -135,12 +174,12 @@ public:
 			Storage& s = storage[currentHead % Size];
 
 			//When the index holds the correct state, attempt to push later
-			if (((currentHead / Size) << Storage::indexShift) | (Storage::activeBit << Storage::activeShift) == s.index.load(std::memory_order_acquire)) {
+			if ((((currentHead / Size) << Storage::indexShift) | (Storage::activeBit << Storage::activeShift)) == s.index.load(std::memory_order_acquire)) {
 
 				//Try incrementing the head now. Fails if it has been modified by a different thread, retry in that case.
 				if (head.compare_exchange_strong(currentHead, currentHead + 1, std::memory_order_acq_rel, std::memory_order_acquire)) {
 
-					::new(&s.data) T(std::move(element));
+					element = s.release();
 					s.index.store((currentHead / Size + 1) << Storage::indexShift, std::memory_order_release);
 					return true;
 
