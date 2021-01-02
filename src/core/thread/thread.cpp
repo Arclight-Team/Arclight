@@ -42,7 +42,9 @@ Thread& Thread::operator=(Thread&& thread) noexcept {
 			//The thread is terminated anyways so we just perform the move.
 			//Since Log might throw too, we cannot print safely with it here.
 			//Note that assertions are still fine though.
-			arc_force_assert("Fatal error: Exception caught while terminating thread on move assignment");
+
+			//arc_force_assert("Fatal error: Exception caught while terminating thread on move assignment");
+			arc_abort();
 
 		}
 
