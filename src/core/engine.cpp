@@ -2,6 +2,8 @@
 #include "util/file.h"
 #include "util/log.h"
 #include "thread/concurrentqueue.h"
+#include "thread/task.h"
+#include "thread/future.h"
 
 
 Engine::Engine() : profiler(Time::Unit::Seconds, 3) {}
@@ -58,21 +60,10 @@ bool Engine::initialize() {
 
 	//Start FPS tracker
 	tracker.start();
+	Task t;
+	ConcurrentQueue<Task, 512> queue;
+	queue.push(std::move(t));
 
-	ConcurrentQueue<int, 512> queue;
-	queue.push(3);
-	queue.push(2);
-
-	for (u32 i = 0; i < 512; i++) {
-		Log::info("", "%d", queue.push(1));
-	}
-
-	int s[4];
-	bool a = queue.pop(s[0]);
-	bool b = queue.pop(s[1]);
-	bool c = queue.pop(s[2]);
-	bool d = queue.pop(s[3]);
-	Log::info("", "%d %d %d %d", a, b, c, d);
 
 	return true;
 

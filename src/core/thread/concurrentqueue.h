@@ -57,8 +57,11 @@ class ConcurrentQueue final {
 		}
 
 		void release(T& object) noexcept {
-			object = std::move(*reinterpret_cast<T*>(data)); 
-			reinterpret_cast<T*>(data)->~T();
+
+			T& old = *reinterpret_cast<T*>(data);
+			object = std::move(old);
+			old.~T();
+
 		}
 
 		u64 getIndex() const noexcept {
@@ -129,6 +132,8 @@ public:
 		std::atomic_thread_fence(std::memory_order_release);
 
 	}
+
+
 
 	bool push(T&& element) noexcept {
 
