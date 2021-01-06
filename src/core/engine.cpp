@@ -4,6 +4,7 @@
 #include "thread/concurrentqueue.h"
 #include "thread/task.h"
 #include "thread/future.h"
+#include "thread/taskexecutor.h"
 
 
 Engine::Engine() : profiler(Time::Unit::Seconds, 3) {}
@@ -64,6 +65,27 @@ bool Engine::initialize() {
 	ConcurrentQueue<Task, 512> queue;
 	queue.push(std::move(t));
 
+	TaskExecutor exec;
+	exec.setThreadCount(Thread::getHardwareThreadCount() - 1);
+ 	exec.start();
+	i32 a = 1000;
+
+	Profiler taskProfiler;
+	taskProfiler.setResolution(Time::Unit::Microseconds, 3);
+	taskProfiler.start();
+
+	while (a > 0) {
+		a--;
+		exec.run([]() {
+			volatile u32 a = 0;
+			a++;
+		});
+
+		std::this_thread::sleep_for(std::chrono::microseconds(4));
+		Log::info("", "%d", a);
+	}
+
+	taskProfiler.stop();
 
 	return true;
 
