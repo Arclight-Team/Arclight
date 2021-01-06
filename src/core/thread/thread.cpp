@@ -21,7 +21,6 @@ Thread::~Thread() {
 
 Thread::Thread(Thread&& thread) noexcept :
 	thread(std::exchange(thread.thread, {})),
-	task(std::move(thread.task)),
 	future(std::move(thread.future)) {}
 
 
@@ -51,7 +50,6 @@ Thread& Thread::operator=(Thread&& thread) noexcept {
 	}
 
 	this->thread = std::exchange(thread.thread, {});
-	this->task = std::move(thread.task);
 	this->future = std::move(thread.future);
 
 	return *this;
@@ -70,11 +68,11 @@ void Thread::finish() {
 
 
 
-bool Thread::tryFinish(u64 usDelay) {
+bool Thread::tryFinish(u64 timeoutMicros) {
 
 	if (!done()) {
 
-		auto result = future.wait_for(std::chrono::microseconds(usDelay));
+		auto result = future.wait_for(std::chrono::microseconds(timeoutMicros));
 
 		if (result != std::future_status::ready) {
 			return false;
@@ -132,8 +130,8 @@ bool Thread::done() const noexcept {
 
 
 
-u64 Thread::getID() const noexcept {
-	return std::hash<std::thread::id>()(thread.get_id());
+std::thread::id Thread::getID() const noexcept {
+	return thread.get_id();
 }
 
 

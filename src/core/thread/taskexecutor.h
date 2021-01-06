@@ -1,7 +1,18 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
 
+#include "arcconfig.h"
+#include "arcintrinsic.h"
+#include "concurrentqueue.h"
+#include "thread.h"
+#include "task.h"
+#include "types.h"
+
+
+typedef u64 TaskID;
+typedef std::function<void(std::any&)> TaskFunction;
 
 enum class TaskPriority {
 	Weak,
@@ -16,11 +27,54 @@ class TaskExecutor {
 
 public:
 
-	
+	constexpr static inline u32 queueSize = 512;
+
+	TaskExecutor();
+	~TaskExecutor();
+
+	void start();
+
+	template<class Function, class... Args, typename Result = std::invoke_result_t<Function, Args...>>
+	TaskID run(Function&& function, Args&&... args) {
+
+		TaskFunction x = [&](std::any& result) {
+
+			if constexpr (std::is_same_v<Result, void>) {
+				std::invoke(std::forward<Function>(function), std::forward<Args>(args)...);
+			} else {
+				result = std::invoke(std::forward<Function>(function), std::forward<Args>(args)...);
+			}
+
+		};
+
+		if (taskQueue[2].push(std::move(x))) {
+#ifdef ARC_TASK_SLEEP_ATOMIC
+			queuedTaskCount.fetch_add(1, std::memory_order_seq_cst);
+			queuedTaskCount.notify_one();
+#elif defined(ARC_TASK_SPIN)
+			emptyFlag.clear(std::memory_order_release);
+#endif
+		}
+
+		return 0;
+
+	}
+
+	void setThreadCount(u32 threadCount);
 
 private:
 
+	void taskMain();
+
 	std::vector<Thread> threads;
-	ConcurrentQueue<TaskFunction
+	ConcurrentQueue<TaskFunction, queueSize> taskQueue[5];
+	std::unordered_map<TaskID, Task> tasks;
+	std::atomic_flag running;
+
+#ifdef ARC_TASK_SLEEP_ATOMIC
+	std::atomic<u32> queuedTaskCount;
+#elif defined(ARC_TASK_SPIN)
+	std::atomic_flag emptyFlag;
+#endif
 
 };

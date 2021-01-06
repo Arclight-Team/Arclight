@@ -48,19 +48,7 @@ public:
 
 	}
 
-	template<class Function, class... Args, typename Result = std::invoke_result_t<Function, Args...>>
-	SharedTaskFuture setSharedFunction(Function&& function, Args&&... args) {
-
-		taskFunction = [&](std::any& result) {
-			result = std::invoke(std::forward(function), std::forward(args)...);
-		};
-
-		return SharedTaskFuture(promise.get_future());
-
-	}
-
 	TaskRunnable getTaskRunnable();
-	void interrupt();
 
 private:
 
