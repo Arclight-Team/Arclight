@@ -17,6 +17,22 @@
 */
 
 #define ARC_TASK_SLEEP_DURATION	50
-//#define ARC_TASK_SPIN
-#define ARC_TASK_SLEEP_ATOMIC
+#define ARC_TASK_SPIN
+//#define ARC_TASK_SLEEP_ATOMIC
 //#define ARC_TASK_PERIODIC_SLEEP
+
+
+/*
+	Task Executor termination method (destruction only)
+	ARC_TASK_END_WAIT: Waits until tasks are finished
+*/
+
+#define ARC_TASK_END_WAIT
+
+
+/*
+	Log stdio unsync
+	ARC_LOG_STDIO_UNSYNC: Unsyncs stdio from cout. Logging is accelerated but data races become possible.
+*/
+
+#define ARC_LOG_STDIO_UNSYNC

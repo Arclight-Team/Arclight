@@ -28,11 +28,16 @@ class TaskExecutor {
 public:
 
 	constexpr static inline u32 queueSize = 512;
+	typedef ConcurrentQueue<TaskFunction, queueSize> TaskQueue;
 
 	TaskExecutor();
 	~TaskExecutor();
 
 	void start();
+	void stop();
+
+	void waitEmpty() noexcept;
+	void forceClear() noexcept;
 
 	template<class Function, class... Args, typename Result = std::invoke_result_t<Function, Args...>>
 	TaskID run(Function&& function, Args&&... args) {
@@ -47,12 +52,12 @@ public:
 
 		};
 
-		if (taskQueue[2].push(std::move(x))) {
-#ifdef ARC_TASK_SLEEP_ATOMIC
+		if (taskQueues[2].push(std::move(x))) {
+#if defined(ARC_TASK_SLEEP_ATOMIC)
 			queuedTaskCount.fetch_add(1, std::memory_order_seq_cst);
 			queuedTaskCount.notify_one();
 #elif defined(ARC_TASK_SPIN)
-			emptyFlag.clear(std::memory_order_release);
+			queuedTaskCount.fetch_add(1, std::memory_order_seq_cst);
 #endif
 		}
 
@@ -67,14 +72,12 @@ private:
 	void taskMain();
 
 	std::vector<Thread> threads;
-	ConcurrentQueue<TaskFunction, queueSize> taskQueue[5];
+	TaskQueue taskQueues[5];
 	std::unordered_map<TaskID, Task> tasks;
 	std::atomic_flag running;
 
-#ifdef ARC_TASK_SLEEP_ATOMIC
+#if defined(ARC_TASK_SLEEP_ATOMIC) || defined(ARC_TASK_SPIN)
 	std::atomic<u32> queuedTaskCount;
-#elif defined(ARC_TASK_SPIN)
-	std::atomic_flag emptyFlag;
 #endif
 
 };

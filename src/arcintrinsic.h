@@ -47,7 +47,7 @@
 	arc_spin_yield()
 	Inserts a yielding instruction to optimize spinlocks.
 */
-ARC_FORCE_INLINE void arc_spin_yield() {
+ARC_FORCE_INLINE void arc_spin_yield() noexcept {
 
 #ifdef ARC_PLATFORM_X86
 	_mm_pause();

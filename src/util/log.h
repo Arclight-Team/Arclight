@@ -8,8 +8,8 @@
 namespace Log {
 
 
+	void init();
 	void openLogFile();
-
 	void closeLogFile();
 
 	namespace Raw {
