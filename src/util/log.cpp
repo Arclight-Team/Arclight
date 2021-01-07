@@ -2,6 +2,7 @@
 #include "util/file.h"
 #include "util/time.h"
 #include "config.h"
+#include "arcconfig.h"
 
 #include <iostream>
 #include <sstream>
@@ -17,6 +18,13 @@
 namespace Log {
 
 	File logfile;
+
+
+	void init() {
+#ifdef ARC_LOG_STDIO_UNSYNC
+		std::ios_base::sync_with_stdio(false);
+#endif
+	}
 
 
 	void openLogFile() {

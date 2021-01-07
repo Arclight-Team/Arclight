@@ -175,7 +175,7 @@ public:
 
 
 
-	bool pop(T& element) {
+	bool pop(T& element) noexcept {
 	
 		u64 currentHead = head.load(std::memory_order_acquire);
 

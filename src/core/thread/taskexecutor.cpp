@@ -9,17 +9,12 @@ TaskExecutor::TaskExecutor() {
 
 
 TaskExecutor::~TaskExecutor() {
-	
-	running.clear();
 
-#ifdef ARC_TASK_SLEEP_ATOMIC
-	queuedTaskCount.store(-1, std::memory_order_seq_cst);
-	queuedTaskCount.notify_all();
+#ifdef ARC_TASK_END_WAIT
+	waitEmpty();
 #endif
 
-	for (Thread& t : threads) {
-		t.finish();
-	}
+	stop();
 
 }
 
@@ -31,6 +26,58 @@ void TaskExecutor::start() {
 
 	for (Thread& t : threads) {
 		t.start(&TaskExecutor::taskMain, this);
+	}
+
+}
+
+
+
+void TaskExecutor::waitEmpty() noexcept {
+
+	TaskFunction function;
+
+	for (i32 i = 4; i >= 0; i--) {
+		Log::info("", "Queue size: %d", taskQueues[i].size());
+
+		while (!taskQueues[i].empty()) {
+			arc_spin_yield();
+		}
+
+	}
+
+}
+
+
+
+void TaskExecutor::forceClear() noexcept {
+
+	TaskFunction function;
+
+	for (i32 i = 4; i >= 0; i--) {
+
+		while (!taskQueues[i].empty()) {
+			taskQueues[i].pop(function);
+		}
+
+	}
+
+}
+
+
+
+void TaskExecutor::stop() {
+
+	running.clear();
+
+#ifdef ARC_TASK_SLEEP_ATOMIC
+	queuedTaskCount.store(-1, std::memory_order_seq_cst);
+	queuedTaskCount.notify_all();
+#elif defined(ARC_TASK_SPIN)
+	queuedTaskCount.store(-1, std::memory_order_seq_cst);
+#endif
+
+	for (Thread& t : threads) {
+		t.finish();
 	}
 
 }
@@ -50,48 +97,34 @@ void TaskExecutor::taskMain() {
 
 	while (running.test(std::memory_order_acquire)) {
 
-		bool success = false;
-
 		for (i32 i = 4; i >= 0; i--) {
 
-			success = taskQueue[i].pop(function);
-
-			if (success) {
+			if (taskQueues[i].pop(function)) {
 
 #ifdef ARC_TASK_SLEEP_ATOMIC
 				queuedTaskCount.fetch_sub(1, std::memory_order_seq_cst);
 #endif
-
+				Log::info("", "RUN");
 				function(result);
-
-				break;
+				goto end_cycle;
 
 			}
 
 		}
-
-		if (!success && running.test(std::memory_order_acquire)) {
 
 #ifdef ARC_TASK_SLEEP_ATOMIC
-			queuedTaskCount.wait(0, std::memory_order_seq_cst);
+		queuedTaskCount.wait(0, std::memory_order_seq_cst);
 #elif defined(ARC_TASK_SPIN)
 
-			while (true) {
-
-				if (!emptyFlag.test(std::memory_order_acquire)) {
-					break;
-				}
-
-				while(emptyFlag.test(std::memory_order_relaxed)) {
-					arc_spin_yield();
-				}
-
-			}
+		while(!queuedTaskCount.load(std::memory_order_acquire)) {
+			arc_spin_yield();
+		}
 		
 #elif defined(ARC_TASK_PERIODIC_SLEEP)
-			std::this_thread::sleep_for(std::chrono::microseconds(ARC_TASK_SLEEP_DURATION));
+		std::this_thread::sleep_for(std::chrono::microseconds(ARC_TASK_SLEEP_DURATION));
 #endif
-		}
+
+end_cycle:;
 
 	}
 

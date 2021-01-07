@@ -16,6 +16,7 @@ bool Engine::initialize() {
 	Uri::setApplicationUriRoot(Config::getUriRootPath());
 
 	//Open up log file
+	Log::init();
 	Log::openLogFile();
 	Log::info("Core", "Setting up engine");
 
@@ -73,18 +74,19 @@ bool Engine::initialize() {
 	Profiler taskProfiler;
 	taskProfiler.setResolution(Time::Unit::Microseconds, 3);
 	taskProfiler.start();
-
+	std::atomic<u32> counter;
 	while (a > 0) {
 		a--;
-		exec.run([]() {
-			volatile u32 a = 0;
-			a++;
+		exec.run([&counter]() {
+			counter.fetch_add(1, std::memory_order_relaxed);
 		});
 
-		std::this_thread::sleep_for(std::chrono::microseconds(4));
-		Log::info("", "%d", a);
+		//std::this_thread::sleep_for(std::chrono::microseconds(4));
 	}
 
+	Log::info("", "%d", counter.load(std::memory_order_acquire));
+	exec.waitEmpty();
+	Log::info("", "%d", counter.load(std::memory_order_acquire));
 	taskProfiler.stop();
 
 	return true;
