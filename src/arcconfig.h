@@ -24,7 +24,7 @@
 
 /*
 	Task Executor termination method (destruction only)
-	ARC_TASK_END_WAIT: Waits until tasks are finished
+	ARC_TASK_END_WAIT: Assists until tasks are finished
 */
 
 #define ARC_TASK_END_WAIT

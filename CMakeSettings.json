@@ -7,7 +7,7 @@
 			"inheritEnvironments": [ "msvc_x64_x64" ],
 			"buildRoot": "${projectDir}\\build\\Debug",
 			"installRoot": "${projectDir}\\bin",
-			"cmakeCommandArgs": "",
+			"cmakeCommandArgs": "-j8",
 			"buildCommandArgs": "",
 			"ctestCommandArgs": "",
 			"variables": [
@@ -40,6 +40,26 @@
 					"name": "USE_MSVC_RUNTIME_LIBRARY_DLL",
 					"value": "True",
 					"type": "BOOL"
+				},
+				{
+					"name": "CMAKE_EXE_LINKER_FLAGS",
+					"value": "/machine:x64",
+					"type": "STRING"
+				},
+				{
+					"name": "CMAKE_MODULE_LINKER_FLAGS",
+					"value": "/machine:x64",
+					"type": "STRING"
+				},
+				{
+					"name": "CMAKE_SHARED_LINKER_FLAGS",
+					"value": "/machine:x64",
+					"type": "STRING"
+				},
+				{
+					"name": "CMAKE_STATIC_LINKER_FLAGS",
+					"value": "/machine:x64",
+					"type": "STRING"
 				}
 			]
 		},
@@ -49,7 +69,7 @@
 			"configurationType": "Release",
 			"buildRoot": "${projectDir}\\build\\Release",
 			"installRoot": "${projectDir}\\bin",
-			"cmakeCommandArgs": "",
+			"cmakeCommandArgs": "-j8",
 			"buildCommandArgs": "",
 			"ctestCommandArgs": "",
 			"inheritEnvironments": [ "msvc_x64_x64" ],
@@ -83,6 +103,26 @@
 					"name": "GLFW_INSTALL",
 					"value": "False",
 					"type": "BOOL"
+				},
+				{
+					"name": "CMAKE_STATIC_LINKER_FLAGS",
+					"value": "/machine:X64",
+					"type": "STRING"
+				},
+				{
+					"name": "CMAKE_SHARED_LINKER_FLAGS",
+					"value": "/machine:X64",
+					"type": "STRING"
+				},
+				{
+					"name": "CMAKE_MODULE_LINKER_FLAGS",
+					"value": "/machine:X64",
+					"type": "STRING"
+				},
+				{
+					"name": "CMAKE_EXE_LINKER_FLAGS",
+					"value": "/machine:X64",
+					"type": "STRING"
 				}
 			]
 		}

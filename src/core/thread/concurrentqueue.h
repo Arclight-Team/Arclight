@@ -227,7 +227,7 @@ public:
 
 		std::atomic_thread_fence(std::memory_order_acquire);
 		u64 headIndex = head.load(std::memory_order_relaxed);
-		u64 tailIndex = head.load(std::memory_order_relaxed);
+		u64 tailIndex = tail.load(std::memory_order_relaxed);
 
 		return tailIndex - headIndex;
 
@@ -240,7 +240,7 @@ public:
 
 		std::atomic_thread_fence(std::memory_order_acquire);
 		u64 headIndex = head.load(std::memory_order_relaxed);
-		u64 tailIndex = head.load(std::memory_order_relaxed);
+		u64 tailIndex = tail.load(std::memory_order_relaxed);
 
 		return headIndex == tailIndex;
 

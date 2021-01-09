@@ -36,7 +36,7 @@ public:
 	void start();
 	void stop();
 
-	void waitEmpty() noexcept;
+	void assistDispatch() noexcept;
 	void forceClear() noexcept;
 
 	template<class Function, class... Args, typename Result = std::invoke_result_t<Function, Args...>>
@@ -69,7 +69,7 @@ public:
 
 private:
 
-	void taskMain();
+	void taskMain(bool assist);
 
 	std::vector<Thread> threads;
 	TaskQueue taskQueues[5];
