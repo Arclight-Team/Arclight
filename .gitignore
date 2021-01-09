@@ -6,6 +6,7 @@
 [Bb]uild/
 [Ll]og/
 [Ll]ib/
+profiling/
 assets/textures
 assets/sounds
 assets/models

@@ -69,7 +69,7 @@ bool Engine::initialize() {
 	TaskExecutor exec;
 	exec.setThreadCount(Thread::getHardwareThreadCount() - 1);
  	exec.start();
-	i32 a = 1000;
+	i32 a = 512;
 
 	Profiler taskProfiler;
 	taskProfiler.setResolution(Time::Unit::Microseconds, 3);
@@ -80,13 +80,9 @@ bool Engine::initialize() {
 		exec.run([&counter]() {
 			counter.fetch_add(1, std::memory_order_relaxed);
 		});
-
-		//std::this_thread::sleep_for(std::chrono::microseconds(4));
 	}
 
-	Log::info("", "%d", counter.load(std::memory_order_acquire));
-	exec.waitEmpty();
-	Log::info("", "%d", counter.load(std::memory_order_acquire));
+	exec.assistDispatch();
 	taskProfiler.stop();
 
 	return true;
