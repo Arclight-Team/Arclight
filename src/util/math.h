@@ -11,11 +11,11 @@ namespace Math {
 	constexpr double epsilon = 0.000001;
 
 
-	constexpr double toDegrees(double radians) {
+	constexpr double toDegrees(double radians) noexcept {
 		return radians * 180.0 / pi;
 	}
 
-	constexpr double toRadians(double degrees) {
+	constexpr double toRadians(double degrees) noexcept {
 		return degrees * pi / 180.0;
 	}
 
@@ -66,7 +66,7 @@ namespace Math {
 	}
 
 	template<Arithmetic A, Arithmetic B>
-	constexpr bool isEqual(A a, B b) requires (std::is_integral_v<A>&& std::is_integral_v<B>) {
+	constexpr bool isEqual(A a, B b) requires (std::is_integral_v<A> && std::is_integral_v<B>) {
 		return a == b;
 	}
 
@@ -181,24 +181,41 @@ namespace Math {
 	}
 
 	template<Arithmetic A>
-	constexpr auto round(A value, u32 digits) {
+	constexpr auto round(A value, u32 digits) noexcept {
 		return (value * Math::pow(10, digits) + 0.5) / Math::pow(10, digits);
 	}
 
 	template<Arithmetic A>
-	constexpr auto sign(A value) {
+	constexpr auto sign(A value) noexcept {
 		return (value > A(0)) - (value < A(0));
 	}
 
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
-	constexpr auto lerp(A start, B end, C factor) {
+	constexpr auto lerp(A start, B end, C factor) noexcept {
 		return start + factor * (end - start);
 	}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
-	constexpr auto clamp(A value, B lowerBound, C upperBound) {
+	constexpr auto clamp(A value, B lowerBound, C upperBound) noexcept {
 		return value < lowerBound ? lowerBound : (value > upperBound ? upperBound : value);
+	}
+
+	constexpr bool isAligned(AddressT x, AlignT alignment) noexcept {
+		return !(x & (alignment - 1));
+	}
+
+	constexpr AddressT alignUp(AddressT x, AlignT alignment) noexcept {
+		return (x + alignment - 1) & ~(alignment - 1);
+	}
+
+	constexpr AddressT alignDown(AddressT x, AlignT alignment) noexcept {
+		return x & ~(alignment - 1);
+	}
+
+	template<class T>
+	constexpr AddressT address(T* ptr) {
+		return reinterpret_cast<AddressT>(ptr);
 	}
 
 }
