@@ -36,13 +36,10 @@ Thread& Thread::operator=(Thread&& thread) noexcept {
 			Log::error("Thread", "Thread cannot be move-target while running, force-finishing it");
 			finish();
 
-		} catch (...) {
+		} catch (std::exception& e) {
 
 			//The thread is terminated anyways so we just perform the move.
-			//Since Log might throw too, we cannot print safely with it here.
-			//Note that assertions are still fine though.
-
-			//arc_force_assert("Fatal error: Exception caught while terminating thread on move assignment");
+			Log::error("Thread", "Fatal error: Exception caught while terminating thread on move assignment\n%s", e.what());
 			arc_abort();
 
 		}

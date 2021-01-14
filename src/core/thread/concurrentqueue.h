@@ -33,6 +33,7 @@
 
 #include <atomic>
 #include <cstddef>
+#include <new>
 #include "types.h"
 
 
