@@ -5,6 +5,7 @@
 #include "thread/task.h"
 #include "thread/future.h"
 #include "thread/taskexecutor.h"
+#include "memory/poolallocator.h"
 
 
 Engine::Engine() : profiler(Time::Unit::Seconds, 3) {}
@@ -84,6 +85,22 @@ bool Engine::initialize() {
 
 	exec.assistDispatch();
 	taskProfiler.stop();
+
+	PoolAllocator<Engine> alloc;
+	alloc.create(10000000);
+	std::vector<Engine*> addresses;
+
+	for (u32 i = 0; i < 1000; i++) {
+		Engine* e = alloc.construct(alloc.allocate());
+		alloc.destroy(e);
+		addresses.push_back(e);
+	}
+
+	for (u32 i = 0; i < addresses.size(); i++) {
+		alloc.deallocate(addresses[i]);
+	}
+
+	alloc.deallocate(&alloc);
 
 	return true;
 

@@ -31,8 +31,20 @@
 
 
 /*
-	Log stdio unsync
+	Log settings
 	ARC_LOG_STDIO_UNSYNC: Unsyncs stdio from cout. Logging is accelerated but data races become possible.
+	ARC_LOG_EXCEPTION_ABORT: Aborts when Log throws. Do not use in production code!
 */
 
 #define ARC_LOG_STDIO_UNSYNC
+#define ARC_LOG_EXCEPTION_ABORT
+
+
+/*
+	Allocator debugging
+	ARC_ALLOCATOR_DEBUG_CHECKS: Enables debug assertions during heap creation/allocation
+	ARC_ALLOCATOR_DEBUG_LOG: Logs all allocations performed with Arclight Allocators
+*/
+
+#define ARC_ALLOCATOR_DEBUG_CHECKS
+#define ARC_ALLOCATOR_DEBUG_LOG
