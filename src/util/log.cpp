@@ -1,6 +1,7 @@
 #include "util/log.h"
 #include "util/file.h"
 #include "util/time.h"
+#include "util/assert.h"
 #include "config.h"
 #include "arcconfig.h"
 
@@ -54,34 +55,43 @@ namespace Log {
 
 	namespace Raw {
 
-		void print(const std::string& level, const std::string& subsystem, const std::string& message) {
+		void print(const std::string& level, const std::string& subsystem, const std::string& message) noexcept {
 
-			std::stringstream ss;
-			ss << "[" << level << "] <" << subsystem << "> " << message;
-			std::cout << ss.str() << std::endl;
+			try {
 
-			if (logfile.isOpen()) {
-				logfile.writeLine(ss.str());
+				std::stringstream ss;
+				ss << "[" << level << "] <" << subsystem << "> " << message;
+				std::cout << ss.str() << std::endl;
+
+				if (logfile.isOpen()) {
+					logfile.writeLine(ss.str());
+				}
+
+			} catch (std::exception& e) {
+				//There's literally nothing we can do here
+#ifdef ARC_LOG_EXCEPTION_ABORT
+				arc_abort();
+#endif
 			}
 
 		}
 
-		void debug(const std::string& subsystem, const std::string& message) {
+		void debug(const std::string& subsystem, const std::string& message) noexcept {
 			print(LOG_DEBUG, subsystem, message);
 		}
 
 
-		void info(const std::string& subsystem, const std::string& message) {
+		void info(const std::string& subsystem, const std::string& message) noexcept {
 			print(LOG_INFO, subsystem, message);
 		}
 
 
-		void warn(const std::string& subsystem, const std::string& message) {
+		void warn(const std::string& subsystem, const std::string& message) noexcept {
 			print(LOG_WARN, subsystem, message);
 		}
 
 
-		void error(const std::string& subsystem, const std::string& message) {
+		void error(const std::string& subsystem, const std::string& message) noexcept {
 			print(LOG_ERROR, subsystem, message);
 		}
 
