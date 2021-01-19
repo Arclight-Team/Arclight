@@ -121,6 +121,9 @@ void Engine::run() {
 	//Play sounds
 	//audioEngine.playSound(":/sounds/rickroll.mp3");
 
+    FMOD::Sound* sound = audioEngine.createSound(":/sounds/world1.wav");
+    audioEngine.playSound(sound);
+
 	//Loop until window close event is requested
 	while (!window.closeRequested()) {
 
