@@ -1,25 +1,38 @@
-#pragma once
-
+#include "fmod_common.h"
+#include "util/vector.h"
 
 class Uri;
 
 namespace FMOD {
-	class System;
+    class Channel;
+    class Reverb3D;
+    class Sound;
+    class System;
 }
 
+
+enum class SoundFormat {
+    None,
+    Pcm8,
+    Pcm16,
+    Pcm24,
+    Pcm32,
+    PcmFloat,
+    Bitstream,
+};
+
 class AudioEngine {
-
 public:
+    AudioEngine();
 
-	AudioEngine();
+    bool initialize();
+    bool update();
+    bool shutdown();
 
-	bool initialize();
-	void update();
-	void shutdown();
-
-	void playSound(const Uri& soundAsset);
+    FMOD::Sound* createSound(const Uri& path);
+    FMOD::Channel* playSound(FMOD::Sound* sound);
+    void playSound(const Uri& path);
 
 private:
-	FMOD::System* system;
-
+    FMOD::System* system;
 };
