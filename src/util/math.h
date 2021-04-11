@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cmath>
-#include "types.h"
+#include "common/types.h"
 
 
 namespace Math {
@@ -48,7 +48,7 @@ namespace Math {
 	constexpr bool isZero(I value) {
 		return value == I(0);
 	}
-	
+
 	template<Float F>
 	constexpr bool isZero(F value) {
 		return Math::abs(value) < Math::epsilon;
@@ -190,6 +190,10 @@ namespace Math {
 		return (value > A(0)) - (value < A(0));
 	}
 
+	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D, Arithmetic E>
+	constexpr auto map(A value, B start1, C end1, D start2, E end2) noexcept {
+		return start2 + static_cast<double>(end2 - start2) * (static_cast<double>(value - start1) / static_cast<double>(end1 - start1));
+	};
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
 	constexpr auto lerp(A start, B end, C factor) noexcept {

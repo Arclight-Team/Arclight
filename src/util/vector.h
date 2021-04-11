@@ -2,6 +2,7 @@
 
 #include "util/math.h"
 #include "util/assert.h"
+#include "util/random.h"
 
 
 template<Arithmetic T>
@@ -98,14 +99,14 @@ public:
 	}
 
 	constexpr T& operator[](u32 index) {
-		
+
 		switch (index) {
 
-			case 0:	return x;
-			case 1:	return y;
-			default:
-				arc_force_assert("Vec2 access out of bounds (index=%d)", index);
-				return x;
+		case 0:	return x;
+		case 1:	return y;
+		default:
+			arc_force_assert("Vec2 access out of bounds (index=%d)", index);
+			return x;
 
 		}
 
@@ -115,11 +116,11 @@ public:
 
 		switch (index) {
 
-			case 0:	return x;
-			case 1:	return y;
-			default:
-				arc_force_assert("Vec2 access out of bounds (index=%d)", index);
-				return x;
+		case 0:	return x;
+		case 1:	return y;
+		default:
+			arc_force_assert("Vec2 access out of bounds (index=%d)", index);
+			return x;
 
 		}
 
@@ -164,6 +165,18 @@ public:
 		return v;
 	}
 
+	constexpr static Vec2 randomUnit() {
+
+		auto& random = Random::getRandom();
+
+		Vec2 v;
+		v.x = random.getInt();
+		v.y = random.getInt();
+		v.normalize();
+
+		return v;
+
+	}
 
 	T x, y;
 
@@ -183,7 +196,7 @@ public:
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
 	constexpr Vec3(A x, B y, C z) : x(T(x)), y(T(y)), z(T(z)) {}
-	
+
 	template<Arithmetic A>
 	constexpr explicit Vec3(const Vec2<A>& v) : x(T(v.x)), y(T(v.y)), z(T(0)) {}
 
@@ -278,12 +291,12 @@ public:
 
 		switch (index) {
 
-			case 0:	return x;
-			case 1:	return y;
-			case 2:	return z;
-			default:
-				arc_force_assert("Vec3 access out of bounds (index=%d)", index);
-				return x;
+		case 0:	return x;
+		case 1:	return y;
+		case 2:	return z;
+		default:
+			arc_force_assert("Vec3 access out of bounds (index=%d)", index);
+			return x;
 
 		}
 
@@ -293,12 +306,12 @@ public:
 
 		switch (index) {
 
-			case 0:	return x;
-			case 1:	return y;
-			case 2:	return z;
-			default:
-				arc_force_assert("Vec3 access out of bounds (index=%d)", index);
-				return x;
+		case 0:	return x;
+		case 1:	return y;
+		case 2:	return z;
+		default:
+			arc_force_assert("Vec3 access out of bounds (index=%d)", index);
+			return x;
 
 		}
 
@@ -323,7 +336,7 @@ public:
 
 	template<Arithmetic A>
 	constexpr auto cross(const Vec3<A>& v) const {
-		return Vec3<decltype(y * v.z - z * v.y)>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
+		return Vec3<decltype(y* v.z - z * v.y)>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
 	}
 
 	template<Arithmetic A>
@@ -346,6 +359,20 @@ public:
 	constexpr static Vec3<A> normalize(Vec3<A> v) {
 		v.normalize();
 		return v;
+	}
+
+	constexpr static Vec3 randomUnit() {
+
+		auto& random = Random::getRandom();
+
+		Vec3 v;
+		v.x = random.getInt();
+		v.y = random.getInt();
+		v.z = random.getInt();
+		v.normalize();
+
+		return v;
+
 	}
 
 
@@ -470,13 +497,13 @@ public:
 
 		switch (index) {
 
-			case 0:	return x;
-			case 1:	return y;
-			case 2:	return z;
-			case 3:	return w;
-			default:
-				arc_force_assert("Vec4 access out of bounds (index=%d)", index);
-				return x;
+		case 0:	return x;
+		case 1:	return y;
+		case 2:	return z;
+		case 3:	return w;
+		default:
+			arc_force_assert("Vec4 access out of bounds (index=%d)", index);
+			return x;
 
 		}
 
@@ -486,13 +513,13 @@ public:
 
 		switch (index) {
 
-			case 0:	return x;
-			case 1:	return y;
-			case 2:	return z;
-			case 3:	return w;
-			default:
-				arc_force_assert("Vec4 access out of bounds (index=%d)", index);
-				return x;
+		case 0:	return x;
+		case 1:	return y;
+		case 2:	return z;
+		case 3:	return w;
+		default:
+			arc_force_assert("Vec4 access out of bounds (index=%d)", index);
+			return x;
 
 		}
 
@@ -537,6 +564,21 @@ public:
 		return v;
 	}
 
+	constexpr static Vec4 randomUnit() {
+
+		auto& random = Random::getRandom();
+
+		Vec4 v;
+		v.x = random.getInt();
+		v.y = random.getInt();
+		v.z = random.getInt();
+		v.w = random.getInt();
+		v.normalize();
+
+		return v;
+
+	}
+
 
 	T x, y, z, w;
 
@@ -546,7 +588,7 @@ public:
 
 
 template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
-constexpr auto operator+(Vector<A> a, const Vector<B>& b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>){
+constexpr auto operator+(Vector<A> a, const Vector<B>& b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
 	Vector<decltype(a[0] + b[0])> ax = a;
 	ax += b;
 	return ax;

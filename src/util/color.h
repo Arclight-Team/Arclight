@@ -28,6 +28,26 @@ struct ColorRGB {
 
 
 
+struct ColorRGBA : public ColorRGB {
+
+	constexpr ColorRGBA() : ColorRGBA(0) {}
+	constexpr explicit ColorRGBA(u8 v) : ColorRGBA(v, v, v, v) {}
+	constexpr ColorRGBA(u8 r, u8 g, u8 b, u8 a) : ColorRGB(r, g, b), a(a) {}
+
+	constexpr Vec4f toVec4f() const {
+		return Vec4f(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
+	}
+
+	constexpr Vec4i toVec4i() const {
+		return Vec4i(r, g, b, a);
+	}
+
+	u8 a;
+
+};
+
+
+
 struct ColorHSV {
 
 	constexpr ColorHSV() : ColorHSV(0) {}
@@ -72,7 +92,7 @@ namespace Color {
 		i32 b = rgb.b;
 		u8 mx = Math::max(r, g, b);
 		u8 mn = Math::min(r, g, b);
-		
+
 		double h = 0.0;
 		double s = 0.0;
 		double v = mx / 255.0;
@@ -182,5 +202,88 @@ namespace Color {
 									 Math::lerp(start.s, end.s, factor),
 									 Math::lerp(start.v, end.v, factor))).toVec3f();
 	}
+
+
+
+
+	constexpr u32 packRGBA(u8 r, u8 g, u8 b, u8 a = 0xFF) noexcept {
+		return (a << 24) | (b << 16) | (g << 8) | r;
+	}
+
+
+
+	constexpr void unpackRGBA(u32 rgba, u8& r, u8& g, u8& b, u8& a) noexcept {
+
+		b = rgba & 0xFF;
+		g = (rgba >> 8) & 0xFF;
+		r = (rgba >> 16) & 0xFF;
+		a = (rgba >> 24) & 0xFF;
+
+	}
+
+
+
+	constexpr u16 packRGB15(u8 r, u8 g, u8 b) noexcept {
+		return ((b & 0x1F) << 10) | ((g & 0x1F) << 5) | (r & 0x1F);
+	}
+
+
+
+	constexpr void unpackRGB15(u16 rgb, u8& r, u8& g, u8& b) noexcept {
+
+		r = rgb & 0x1F;
+		g = (rgb >> 5) & 0x1F;
+		b = (rgb >> 10) & 0x1F;
+
+	}
+
+
+
+	constexpr auto convertRGB15ToRGBA(u16 rgb15) noexcept {
+
+		u8 r, g, b;
+
+		unpackRGB15(rgb15, r, g, b);
+
+		r = (r << 3) | (r >> 2);
+		g = (g << 3) | (g >> 2);
+		b = (b << 3) | (b >> 2);
+
+		return packRGBA(r, g, b);
+
+	}
+
+
+
+	constexpr auto convertRGBAToRGB15(u16 rgb15) noexcept {
+
+		u8 r, g, b, a;
+
+		unpackRGBA(rgb15, r, g, b, a);
+
+		r = r >> 3;
+		g = g >> 3;
+		b = b >> 3;
+
+		return packRGB15(r, g, b);
+
+	}
+
+
+
+	constexpr auto convertRGB15ToColor(u16 rgb15) noexcept {
+
+		u8 r, g, b;
+
+		unpackRGB15(rgb15, r, g, b);
+
+		r = (r << 3) | (r >> 2);
+		g = (g << 3) | (g >> 2);
+		b = (b << 3) | (b >> 2);
+
+		return ColorRGBA(r, g, b, 0xFF);
+
+	}
+
 
 }

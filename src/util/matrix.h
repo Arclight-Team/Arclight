@@ -101,8 +101,8 @@ public:
 	}
 
 	constexpr void setIdentity() {
-		v[0] = {1, 0};
-		v[1] = {0, 1};
+		v[0] = { 1, 0 };
+		v[1] = { 0, 1 };
 	}
 
 	template<Float A>
@@ -171,10 +171,10 @@ public:
 	template<Float A>
 	constexpr Mat3(const Mat3<A>& m) : v{ m[0], m[1], m[2] } {}
 
-	template<Arithmetic A, Arithmetic B, Arithmetic C, 
-			 Arithmetic D, Arithmetic E, Arithmetic F,
-			 Arithmetic G, Arithmetic H, Arithmetic I>
-	constexpr Mat3(A a, B b, C c, D d, E e, F f, G g, H h, I i) : v{ {a, d, g}, {b, e, h}, {c, f, i} } {}
+	template<Arithmetic A, Arithmetic B, Arithmetic C,
+		Arithmetic D, Arithmetic E, Arithmetic F,
+		Arithmetic G, Arithmetic H, Arithmetic I>
+		constexpr Mat3(A a, B b, C c, D d, E e, F f, G g, H h, I i) : v{ {a, d, g}, {b, e, h}, {c, f, i} } {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
 	constexpr Mat3(const Vec3<A>& a, const Vec3<B>& b, const Vec3<C>& c) : v{ a, b, c } {}
@@ -213,7 +213,7 @@ public:
 		*this = Mat3(a, d, h, b, e, h, c, f, i);
 		return *this;
 	}
-	
+
 	template<Arithmetic A>
 	constexpr Mat3& multiply(A a) {
 		v[0] *= a;
@@ -252,7 +252,7 @@ public:
 
 	constexpr T determinant() {
 		return v[0][0] * v[1][1] * v[2][2] + v[1][0] * v[2][1] * v[0][2] + v[2][0] * v[0][1] * v[1][2]
-			 - v[0][2] * v[1][1] * v[2][0] - v[1][2] * v[2][1] * v[0][0] - v[2][2] * v[0][1] * v[1][0];
+			- v[0][2] * v[1][1] * v[2][0] - v[1][2] * v[2][1] * v[0][0] - v[2][2] * v[0][1] * v[1][0];
 	}
 
 	constexpr void invert() {
@@ -367,11 +367,11 @@ public:
 	constexpr Mat4(const Mat4<A>& m) : v{ m[0], m[1], m[2], m[3] } {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D,
-			 Arithmetic E, Arithmetic F, Arithmetic G, Arithmetic H,
-			 Arithmetic I, Arithmetic J, Arithmetic K, Arithmetic L,
-			 Arithmetic M, Arithmetic N, Arithmetic O, Arithmetic P>
-	constexpr Mat4(A a, B b, C c, D d, E e, F f, G g, H h,
-				   I i, J j, K k, L l, M m, N n, O o, P p) : v{ {a, e, i, m}, {b, f, j, n}, {c, g, k, o}, {d, h, l, p} } {}
+		Arithmetic E, Arithmetic F, Arithmetic G, Arithmetic H,
+		Arithmetic I, Arithmetic J, Arithmetic K, Arithmetic L,
+		Arithmetic M, Arithmetic N, Arithmetic O, Arithmetic P>
+		constexpr Mat4(A a, B b, C c, D d, E e, F f, G g, H h,
+			I i, J j, K k, L l, M m, N n, O o, P p) : v{ {a, e, i, m}, {b, f, j, n}, {c, g, k, o}, {d, h, l, p} } {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
 	constexpr Mat4(const Vec4<A>& a, const Vec4<B>& b, const Vec4<C>& c, const Vec4<D>& d) : v{ a, b, c, d } {}
@@ -382,9 +382,9 @@ public:
 
 	Mat3<T> toMat3() const {
 
-		return Mat3<T>(	v[0][0], v[1][0], v[2][0],
-						v[0][1], v[1][1], v[2][1],
-						v[0][2], v[1][2], v[2][2]);
+		return Mat3<T>(v[0][0], v[1][0], v[2][0],
+			v[0][1], v[1][1], v[2][1],
+			v[0][2], v[1][2], v[2][2]);
 
 	}
 
@@ -476,22 +476,22 @@ public:
 
 	constexpr Mat4 transposed() const {
 		return Mat4(v[0][0], v[0][1], v[0][2], v[0][3], v[1][0], v[1][1], v[1][2], v[1][3],
-					v[2][0], v[2][1], v[2][2], v[2][3], v[3][0], v[3][1], v[3][2], v[3][3]);
+			v[2][0], v[2][1], v[2][2], v[2][3], v[3][0], v[3][1], v[3][2], v[3][3]);
 	}
 
 	constexpr T determinant() {
-		
+
 		T a = v[0][0] * (v[1][1] * v[2][2] * v[3][3] + v[2][1] * v[3][2] * v[1][3] + v[3][1] * v[1][2] * v[2][3]
-						-v[1][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[1][1] - v[3][3] * v[1][2] * v[2][1]);
+			- v[1][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[1][1] - v[3][3] * v[1][2] * v[2][1]);
 		T b = v[1][0] * (v[0][1] * v[2][2] * v[3][3] + v[2][1] * v[3][2] * v[0][3] + v[3][1] * v[0][2] * v[2][3]
-						-v[0][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[2][1]);
+			- v[0][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[2][1]);
 		T c = v[2][0] * (v[0][1] * v[1][2] * v[3][3] + v[1][1] * v[3][2] * v[0][3] + v[3][1] * v[0][2] * v[1][3]
-						-v[0][3] * v[1][2] * v[3][1] - v[1][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[1][1]);
+			- v[0][3] * v[1][2] * v[3][1] - v[1][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[1][1]);
 		T d = v[3][0] * (v[0][1] * v[1][2] * v[2][3] + v[1][1] * v[2][2] * v[0][3] + v[2][1] * v[0][2] * v[1][3]
-						-v[0][3] * v[1][2] * v[2][1] - v[1][3] * v[2][2] * v[0][1] - v[2][3] * v[0][2] * v[1][1]);
+			- v[0][3] * v[1][2] * v[2][1] - v[1][3] * v[2][2] * v[0][1] - v[2][3] * v[0][2] * v[1][1]);
 
 		return a - b + c - d;
-	
+
 	}
 
 	constexpr void invert() {
@@ -518,22 +518,22 @@ public:
 		T o = v[2][3];
 		T p = v[3][3];
 
-		v[0][0] = ( f * k * p - f * l * o - j * g * p + j * h * o + n * g * l - n * h * k) * s;
+		v[0][0] = (f * k * p - f * l * o - j * g * p + j * h * o + n * g * l - n * h * k) * s;
 		v[0][1] = (-e * k * p + e * l * o + i * g * p - i * h * o - m * g * l + m * h * k) * s;
-		v[0][2] = ( e * j * p - e * l * n - i * f * p + i * h * n + m * f * l - m * h * j) * s;
+		v[0][2] = (e * j * p - e * l * n - i * f * p + i * h * n + m * f * l - m * h * j) * s;
 		v[0][3] = (-e * j * o + e * k * n + i * f * o - i * g * n - m * f * k + m * g * j) * s;
 		v[1][0] = (-b * k * p + b * l * o + j * c * p - j * d * o - n * c * l + n * d * k) * s;
-		v[1][1] = ( a * k * p - a * l * o - i * c * p + i * d * o + m * c * l - m * d * k) * s;
+		v[1][1] = (a * k * p - a * l * o - i * c * p + i * d * o + m * c * l - m * d * k) * s;
 		v[1][2] = (-a * j * p + a * l * n + i * b * p - i * d * n - m * b * l + m * d * j) * s;
-		v[1][3] = ( a * j * o - a * k * n - i * b * o + i * c * n + m * b * k - m * c * j) * s;
-		v[2][0] = ( b * g * p - b * h * o - f * c * p + f * d * o + n * c * h - n * d * g) * s;
+		v[1][3] = (a * j * o - a * k * n - i * b * o + i * c * n + m * b * k - m * c * j) * s;
+		v[2][0] = (b * g * p - b * h * o - f * c * p + f * d * o + n * c * h - n * d * g) * s;
 		v[2][1] = (-a * g * p + a * h * o + e * c * p - e * d * o - m * c * h + m * d * g) * s;
-		v[2][2] = ( a * f * p - a * h * n - e * b * p + e * d * n + m * b * h - m * d * f) * s;
+		v[2][2] = (a * f * p - a * h * n - e * b * p + e * d * n + m * b * h - m * d * f) * s;
 		v[2][3] = (-a * f * o + a * g * n + e * b * o - e * c * n - m * b * g + m * c * f) * s;
 		v[3][0] = (-b * g * l + b * h * k + f * c * l - f * d * k - j * c * h + j * d * g) * s;
-		v[3][1] = ( a * g * l - a * h * k - e * c * l + e * d * k + i * c * h - i * d * g) * s;
+		v[3][1] = (a * g * l - a * h * k - e * c * l + e * d * k + i * c * h - i * d * g) * s;
 		v[3][2] = (-a * f * l + a * h * j + e * b * l - e * d * j - i * b * h + i * d * f) * s;
-		v[3][3] = ( a * f * k - a * g * j - e * b * k + e * c * j + i * b * g - i * c * f) * s;
+		v[3][3] = (a * f * k - a * g * j - e * b * k + e * c * j + i * b * g - i * c * f) * s;
 
 	}
 
@@ -543,7 +543,7 @@ public:
 		ret.invert();
 
 		return ret;
-	
+
 	}
 
 	constexpr void setIdentity() {
@@ -605,8 +605,15 @@ public:
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
 	constexpr Mat4& translate(A x, B y, C z) {
-		v[3] += Vec4<T>(x, y, z, 0.0);
+		v[3] += v[0] * x;
+		v[3] += v[1] * y;
+		v[3] += v[2] * z;
 		return *this;
+	}
+
+	template<Arithmetic A>
+	constexpr Mat4& translate(const Vec3<A>& vec) {
+		return translate(vec.x, vec.y, vec.z);
 	}
 
 	template<Arithmetic A, Arithmetic B>
@@ -617,9 +624,9 @@ public:
 		auto cosTheta = Math::cos(angle);
 		auto mcosTheta = 1.0 - cosTheta;
 
-		Mat3<T> n (u.x * u.x * mcosTheta + cosTheta, u.x * u.y * mcosTheta - u.z * sinTheta, u.x * u.z * mcosTheta + u.y * sinTheta,
-				u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta,
-				u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta);
+		Mat3<T> n(u.x * u.x * mcosTheta + cosTheta, u.x * u.y * mcosTheta - u.z * sinTheta, u.x * u.z * mcosTheta + u.y * sinTheta,
+			u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta,
+			u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta);
 
 		Vec4 x = v[0] * n[0][0] + v[1] * n[0][1] + v[2] * n[0][2];
 		Vec4 y = v[0] * n[1][0] + v[1] * n[1][1] + v[2] * n[1][2];
@@ -640,10 +647,25 @@ public:
 		return *this;
 	}
 
+	template<Arithmetic A>
+	constexpr Mat4& scale(A v) {
+		return scale(v, v, v);
+	}
+
+	template<Arithmetic A>
+	constexpr Mat4& scale(const Vec3<A>& vec) {
+		return scale(vec.x, vec.y, vec.z);
+	}
+
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
 	constexpr static Mat4 fromTranslation(A x, B y, C z) {
 		return Mat4(1, 0, 0, x, 0, 1, 0, y, 0, 0, 1, z, 0, 0, 0, 1);
+	}
+
+	template<Arithmetic A>
+	constexpr static Mat4 fromTranslation(const Vec3<A>& vec) {
+		return Mat4(1, 0, 0, vec.x, 0, 1, 0, vec.y, 0, 0, 1, vec.z, 0, 0, 0, 1);
 	}
 
 	template<Float A, Arithmetic B>
@@ -654,16 +676,26 @@ public:
 		auto cosTheta = Math::cos(angle);
 		auto mcosTheta = 1.0 - cosTheta;
 
-		return Mat4(u.x * u.x * mcosTheta + cosTheta,		u.x * u.y * mcosTheta - u.z * sinTheta, u.x * u.z * mcosTheta + u.y * sinTheta, 0,
-					u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta,		u.y * u.z * mcosTheta - u.x * sinTheta, 0,
-					u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta, 0,
-					0, 0, 0, 1);
+		return Mat4(u.x * u.x * mcosTheta + cosTheta, u.x * u.y * mcosTheta - u.z * sinTheta, u.x * u.z * mcosTheta + u.y * sinTheta, 0,
+			u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta, 0,
+			u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta, 0,
+			0, 0, 0, 1);
 
 	}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
 	constexpr static Mat4 fromScale(A x, B y, C z) {
 		return Mat4(x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1);
+	}
+
+	template<Arithmetic A>
+	constexpr static Mat4 fromScale(A v) {
+		return fromScale(v, v, v);
+	}
+
+	template<Arithmetic A>
+	constexpr static Mat4 fromScale(const Vec3<A>& vec) {
+		return fromScale(vec.x, vec.y, vec.z);
 	}
 
 	template<Float A, Float B>
@@ -674,9 +706,9 @@ public:
 		Vec3<T> u = f.cross(r);
 
 		return Mat4(r.x, r.y, r.z, -r.dot(pos),
-					u.x, u.y, u.z, -u.dot(pos),
-					f.x, f.y, f.z, -f.dot(pos),
-					0, 0, 0, 1);
+			u.x, u.y, u.z, -u.dot(pos),
+			f.x, f.y, f.z, -f.dot(pos),
+			0, 0, 0, 1);
 
 	}
 
@@ -691,9 +723,9 @@ public:
 		T f = far;
 
 		return Mat4(2 * n / (r - l), 0, (r + l) / (r - l), 0,
-					0, 2 * n / (t - b), (t + b) / (t - b), 0,
-					0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
-					0, 0, -1, 0);
+			0, 2 * n / (t - b), (t + b) / (t - b), 0,
+			0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
+			0, 0, -1, 0);
 
 	}
 
@@ -706,9 +738,9 @@ public:
 		T f = far;
 
 		return Mat4(1 / (a * t), 0, 0, 0,
-					0, 1 / t, 0, 0,
-					0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
-					0, 0, -1, 0);
+			0, 1 / t, 0, 0,
+			0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
+			0, 0, -1, 0);
 
 	}
 
@@ -723,9 +755,9 @@ public:
 		T f = far;
 
 		return Mat4(2 / (r - l), 0, 0, -(r + l) / (r - l),
-					0, 2 / (t - b), 0, -(t + b) / (t - b),
-					0, 0, -2 / (f - n), -(f + n) / (f - n),
-					0, 0, 0, 1);
+			0, 2 / (t - b), 0, -(t + b) / (t - b),
+			0, 0, -2 / (f - n), -(f + n) / (f - n),
+			0, 0, 0, 1);
 
 	}
 
@@ -762,7 +794,7 @@ constexpr auto operator*(const Mat2<A>& m, const Vec2<B>& v) {
 	auto y = m[0][1] * v[0] + m[1][1] * v[1];
 
 	return Vec2<A>(x, y);
-	
+
 }
 
 template<Float A, Arithmetic B>
