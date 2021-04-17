@@ -9,6 +9,15 @@
 
 #define ARC_COLOR_QUANTIZE		quantizeRound8
 
+
+/*
+	Default color channel ordering
+	ARGB: Alpha highest byte
+	RGBA: Alpha lowest byte
+*/
+#define ARC_COLOR_DEFAULT_CHANNEL_ORDER	ARGB
+
+
 /*
 	Task Executor sleep policy
 	ARC_TASK_SPIN: Spin when queue empty
