@@ -6,6 +6,7 @@
 
 
 
+
 struct ColorRGB {
 
 	constexpr ColorRGB() : ColorRGB(0) {}
@@ -20,6 +21,15 @@ struct ColorRGB {
 		return Vec3i(r, g, b);
 	}
 
+	constexpr u32 packed() const{
+		return (r << 16) | (g << 8) | b;
+	}
+
+	static constexpr ColorRGB fromPacked(u32 rgb) noexcept {
+		return ColorRGB((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
+	}
+
+
 	u8 r;
 	u8 g;
 	u8 b;
@@ -30,9 +40,15 @@ struct ColorRGB {
 
 struct ColorRGBA : public ColorRGB {
 
+	enum ChannelOrder{
+		ARGB,
+		RGBA
+	};
+
 	constexpr ColorRGBA() : ColorRGBA(0) {}
 	constexpr explicit ColorRGBA(u8 v) : ColorRGBA(v, v, v, v) {}
 	constexpr ColorRGBA(u8 r, u8 g, u8 b, u8 a) : ColorRGB(r, g, b), a(a) {}
+	constexpr explicit ColorRGBA(const ColorRGB& c, u8 a) : ColorRGBA(c.r, c.g, c.b, a) {}
 
 	constexpr Vec4f toVec4f() const {
 		return Vec4f(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
@@ -40,6 +56,29 @@ struct ColorRGBA : public ColorRGB {
 
 	constexpr Vec4i toVec4i() const {
 		return Vec4i(r, g, b, a);
+	}
+
+	template<ChannelOrder Order = ARC_COLOR_DEFAULT_CHANNEL_ORDER>
+	constexpr u32 packed() const{
+
+		if constexpr(Order == ChannelOrder::ARGB){
+			return (a << 24) | (r << 16) | (g << 8) | b;
+		}else{
+			return (r << 24) | (g << 16) | (b << 8) << a;
+		}
+
+	}
+
+
+	template<ColorRGBA::ChannelOrder Order = ColorRGBA::ARC_COLOR_DEFAULT_CHANNEL_ORDER>
+	static constexpr ColorRGBA fromPacked(u32 rgba) noexcept {
+
+		if constexpr(Order == ColorRGBA::ARGB){
+			return ColorRGBA((rgba >> 16) & 0xFF, (rgba >> 8) & 0xFF, rgba & 0xFF, (rgba >> 24) & 0xFF);
+		}else{
+			return ColorRGBA((rgba >> 24) & 0xFF, (rgba >> 16) & 0xFF, (rgba >> 8) & 0xFF, rgba & 0xFF);
+		}
+
 	}
 
 	u8 a;
@@ -204,25 +243,6 @@ namespace Color {
 	}
 
 
-
-
-	constexpr u32 packRGBA(u8 r, u8 g, u8 b, u8 a = 0xFF) noexcept {
-		return (a << 24) | (b << 16) | (g << 8) | r;
-	}
-
-
-
-	constexpr void unpackRGBA(u32 rgba, u8& r, u8& g, u8& b, u8& a) noexcept {
-
-		b = rgba & 0xFF;
-		g = (rgba >> 8) & 0xFF;
-		r = (rgba >> 16) & 0xFF;
-		a = (rgba >> 24) & 0xFF;
-
-	}
-
-
-
 	constexpr u16 packRGB15(u8 r, u8 g, u8 b) noexcept {
 		return ((b & 0x1F) << 10) | ((g & 0x1F) << 5) | (r & 0x1F);
 	}
@@ -239,51 +259,63 @@ namespace Color {
 
 
 
-	constexpr auto convertRGB15ToRGBA(u16 rgb15) noexcept {
+	constexpr ColorRGB rgb15ToRGB(u16 rgb15) noexcept {
 
 		u8 r, g, b;
-
 		unpackRGB15(rgb15, r, g, b);
 
-		r = (r << 3) | (r >> 2);
-		g = (g << 3) | (g >> 2);
-		b = (b << 3) | (b >> 2);
-
-		return packRGBA(r, g, b);
+		return ColorRGB((r << 3) | (r >> 2), (g << 3) | (g >> 2), (b << 3) | (b >> 2));
 
 	}
 
 
 
-	constexpr auto convertRGBAToRGB15(u16 rgb15) noexcept {
+	constexpr u16 rgbaToRGB15(u32 rgba) noexcept {
 
-		u8 r, g, b, a;
-
-		unpackRGBA(rgb15, r, g, b, a);
-
-		r = r >> 3;
-		g = g >> 3;
-		b = b >> 3;
-
-		return packRGB15(r, g, b);
+		ColorRGBA c	= ColorRGBA::fromPacked(rgba);
+		return packRGB15(c.r >> 3, c.g >> 3, c.b >> 3);
 
 	}
 
 
 
-	constexpr auto convertRGB15ToColor(u16 rgb15) noexcept {
-
-		u8 r, g, b;
-
-		unpackRGB15(rgb15, r, g, b);
-
-		r = (r << 3) | (r >> 2);
-		g = (g << 3) | (g >> 2);
-		b = (b << 3) | (b >> 2);
-
-		return ColorRGBA(r, g, b, 0xFF);
-
+	constexpr ColorRGBA rgb15ToRGBA(u16 rgb15) noexcept {
+		return ColorRGBA(rgb15ToRGB(rgb15), 0xFF);
 	}
 
+}
 
+
+
+/*
+ *	Apparently the compiler wants me to add equality here...
+ *	MSVC moment
+ */
+
+constexpr auto operator<=>(const ColorRGB& lhs, const ColorRGB& rhs) {
+	return lhs.packed() <=> rhs.packed();
+}
+
+
+
+constexpr auto operator==(const ColorRGB& lhs, const ColorRGB& rhs) {
+	return lhs.packed() == rhs.packed();
+}
+
+
+
+constexpr auto operator<=>(const ColorRGBA& lhs, const ColorRGBA& rhs) {
+	return lhs.packed() <=> rhs.packed();
+}
+
+
+
+constexpr auto operator==(const ColorRGBA& lhs, const ColorRGBA& rhs) {
+	return lhs.packed() == rhs.packed();
+}
+
+
+
+constexpr auto operator==(const ColorHSV& lhs, const ColorHSV& rhs) {
+	return Math::isEqual(lhs.h, rhs.h) && Math::isEqual(lhs.s, rhs.s) && Math::isEqual(lhs.v, rhs.v);
 }
