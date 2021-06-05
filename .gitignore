@@ -7,10 +7,8 @@
 [Ll]og/
 [Ll]ib/
 profiling/
-assets/textures
-assets/sounds
-assets/models
-screenshots/saved
+assets/
+screenshots/
 .idea/
 pack/
 tools/axrconv/b*
@@ -20,5 +18,4 @@ tools/axrconv/AXRConv/*/*
 cmake-build-debug-visual-studio/
 cmake-build-release-visual-studio/
 *.user
-.editorconfig
 .editorconfig
