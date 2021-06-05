@@ -1,101 +1,18 @@
 #pragma once
 
+#include <new>
+#include "util/assert.h"
+#include "util/math.h"
+#include "util/log.h"
 #include "types.h"
+#include "arcbuild.h"
+#include "arcconfig.h"
 
 
-/*
- 
-	PoolAllocator
-	Manages a heap divided into fixed-sized blocks.
-	Allows allocation/deallocation in O(1).
 
-	This allocator simply allocates a block of memory with create() with a specified size and count.
-	The storage is immutable, meaning it cannot be reallocated without destroying the whole heap.
-	Every block has a minimum size of AddressT's size (which depends on the machine) and a minimum alignment of the same.
-	Typically, both evaluate to 4 bytes on 32 bit systems and 8 bytes on 64 bit systems.
-
-	Therefore, the layout after creation is as follows:
-
-	Head -> 0
-
-	+-----------------------------+ 0
-	|			->    1			  |
-	+-----------------------------+ 1
-	|			->    2			  |
-	+-----------------------------+ 2
-	|			->    3			  |
-	+-----------------------------+ 3
-	|			-> null			  |
-	+-----------------------------+
-
-	Each storage is defined as either the requested block size or a pointer to the next free block if the block itself is free.
-
-*/
+template<class T, AlignT Align = sizeof(SystemT) * 8>
 class PoolAllocator {
 
-public:
-
-	//Creates a new PoolAllocator instance. No memory is allocated upon construction. 
-	constexpr PoolAllocator() noexcept : heap(nullptr), head(nullptr), totalSize(0), blockSize(0), blockAlign(0) {}
-
-	//Memory is freed automatically. However, the user must ensure every destructor is called before destroying the allocator itself.
-	~PoolAllocator() noexcept;
-
-	//Move allowed, copy disabled.
-	PoolAllocator(const PoolAllocator& allocator) = delete;
-	PoolAllocator& operator=(const PoolAllocator& allocator) = delete;
-	PoolAllocator(PoolAllocator&& allocator) noexcept;
-	PoolAllocator& operator=(PoolAllocator&& allocator) noexcept;
-
-
-	/*
-		Creates a new heap which is partitioned into blocks. The previously created heap will be destroyed.
-		May throw std::bad_alloc if initial allocation failed.
-
-		blockCount:	Number of blocks the heap will contain.
-		blockSize:	Specifies the size of the block.
-		blockAlign: Specifies the alignment of the block.
-
-		The actual block size/alignment has a minimum as specified by Storage.
-	*/
-	void create(AddressT blockCount, AddressT blockSize, AlignT blockAlign);
-
-
-	/*
-		Creates a new heap whereas block size/alignment is deduced by T.
-		See create(blockCount, blockSize, blockAlign) for more information.
-	*/
-	template<class T>
-	void create(AddressT blockCount) {
-		create(blockCount, sizeof(T), alignof(T));
-	}
-
-
-	//Deallocates the heap if it has been created.
-	void clear() noexcept;
-
-
-	/*
-		Acquires a block of allocated memory. Throws std::bad_alloc if no memory has been allocated or there is no free block left.
-		returns:	A pointer to the allocated block.
-	*/
-	[[nodiscard]] void* allocate();
-
-
-	/*
-		Deallocates a pointer. Deallocating memory as pointed to by the pointer which he does not own results in undefined behaviour.
-		ptr:		The pointer to be deallocated. nullptr has no effect.
-	*/
-	void deallocate(void* ptr) noexcept;
-
-
-private:
-
-	//Initializes the internal linked list.
-	void generatePool();
-
-
-	//Class that stores a pointer to the next free block.
 	struct Storage {
 
 		constexpr Storage(Storage* next) noexcept : next(next) {}
@@ -104,12 +21,175 @@ private:
 
 	};
 
+public:
+
+	constexpr static inline AddressT baseSize = Math::max(sizeof(T), sizeof(Storage));
+	constexpr static inline AlignT baseAlignment = Math::max(alignof(T), alignof(Storage));
+	constexpr static inline AddressT alignedSize = Math::alignUp(baseSize, baseAlignment);
+
+
+
+	constexpr PoolAllocator() noexcept : heap(nullptr), head(nullptr), totalSize(0) {}
+
+	~PoolAllocator() noexcept {
+		clear();
+	}
+
+	PoolAllocator(const PoolAllocator& allocator) = delete;
+	PoolAllocator& operator=(const PoolAllocator& allocator) = delete;
+
+	constexpr PoolAllocator(PoolAllocator&& allocator) noexcept : 
+		heap(std::exchange(allocator.heap, nullptr)), 
+		totalSize(std::exchange(allocator.totalSize, 0)) {}
+
+	constexpr PoolAllocator& operator=(PoolAllocator&& allocator) noexcept {
+
+		heap = std::exchange(allocator.heap, nullptr);
+		totalSize = std::exchange(allocator.totalSize, nullptr);
+
+		return *this;
+
+	}
+
+
+
+	void create(AddressT size) {
+
+		#ifdef ARC_ALLOCATOR_DEBUG_CHECKS
+			arc_assert(size % alignedSize == 0, "Requested pool size %d is not multiple of element size %d", size, alignedSize);
+		#endif
+			
+		size = size - (size % alignedSize);
+
+		if (!heap && size) {
+
+			heap = static_cast<Byte*>(::operator new(size, std::align_val_t(Align)));
+			totalSize = size;
+			
+			generatePool();
+
+			#ifdef ARC_ALLOCATOR_DEBUG_LOG
+				Log::debug("Pool Allocator", "Pool created at %p. Element size: %d, total size: %d,", heap, alignedSize, totalSize);
+			#endif
+
+		}
+
+	}
+
+
+
+	void clear() noexcept {
+
+		if (heap) {
+
+			::operator delete(heap, std::align_val_t(Align));
+
+			#ifdef ARC_ALLOCATOR_DEBUG_LOG
+				Log::debug("Pool Allocator", "Pool destroyed at %p.", heap);
+			#endif
+
+			heap = nullptr;
+			head = nullptr;
+			totalSize = 0;
+
+		}
+
+	}
+
+
+
+	constexpr [[nodiscard]] void* allocate() {
+
+		if (!head) {
+			throw std::bad_alloc();
+		}
+
+		void* allocPtr = head;
+		head = head->next;
+
+		#ifdef ARC_ALLOCATOR_DEBUG_LOG
+			Log::debug("Pool Allocator", "Pool %p allocated memory at %p.", heap, allocPtr);
+		#endif
+
+		return allocPtr;
+
+	}
+
+
+
+	constexpr void deallocate(void* ptr) noexcept {
+
+		if (contains(ptr)) {
+
+			::new(ptr) Storage(head);
+			head = static_cast<Storage*>(ptr);
+
+			#ifdef ARC_ALLOCATOR_DEBUG_LOG
+				Log::debug("Pool Allocator", "Pool %p deallocated memory at %p.", heap, ptr);
+			#endif
+
+		}
+
+		#ifdef ARC_ALLOCATOR_DEBUG_LOG
+			else {
+				Log::debug("Pool Allocator", "Pool %p received invalid pointer %p.", heap, ptr);
+			}
+		#endif
+
+	}
+
+
+
+	template<class... Args>
+	T* construct(void* object, Args&&... args) noexcept(noexcept(T(std::forward<Args>(args)...))) {
+		return ::new(object) T(std::forward<Args>(args)...);
+	}
+
+
+
+	void destroy(T* object) noexcept(noexcept(std::declval<T>().~T())) {
+		object->~T();
+	}
+
+
+
+private:
+
+	constexpr AddressT allocatableElements() const noexcept {
+		return totalSize / alignedSize;
+	}
+
+
+
+	constexpr bool contains(void* ptr) const noexcept {
+		return ptr >= heap && ptr < (heap + totalSize) && Math::isAligned(Math::address(ptr), baseAlignment);
+	}
+
+
+
+	void generatePool() {
+
+		AddressT elements = allocatableElements();
+
+		for (AddressT i = 0; i < elements; i++) {
+
+			Byte* ptr = heap + i * alignedSize;
+			Byte* next = ptr + alignedSize;
+			
+			if (i == elements) [[unlikely]] {
+				next = nullptr;
+			}
+
+			::new(ptr) Storage(reinterpret_cast<Storage*>(next));
+
+		}
+
+		head = reinterpret_cast<Storage*>(heap);
+
+	}
 
 	Byte* heap;
 	Storage* head;
 	AddressT totalSize;
-
-	AddressT blockSize;
-	AlignT blockAlign;
 
 };

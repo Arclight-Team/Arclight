@@ -7,13 +7,14 @@
 			"inheritEnvironments": [ "msvc_x64_x64" ],
 			"buildRoot": "${projectDir}\\build\\Debug",
 			"installRoot": "${projectDir}\\bin",
+			"cmakeCommandArgs": "-j8",
 			"buildCommandArgs": "",
 			"ctestCommandArgs": "",
 			"variables": [
 				{
 					"name": "CMAKE_CONFIGURATION_TYPES",
 					"value": "Debug",
-					"type": "STRING"
+					"type": "UNINITIALIZED"
 				},
 				{
 					"name": "GLFW_BUILD_DOCS",
@@ -68,6 +69,7 @@
 			"configurationType": "Release",
 			"buildRoot": "${projectDir}\\build\\Release",
 			"installRoot": "${projectDir}\\bin",
+			"cmakeCommandArgs": "-j8",
 			"buildCommandArgs": "",
 			"ctestCommandArgs": "",
 			"inheritEnvironments": [ "msvc_x64_x64" ],
