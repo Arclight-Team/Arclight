@@ -1,11 +1,7 @@
 #include "core/engine.h"
 #include "util/file.h"
 #include "util/log.h"
-#include "thread/concurrentqueue.h"
-#include "thread/task.h"
-#include "thread/future.h"
-#include "thread/taskexecutor.h"
-#include "memory/poolallocator.h"
+#include "util/matrix.h"
 
 
 Engine::Engine() : profiler(Time::Unit::Seconds, 3) {}
@@ -56,51 +52,16 @@ bool Engine::initialize() {
 	renderTest.create(window.getFramebufferWidth(), window.getFramebufferHeight());
 
 	//Disable V-Sync
-	//window.disableVSync();
+	window.disableVSync();
 
 	//We're successfully running
 	Log::info("Core", "Starting engine");
 
 	//Start FPS tracker
 	tracker.start();
-	Task t;
-	ConcurrentQueue<Task, 512> queue;
-	queue.push(std::move(t));
 
-	TaskExecutor exec;
-	exec.setThreadCount(Thread::getHardwareThreadCount() - 1);
- 	exec.start();
-	i32 a = 512;
-
-	Profiler taskProfiler;
-	taskProfiler.setResolution(Time::Unit::Microseconds, 3);
-	taskProfiler.start();
-	std::atomic<u32> counter;
-	while (a > 0) {
-		a--;
-		exec.run([&counter]() {
-			counter.fetch_add(1, std::memory_order_relaxed);
-		});
-	}
-
-	exec.assistDispatch();
-	taskProfiler.stop();
-
-	PoolAllocator<Engine> alloc;
-	alloc.create(10000000);
-	std::vector<Engine*> addresses;
-
-	for (u32 i = 0; i < 1000; i++) {
-		Engine* e = alloc.construct(alloc.allocate());
-		alloc.destroy(e);
-		addresses.push_back(e);
-	}
-
-	for (u32 i = 0; i < addresses.size(); i++) {
-		alloc.deallocate(addresses[i]);
-	}
-
-	alloc.deallocate(&alloc);
+	//Init simulation
+	physicsSimulation.init();
 
 	return true;
 
@@ -120,9 +81,6 @@ void Engine::run() {
 
 	//Play sounds
 	//audioEngine.playSound(":/sounds/rickroll.mp3");
-
-    FMOD::Sound* sound = audioEngine.createSound(":/sounds/world1.wav");
-    audioEngine.playSound(sound);
 
 	//Loop until window close event is requested
 	while (!window.closeRequested()) {
@@ -145,6 +103,9 @@ void Engine::run() {
 
 		//Update audio engine
 		audioEngine.update();
+
+		//Update simulation
+		physicsSimulation.update();
 
 		//Run render test
 		renderTest.run();
@@ -213,33 +174,30 @@ void Engine::setupInputSystem() {
 
 	//Connect the input system to the window in order to receive events
 	inputSystem.connect(window);
-	inputSystem.disableCursor();
 
 	//Create the root context and add actions to it
 	InputContext& rootContext = inputSystem.createContext(0);
 	rootContext.addState(0);
 
-	rootContext.addAction(RenderTest::ActionID::CameraRotRight,		KeyTrigger({ KeyCode::Right }), true);
-	rootContext.addAction(RenderTest::ActionID::CameraRotLeft,		KeyTrigger({ KeyCode::Left }), true);
-	rootContext.addAction(RenderTest::ActionID::CameraRotDown,		KeyTrigger({ KeyCode::Down }), true);
-	rootContext.addAction(RenderTest::ActionID::CameraRotUp,		KeyTrigger({ KeyCode::Up }), true);
-	rootContext.addAction(RenderTest::ActionID::CameraMoveLeft,		KeyTrigger({ KeyCode::A }), true);
-	rootContext.addAction(RenderTest::ActionID::CameraMoveRight,	KeyTrigger({ KeyCode::D }), true);
-	rootContext.addAction(RenderTest::ActionID::CameraMoveBackward,	KeyTrigger({ KeyCode::S }), true);
-	rootContext.addAction(RenderTest::ActionID::CameraMoveForward,	KeyTrigger({ KeyCode::W }), true);
-	rootContext.addAction(RenderTest::ActionID::CameraMoveDown,		KeyTrigger({ KeyCode::Q }), true);
-	rootContext.addAction(RenderTest::ActionID::CameraMoveUp,		KeyTrigger({ KeyCode::E }), true);
-	rootContext.addAction(RenderTest::ActionID::CameraSpeedUp,		KeyTrigger({ KeyCode::LeftShift }, KeyState::Pressed), false);
-	rootContext.addAction(RenderTest::ActionID::CameraSlowDown,		KeyTrigger({ KeyCode::LeftShift }, KeyState::Released), false);
-	rootContext.addAction(RenderTest::ActionID::CameraGrab,			KeyTrigger({ Mouse::Right }), false);
-	rootContext.addAction(RenderTest::ActionID::CameraGrabScroll,	KeyTrigger({ Mouse::Right }), true);
-	rootContext.addAction(RenderTest::ActionID::FovIn,				KeyTrigger({ KeyCode::NumPad0 }, KeyState::Pressed), false);
-	rootContext.addAction(RenderTest::ActionID::FovOut,				KeyTrigger({ KeyCode::NumPad0 }, KeyState::Released), false);
+	rootContext.addAction(RenderTest::ActionID::CameraRotRight,		KeyTrigger({ 262 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraRotLeft,		KeyTrigger({ 263 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraRotDown,		KeyTrigger({ 264 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraRotUp,		KeyTrigger({ 265 }), true);	
+	rootContext.addAction(RenderTest::ActionID::CameraMoveLeft,		KeyTrigger({ 65 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveRight,	KeyTrigger({ 68 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveBackward,	KeyTrigger({ 83 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveForward,	KeyTrigger({ 87 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveDown,		KeyTrigger({ 340 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraMoveUp,		KeyTrigger({ 32 }), true);
+	rootContext.addAction(RenderTest::ActionID::CameraSpeedUp,		KeyTrigger({ 341 }, KeyState::Released), false);
+	rootContext.addAction(RenderTest::ActionID::CameraSlowDown,		KeyTrigger({ 341 }, KeyState::Pressed), false);
+	rootContext.addAction(RenderTest::ActionID::FovIn,				KeyTrigger({ 320 }, KeyState::Pressed), false);
+	rootContext.addAction(RenderTest::ActionID::FovOut,				KeyTrigger({ 320 }, KeyState::Released), false);
 
-	rootContext.addAction(RenderTest::ActionID::QuickScreenshot,	KeyTrigger({ KeyCode::F2 }), false);
-	rootContext.addAction(RenderTest::ActionID::ReloadShaders,		KeyTrigger({ KeyCode::F3 }, KeyState::Released), false);
-	rootContext.addAction(RenderTest::ActionID::ReloadResources,	KeyTrigger({ KeyCode::F4 }, KeyState::Released), false);
-	rootContext.addAction(RenderTest::ActionID::ToggleDebug,		KeyTrigger({ KeyCode::F5 }), false);
+	rootContext.addAction(RenderTest::ActionID::QuickScreenshot,	KeyTrigger({ 291 }), false);
+	rootContext.addAction(RenderTest::ActionID::ReloadShaders,		KeyTrigger({ 292 }), false);
+	rootContext.addAction(RenderTest::ActionID::ReloadResources,	KeyTrigger({ 293 }), false);
+	rootContext.addAction(RenderTest::ActionID::ToggleDebug,		KeyTrigger({ 294 }), false);
 
 	rootContext.registerAction(0, RenderTest::ActionID::CameraRotLeft);
 	rootContext.registerAction(0, RenderTest::ActionID::CameraRotRight);
@@ -252,9 +210,7 @@ void Engine::setupInputSystem() {
 	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveDown);
 	rootContext.registerAction(0, RenderTest::ActionID::CameraMoveUp);
 	rootContext.registerAction(0, RenderTest::ActionID::CameraSpeedUp);
-	rootContext.registerAction(0, RenderTest::ActionID::CameraSlowDown);
-	rootContext.registerAction(0, RenderTest::ActionID::CameraGrab);
-	rootContext.registerAction(0, RenderTest::ActionID::CameraGrabScroll);
+	rootContext.registerAction(0, RenderTest::ActionID::CameraSlowDown);	
 	rootContext.registerAction(0, RenderTest::ActionID::FovIn);
 	rootContext.registerAction(0, RenderTest::ActionID::FovOut);
 
@@ -288,7 +244,6 @@ void Engine::setupInputSystem() {
 
 	inputHandler.setCursorListener([this](double x, double y) {
 		//Log::info("Input Context", "Cursor at: %f, %f", x, y);
-		renderTest.onMouseScroll(x, y);
 		return true;
 	});
 

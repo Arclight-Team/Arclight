@@ -11,7 +11,6 @@ assets/textures
 assets/sounds
 assets/models
 screenshots/saved
-screenshots/
 .idea/
 pack/
 tools/axrconv/b*
@@ -20,5 +19,5 @@ tools/axrconv/AXRConv/*/*
 !tools/axrconv/AXRConv/*
 cmake-build-debug-visual-studio/
 cmake-build-release-visual-studio/
-cmake-build-debug/
 *.user
+.editorconfig
