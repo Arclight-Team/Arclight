@@ -22,6 +22,7 @@ public:
 	void resizeWindowFB(u32 w, u32 h);
 	void onKeyAction(KeyAction action);
 	void onScroll(float s);
+	void onMouseScroll(float x, float y);
 
 	enum ActionID : int {
 		CameraRotLeft = 1,
@@ -36,6 +37,8 @@ public:
 		CameraMoveUp,
 		CameraSpeedUp,
 		CameraSlowDown,
+		CameraGrab,
+		CameraGrabScroll,
 		FovIn,
 		FovOut,
 		QuickScreenshot,
@@ -110,6 +113,8 @@ private:
 	Mat3f waterSrtMatrix;
 	Vec2f waterBaseCol;
 
+	Vec2f currentMousePosition;
+	Vec2f startMousePosition;
 	Vec3i camMovement;
 	Vec3i camRotation;
 	Camera camera;
@@ -130,6 +135,7 @@ private:
 	constexpr inline static double camVelocityFast = 0.51;
 	constexpr inline static double camVelocitySlow = 0.08;
 	constexpr inline static double camRotationScale = 0.06;
+	constexpr inline static double camGrabSpeed = 0.092;
 	constexpr inline static double fovNormal = 90;
 	constexpr inline static double fovZoom = 30;
 	constexpr inline static u32 shadowMapSize = 2048;
