@@ -17,7 +17,7 @@ namespace Util {
 
 		try {
 			return std::string(buffer);
-		} catch (std::exception& e) {
+		} catch (std::exception&) {
 			//We cannot log here, so return an empty string
 			return "";
 		}

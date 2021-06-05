@@ -2,9 +2,11 @@
 
 #include <string>
 #include <fstream>
+#include <stdexcept>
 
 #include "uri.h"
 #include "types.h"
+
 
 
 class File {

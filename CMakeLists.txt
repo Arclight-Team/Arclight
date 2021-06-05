@@ -68,7 +68,7 @@ include_directories("lib/FMOD/include")
 include_directories("lib/GLFW/include")
 include_directories("lib/stb_image")
 include_directories("lib/assimp/include")
-include_directories("lib/bullet3/src")
+include_directories("lib/bullet3/include/bullet")
 include_directories("lib")
 include_directories(${GLEW_INCLUDE_DIR})
 

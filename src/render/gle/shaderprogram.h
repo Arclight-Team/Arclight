@@ -20,7 +20,7 @@ enum class ShaderType {
 };
 
 
-class ShaderProgram : public GLObject{
+class ShaderProgram : public GLObject {
 
 public:
 

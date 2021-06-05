@@ -60,14 +60,14 @@ namespace Log {
 			try {
 
 				std::stringstream ss;
-				ss << "[" << level << "] <" << subsystem << "> " << message;
+				ss << "[" << level << ": " << subsystem << "] " << message;
 				std::cout << ss.str() << std::endl;
 
 				if (logfile.isOpen()) {
 					logfile.writeLine(ss.str());
 				}
 
-			} catch (std::exception& e) {
+			} catch (std::exception&) {
 				//There's literally nothing we can do here
 #ifdef ARC_LOG_EXCEPTION_ABORT
 				arc_abort();
