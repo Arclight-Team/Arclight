@@ -47,12 +47,28 @@ else()
 	set(ASSIMP_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/lib/Release/assimp-vc142-mt.lib)
 endif()
 
+#Use the correct bullet .libs
+if(${CMAKE_CONFIGURATION_TYPES} MATCHES "Debug")
+	message("Linking bullet in debug mode")
+	set(BULLET_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/lib/Debug)
+	set(BULLET_LIBRARIES	${BULLET_LIB_DIR}/BulletCollision_Debug.lib
+							${BULLET_LIB_DIR}/BulletDynamics_Debug.lib
+							${BULLET_LIB_DIR}/LinearMath_Debug.lib)
+else()
+	message("Linking bullet in release mode")
+	set(BULLET_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/lib/Release)
+	set(BULLET_LIBRARIES	${BULLET_LIB_DIR}/BulletCollision.lib
+							${BULLET_LIB_DIR}/BulletDynamics.lib
+							${BULLET_LIB_DIR}/LinearMath.lib)
+endif()
+
 #Add all include directories
 include_directories("src")
 include_directories("lib/FMOD/include")
 include_directories("lib/GLFW/include")
 include_directories("lib/stb_image")
 include_directories("lib/assimp/include")
+include_directories("lib/bullet3/src")
 include_directories("lib")
 include_directories(${GLEW_INCLUDE_DIR})
 
@@ -61,4 +77,5 @@ file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp")
 
 #Create the executable and link
 add_executable (arclight ${SOURCES})
-target_link_libraries(arclight GLEW::GLEW opengl32 glfw ${CMAKE_CURRENT_SOURCE_DIR}/lib/FMOD/fmodL_vc.lib ${ASSIMP_LIBRARY})
+target_link_libraries(arclight GLEW::GLEW opengl32 glfw 
+				${CMAKE_CURRENT_SOURCE_DIR}/lib/FMOD/fmodL_vc.lib ${ASSIMP_LIBRARY} ${BULLET_LIBRARIES})
