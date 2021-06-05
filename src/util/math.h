@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cmath>
-#include "types.h"
+#include "common/types.h"
 
 
 namespace Math {

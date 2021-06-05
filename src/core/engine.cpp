@@ -191,8 +191,6 @@ void Engine::setupInputSystem() {
 	rootContext.addAction(RenderTest::ActionID::CameraMoveUp,		KeyTrigger({ 32 }), true);
 	rootContext.addAction(RenderTest::ActionID::CameraSpeedUp,		KeyTrigger({ 341 }, KeyState::Released), false);
 	rootContext.addAction(RenderTest::ActionID::CameraSlowDown,		KeyTrigger({ 341 }, KeyState::Pressed), false);
-	rootContext.addAction(RenderTest::ActionID::CameraGrab,			KeyTrigger({ Mouse::Right }), false);
-	rootContext.addAction(RenderTest::ActionID::CameraGrabScroll,	KeyTrigger({ Mouse::Right }), true);
 	rootContext.addAction(RenderTest::ActionID::FovIn,				KeyTrigger({ 320 }, KeyState::Pressed), false);
 	rootContext.addAction(RenderTest::ActionID::FovOut,				KeyTrigger({ 320 }, KeyState::Released), false);
 
