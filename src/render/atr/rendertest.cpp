@@ -465,19 +465,6 @@ void RenderTest::onKeyAction(KeyAction action) {
 			camVelocity = camVelocitySlow;
 			break;
 
-		case ActionID::CameraGrab:
-			startMousePosition = currentMousePosition;
-			break;
-		case ActionID::CameraGrabScroll:
-		{
-			Vec2f dif = currentMousePosition - startMousePosition;
-			startMousePosition = currentMousePosition;
-			dif *= camGrabSpeed * camRotationScale;
-			camera.rotate(dif.x, -dif.y); 
-			recalculateView();
-			break;
-		}
-
 		case ActionID::FovIn:
 			fov = fovZoom;
 			recalculateProjection();
@@ -513,12 +500,7 @@ void RenderTest::onScroll(float s) {
 	exposure += s * 0.1;
 	exposure = Math::clamp(exposure, 0.1, 30.0);
 	Log::info("Render Test", "Exposure set to %f", exposure);
-}
 
-
-
-void RenderTest::onMouseScroll(float x, float y) {
-	currentMousePosition = Vec2f(x, y);
 }
 
 

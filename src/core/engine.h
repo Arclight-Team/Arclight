@@ -6,6 +6,7 @@
 #include "render/atr/rendertest.h"
 #include "util/profiler.h"
 #include "util/fpstracker.h"
+#include "physics/physicstest.h"
 
 
 class Engine {
@@ -34,5 +35,6 @@ private:
 	AudioEngine audioEngine;
 	RenderTest renderTest;
 	FPSTracker tracker;
+	PhysicsTest physicsSimulation;
 
 };
