@@ -12,6 +12,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 
+message("Building as: ${CMAKE_BUILD_TYPE}")
+
 #Profiling via debug symbols
 if(MSVC AND CMAKE_CONFIGURATION_TYPES MATCHES "Release")
 	message("Profiling active")
@@ -39,7 +41,7 @@ list(APPEND CMAKE_PREFIX_PATH "lib/GLEW")
 find_package(GLEW REQUIRED)
 
 #Use the correct assimp .lib
-if(${CMAKE_CONFIGURATION_TYPES} MATCHES "Debug")
+if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
 	message("Linking assimp in debug mode")
 	set(ASSIMP_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/lib/Debug/assimp-vc142-mtd.lib)
 else()
@@ -48,7 +50,7 @@ else()
 endif()
 
 #Use the correct bullet .libs
-if(${CMAKE_CONFIGURATION_TYPES} MATCHES "Debug")
+if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
 	message("Linking bullet in debug mode")
 	set(BULLET_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/lib/Debug)
 	set(BULLET_LIBRARIES	${BULLET_LIB_DIR}/BulletCollision_Debug.lib

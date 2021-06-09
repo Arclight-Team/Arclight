@@ -17,4 +17,5 @@
 #include "framebuffer.h"
 #include "renderbuffer.h"
 
+#include "render.h"
 #include "glecore.h"

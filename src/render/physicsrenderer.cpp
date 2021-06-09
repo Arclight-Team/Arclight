@@ -1,9 +1,14 @@
 #include "physicsrenderer.h"
 #include "utility/shaderloader.h"
+#include "utility/vertexhelper.h"
 
 
 
 bool PhysicsRenderer::init() {
+
+	objectVB.create();
+	objectVB.bind();
+	//objectVB.allocate()
 
 	try {
 

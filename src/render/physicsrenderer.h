@@ -18,4 +18,6 @@ private:
 	GLE::VertexArray objectVA;
 	GLE::VertexBuffer objectVB;
 
+	
+
 };

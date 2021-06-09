@@ -1,9 +1,9 @@
 #pragma once
 
-#include "LinearMath/btAlignedObjectArray.h"
-#include "BulletCollision/CollisionShapes/btCollisionShape.h"
+#include "types.h"
 
 
+class BoxCollider;
 class btDefaultCollisionConfiguration;
 class btCollisionDispatcher;
 class btBroadphaseInterface;
@@ -19,6 +19,8 @@ public:
 	void init();
 	void update();
 
+	void addBoxCollider(BoxCollider& collider, u64 ownerID);
+
 private:
 
 	btDefaultCollisionConfiguration* collisionConfiguration;
@@ -27,6 +29,5 @@ private:
 	btSequentialImpulseConstraintSolver* solver;
 	btDiscreteDynamicsWorld* dynamicsWorld;
 
-	btAlignedObjectArray<btCollisionShape*> collisionShapes;
 
 };

@@ -1,6 +1,7 @@
 # Ignore the following paths:
 
 .vs/
+.vscode/
 [Oo]ut/
 [Bb]in/
 [Bb]uild/
