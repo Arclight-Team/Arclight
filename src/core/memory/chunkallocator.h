@@ -3,50 +3,49 @@
 #include "types.h"
 
 
-
 /*
-	WaveAllocator
+	ChunkAllocator
 
 	Manages a resizeable heap divided into fixed-size blocks.
 	Allows allocation/deallocation in O(1).TODO
 */
-class WaveAllocator {
+class ChunkAllocator {
 
 public:
 
-	//Creates a new WaveAllocator instance. No memory is allocated upon construction.
-	constexpr WaveAllocator() noexcept : heap(nullptr), head(nullptr), totalSize(0), blockSize(0), blockAlign(0), waveBlocks(0) {}
+	//Creates a new ChunkAllocator instance. No memory is allocated upon construction.
+	constexpr ChunkAllocator() noexcept : heap(nullptr), head(nullptr), totalSize(0), blockSize(0), blockAlign(0), chunkBlocks(0) {}
 
 	//Memory is freed automatically. However, the user must ensure every destructor is called before destroying the allocator itself.
-	~WaveAllocator() noexcept;
+	~ChunkAllocator() noexcept;
 
 	//Move allowed, copy disabled.
-	WaveAllocator(const WaveAllocator& allocator) = delete;
-	WaveAllocator& operator=(const WaveAllocator& allocator) = delete;
-	WaveAllocator(WaveAllocator&& allocator) noexcept;
-	WaveAllocator& operator=(WaveAllocator&& allocator) noexcept;
+	ChunkAllocator(const ChunkAllocator& allocator) = delete;
+	ChunkAllocator& operator=(const ChunkAllocator& allocator) = delete;
+	ChunkAllocator(ChunkAllocator&& allocator) noexcept;
+	ChunkAllocator& operator=(ChunkAllocator&& allocator) noexcept;
 
 
 	/*
-		Creates a new heap which is partitioned into waves of blocks. The previously created heap will be destroyed.
+		Creates a new heap which is partitioned into chunks of blocks. The previously created heap will be destroyed.
 		May throw std::bad_alloc if initial allocation failed.
 
 		blockSize:		Specifies the size of the block.
 		blockAlign:		Specifies the alignment of the block.
-		waveBlocks:		Number of blocks per wave
+		chunkBlocks:	Number of blocks per chunk
 
 		The actual block size/alignment has a minimum as specified by Storage.
 	*/
-	void create(AddressT blockSize, AlignT blockAlign, AddressT waveBlocks);
+	void create(AddressT blockSize, AlignT blockAlign, AddressT chunkBlocks);
 
 
 	/*
 		Creates a new heap whereas block size/alignment is deduced by T.
-		See create(blockSize, blockAlign, waveBlocks) for more information.
+		See create(blockSize, blockAlign, chunkBlocks) for more information.
 	*/
 	template<class T>
-	void create(AddressT waveBlocks) {
-		create(sizeof(T), alignof(T), waveBlocks);
+	void create(AddressT chunkBlocks) {
+		create(sizeof(T), alignof(T), chunkBlocks);
 	}
 
 
@@ -78,27 +77,27 @@ private:
 
 	};
 
-	//Wave link to the next wave.
-	struct WaveLink {
+	//Chunk link to the next chunk.
+	struct ChunkLink {
 
-		constexpr WaveLink(Byte* next) noexcept : next(next) {}
+		constexpr ChunkLink(Byte* next) noexcept : next(next) {}
 		Byte* next;
 
 	};
 
 
 	/*
-		Initializes the wave given by the pointer.
-		wavePtr:	Pointer to the wave's start. Result is undefined if it's null.
+		Initializes the chunk given by the pointer.
+		chunkPtr:	Pointer to the chunk's start. Result is undefined if it's null.
 	*/
-	void generateWave(Byte* wavePtr);
+	void generateChunk(Byte* chunkPtr);
 
 
 	/*
-		Returns a pointer to the wave's link.
-		wavePtr:	Pointer to the wave's link. Result is undefined if it's null.
+		Returns a pointer to the chunk's link.
+		chunkPtr:	Pointer to the chunk's link. Result is undefined if it's null.
 	*/
-	WaveLink* getWaveLink(Byte* wavePtr) const noexcept;
+	ChunkLink* getChunkLink(Byte* chunkPtr) const noexcept;
 
 
 	Byte* heap;
@@ -107,6 +106,6 @@ private:
 
 	AddressT blockSize;
 	AlignT blockAlign;
-	AddressT waveBlocks;
+	AddressT chunkBlocks;
 
 };

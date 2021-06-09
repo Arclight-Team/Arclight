@@ -45,10 +45,10 @@ void PoolAllocator::create(AddressT blockCount, AddressT blockSize, AlignT block
 		AddressT alignedSize = Math::alignUp(baseSize, baseAlign);
 		AddressT heapSize = blockCount * alignedSize;
 
-		this->heap = static_cast<Byte*>(::operator new(heapSize, std::align_val_t(baseAlign)));
 		this->totalSize = heapSize;
 		this->blockSize = alignedSize;
 		this->blockAlign = baseAlign;
+		this->heap = static_cast<Byte*>(::operator new(heapSize, std::align_val_t(baseAlign)));
 
 		generatePool();
 
