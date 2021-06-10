@@ -6,7 +6,7 @@
 #define arc_abort()						do { std::abort(); } while (false)
 
 template<class... Args>
-void __arc_assert(bool condition, const std::string& file, int line, const std::string& message, const Args&... args) {
+void __arc_assert(bool condition, const std::string& file, int line, const std::string& message, const Args&... args) noexcept {
 
 	if (!condition) {
 		Log::error("Assert", "Assertion failed (File " + file + ", line " + std::to_string(line) + "): " + message, args...);

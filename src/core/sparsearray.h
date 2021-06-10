@@ -1,12 +1,19 @@
 #pragma once
 
 #include <vector>
+#include <iterator>
 #include "types.h"
 #include "util/assert.h"
 #include "util/optionalref.h"
+#include "arcconfig.h"
 
 
+/*
+    Sparse Array implementatin with reverse lookup
 
+    Complexity for lookup, insertion, deletion is O(1). Traversal is O(n).
+    Memory overhead is proportional to the number of sparse entries.
+*/
 template<class T, class IndexType = u32>
 class SparseArray {
 
@@ -17,14 +24,67 @@ class SparseArray {
     };
 #endif
 
+    template<bool Const>
+    class IteratorBase {
+
+    public:
+    
+        using iterator_category = std::contiguous_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = std::conditional_t<Const, const T, T>;
+        using pointer           = value_type*;
+        using reference         = value_type&;
+
+#ifdef ARC_SPARSE_PACK
+        constexpr IteratorBase(Storage* it) noexcept : ptr(it) {}
+#else
+        constexpr IteratorBase(pointer it) noexcept : ptr(it) {}
+#endif
+
+        constexpr reference operator*() const noexcept {return *getPtr();}
+        constexpr pointer operator->() const noexcept {return getPtr();}
+        constexpr reference operator[](SizeT n) const noexcept {return *(*this + n);}
+
+        constexpr IteratorBase& operator++() noexcept {ptr++; return *this;}
+        constexpr IteratorBase operator++(int) noexcept {IteratorBase cpy = *this; ++(*this); return cpy;}
+        constexpr IteratorBase& operator--() noexcept {ptr--; return *this;}
+        constexpr IteratorBase operator--(int) noexcept {IteratorBase cpy = *this; --(*this); return cpy;}
+
+        constexpr IteratorBase operator+(SizeT n) const noexcept {return IteratorBase(ptr + n);}
+        constexpr IteratorBase operator-(SizeT n) const noexcept {return IteratorBase(ptr - n);}
+        constexpr IteratorBase& operator+=(SizeT n) noexcept {ptr += n; return *this;}
+        constexpr IteratorBase& operator-=(SizeT n) noexcept {ptr -= n; return *this;}
+
+        constexpr difference_type operator-(const IteratorBase& other) const noexcept {return ptr - other.ptr;}
+
+        constexpr auto operator<=>(const IteratorBase& other) const noexcept = default;
+
+    private:
+
+#ifdef ARC_SPARSE_PACK
+        constexpr pointer getPtr() const noexcept {return &ptr->element;}
+        Storage* ptr;
+#else
+        constexpr pointer getPtr() const noexcept {return ptr;}
+        pointer ptr;
+#endif
+
+    };
+
 public:
+
+    class Iterator : public IteratorBase<false> {};
+    class ConstIterator : public IteratorBase<true> {};
+
+    typedef std::reverse_iterator<Iterator>         ReverseIterator;
+    typedef std::reverse_iterator<ConstIterator>    ConstReverseIterator;
 
     constexpr static inline IndexType invalidIndex = -1;
 
 
-    SparseArray() = default;
+    constexpr SparseArray() noexcept = default;
 
-    SparseArray(IndexType indexArrayCapacity, IndexType denseArrayCapacity) {
+    constexpr SparseArray(IndexType indexArrayCapacity, IndexType denseArrayCapacity) {
         reserve(indexArrayCapacity, denseArrayCapacity);
     }
 
@@ -35,7 +95,7 @@ public:
         The container is resized if position exceeds the current size.
         Returns true if the element has been added, false otherwise.
     */
-    bool add(IndexType position, T&& value) {
+    constexpr bool add(IndexType position, T&& value) {
 
         checkResize(position);
         const IndexType& index = indexArray[position];
@@ -57,7 +117,7 @@ public:
         If an element already exists at position, the element is overwritten.
         The container is resized if position exceeds the current size.
     */
-    void set(IndexType position, T&& value) {
+    constexpr void set(IndexType position, T&& value) {
 
         checkResize(position);
         const IndexType& index = indexArray[position];
@@ -80,7 +140,7 @@ public:
         If an element does not already exist, no operation is performed.
         The container is resized if position exceeds the current size.
     */
-    bool trySet(IndexType position, T&& value) {
+    constexpr bool trySet(IndexType position, T&& value) {
 
         checkResize(position);
         IndexType& index = indexArray[position];
@@ -100,7 +160,7 @@ public:
     /*
         Returns whether an element at a given position exists.
     */
-    bool contains(IndexType position) {
+    constexpr bool contains(IndexType position) const {
         return !sparseIndexOutOfBounds(position) && containsValidElement(position, indexArray[position]);
     }
 
@@ -108,7 +168,18 @@ public:
     /*
         Returns an optional holding a reference to the requested element or nothing if the given index does not map to a valid element.
     */
-    OptionalRef<T> tryGet(IndexType position) {
+    constexpr OptionalRef<T> tryGet(IndexType position) {
+
+        if(!contains(position)) {
+            return {};
+        }
+
+        return internalGet(position);
+
+    }
+
+
+    constexpr OptionalRef<const T> tryGet(IndexType position) const {
 
         if(!contains(position)) {
             return {};
@@ -120,17 +191,32 @@ public:
 
 
     /*
-        Returns a reference to the element at the given position. This function exhibits UB if no such element exists.
+        Returns a reference to the element at the given position. These functions exhibits UB if no such element exists.
     */
-    T& get(IndexType position) {
+    constexpr T& get(IndexType position) {
         return internalGet(position);
+    }
+
+        
+    constexpr const T& get(IndexType position) const {
+        return internalGet(position);
+    }
+
+
+    constexpr T& operator[](SizeT n) {
+        return get(n);
+    }
+
+
+    constexpr const T& operator[](SizeT n) const {
+        return get(n);
     }
 
 
     /*
         Attempts to remove the given object. Returns true if such object existed and has been deleted, false otherwise.
     */
-    bool tryRemove(IndexType position) {
+    constexpr bool tryRemove(IndexType position) {
 
         if(contains(position)) {
 
@@ -147,15 +233,47 @@ public:
     /*
         Removes the given object. UB is exhibited in case the element does not exist.
     */
-    void remove(IndexType position) {
+    constexpr void remove(IndexType position) {
         internalRemove(position);
+    }
+
+
+    /*
+        Clears the container. All elements will be removed.
+    */
+    constexpr void clear() noexcept {
+
+        indexArray.clear();
+        denseArray.clear();
+
+#ifndef ARC_SPARSE_PACK
+        elementArray.clear();
+#endif
+
+    }
+
+
+    /*
+        Resets the container. All elements are removed and memory is requested to be deallocated.
+    */
+    constexpr void reset() {
+
+        clear();
+
+        indexArray.shrink_to_fit();
+        denseArray.shrink_to_fit();
+
+#ifndef ARC_SPARSE_PACK
+        elementArray.shrink_to_fit();
+#endif
+
     }
 
 
     /*
         Returns the number of sparse indices in the array.
     */
-    u32 getSparseSize() const {
+    constexpr SizeT getSparseSize() const noexcept {
         return indexArray.size();
     }
 
@@ -163,15 +281,123 @@ public:
     /*
         Returns the number of elements in the array.
     */
-    u32 getSize() const {
+    constexpr SizeT getSize() const noexcept {
         return denseArray.size();
     }
 
 
     /*
+        Returns an iterator to the start of the dense array.
+    */
+    constexpr Iterator begin() noexcept {
+#ifdef ARC_SPARSE_PACK
+        return Iterator(denseArray.data());
+#else
+        return Iterator(elementArray.data());
+#endif
+    }
+
+
+    /*
+        Returns an iterator to the element past the dense array.
+    */
+    constexpr Iterator end() noexcept {
+#ifdef ARC_SPARSE_PACK
+        return Iterator(denseArray.data() + denseArray.size());
+#else
+        return Iterator(elementArray.data() + elementArray.size());
+#endif
+    }
+
+
+    /*
+        Returns a const iterator to the start of the dense array.
+    */
+    constexpr ConstIterator cbegin() const noexcept {
+#ifdef ARC_SPARSE_PACK
+        return ConstIterator(denseArray.data());
+#else
+        return ConstIterator(elementArray.data());
+#endif
+    }
+
+
+    /*
+        Returns a const iterator to the element past the dense array.
+    */
+    constexpr ConstIterator cend() const noexcept {
+#ifdef ARC_SPARSE_PACK
+        return ConstIterator(denseArray.data() + denseArray.size());
+#else
+        return ConstIterator(elementArray.data() + elementArray.size());
+#endif
+    }
+
+
+    /*
+        Returns a reverse iterator to the start of the dense array.
+    */
+    constexpr ReverseIterator rbegin() noexcept {
+        return ReverseIterator(end());
+    }
+
+
+    /*
+        Returns a reverse iterator to the element past the dense array.
+    */
+    constexpr ReverseIterator rend() noexcept {
+        return ReverseIterator(begin());
+    }
+
+
+    /*
+        Returns a const reverse iterator to the start of the dense array.
+    */
+    constexpr ConstReverseIterator crbegin() const noexcept {
+        return ConstReverseIterator(cend());
+    }
+
+
+    /*
+        Returns a const reverse iterator to the element past the dense array.
+    */
+    constexpr ConstReverseIterator crend() const noexcept {
+        return ConstReverseIterator(cbegin());
+    }
+
+
+    /*
+        Searches through the dense array until it finds the first object equal to compare.
+        If found, the corresponding index is returned.
+        If not, the invalid index is returned.
+        Note that this operation has a complexity of O(n).
+    */
+    constexpr IndexType find(T&& compare) const {
+
+        for(SizeT i = 0; i < denseArray.size(); i++){
+            
+#ifdef ARC_SPARSE_PACK
+            if(denseArray[i].storage == compare) {
+                return denseArray[i].index;
+            }
+#else
+            if(elementArray[i] == compare) {
+                return denseArray[i];
+            }
+#endif
+
+        }
+
+        return invalidIndex;
+
+    }
+
+
+
+    /*
         Reserves the given minimum amount of memory for both arrays.
     */
-    void reserve(u32 indexArrayCapacity, u32 denseArrayCapacity) {
+    constexpr void reserve(IndexType indexArrayCapacity, IndexType denseArrayCapacity) {
 
         indexArray.reserve(indexArrayCapacity);
         denseArray.reserve(denseArrayCapacity);
@@ -185,28 +411,24 @@ public:
     /*
         Swaps the elements at posA and posB.
     */
-    void swap(u32 posA, u32 posB) {
+    constexpr void swap(IndexType posA, IndexType posB) {
+
+#ifdef ARC_SPARSE_PACK
+        std::swap(denseArray[indexArray[posA]].index, denseArray[indexArray[posB]].index);
+#else
+        std::swap(denseArray[indexArray[posA]], denseArray[indexArray[posB]]);
+#endif
         std::swap(indexArray[posA], indexArray[posB]);
+
     }
 
 
 private:
 
-    /*
-        Fully swaps both sparse and dense indices
-    */
-    void exchange(u32 posA, u32 posB) {
-
-        swap(posA, posB);
-        std::swap(indexArray[posB], indexArray[posA]);
-
-    }
-
-
-    void internalSet(IndexType sparseIdx, IndexType denseIdx, T&& value) {
-#ifdef ARC_SPARSE_ARRAY
+    constexpr void internalSet(IndexType sparseIdx, IndexType denseIdx, T&& value) {
+#ifdef ARC_SPARSE_PACK
         denseArray[denseIdx].index = sparseIdx;
-        denseArray[denseIdx].storage = value;
+        denseArray[denseIdx].element = value;
 #else
         denseArray[denseIdx] = sparseIdx;
         elementArray[denseIdx] = value;
@@ -214,16 +436,25 @@ private:
     }
 
 
-    T& internalGet(IndexType sparseIdx) {
+    constexpr T& internalGet(IndexType sparseIdx) {
 #ifdef ARC_SPARSE_PACK
-        return denseArray[indexArray[sparseIdx]].storage;
+        return denseArray[indexArray[sparseIdx]].element;
 #else
         return elementArray[indexArray[sparseIdx]];
 #endif
     }
 
 
-    void internalAdd(IndexType sparseIdx, T&& value) {
+    constexpr const T& internalGet(IndexType sparseIdx) const {
+#ifdef ARC_SPARSE_PACK
+        return denseArray[indexArray[sparseIdx]].element;
+#else
+        return elementArray[indexArray[sparseIdx]];
+#endif
+    }
+
+
+    constexpr void internalAdd(IndexType sparseIdx, T&& value) {
 
         indexArray[sparseIdx] = denseArray.size();
 
@@ -237,7 +468,7 @@ private:
     }
 
 
-    void internalRemove(IndexType sparseIdx) {
+    constexpr void internalRemove(IndexType sparseIdx) {
 
 #ifdef ARC_SPARSE_PACK
         const IndexType& lastSparseIdx = denseArray.back().index;
@@ -270,7 +501,7 @@ private:
         Checks if the requested position is greater-equal than the current size.
         If yes, the index array is resized and filled with invalid indices.
     */
-    void checkResize(IndexType reqPos) {
+    constexpr void checkResize(IndexType reqPos) {
 
         if(reqPos >= indexArray.size()) {
             indexArray.resize(reqPos + 1, invalidIndex);
@@ -282,7 +513,7 @@ private:
     /*
         Returns true if a valid element exists at the given indices
     */
-    bool containsValidElement(IndexType sparseIdx, IndexType denseIdx) {
+    constexpr bool containsValidElement(IndexType sparseIdx, IndexType denseIdx) const noexcept {
         return !denseIndexInvalid(denseIdx) && !denseElementInvalid(sparseIdx);
     }
 
@@ -290,7 +521,7 @@ private:
     /*
         Returns true if the sparse index is out of bounds
     */
-    bool sparseIndexOutOfBounds(IndexType sparseIdx) {
+    constexpr bool sparseIndexOutOfBounds(IndexType sparseIdx) const noexcept {
         return sparseIdx >= indexArray.size();
     }
 
@@ -298,7 +529,7 @@ private:
     /*
         Returns true if the dense index is out of bounds
     */
-    bool denseIndexOutOfBounds(IndexType denseIdx) {
+    constexpr bool denseIndexOutOfBounds(IndexType denseIdx) const noexcept {
         return denseIdx >= denseArray.size();
     }
 
@@ -306,7 +537,7 @@ private:
     /*
         Returns true if the dense index is invalid
     */
-    bool denseIndexInvalid(IndexType denseIdx) {
+    constexpr bool denseIndexInvalid(IndexType denseIdx) const noexcept {
         return denseIdx == invalidIndex;
     }
 
@@ -314,7 +545,7 @@ private:
     /*
         Returns true if the dense element is invalid
     */
-    bool denseElementInvalid(IndexType sparseIdx) {
+    constexpr bool denseElementInvalid(IndexType sparseIdx) const {
 #ifdef ARC_SPARSE_PACK
         return denseArray[indexArray[sparseIdx]].index != sparseIdx;
 #else
@@ -326,15 +557,15 @@ private:
     /*
         Asserts if the given sparse index is out of bounds.
     */
-    void checkSparseIndexOutOfBounds(IndexType pos) {
-        arc_assert(!indexOutOfBounds(pos), "Sparse index out of bounds (idx=%d, size=%d)", pos, indexArray.size());
+    constexpr void checkSparseIndexOutOfBounds(IndexType pos) const noexcept {
+        arc_assert(!sparseIndexOutOfBounds(pos), "Sparse index out of bounds (idx=%d, size=%d)", pos, indexArray.size());
     }
 
 
     /*
         Asserts if the given dense index is out of bounds.
     */
-    void checkDenseIndexOutOfBounds(IndexType pos) {
+    constexpr void checkDenseIndexOutOfBounds(IndexType pos) const noexcept {
         arc_assert(!denseIndexOutOfBounds(pos), "Dense index out of bounds (idx=%d, size=%d)", pos, denseArray.size());
     }
 

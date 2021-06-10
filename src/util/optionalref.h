@@ -41,7 +41,7 @@ public:
         return valid;
     }
 
-    constexpr T& get() {
+    constexpr T& get() const {
 
         if(!has()) {
             throw BadOptionalRefException{};
@@ -52,7 +52,7 @@ public:
     }
 
     template<class U>
-    constexpr T& getOr(U& defaultValue) noexcept {
+    constexpr T& getOr(U& defaultValue) const noexcept {
 
         static_assert(std::is_convertible_v<U&&, T&>, "U& must be convertible to T&");
 
@@ -103,11 +103,11 @@ public:
         return has();
     }
 
-    constexpr T& operator->() noexcept {
+    constexpr T& operator->() const noexcept {
         return *storage;
     }
 
-    constexpr T& operator*() noexcept {
+    constexpr T& operator*() const noexcept {
         return *storage;
     }
 

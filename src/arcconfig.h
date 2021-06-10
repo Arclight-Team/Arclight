@@ -57,3 +57,11 @@
 
 #define ARC_ALLOCATOR_DEBUG_CHECKS
 #define ARC_ALLOCATOR_DEBUG_LOG
+
+
+/*
+	Sparse array packing
+	ARC_SPARSE_PACK: Packs dense indices and data tightly together. Enhances array caching but might marginally bloat a single cache line during iteration.
+*/
+
+//#define ARC_SPARSE_PACK

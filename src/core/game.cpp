@@ -22,8 +22,16 @@ bool Game::init() {
 
 	SparseArray<int> array;
 	array.add(3, 324);
-	OptionalRef<int> ref = array.get(3);
-	Log::info("", "%d %d", ref.has(), ref.get());
+	array.add(6, 20);
+	array.add(1, 30);
+	array.add(2, 30);
+	SparseArray<int>::Iterator a = array.begin();
+
+	for(a; a != array.end(); a++){
+		Log::info("", "%d", *a);
+	}
+
+	Log::info("", "%d", array.get(3));
 
 	return true;
 

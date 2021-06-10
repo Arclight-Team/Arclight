@@ -26,6 +26,7 @@ typedef std::byte	Byte;
 
 typedef uintptr_t	AddressT;
 typedef size_t		AlignT;
+typedef size_t		SizeT;
 
 template<typename T>
 concept Arithmetic = std::is_arithmetic_v<T>;
