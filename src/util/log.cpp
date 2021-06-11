@@ -59,12 +59,11 @@ namespace Log {
 
 			try {
 
-				std::stringstream ss;
-				ss << "[" << level << ": " << subsystem << "] " << message;
-				std::cout << ss.str() << std::endl;
+				std::string line = "[" + level + ": " + subsystem + "] " + message;
+				std::cout << line << std::endl;
 
 				if (logfile.isOpen()) {
-					logfile.writeLine(ss.str());
+					logfile.writeLine(line);
 				}
 
 			} catch (std::exception&) {

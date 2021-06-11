@@ -29,7 +29,6 @@ class SparseArray {
 
     public:
     
-        using iterator_category = std::contiguous_iterator_tag;
         using difference_type   = std::ptrdiff_t;
         using value_type        = std::conditional_t<Const, const T, T>;
         using pointer           = value_type*;
@@ -298,6 +297,15 @@ public:
     }
 
 
+    constexpr ConstIterator begin() const noexcept {
+#ifdef ARC_SPARSE_PACK
+        return ConstIterator(denseArray.data());
+#else
+        return ConstIterator(elementArray.data());
+#endif
+    }
+
+
     /*
         Returns an iterator to the element past the dense array.
     */
@@ -306,6 +314,15 @@ public:
         return Iterator(denseArray.data() + denseArray.size());
 #else
         return Iterator(elementArray.data() + elementArray.size());
+#endif
+    }
+
+
+    constexpr ConstIterator end() const noexcept {
+#ifdef ARC_SPARSE_PACK
+        return ConstIterator(denseArray.data() + denseArray.size());
+#else
+        return ConstIterator(elementArray.data() + elementArray.size());
 #endif
     }
 
@@ -342,11 +359,21 @@ public:
     }
 
 
+    constexpr ConstReverseIterator rbegin() const noexcept {
+        return ConstReverseIterator(end());
+    }
+
+
     /*
         Returns a reverse iterator to the element past the dense array.
     */
     constexpr ReverseIterator rend() noexcept {
         return ReverseIterator(begin());
+    }
+
+
+    constexpr ConstReverseIterator rend() const noexcept {
+        return ConstReverseIterator(begin());
     }
 
 

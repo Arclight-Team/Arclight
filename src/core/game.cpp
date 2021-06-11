@@ -2,9 +2,9 @@
 #include "window.h"
 #include "render/physicsrenderer.h"
 #include "physics/boxcollider.h"
-#include "component.h"
 #include "util/optionalref.h"
-#include "sparsearray.h"
+#include "util/sparsearray.h"
+#include "acs/componentprovider.h"
 
 
 Game::Game(Window& window) : window(window) {}
@@ -18,7 +18,6 @@ bool Game::init() {
 
 	physicsSimulation.init();
 	renderer.init();
-	ComponentCollector coll;
 
 	SparseArray<int> array;
 	array.add(3, 324);
@@ -31,7 +30,7 @@ bool Game::init() {
 		Log::info("", "%d", *a);
 	}
 
-	Log::info("", "%d", array.get(3));
+	ComponentProvider provider;
 
 	return true;
 

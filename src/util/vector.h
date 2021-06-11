@@ -3,12 +3,26 @@
 #include "util/math.h"
 #include "util/assert.h"
 #include "util/random.h"
+#include "typetraits.h"
+
+
+
+template<Arithmetic T>
+class Vec3;
+
+template<Arithmetic T>
+class Vec4;
 
 
 template<Arithmetic T>
 class Vec2 {
 
 public:
+
+	using Type = T;
+
+	constexpr static u32 Size = 2;
+
 
 	constexpr Vec2() : x(T(0)), y(T(0)) {}
 
@@ -178,6 +192,15 @@ public:
 
 	}
 
+	constexpr Vec3<T> toVec3() const {
+		return { x, y, 0 };
+	}
+
+	constexpr Vec4<T> toVec4() const {
+		return { x, y, 0, 1 };
+	}
+
+
 	T x, y;
 
 };
@@ -188,6 +211,11 @@ template<Arithmetic T>
 class Vec3 {
 
 public:
+
+	using Type = T;
+
+	constexpr static u32 Size = 3;
+
 
 	constexpr Vec3() : x(T(0)), y(T(0)), z(T(0)) {}
 
@@ -375,6 +403,14 @@ public:
 
 	}
 
+	constexpr Vec2<T> toVec2() const {
+		return { x, y };
+	}
+
+	constexpr Vec4<T> toVec4() const {
+		return { x, y, z, 1 };
+	}
+
 
 	T x, y, z;
 
@@ -386,6 +422,11 @@ template<Arithmetic T>
 class Vec4 {
 
 public:
+
+	using Type = T;
+
+	constexpr static u32 Size = 4;
+
 
 	constexpr Vec4() : x(T(0)), y(T(0)), z(T(0)), w(T(0)) {}
 
@@ -579,11 +620,23 @@ public:
 
 	}
 
+	constexpr Vec2<T> toVec2() const {
+		return { x, y };
+	}
+
+	constexpr Vec3<T> toVec3() const {
+		return { x, y, z };
+	}
+
 
 	T x, y, z, w;
 
 };
 
+
+
+//template<class T>
+//concept Vector = TypeTraits::IsAnyOfV<T, Vec2<typename T::Type>, Vec3<typename T::Type>, Vec4<typename T::Type>>;
 
 
 
@@ -614,6 +667,8 @@ constexpr auto operator/(Vector<A> a, B b) requires (std::is_same_v<Vector<A>, V
 	ax /= b;
 	return ax;
 }
+
+
 
 
 #define VECTOR_DEFINE_NDTS(name, dim, type, suffix) typedef Vec##dim<type> name##dim##suffix;
