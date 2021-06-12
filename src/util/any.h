@@ -38,9 +38,18 @@ public:
     constexpr Any& operator=(Any&& other) {
 
         if(!other.hasValue()) {
+
             reset();
+
         } else if(*this != other) {
+
+            //We must destruct the old object first
             reset();
+
+            Executor::Argument argument;
+            argument.any = this;
+            
+
         }
 
     }
@@ -54,10 +63,7 @@ public:
     void reset() {
 
         if(hasValue()) {
-
             executor(this, Executor::Operation::Destruct, nullptr);
-            executor = nullptr;
-
         }
 
     }
@@ -161,13 +167,17 @@ private:
             switch(operation) {
 
                 case Operation::Destruct:
+                    {
+                        Any* a = const_cast<Any*>(any);
 
-                    if constexpr (StaticAllocatable) {
-                        reinterpret_cast<T*>(any->storage.buffer)->~T();
-                    } else {
-                        delete static_cast<T*>(any->storage.ptr);
+                        if constexpr (StaticAllocatable) {
+                            reinterpret_cast<T*>(a->storage.buffer)->~T();
+                        } else {
+                            delete static_cast<T*>(a->storage.ptr);
+                        }
+
+                        a->executor = nullptr;
                     }
-
                     break;
 
                 case Operation::Move:

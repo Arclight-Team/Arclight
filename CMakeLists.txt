@@ -31,6 +31,7 @@ if(MSVC)
 		message(${CompilerFlag} ": ${${CompilerFlag}}")
 	endforeach()
 	set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif()
 
 #Build GLFW along the project

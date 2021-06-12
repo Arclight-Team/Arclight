@@ -124,7 +124,7 @@ private:
 namespace std {
 
     template <class T>
-    void swap(OptionalRef<T>& left, OptionalRef<T>& right) noexcept {
+    constexpr void swap(OptionalRef<T>& left, OptionalRef<T>& right) noexcept {
         left.swap(right);
     }
 

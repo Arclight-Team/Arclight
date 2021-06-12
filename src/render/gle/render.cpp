@@ -48,7 +48,7 @@ u32 getPrimitiveTypeEnum(PrimType type) {
 			return GL_PATCHES;
 
 		default:
-			gle_force_assert("Invalid primitive type 0x%X", format);
+			gle_force_assert("Invalid primitive type 0x%X", type);
 			return -1;
 
 	}
@@ -71,7 +71,7 @@ u32 getIndexTypeEnum(IndexType type) {
 			return GL_UNSIGNED_INT;
 
 		default:
-			gle_force_assert("Invalid index type 0x%X", format);
+			gle_force_assert("Invalid index type 0x%X", type);
 			return -1;
 
 	}

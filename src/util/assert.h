@@ -1,12 +1,13 @@
 #pragma once
 
 #include "util/log.h"
-
 	
 #define arc_abort()						do { std::abort(); } while (false)
+#define arc_exit(x)						do { std::exit((x)); } while(false)
+
 
 template<class... Args>
-void __arc_assert(bool condition, const std::string& file, int line, const std::string& message, const Args&... args) noexcept {
+constexpr void __arc_assert(bool condition, const std::string& file, int line, const std::string& message, const Args&... args) noexcept {
 
 	if (!condition) {
 		Log::error("Assert", "Assertion failed (File " + file + ", line " + std::to_string(line) + "): " + message, args...);

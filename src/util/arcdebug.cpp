@@ -37,7 +37,7 @@ void ArcDebug::flush() noexcept {
         Log::info("Debug", buffer.str());
         buffer.str("");
     } catch(const std::exception& e) {
-        arc_force_assert("Exception caught when flushing debug buffer: " + e.what());
+        arc_force_assert(std::string("Exception caught when flushing debug buffer: ") + e.what());
     }
 
 }

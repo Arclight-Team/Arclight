@@ -78,7 +78,7 @@ public:
     typedef std::reverse_iterator<Iterator>         ReverseIterator;
     typedef std::reverse_iterator<ConstIterator>    ConstReverseIterator;
 
-    constexpr static inline IndexType invalidIndex = -1;
+    constexpr static IndexType invalidIndex = -1;
 
 
     constexpr SparseArray() noexcept = default;
