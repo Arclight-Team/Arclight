@@ -5,6 +5,7 @@
 #include "util/optionalref.h"
 #include "util/sparsearray.h"
 #include "acs/componentprovider.h"
+#include "util/any.h"
 
 
 Game::Game(Window& window) : window(window) {}
@@ -29,6 +30,8 @@ bool Game::init() {
 	for(a; a != array.end(); a++){
 		Log::info("", "%d", *a);
 	}
+
+	Any<20> any;
 
 	ComponentProvider provider;
 

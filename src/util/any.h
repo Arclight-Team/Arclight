@@ -17,12 +17,49 @@ public:
 
 template<SizeT Size>
 class Any {
-
-    typedef void(*StateExecutor)(const Any* any, Operation operation, Argument* arg);
+    
+    template<class T>
+    using EnableIfValidType = std::enable_if_t<!std::is_same_v<std::decay_t<std::remove_cv_t<T>>, Any<Size>> && std::is_copy_constructible_v<std::decay_t<T>>, T>;
 
 public:
 
+
     constexpr Any() : executor(nullptr) {}
+
+    constexpr Any(const Any& other) {
+
+        if(other.hasValue()) {
+
+            Argument argument;
+            argument.any = this;
+            other.executor(other, Operation::Copy, &argument);
+
+        } else {
+            executor = nullptr;
+        }
+
+    }
+
+    constexpr Any(Any&& other) {
+
+        if(other.hasValue()) {
+
+            Argument argument;
+            argument.any = this;
+            other.executor(other, Operation::Move, &argument);
+
+        } else {
+            executor = nullptr;
+        }
+
+    }
+
+    template<class T>
+    constexpr Any(EnableIfValidType<T>&& value) {
+        Executor<std::decay_t<T>>::construct(*this, std::forward<T>(value));
+        executor = &Executor<std::decay_t<T>>::execute;
+    }
+
 
     ~Any() {
         reset();
@@ -30,8 +67,21 @@ public:
 
 
     constexpr Any& operator=(const Any& other) {
-        *this = Any(other);
+
+        if(!other.hasValue()) {
+            
+            reset();
+
+        } else if (*this != other) {
+
+            Argument argument;
+            argument.any = this;
+            other.executor(other, Operation::Copy, &argument);
+
+        }
+
         return *this;
+
     }
 
 
@@ -41,16 +91,28 @@ public:
 
             reset();
 
-        } else if(*this != other) {
+        } else if (*this != other) {
 
             //We must destruct the old object first
             reset();
 
-            Executor::Argument argument;
+            //Move it
+            Argument argument;
             argument.any = this;
-            
+            other.executor(other, Operation::Move, &argument);
 
         }
+
+        return *this;
+
+    }
+
+
+    template<class T>
+    constexpr Any& operator=(EnableIfValidType<T>&& value) {
+
+        *this = Any(std::forward<T>(value));
+        return *this;
 
     }
 
@@ -63,7 +125,7 @@ public:
     void reset() {
 
         if(hasValue()) {
-            executor(this, Executor::Operation::Destruct, nullptr);
+            executor(this, Operation::Destruct, nullptr);
         }
 
     }
@@ -78,37 +140,49 @@ public:
         if(hasValue() && other.hasValue()) {
 
             //Swap underlying contents
-            Executor::Argument argument;
+            Argument argument;
             Any temp;
 
             argument->any = &temp;
-            other.executor(&other, Executor::Operation::Move, &argument);
+            other.executor(&other, Operation::Move, &argument);
 
             argument->any = &other;
-            executor(this, Executor::Operation::Move, &argument);
+            executor(this, Operation::Move, &argument);
 
             argument->any = this;
-            temp.executor(&temp, Executor::Operation::Move, &argument);
+            temp.executor(&temp, Operation::Move, &argument);
 
         } else if (hasValue()) {
 
             //Transfer contents to other
-            Executor::Argument argument;
+            Argument argument;
             argument->any = &other;
-            executor(this, Executor::Operation::Move, &argument);
+            executor(this, Operation::Move, &argument);
 
         } else {
 
             //Receive contents from other
-            Executor::Argument argument;
+            Argument argument;
             argument->any = this;
-            other.executor(&other, Executor::Operation::Move, &argument);
+            other.executor(&other, Operation::Move, &argument);
 
         }
 
     }
 
 private:
+
+    enum class Operation {
+        Destruct,
+        Move,
+        Copy
+    };
+
+    union Argument {
+        Any* any;
+    };
+
+    typedef void(*StateExecutor)(const Any*, Operation, Argument*);
 
     union Storage {
 
@@ -118,7 +192,7 @@ private:
         constexpr Storage& operator=(const Storage& other) = delete;
 
         void* ptr;
-        alignas(ptr) u8 buffer[sizeof(ptr)];
+        alignas(void*) u8 buffer[sizeof(void*)];
 
     } storage;
 
@@ -129,17 +203,7 @@ private:
     struct Executor {
 
         //Condition: a) must fit into the buffer; b) alignment must be no stricter than those of buffer
-        constexpr static bool StaticAllocatable = sizeof(T) <= sizeof(Storage::buffer) && alignof(T) <= alignof(Storage::buffer);
-
-        enum class Operation {
-            Destruct,
-            Move,
-            Copy
-        };
-
-        union Argument {
-            Any* any;
-        };
+        constexpr static bool StaticAllocatable = sizeof(T) <= sizeof(typename Storage::buffer) && alignof(T) <= alignof(typename Storage::buffer);
 
         template<class... Args>
         static void create(const Any& any, Args&&... args) {
@@ -238,3 +302,13 @@ private:
     };
 
 };
+
+
+/*
+template<class T, SizeT Size>
+const T* AnyCast(const Any<Size>* any) noexcept {
+
+    if constexpr ()
+
+}
+*/
