@@ -2,7 +2,22 @@
 
 #include "util/sparsearray.h"
 #include "component.h"
-#include <vector>
+
+
+
+class TransformComponent;
+
+class ComponentStorage {
+
+public:
+
+
+
+private:
+    //SparseArray<TransformComponent> k;
+
+};
+
 
 
 class ComponentProvider {
@@ -20,6 +35,11 @@ public:
     }
 
 
+    auto getComponentArray(ComponentTypeID id) {
+
+    }
+
+
 private:
 
     template<Component C>
@@ -27,6 +47,7 @@ private:
         return static_cast<SparseArray<C>>(components[id]);
     }
 
-    std::vector<void*> components;
+    ComponentStorage components;
+
 
 };
