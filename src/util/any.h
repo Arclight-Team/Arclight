@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "concepts.h"
 #include <typeinfo>
 #include <new>
 
@@ -20,9 +21,6 @@ public:
 template<SizeT Size>
 class Any {
     
-    template<class T>
-    using EnableIfValidType = std::enable_if_t<!std::is_same_v<std::decay_t<std::remove_cv_t<T>>, Any<Size>> && std::is_copy_constructible_v<std::decay_t<T>>, T>;
-
 public:
 
 
@@ -56,8 +54,8 @@ public:
 
     }
 
-    template<class T, EnableIfValidType<bool> = true>
-    constexpr Any(T&& value) {
+    template<class T>
+    constexpr Any(T&& value) requires CopyConstructible<std::decay_t<T>> {
 
         using U = std::decay_t<T>;
         Executor<U>::construct(this, std::forward<T>(value));
@@ -114,7 +112,7 @@ public:
 
 
     template<class T>
-    constexpr Any& operator=(EnableIfValidType<T>&& value) {
+    constexpr Any& operator=(T&& value) requires CopyConstructible<std::decay_t<T>> {
 
         *this = Any(std::forward<T>(value));
         return *this;
@@ -181,7 +179,7 @@ public:
         using U = std::decay_t<T>;
         static_assert(std::is_same<std::remove_cv_t<T>, U> && &Executor<U>::execute == executor, "Illegal direct any access");
 
-        if (typeid(U) != [this]() -> SizeT { if(!hasValue()) { return typeid(void).hash_code(); } Argument arg; executor(this, Operation::TypeInfo, &arg); return arg.typeHash;}()) {
+        if (!hasValue() || typeid(U) != [this]() -> SizeT { if(!hasValue()) { return typeid(void).hash_code(); } Argument arg; executor(this, Operation::TypeInfo, &arg); return arg.typeHash;}()) {
             throw BadAnyAccess;
         } else {
             return Executor<U>::get(this);
@@ -228,13 +226,15 @@ private:
     } storage;
 
     StateExecutor executor;
+    constexpr static SizeT bufferSize = sizeof(Storage::buffer);
+    constexpr static AlignT bufferAlignment = alignof(Storage);
 
     
-    template<class T>
+    template<CopyConstructible T>
     struct Executor {
 
         //Condition: a) must fit into the buffer; b) alignment must be no stricter than those of buffer
-        constexpr static bool StaticAllocatable = sizeof(T) <= sizeof(Storage) && alignof(T) <= alignof(Storage);
+        constexpr static bool StaticAllocatable = sizeof(T) <= bufferSize && alignof(T) <= bufferAlignment;
 
         template<class... Args>
         static void construct(Any* any, Args&&... args) {

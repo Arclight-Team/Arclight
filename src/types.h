@@ -27,15 +27,3 @@ typedef std::byte	Byte;
 typedef uintptr_t	AddressT;
 typedef size_t		AlignT;
 typedef size_t		SizeT;
-
-template<typename T>
-concept Arithmetic = std::is_arithmetic_v<T>;
-
-template<typename T>
-concept Float = std::is_floating_point_v<T>;
-
-template<typename T>
-concept Integer = std::is_integral_v<T>;
-
-template<typename T>
-concept Unsigned = std::is_unsigned_v<T>;

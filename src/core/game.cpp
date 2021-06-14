@@ -6,6 +6,8 @@
 #include "util/sparsearray.h"
 #include "acs/componentprovider.h"
 #include "util/any.h"
+#include "util/concepts.h"
+#include "util/arcdebug.h"
 
 
 Game::Game(Window& window) : window(window) {}
@@ -33,11 +35,19 @@ bool Game::init() {
 
 	struct K{
 		K() = default;
-		K(const K&) = delete;
+		K(const K&) = default;
 	};
-	
+
+	if constexpr (CopyConstructible<const K&>) {
+		ArcDebug() << "uh yea";
+	}
+
+	if constexpr (std::is_copy_constructible_v<K>){
+		ArcDebug() << "ok?";
+	}
 	K k;
 	Any<20> any(k);
+
 
 	ComponentProvider provider;
 
