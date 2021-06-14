@@ -31,7 +31,13 @@ bool Game::init() {
 		Log::info("", "%d", *a);
 	}
 
-	Any<20> any;
+	struct K{
+		K() = default;
+		K(const K&) = delete;
+	};
+	
+	K k;
+	Any<20> any(k);
 
 	ComponentProvider provider;
 

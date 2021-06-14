@@ -1,14 +1,16 @@
 #pragma once
 
 #include "types.h"
+#include <typeinfo>
+#include <new>
 
 
-class BadAnyCast : public std::exception {
+class BadAnyAccess : public std::exception {
 
 public:
 
     virtual const char* what() const noexcept override {
-        return "Bad any cast";
+        return "Bad any access";
     }
 
 };
@@ -54,10 +56,13 @@ public:
 
     }
 
-    template<class T>
-    constexpr Any(EnableIfValidType<T>&& value) {
-        Executor<std::decay_t<T>>::construct(*this, std::forward<T>(value));
-        executor = &Executor<std::decay_t<T>>::execute;
+    template<class T, EnableIfValidType<bool> = true>
+    constexpr Any(T&& value) {
+
+        using U = std::decay_t<T>;
+        Executor<U>::construct(this, std::forward<T>(value));
+        executor = &Executor<U>::execute;
+
     }
 
 
@@ -170,16 +175,42 @@ public:
 
     }
 
+    template<class T>
+    T get() {
+
+        using U = std::decay_t<T>;
+        static_assert(std::is_same<std::remove_cv_t<T>, U> && &Executor<U>::execute == executor, "Illegal direct any access");
+
+        if (typeid(U) != [this]() -> SizeT { if(!hasValue()) { return typeid(void).hash_code(); } Argument arg; executor(this, Operation::TypeInfo, &arg); return arg.typeHash;}()) {
+            throw BadAnyAccess;
+        } else {
+            return Executor<U>::get(this);
+        }
+
+    }
+
+    template<class T>
+    T fastGet() {
+
+        using U = std::decay_t<T>;
+        static_assert(std::is_same<std::remove_cv_t<T>, U> && &Executor<U>::execute == executor, "Illegal direct any access");
+
+        return Executor<U>::get(this);
+
+    }
+
 private:
 
     enum class Operation {
         Destruct,
         Move,
-        Copy
+        Copy,
+        TypeInfo
     };
 
     union Argument {
         Any* any;
+        SizeT typeHash;
     };
 
     typedef void(*StateExecutor)(const Any*, Operation, Argument*);
@@ -203,25 +234,25 @@ private:
     struct Executor {
 
         //Condition: a) must fit into the buffer; b) alignment must be no stricter than those of buffer
-        constexpr static bool StaticAllocatable = sizeof(T) <= sizeof(typename Storage::buffer) && alignof(T) <= alignof(typename Storage::buffer);
+        constexpr static bool StaticAllocatable = sizeof(T) <= sizeof(Storage) && alignof(T) <= alignof(Storage);
 
         template<class... Args>
-        static void create(const Any& any, Args&&... args) {
+        static void construct(Any* any, Args&&... args) {
 
             if constexpr (StaticAllocatable) {
-                ::new(any.storage.buffer)  T(std::forward<Args>(args)...);
+                ::new(any->storage.buffer) T(std::forward<Args>(args)...);
             } else {
-                any.storage.ptr = new T(std::forward<Args>(args)...);
+                any->storage.ptr = new T(std::forward<Args>(args)...);
             }
 
         }
 
-        static T& get(const Any& any) {
+        static T& get(const Any* any) {
             
             if constexpr (StaticAllocatable) {
-                return *reinterpret_cast<T*>(any.storage.buffer);
+                return *reinterpret_cast<T*>(any->storage.buffer);
             } else {
-                return static_cast<T*>(any.storage.ptr);
+                return static_cast<T*>(any->storage.ptr);
             }
 
         }
@@ -277,7 +308,7 @@ private:
 
                         const Any* from = any;
                         Any* to = arg->any;
-                        T* ptr = reinterpret_cast<T*>(from->storage.buffer);
+                        const T* ptr = reinterpret_cast<const T*>(from->storage.buffer);
 
                         ::new(to->storage.buffer) T(*ptr);
                         to->executor = from->executor;
@@ -295,6 +326,10 @@ private:
 
                     break;
 
+                case Operation::TypeInfo:
+                    arg->typeHash = typeid(T).hash_code();
+                    break;
+
             }
 
         }
@@ -302,13 +337,3 @@ private:
     };
 
 };
-
-
-/*
-template<class T, SizeT Size>
-const T* AnyCast(const Any<Size>* any) noexcept {
-
-    if constexpr ()
-
-}
-*/
