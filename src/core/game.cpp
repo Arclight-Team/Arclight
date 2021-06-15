@@ -7,6 +7,7 @@
 #include "acs/componentprovider.h"
 #include "util/any.h"
 #include "util/concepts.h"
+#include "util/typetraits.h"
 #include "util/arcdebug.h"
 
 
@@ -35,18 +36,10 @@ bool Game::init() {
 
 	struct K{
 		K() = default;
-		K(const K&) = default;
 	};
 
-	if constexpr (CopyConstructible<const K&>) {
-		ArcDebug() << "uh yea";
-	}
-
-	if constexpr (std::is_copy_constructible_v<K>){
-		ArcDebug() << "ok?";
-	}
 	K k;
-	Any<20> any(k);
+	Any<20> any(TypeTag<int>{}, 3);
 
 
 	ComponentProvider provider;

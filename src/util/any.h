@@ -20,9 +20,17 @@ public:
 
 template<SizeT Size>
 class Any {
-    
-public:
 
+    template<class>
+    struct TypeTagged : public std::false_type {};
+    
+    template<class T>
+    struct TypeTagged<TypeTag<T>> : public std::true_type {};
+
+    template<class T>
+    constexpr static bool TypeTaggedV = TypeTagged<T>::value;
+
+public:
 
     constexpr Any() : executor(nullptr) {}
 
@@ -55,10 +63,20 @@ public:
     }
 
     template<class T>
-    constexpr Any(T&& value) requires CopyConstructible<std::decay_t<T>> {
+    constexpr Any(T&& value) requires CopyConstructible<std::decay_t<T>> && !TypeTaggedV<T> {
 
         using U = std::decay_t<T>;
         Executor<U>::construct(this, std::forward<T>(value));
+        executor = &Executor<U>::execute;
+
+    }
+
+
+    template<class T, class... Args>
+    constexpr Any(TypeTag<T>, Args&&... args) requires Constructible<T, Args...> {
+        
+        using U = std::decay_t<T>;
+        Executor<U>::construct(this, std::forward<Args>(args)...);
         executor = &Executor<U>::execute;
 
     }
@@ -130,6 +148,19 @@ public:
         if(hasValue()) {
             executor(this, Operation::Destruct, nullptr);
         }
+
+    }
+
+
+    template<class T, class... Args>
+    void emplace(Args&&... args) requires Constructible<T, Args...> {
+
+        using U = std::decay_t<T>;
+
+        reset();
+
+        Executor<U>::construct(this, std::forward<Args>(args)...);
+        executor = &Executor<U>::execute;
 
     }
 
@@ -237,7 +268,7 @@ private:
         constexpr static bool StaticAllocatable = sizeof(T) <= bufferSize && alignof(T) <= bufferAlignment;
 
         template<class... Args>
-        static void construct(Any* any, Args&&... args) {
+        static void construct(Any* any, Args&&... args) requires Constructible<T, Args...> {
 
             if constexpr (StaticAllocatable) {
                 ::new(any->storage.buffer) T(std::forward<Args>(args)...);

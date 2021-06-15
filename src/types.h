@@ -27,3 +27,6 @@ typedef std::byte	Byte;
 typedef uintptr_t	AddressT;
 typedef size_t		AlignT;
 typedef size_t		SizeT;
+
+template<class T>
+struct TypeTag {};
