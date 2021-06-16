@@ -204,29 +204,36 @@ public:
 
     }
 
-    template<class T>
-    T get() {
+    template<class T, class U = std::decay_t<T>>
+    const T& get() const requires std::is_same_v<std::remove_cv_t<T>, U> {
 
-        using U = std::decay_t<T>;
-        static_assert(std::is_same<std::remove_cv_t<T>, U> && &Executor<U>::execute == executor, "Illegal direct any access");
+        if (!hasValue() || 
+            &Executor<U>::execute != executor || 
+            typeid(U).hash_code() != [this]() -> SizeT { if(!hasValue()) { return typeid(void).hash_code(); } Argument arg; executor(this, Operation::TypeInfo, &arg); return arg.typeHash;}()) {
 
-        if (!hasValue() || typeid(U) != [this]() -> SizeT { if(!hasValue()) { return typeid(void).hash_code(); } Argument arg; executor(this, Operation::TypeInfo, &arg); return arg.typeHash;}()) {
-            throw BadAnyAccess;
+            throw BadAnyAccess();
+
         } else {
             return Executor<U>::get(this);
         }
 
     }
 
-    template<class T>
-    T fastGet() {
-
-        using U = std::decay_t<T>;
-        static_assert(std::is_same<std::remove_cv_t<T>, U> && &Executor<U>::execute == executor, "Illegal direct any access");
-
+    template<class T, class U = std::decay_t<T>>
+    const T& fastGet() const requires std::is_same_v<std::remove_cv_t<T>, U> {
         return Executor<U>::get(this);
-
     }
+
+    template<class T>
+    T& get() {
+        return const_cast<T&>(static_cast<const Any*>(this)->get<T>());
+    }
+
+    template<class T>
+    T& fastGet() {
+        return const_cast<T&>(static_cast<const Any*>(this)->fastGet<T>());
+    }
+
 
 private:
 
@@ -278,12 +285,12 @@ private:
 
         }
 
-        static T& get(const Any* any) {
+        static const T& get(const Any* any) {
             
             if constexpr (StaticAllocatable) {
-                return *reinterpret_cast<T*>(any->storage.buffer);
+                return *reinterpret_cast<const T*>(any->storage.buffer);
             } else {
-                return static_cast<T*>(any->storage.ptr);
+                return static_cast<const T*>(any->storage.ptr);
             }
 
         }
