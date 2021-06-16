@@ -8,9 +8,7 @@ GLE_BEGIN
 class GLObject {
 
 public:
-
-    virtual ~GLObject() = default;
-
+    
     GLObject(const GLObject& obj) = delete;
     GLObject& operator=(const GLObject& obj) = delete;
 

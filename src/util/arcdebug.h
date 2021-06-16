@@ -1,5 +1,9 @@
 #pragma once
 
+#include "arcconfig.h"
+
+#ifndef ARC_FINAL_BUILD
+
 #include <sstream>
 #include <string>
 #include <ranges>
@@ -154,3 +158,5 @@ private:
 
 
 using enum ArcDebug::Token;
+
+#endif

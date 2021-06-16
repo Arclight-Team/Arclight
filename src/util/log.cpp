@@ -68,7 +68,7 @@ namespace Log {
 
 			} catch (std::exception&) {
 				//There's literally nothing we can do here
-#ifdef ARC_LOG_EXCEPTION_ABORT
+#if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
 				arc_abort();
 #endif
 			}

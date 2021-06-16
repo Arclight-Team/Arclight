@@ -1,5 +1,6 @@
 #pragma once
 
+#include "arcconfig.h"
 #include "util/log.h"
 	
 #define arc_abort()						do { std::abort(); } while (false)
@@ -16,10 +17,11 @@ constexpr void __arc_assert(bool condition, const std::string& file, int line, c
 
 }
 
-#ifndef NDEBUG
-	#define arc_assert(cond, msg, ...)	do {__arc_assert(!!(cond), __FILE__, __LINE__, (msg), ##__VA_ARGS__);} while (false)
-	#define arc_force_assert(msg, ...)	do {__arc_assert(false, __FILE__, __LINE__, (msg), ##__VA_ARGS__);} while (false)
-#else
+
+#if defined(ARC_FINAL_BUILD) || (defined(ARC_ASSERT_DEBUG) && defined(NDEBUG)) || defined(ARC_ASSERT_NEVER)
 	#define arc_assert(cond, msg, ...)
 	#define arc_force_assert(msg, ...)
+#else
+	#define arc_assert(cond, msg, ...)	do {__arc_assert(!!(cond), __FILE__, __LINE__, (msg), ##__VA_ARGS__);} while (false)
+	#define arc_force_assert(msg, ...)	do {__arc_assert(false, __FILE__, __LINE__, (msg), ##__VA_ARGS__);} while (false)
 #endif

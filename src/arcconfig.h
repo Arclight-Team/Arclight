@@ -42,7 +42,7 @@
 /*
 	Log settings
 	ARC_LOG_STDIO_UNSYNC: Unsyncs stdio from cout. Logging is accelerated but data races become possible.
-	ARC_LOG_EXCEPTION_ABORT: Aborts when Log throws. Do not use in production code!
+	ARC_LOG_EXCEPTION_ABORT: Aborts when Log throws. Disabled in final build mode.
 */
 
 #define ARC_LOG_STDIO_UNSYNC
@@ -65,3 +65,20 @@
 */
 
 //#define ARC_SPARSE_PACK
+
+
+/*
+	Final release build
+	ARC_FINAL_BUILD: Builds the program ready for release. Disables debugging functionality and optimizes certain functions.
+*/
+
+//#define ARC_FINAL_BUILD
+
+
+/*
+	Assertion policy
+	ARC_ASSERT_NEVER: Never asserts.
+	ARC_ASSERT_DEBUG: Asserts only in debug mode.
+	ARC_ASSERT_BUILD: Always asserts, except in final build mode. (default)
+*/
+#define ARC_ASSERT_DEBUG

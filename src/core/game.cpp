@@ -8,7 +8,7 @@
 #include "util/any.h"
 #include "util/concepts.h"
 #include "util/typetraits.h"
-#include "util/arcdebug.h"
+#include "debug.h"
 
 
 Game::Game(Window& window) : window(window) {}
@@ -34,12 +34,19 @@ bool Game::init() {
 		Log::info("", "%d", *a);
 	}
 
-	struct K{
-		K() = default;
-	};
 
-	K k;
-	Any<20> any(TypeTag<int>{}, 3);
+	Class k;
+	Any<20> any(k);
+	//Any<20> any(TypeTag<K>{});
+	
+	try{
+		float x = any.get<float>();
+	}catch(const BadAnyAccess& e) {
+		ArcDebug() << e.what();
+	}
+
+	int& m = any.fastGet<int>();
+	ArcDebug() << m;
 
 
 	ComponentProvider provider;

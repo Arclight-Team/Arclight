@@ -3,6 +3,8 @@
 #include "assert.h"
 
 
+#ifndef ARC_FINAL_BUILD
+
 
 ArcDebug::~ArcDebug() {
     flush();
@@ -41,3 +43,6 @@ void ArcDebug::flush() noexcept {
     }
 
 }
+
+
+#endif
