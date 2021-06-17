@@ -17,7 +17,7 @@ void ArcDebug::dispatchToken(Token token) {
     switch(token) {
 
         case ArcSpace:
-            buffer << " ";
+            buffer << ' ';
             break;
         
         case ArcEndl:
@@ -39,7 +39,7 @@ void ArcDebug::flush() noexcept {
         Log::info("Debug", buffer.str());
         buffer.str("");
     } catch(const std::exception& e) {
-        arc_force_assert(std::string("Exception caught when flushing debug buffer: ") + e.what());
+        arc_force_assert(std::string("Exception caught while flushing debug buffer: ") + e.what());
     }
 
 }

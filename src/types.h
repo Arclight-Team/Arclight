@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <type_traits>
+#include <cstddef>
 #include "arcbuild.h"
 
 typedef uint8_t u8;
@@ -27,6 +27,9 @@ typedef std::byte	Byte;
 typedef uintptr_t	AddressT;
 typedef size_t		AlignT;
 typedef size_t		SizeT;
+
+constexpr inline SizeT PointerSize = sizeof(void*);
+constexpr inline AlignT PointerAlign = alignof(void*);
 
 template<class T>
 struct TypeTag {};

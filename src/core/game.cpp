@@ -6,8 +6,6 @@
 #include "util/sparsearray.h"
 #include "acs/componentprovider.h"
 #include "util/any.h"
-#include "util/concepts.h"
-#include "util/typetraits.h"
 #include "debug.h"
 
 
@@ -33,20 +31,6 @@ bool Game::init() {
 	for(a; a != array.end(); a++){
 		Log::info("", "%d", *a);
 	}
-
-
-	Class k;
-	Any<20> any(k);
-	//Any<20> any(TypeTag<K>{});
-	
-	try{
-		float x = any.get<float>();
-	}catch(const BadAnyAccess& e) {
-		ArcDebug() << e.what();
-	}
-
-	int& m = any.fastGet<int>();
-	ArcDebug() << m;
 
 
 	ComponentProvider provider;

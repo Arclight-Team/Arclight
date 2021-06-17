@@ -2,10 +2,15 @@
 
 #include "types.h"
 #include "concepts.h"
+
+#include <type_traits>
 #include <typeinfo>
 #include <new>
 
 
+/*
+    Exception thrown if the Any holds a different type
+*/
 class BadAnyAccess : public std::exception {
 
 public:
@@ -18,7 +23,18 @@ public:
 
 
 
-template<SizeT Size>
+/*
+    Any is an object that allows storage of heterogeneous objects without
+    specifying the possible types in advance.
+
+    This class' interface was inspired by std::any as defined by ISO C++20
+    On top of that, performance was accelerated in certain functions to allow zero access cost.
+
+    Note that this implementation allows specifying custom buffer sizes/alignments
+    to avoid dynamic allocations for performance-critical situations.
+    As long as the type satisfies size/alignment constraints and has a noexcept move constructor, SBO is utilized.
+*/
+template<SizeT Size = PointerSize, AlignT Align = PointerAlign>
 class Any {
 
     template<class>
@@ -32,9 +48,18 @@ class Any {
 
 public:
 
-    constexpr Any() : executor(nullptr) {}
+    /*
+        Default constructor
+        Constructs a new Any with no content
+    */
+    constexpr Any() noexcept : executor(nullptr) {}
 
-    constexpr Any(const Any& other) {
+
+    /*
+        Copy constructor
+        Copies the contents, if any
+    */
+    Any(const Any& other) {
 
         if(other.hasValue()) {
 
@@ -48,7 +73,12 @@ public:
 
     }
 
-    constexpr Any(Any&& other) {
+
+    /*
+        Move constructor
+        Moves the contents, if any
+    */
+    Any(Any&& other) noexcept {
 
         if(other.hasValue()) {
 
@@ -62,18 +92,28 @@ public:
 
     }
 
+
+    /*
+        Value constructor
+        Copy-constructs the object into the storage
+    */
     template<class T>
-    constexpr Any(T&& value) requires CopyConstructible<std::decay_t<T>> && !TypeTaggedV<T> {
+    Any(T&& value) requires CopyConstructible<std::decay_t<T>> && !TypeTaggedV<T> {
 
         using U = std::decay_t<T>;
+
         Executor<U>::construct(this, std::forward<T>(value));
         executor = &Executor<U>::execute;
 
     }
 
 
+    /*
+        In-place constructor
+        In-place constructs the object into the storage
+    */
     template<class T, class... Args>
-    constexpr Any(TypeTag<T>, Args&&... args) requires Constructible<T, Args...> {
+    Any(TypeTag<T>, Args&&... args) requires Constructible<T, Args...> {
         
         using U = std::decay_t<T>;
         Executor<U>::construct(this, std::forward<Args>(args)...);
@@ -82,12 +122,20 @@ public:
     }
 
 
-    ~Any() {
+    /*
+        Destructor
+        Destroys the storage
+    */
+    ~Any() noexcept {
         reset();
     }
 
 
-    constexpr Any& operator=(const Any& other) {
+    /*
+        Copy-assignment operator
+        Copy-constructs from the object's storage
+    */
+    Any& operator=(const Any& other) {
 
         if(!other.hasValue()) {
             
@@ -106,7 +154,11 @@ public:
     }
 
 
-    constexpr Any& operator=(Any&& other) {
+    /*
+        Move-assignment operator
+        Move-constructs from the object's storage
+    */
+    Any& operator=(Any&& other) noexcept {
 
         if(!other.hasValue()) {
 
@@ -129,8 +181,12 @@ public:
     }
 
 
+    /*
+        Value-assignment operator
+        Copy-constructs new storage from the object
+    */
     template<class T>
-    constexpr Any& operator=(T&& value) requires CopyConstructible<std::decay_t<T>> {
+    Any& operator=(T&& value) requires CopyConstructible<std::decay_t<T>> {
 
         *this = Any(std::forward<T>(value));
         return *this;
@@ -138,12 +194,18 @@ public:
     }
 
 
+    /*
+        Returns true if it contains an object, false otherwise
+    */
     constexpr bool hasValue() const noexcept {
         return executor != nullptr;
     }
 
 
-    void reset() {
+    /*
+        Resets the storage and destroys the object if it exists
+    */
+    void reset() noexcept {
 
         if(hasValue()) {
             executor(this, Operation::Destruct, nullptr);
@@ -152,6 +214,9 @@ public:
     }
 
 
+    /*
+        In-place constructs an object of type T. Previous contents are destroyed.
+    */
     template<class T, class... Args>
     void emplace(Args&&... args) requires Constructible<T, Args...> {
 
@@ -165,7 +230,10 @@ public:
     }
 
 
-    void swap(Any& other) {
+    /*
+        Swaps the object's contents
+    */
+    void swap(Any& other) noexcept {
 
         if(!hasValue() && !other.hasValue()) {
             return;
@@ -204,34 +272,58 @@ public:
 
     }
 
+
+    /*
+        Returns the std::type_info struct of the underlying object
+    */
+    const std::type_info& getTypeInfo() const noexcept {
+
+        if(!hasValue()) {
+            return typeid(void);
+        }
+
+        Argument argument;
+        executor(this, Operation::TypeInfo, &argument);
+        return *argument.type;
+
+    }
+
+
+    /*
+        Casts the object to T.
+        Throws BadAnyAccess if the conversion is illegal.
+    */
     template<class T, class U = std::decay_t<T>>
-    const T& get() const requires std::is_same_v<std::remove_cv_t<T>, U> {
+    const T& cast() const requires std::is_same_v<std::remove_cv_t<T>, U> {
 
-        if (!hasValue() || 
-            &Executor<U>::execute != executor || 
-            typeid(U).hash_code() != [this]() -> SizeT { if(!hasValue()) { return typeid(void).hash_code(); } Argument arg; executor(this, Operation::TypeInfo, &arg); return arg.typeHash;}()) {
-
+        if (!hasValue() || &Executor<U>::execute != executor) {
             throw BadAnyAccess();
-
         } else {
             return Executor<U>::get(this);
         }
 
     }
 
+
+    /*
+        Casts the object to T.
+        If T is not the type of the underlying storage, behaviour is undefined.
+    */
     template<class T, class U = std::decay_t<T>>
-    const T& fastGet() const requires std::is_same_v<std::remove_cv_t<T>, U> {
+    const T& unsafeCast() const noexcept requires std::is_same_v<std::remove_cv_t<T>, U> {
         return Executor<U>::get(this);
     }
 
+    //See the const version of cast()
     template<class T>
-    T& get() {
-        return const_cast<T&>(static_cast<const Any*>(this)->get<T>());
+    T& cast() requires std::is_same_v<std::remove_cv_t<T>, std::decay_t<T>> {
+        return const_cast<T&>(static_cast<const Any*>(this)->cast<T>());
     }
 
+    //See the const version of unsafeCast()
     template<class T>
-    T& fastGet() {
-        return const_cast<T&>(static_cast<const Any*>(this)->fastGet<T>());
+    T& unsafeCast() noexcept requires std::is_same_v<std::remove_cv_t<T>, std::decay_t<T>> {
+        return const_cast<T&>(static_cast<const Any*>(this)->unsafeCast<T>());
     }
 
 
@@ -246,12 +338,12 @@ private:
 
     union Argument {
         Any* any;
-        SizeT typeHash;
+        const std::type_info* type;
     };
 
     typedef void(*StateExecutor)(const Any*, Operation, Argument*);
 
-    union Storage {
+    alignas(Align) union Storage {
 
         constexpr Storage() : ptr(nullptr) {}
 
@@ -259,20 +351,18 @@ private:
         constexpr Storage& operator=(const Storage& other) = delete;
 
         void* ptr;
-        alignas(void*) u8 buffer[sizeof(void*)];
+        u8 buffer[Size];
 
     } storage;
 
     StateExecutor executor;
-    constexpr static SizeT bufferSize = sizeof(Storage::buffer);
-    constexpr static AlignT bufferAlignment = alignof(Storage);
 
     
     template<CopyConstructible T>
     struct Executor {
 
         //Condition: a) must fit into the buffer; b) alignment must be no stricter than those of buffer
-        constexpr static bool StaticAllocatable = sizeof(T) <= bufferSize && alignof(T) <= bufferAlignment;
+        constexpr static bool StaticAllocatable = sizeof(T) <= Size && alignof(T) <= Align && std::is_nothrow_move_constructible_v<T>;
 
         template<class... Args>
         static void construct(Any* any, Args&&... args) requires Constructible<T, Args...> {
@@ -285,12 +375,12 @@ private:
 
         }
 
-        static const T& get(const Any* any) {
+        static const T& get(const Any* any) noexcept {
             
             if constexpr (StaticAllocatable) {
                 return *reinterpret_cast<const T*>(any->storage.buffer);
             } else {
-                return static_cast<const T*>(any->storage.ptr);
+                return *static_cast<const T*>(any->storage.ptr);
             }
 
         }
@@ -365,7 +455,7 @@ private:
                     break;
 
                 case Operation::TypeInfo:
-                    arg->typeHash = typeid(T).hash_code();
+                    arg->type = &typeid(T);
                     break;
 
             }
