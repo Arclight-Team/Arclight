@@ -1,53 +1,69 @@
 #pragma once
 
 #include "util/sparsearray.h"
+#include "util/any.h"
 #include "component.h"
-
-
-
-class TransformComponent;
-
-class ComponentStorage {
-
-public:
-
-
-
-private:
-    //SparseArray<TransformComponent> k;
-
-};
+#include "arcconfig.h"
 
 
 
 class ComponentProvider {
 
+    typedef Any<sizeof(SparseArray<void*>), alignof(SparseArray<void*>)> ComponentArray;
+
 public:
 
-    void create();
+    constexpr ComponentProvider() {
+        componentArrays.reserve(ARC_ACS_MAX_COMPONENTS);
+    }
 
     template<Component C>
-    SparseArray<C>& getComponentArray() {
+    void createArray() {
 
         ComponentTypeID id = getComponentTypeID<C>();
-        return componentCast<C>(id);
+
+        if(id >= componentArrays.size()) {
+
+            if(id >= ARC_ACS_MAX_COMPONENTS) {
+                Log::error("ACS", "ID %d exceeds the maximum component ID of %d", id, ARC_ACS_MAX_COMPONENTS - 1);
+                return;
+            }
+
+            componentArrays.resize(id + 1);
+            ComponentArray& array = componentArrays.back();
+            array.emplace<SparseArray<C>>();
+
+        }
 
     }
 
-
-    auto getComponentArray(ComponentTypeID id) {
-
+    template<Component C>
+    SparseArray<C>& getComponentArray() {
+        return componentCast<C>(getComponentTypeID<C>());
     }
 
 
 private:
 
     template<Component C>
-    SparseArray<C>& componentCast(ComponentTypeID id) {
-        return static_cast<SparseArray<C>>(components[id]);
+    ComponentTypeID getComponentTypeID() const noexcept {
+
+        ComponentTypeID id = getComponentTypeID<C>();
+        arc_assert(id < componentArrays.size(), "Component ID %d out of bounds", id);
+
+        return id;
+
     }
 
-    ComponentStorage components;
+    template<Component C>
+    SparseArray<C>& componentCast(ComponentTypeID id) {
+#ifdef ARC_ACS_RUNTIME_CHECKS
+        return componentArrays[id].cast<C>();
+#else
+        return componentArrays[id].unsafeCast<C>();
+#endif
+    }
 
+    std::vector<ComponentArray> componentArrays;
 
 };

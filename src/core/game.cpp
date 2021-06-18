@@ -29,7 +29,7 @@ bool Game::init() {
 	SparseArray<int>::Iterator a = array.begin();
 
 	for(a; a != array.end(); a++){
-		Log::info("", "%d", *a);
+		Log::info("", "%d %d", *a, 5);
 	}
 
 

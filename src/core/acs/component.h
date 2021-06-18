@@ -5,28 +5,32 @@
 
 class IComponent {};
 
+typedef u32 ComponentTypeID;
+
 template<class C>
 concept Component = std::is_base_of_v<IComponent, C>;
 
-typedef u32 ComponentTypeID;
+
+struct ComponentID {
+
+	template<Component C>
+	constexpr ComponentTypeID getComponentTypeID() {
+		static_assert(false, "Component not registered");
+		return 0;
+	}
+
+};
 
 
-template<Component C>
-constexpr ComponentTypeID getComponentTypeID() {
-	static_assert(false, "Component not registered");
-	return 0;
+#define REGISTER_COMPONENT(c, id)									\
+template<>															\
+constexpr ComponentTypeID ComponentID::getComponentTypeID<c>() {	\
+	return id;														\
 }
 
 
-#define COMPONENT_START_REGISTRY()	enum class ComponentType : ComponentTypeID {
-#define REGISTER_COMPONENT_CLASS(c) c,
-#define COMPONENT_END_REGISTRY() 	};
 
-#define GENERATE_COMPONENT_ACCESSOR(c)						\
-template<>													\
-constexpr ComponentTypeID getComponentTypeID<c>() {			\
-	return static_cast<ComponentTypeID>(ComponentType::c);	\
-}
+
 
 /*
 class Transform : public IComponent {

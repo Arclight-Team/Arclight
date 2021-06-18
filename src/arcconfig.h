@@ -82,3 +82,25 @@
 	ARC_ASSERT_BUILD: Always asserts, except in final build mode. (default)
 */
 #define ARC_ASSERT_DEBUG
+
+
+/*
+	ACS component storage
+	ARC_ACS_FORCE_STACK: Forces the component storage on stack
+	ARC_ACS_MAX_COMPONENTS: Maximum component count
+*/
+#define ARC_ACS_FORCE_STACK
+
+
+/*
+	ACS runtime checks
+	ARC_ACS_RUNTIME_CHECKS: Enables safety guards/barriers at runtime
+*/
+#define ARC_ACS_RUNTIME_CHECKS
+
+
+/*
+	ACS component count
+	ARC_ACS_MAX_COMPONENTS: Maximum number of components. Each component ID must be smaller than this.
+*/
+#define ARC_ACS_MAX_COMPONENTS 256

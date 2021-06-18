@@ -65,7 +65,7 @@ public:
 
             Argument argument;
             argument.any = this;
-            other.executor(other, Operation::Copy, &argument);
+            other.executor(&other, Operation::Copy, &argument);
 
         } else {
             executor = nullptr;
@@ -84,7 +84,7 @@ public:
 
             Argument argument;
             argument.any = this;
-            other.executor(other, Operation::Move, &argument);
+            other.executor(&other, Operation::Move, &argument);
 
         } else {
             executor = nullptr;
@@ -98,7 +98,7 @@ public:
         Copy-constructs the object into the storage
     */
     template<class T>
-    Any(T&& value) requires CopyConstructible<std::decay_t<T>> && !TypeTaggedV<T> {
+    Any(T&& value) requires !Equal<std::decay_t<T>, Any> && CopyConstructible<std::decay_t<T>> && !TypeTaggedV<T> {
 
         using U = std::decay_t<T>;
 
@@ -145,7 +145,7 @@ public:
 
             Argument argument;
             argument.any = this;
-            other.executor(other, Operation::Copy, &argument);
+            other.executor(&other, Operation::Copy, &argument);
 
         }
 
@@ -172,7 +172,7 @@ public:
             //Move it
             Argument argument;
             argument.any = this;
-            other.executor(other, Operation::Move, &argument);
+            other.executor(&other, Operation::Move, &argument);
 
         }
 
@@ -293,8 +293,10 @@ public:
         Casts the object to T.
         Throws BadAnyAccess if the conversion is illegal.
     */
-    template<class T, class U = std::decay_t<T>>
-    const T& cast() const requires std::is_same_v<std::remove_cv_t<T>, U> {
+    template<class T>
+    const T& cast() const requires std::is_same_v<std::remove_cv_t<T>, std::decay_t<T>> {
+
+        using U = std::decay_t<T>;
 
         if (!hasValue() || &Executor<U>::execute != executor) {
             throw BadAnyAccess();
@@ -309,9 +311,9 @@ public:
         Casts the object to T.
         If T is not the type of the underlying storage, behaviour is undefined.
     */
-    template<class T, class U = std::decay_t<T>>
-    const T& unsafeCast() const noexcept requires std::is_same_v<std::remove_cv_t<T>, U> {
-        return Executor<U>::get(this);
+    template<class T>
+    const T& unsafeCast() const noexcept requires std::is_same_v<std::remove_cv_t<T>, std::decay_t<T>> {
+        return Executor<std::decay_t<T>>::get(this);
     }
 
     //See the const version of cast()
