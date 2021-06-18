@@ -18,7 +18,7 @@ public:
 		Any
 	};
 
-	inline constexpr WindowConfig() : 
+	constexpr WindowConfig() : 
 		openglMajor(3), openglMinor(3), profile(OpenGLProfile::Core), forwardContext(true), debugContext(false), srgbRendering(true),
 		samples(1), redBits(8), greenBits(8), blueBits(8), alphaBits(8), depthBits(24), stencilBits(8),
 		resizable(false), maximized(false), alwaysOnTop(false) {}
@@ -146,6 +146,16 @@ public:
 
 	bool isOpen() const;
 	bool isFullscreen() const;
+	bool closeRequested() const;
+	bool focused() const;
+	bool minimized() const;
+	bool maximized() const;
+	bool hovered() const;
+	bool visible() const;
+	bool resizable() const;
+	bool decorated() const;
+	bool alwaysOnTop() const;
+	
 
 	void enableContext();
 	void disableContext();
@@ -154,7 +164,6 @@ public:
 
 	void requestClose();
 	void dismissCloseRequest();
-	bool closeRequested() const;
 
 	static u32 getMonitorCount();
 	static Monitor getMonitor(u32 id);

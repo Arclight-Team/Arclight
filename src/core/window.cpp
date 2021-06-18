@@ -626,15 +626,6 @@ void Window::dismissCloseRequest() {
 
 
 
-bool Window::closeRequested() const {
-
-	arc_assert(isOpen(), "Tried to fetch close request state for non-existing window");
-	return glfwWindowShouldClose(windowHandle->handle);
-
-}
-
-
-
 bool Window::isOpen() const {
 	return windowHandle != nullptr;
 }
@@ -645,6 +636,86 @@ bool Window::isFullscreen() const {
 
 	arc_assert(isOpen(), "Tried to obtain fullscreen state for non-existing window");
 	return glfwGetWindowMonitor(windowHandle->handle) != nullptr;
+
+}
+
+
+
+bool Window::closeRequested() const {
+
+	arc_assert(isOpen(), "Tried to fetch close request state for non-existing window");
+	return glfwWindowShouldClose(windowHandle->handle);
+
+}
+
+
+bool Window::focused() const {
+
+	arc_assert(isOpen(), "Tried to fetch focus state for non-existing window");
+	return glfwGetWindowAttrib(windowHandle->handle, GLFW_FOCUSED);
+
+}
+
+
+
+bool Window::minimized() const {
+
+	arc_assert(isOpen(), "Tried to fetch minimized state for non-existing window");
+	return glfwGetWindowAttrib(windowHandle->handle, GLFW_ICONIFIED);
+
+}
+
+
+
+bool Window::maximized() const {
+
+	arc_assert(isOpen(), "Tried to fetch maximized state for non-existing window");
+	return glfwGetWindowAttrib(windowHandle->handle, GLFW_MAXIMIZED);
+
+}
+
+
+
+bool Window::hovered() const {
+
+	arc_assert(isOpen(), "Tried to fetch hovered state for non-existing window");
+	return glfwGetWindowAttrib(windowHandle->handle, GLFW_HOVERED);
+
+}
+
+
+
+bool Window::visible() const {
+
+	arc_assert(isOpen(), "Tried to fetch visibility state for non-existing window");
+	return glfwGetWindowAttrib(windowHandle->handle, GLFW_VISIBLE);
+
+}
+
+
+
+bool Window::resizable() const {
+
+	arc_assert(isOpen(), "Tried to fetch resizeable state for non-existing window");
+	return glfwGetWindowAttrib(windowHandle->handle, GLFW_RESIZABLE);
+
+}
+
+
+
+bool Window::decorated() const {
+
+	arc_assert(isOpen(), "Tried to fetch decoration state for non-existing window");
+	return glfwGetWindowAttrib(windowHandle->handle, GLFW_DECORATED);
+
+}
+
+
+
+bool Window::alwaysOnTop() const {
+
+	arc_assert(isOpen(), "Tried to fetch always-on-top state for non-existing window");
+	return glfwGetWindowAttrib(windowHandle->handle, GLFW_FLOATING);
 
 }
 
