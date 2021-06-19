@@ -30,11 +30,14 @@ public:
 
 	}
 
-	constexpr KeyTrigger(std::initializer_list<Key> keys, KeyState state = KeyState::Pressed) : keyState(state), keyCount(keys.size()) {
+	constexpr KeyTrigger(const std::initializer_list<Key>& keys, KeyState state = KeyState::Pressed) : keyState(state), keyCount(keys.size()) {
 
 		arc_assert(keys.size(), "Key trigger size cannot be 0");
-
-		// TODO: you can currently have more than 3 keys using this constructor
+		
+		if (keys.size() > maxTriggerKeys) {
+			arc_force_assert("Cannot construct a key trigger consisting of more than %d keys", maxTriggerKeys);
+			keyCount = maxTriggerKeys;
+		}
 
 		for (u32 i = 0; i < keyCount; i++) {
 			this->keys[i] = *(keys.begin() + i);
