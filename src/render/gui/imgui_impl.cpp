@@ -1,0 +1,54 @@
+#include "imgui_impl.h"
+
+#include "core/window.h"
+#include "core/windowhandle.h"
+
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
+#include "render/gle/gle.h"
+#include GLE_HEADER
+
+GUI_BEGIN
+
+bool firstRender = true;
+
+void initialize(::Window& window) {
+
+	const char* glsl_version = "#version 130";
+
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsClassic();
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplGlfw_InitForOpenGL(window.getInternalHandle().lock()->handle, true);
+	ImGui_ImplOpenGL3_Init(glsl_version);
+
+	firstRender = true;
+
+}
+
+void prepareRender() {
+
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+}
+
+void render() {
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+}
+
+GUI_END

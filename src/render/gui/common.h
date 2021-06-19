@@ -1,0 +1,54 @@
+#pragma once
+
+#define GUI_BEGIN	namespace GUI {
+#define GUI_END		}
+
+//User includes
+#include "util/log.h"
+#include "util/assert.h"
+#include "util/vector.h"
+#include "types.h"
+
+#include "imgui.h"
+#include "action.h"
+
+#include <vector>
+#include <string>
+
+#define gui_assert(cond, msg, ...) arc_assert(cond, msg, __VA_ARGS__)
+#define gui_force_assert(msg, ...) arc_force_assert(msg, __VA_ARGS__)
+
+#define IMPL_ACTION_SETTER(x) \
+	void set##x##Action(Action action) { m_##x = action; }
+
+using HandleT = u32;
+
+constexpr inline HandleT InvalidHandle = 0xFFFFFFFFu;
+
+GUI_BEGIN
+
+namespace {
+	constexpr const char* logSystemName = "GL Engine";
+}
+
+template<typename... Args>
+inline void debug(const std::string& msg, Args&&... args) {
+	Log::debug(logSystemName, msg, std::forward<Args>(args)...);
+}
+
+template<typename... Args>
+inline void info(const std::string& msg, Args&&... args) {
+	Log::info(logSystemName, msg, std::forward<Args>(args)...);
+}
+
+template<typename... Args>
+inline void warn(const std::string& msg, Args&&... args) {
+	Log::warn(logSystemName, msg, std::forward<Args>(args)...);
+}
+
+template<typename... Args>
+inline void error(const std::string& msg, Args&&... args) {
+	Log::error(logSystemName, msg, std::forward<Args>(args)...);
+}
+
+GUI_END

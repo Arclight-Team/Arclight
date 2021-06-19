@@ -272,6 +272,19 @@ void InputSystem::updateContinuous(u32 ticks) {
 
 
 
+void InputSystem::getCursorPosition(double& x, double& y) {
+	if (!connected()) {
+		return;
+	}
+
+	auto handle = getWindowHandle();
+	arc_assert(handle != nullptr, "Handle unexpectedly null");
+
+	glfwGetCursorPos(handle->handle, &x, &y);
+}
+
+
+
 void InputSystem::setCursorPosition(double x, double y) {
 	if (!connected()) {
 		return;
