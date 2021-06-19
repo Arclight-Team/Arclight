@@ -36,10 +36,12 @@ public:
 	void writeLine(const std::string& line);
 
 	void read(u8* data, u64 count);
-	void write(u8* data, u64 count);
+	void write(const u8* data, u64 count);
 
 	void seek(u64 pos);
 	void seekRelative(i64 pos);
+
+	u64 tell() const;
 
 	bool isOpen() const;
 	u64 getFileSize() const;
@@ -50,7 +52,7 @@ public:
 	
 
 private:
-	std::fstream stream;
+	mutable std::fstream stream;
 	Uri filepath;
 	Flags openFlags;
 

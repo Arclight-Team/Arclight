@@ -42,6 +42,7 @@ public:
 
 	void updateContinuous(u32 ticks);
 
+	void getCursorPosition(double& x, double& y);
 	void setCursorPosition(double x, double y);
 	void disableCursor();
 	void hideCursor();

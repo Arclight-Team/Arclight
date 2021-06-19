@@ -137,7 +137,7 @@ void File::read(u8* data, u64 count) {
 }
 
 
-void File::write(u8* data, u64 count) {
+void File::write(const u8* data, u64 count) {
 
 	arc_assert(isOpen(), "Attempted to write to an unopened file");
 	arc_assert(openFlags & File::Out, "Attempted to write to an input stream");
@@ -152,6 +152,7 @@ void File::write(u8* data, u64 count) {
 void File::seek(u64 pos) {
 	arc_assert(isOpen(), "Attempted to seek in an unopened file");
 	stream.seekg(pos, std::ios::beg);
+	stream.seekp(pos, std::ios::beg);
 }
 
 
@@ -159,6 +160,14 @@ void File::seek(u64 pos) {
 void File::seekRelative(i64 pos) {
 	arc_assert(isOpen(), "Attempted to seek in an unopened file");
 	stream.seekg(pos, std::ios::cur);
+	stream.seekp(pos, std::ios::cur);
+}
+
+
+
+u64 File::tell() const {
+	arc_assert(isOpen(), "Attempted to seek in an unopened file");
+	return stream.tellg();
 }
 
 

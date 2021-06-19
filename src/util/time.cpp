@@ -79,6 +79,7 @@ namespace Time {
 
 
 
+#if 0
 	double getUnitFactor(Time::Unit unit) {
 		return Math::pow(1000, static_cast<u32>(unit));
 	}
@@ -94,6 +95,7 @@ namespace Time {
 		return time * totalFactor;
 
 	}
+#endif
 
 
 

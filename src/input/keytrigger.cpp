@@ -3,26 +3,6 @@
 
 
 
-KeyTrigger::KeyTrigger() : keyState(KeyState::Pressed), keyCount(0) {
-	resetKeys();
-}
-
-
-KeyTrigger::KeyTrigger(std::initializer_list<Key> keys, KeyState state) : keyState(state), keyCount(keys.size()) {
-
-	arc_assert(keys.size(), "Key trigger size cannot be 0");
-
-	for (u32 i = 0; i < keyCount; i++) {
-		this->keys[i] = *(keys.begin() + i);
-	}
-
-	for (u32 i = keyCount; i < maxTriggerKeys; i++) {
-		this->keys[i] = invalidKey;
-	}
-
-}
-
-
 void KeyTrigger::addKey(u32 key) {
 
 	arc_assert(key != invalidKey, "Cannot use invalid key in key trigger");
@@ -34,18 +14,6 @@ void KeyTrigger::addKey(u32 key) {
 
 	keys[keyCount] = key;
 	keyCount++;
-
-}
-
-
-
-void KeyTrigger::resetKeys() {
-
-	keyCount = 0;
-
-	for (u32 i = 0; i < maxTriggerKeys; i++) {
-		keys[i] = invalidKey;
-	}
 
 }
 
