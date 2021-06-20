@@ -32,7 +32,6 @@ bool Game::init() {
 		Log::info("", "%d %d", *a, 5);
 	}
 
-
 	ComponentProvider provider;
 
 	return true;

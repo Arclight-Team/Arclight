@@ -6,6 +6,9 @@
 #include "arcconfig.h"
 
 
+typedef u64 ActorID;
+
+
 
 class ComponentProvider {
 
@@ -38,8 +41,33 @@ public:
     }
 
     template<Component C>
+    void addComponent(ActorID actor, C&& component) {
+        getComponentArray<C>().set(actor, std::forward<C>(component));
+    }
+
+    template<Component C>
     SparseArray<C>& getComponentArray() {
         return componentCast<C>(getComponentTypeID<C>());
+    }
+
+    template<Component C>
+    C& getComponent(ActorID id) {
+        return getComponentArray<C>()[id & 0xFFFFFFFF];
+    }
+
+    template<Component C>
+    const C& getComponent(ActorID id) const {
+        return getComponentArray<C>()[id & 0xFFFFFFFF];
+    }
+
+      template<Component C>
+    OptionalRef<C> tryGetComponent(ActorID id) {
+        return getComponentArray<C>().tryGet(id & 0xFFFFFFFF);
+    }
+
+    template<Component C>
+    OptionalRef<const C> tryGetComponent(ActorID id) const {
+        return getComponentArray<C>().tryGet(id & 0xFFFFFFFF);
     }
 
 
