@@ -4,21 +4,19 @@
 
 GUI_BEGIN
 
-inline HandleT nextHandleID = 0;
-
 class IControl;
 
 class IContainer : public IControl
 {
 public:
 
-	bool controlExists(HandleT handle);
+	bool controlExists(HandleT handle) const;
 	bool swapControls(HandleT first, HandleT second);
 
 protected:
 
-	HandleT getNextHandle();
-	i64 getControlIndex(HandleT handle);
+	HandleT getNextHandle() const;
+	i64 getControlIndex(HandleT handle) const;
 	HandleT addControl(IControl* control);
 	IControl& getControl(HandleT handle);
 

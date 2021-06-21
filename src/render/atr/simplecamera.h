@@ -42,6 +42,8 @@ public:
 
 private:
 
+	bool inputBusy() const;
+
 	constexpr static CameraInputConfig defaultConfig =
 	{
 		KeyTrigger({ KeyCode::A }),

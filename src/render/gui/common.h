@@ -9,8 +9,14 @@
 #include "util/vector.h"
 #include "types.h"
 
-#include "imgui.h"
 #include "action.h"
+
+#if defined(ARC_USE_IMGUI) && ARC_USE_IMGUI
+
+#include "imgui.h"
+
+#endif
+
 
 #include <vector>
 #include <string>

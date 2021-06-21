@@ -1,7 +1,7 @@
 #pragma once
-#include "common.h"
-#include "control.h"
-#include "action.h"
+#include "../common.h"
+#include "../control.h"
+#include "../action.h"
 
 GUI_BEGIN
 

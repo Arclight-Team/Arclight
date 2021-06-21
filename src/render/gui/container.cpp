@@ -2,6 +2,9 @@
 
 GUI_BEGIN
 
+inline HandleT nextHandleID = 0;
+
+
 bool IContainer::swapControls(HandleT first, HandleT second) {
 
 	i64 indexA = getControlIndex(first);
@@ -24,17 +27,17 @@ bool IContainer::swapControls(HandleT first, HandleT second) {
 
 }
 
-bool IContainer::controlExists(HandleT handle) {
+bool IContainer::controlExists(HandleT handle) const {
 	return getControlIndex(handle) >= 0;
 }
 
 
 
-HandleT IContainer::getNextHandle() {
+HandleT IContainer::getNextHandle() const {
 	return ++nextHandleID;
 }
 
-i64 IContainer::getControlIndex(HandleT handle) {
+i64 IContainer::getControlIndex(HandleT handle) const {
 
 	if (handle == InvalidHandle)
 		return -1;
@@ -58,6 +61,8 @@ HandleT IContainer::addControl(IControl* control) {
 	}
 
 	HandleT handle = getNextHandle();
+	
+	control->m_Handle = handle;
 
 	m_Controls.emplace_back(handle, control);
 

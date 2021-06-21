@@ -2,7 +2,12 @@
 #include "input/inputcontext.h"
 #include "input/inputhandler.h"
 
-#include "imgui.h"
+#if defined(ARC_USE_IMGUI) && ARC_USE_IMGUI
+
+#include "render/gui/arcgui.h"
+
+#endif
+
 
 enum class CameraAction
 {
@@ -31,7 +36,7 @@ void SimpleCamera::update() {
 		movement = Vec3i(0);
 	}
 
-	if (ImGui::GetCurrentContext() && ImGui::IsAnyItemActive())
+	if (inputBusy())
 		return;
 
 	if (rotation != Vec3i(0, 0, 0)) {
@@ -143,7 +148,7 @@ bool SimpleCamera::actionListener(KeyAction action) {
 
 	case CameraAction::GrabStart:
 	{
-		if (ImGui::GetCurrentContext() && ImGui::IsAnyItemActive())
+		if (inputBusy())
 			break;
 
 		mouseGrab = mouse;
@@ -152,7 +157,7 @@ bool SimpleCamera::actionListener(KeyAction action) {
 
 	case CameraAction::GrabMove:
 	{
-		if (ImGui::GetCurrentContext() && ImGui::IsAnyItemActive())
+		if (inputBusy())
 			break;
 
 		Vec2f dif = mouse - mouseGrab;
@@ -192,4 +197,20 @@ const CameraInputConfig& SimpleCamera::getConfig() const {
 
 void SimpleCamera::setConfig(const CameraInputConfig& config) {
 	this->config = config;
+}
+
+
+
+bool SimpleCamera::inputBusy() const {
+
+#if defined(ARC_USE_IMGUI) && ARC_USE_IMGUI
+
+	return ImGui::GetCurrentContext() && ImGui::IsAnyItemActive();
+
+#else
+
+	return false;
+
+#endif
+
 }

@@ -12,10 +12,14 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 
+#ImGui implementation
+set(ARC_BUILD_IMGUI false)
+add_compile_definitions(ARC_USE_IMGUI=${ARC_BUILD_IMGUI})
+
 message("Building as: ${CMAKE_BUILD_TYPE}")
 
 #Profiling via debug symbols
-if(MSVC AND CMAKE_CONFIGURATION_TYPES MATCHES "Release")
+if(MSVC AND CMAKE_BUILD_TYPE MATCHES "Release")
 	message("Profiling active")
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
 	add_link_options("/DEBUG")
@@ -75,8 +79,19 @@ include_directories("lib/bullet3/include/bullet")
 include_directories("lib")
 include_directories(${GLEW_INCLUDE_DIR})
 
+if(${ARC_BUILD_IMGUI})
+message("Building Arclight with ImGui")
+include_directories("lib/imgui/include")
+include_directories("lib/imgui/backends")
+endif()
+
 #Automatically collect sources
+if(${ARC_BUILD_IMGUI})
+file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp" "lib/imgui/source/*.cpp" "lib/imgui/backends/*.cpp")
+else()
 file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp")
+list(FILTER SOURCES EXCLUDE REGEX "src/render/gui/imgui/*")
+endif()
 
 #Create the executable and link
 add_executable (arclight ${SOURCES})

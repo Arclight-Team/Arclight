@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include "common.h"
-#include "container.h"
-#include "control.h"
+#include "../common.h"
+#include "../control.h"
+#include "../container.h"
 
 GUI_BEGIN
 
@@ -66,7 +66,7 @@ private:
 	bool m_CloseButtonVisible;
 
 	std::vector<std::pair<HandleT, Window*>> m_Windows;
-	bool m_Beginned;
+	bool m_Begun;
 	bool m_Collapsed;
 	Action m_OnExpanded;
 	Action m_OnCollapsed;

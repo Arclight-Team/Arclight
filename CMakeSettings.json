@@ -11,7 +11,7 @@
 			"ctestCommandArgs": "",
 			"variables": [
 				{
-					"name": "CMAKE_CONFIGURATION_TYPES",
+					"name": "CMAKE_BUILD_TYPE",
 					"value": "Debug",
 					"type": "STRING"
 				},
@@ -73,7 +73,7 @@
 			"inheritEnvironments": [ "msvc_x64_x64" ],
 			"variables": [
 				{
-					"name": "CMAKE_CONFIGURATION_TYPES",
+					"name": "CMAKE_BUILD_TYPE",
 					"value": "Release",
 					"type": "STRING"
 				},

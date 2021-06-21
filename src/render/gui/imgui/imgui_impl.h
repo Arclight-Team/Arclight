@@ -1,5 +1,5 @@
 #pragma once
-#include "common.h"
+#include "../common.h"
 
 class Window;
 
@@ -7,6 +7,7 @@ class Window;
 GUI_BEGIN
 
 void initialize(::Window& window);
+void destroy();
 
 void prepareRender();
 void render();

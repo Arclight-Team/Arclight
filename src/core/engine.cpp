@@ -48,6 +48,9 @@ bool Engine::initialize() {
 
 void Engine::run() {
 
+	//Start FPS tracker
+	tracker.start();
+
 	//Create the tick timer
 	Timer timer;
 	timer.start();

@@ -10,11 +10,11 @@ PhysicsTest::PhysicsTest() : collisionConfiguration(nullptr), dispatcher(nullptr
 
 PhysicsTest::~PhysicsTest() {
 
+	if (dynamicsWorld) {delete  dynamicsWorld;}
 	if (collisionConfiguration) {delete collisionConfiguration;}
 	if (dispatcher) {delete dispatcher;}
 	if (overlappingPairCache) {delete overlappingPairCache;}
 	if (solver) {delete solver;}
-	if (dynamicsWorld) {delete  dynamicsWorld;}
 
 }
 

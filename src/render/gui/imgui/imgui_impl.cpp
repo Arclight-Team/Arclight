@@ -11,8 +11,6 @@
 
 GUI_BEGIN
 
-bool firstRender = true;
-
 void initialize(::Window& window) {
 
 	const char* glsl_version = "#version 130";
@@ -32,9 +30,17 @@ void initialize(::Window& window) {
 	ImGui_ImplGlfw_InitForOpenGL(window.getInternalHandle().lock()->handle, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
-	firstRender = true;
+}
+
+void destroy() {
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 
 }
+
+
 
 void prepareRender() {
 

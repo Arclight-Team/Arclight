@@ -1,7 +1,7 @@
 #pragma once
+#include "../common.h"
+#include "../control.h"
 #include <variant>
-#include "common.h"
-#include "control.h"
 
 GUI_BEGIN
 
@@ -79,8 +79,7 @@ public:
 	template<Vector V, class T = typename V::Type>
 	void createVector(const std::string& text, V* variable, T min = T(0), T max = T(1), const std::string& format = "") {
 
-		constexpr int num = V::Capacity;
-		//T* var = &(*variable[0]);
+		constexpr int num = V::Size;
 		T* var = &variable->x;
 
 		if constexpr (std::is_same_v<T, bool>)			createVecBool  (text, num, var);

@@ -2,25 +2,29 @@
 
 #include "common.h"
 
-#include "imgui_impl.h"
-
 #include "control.h"
 #include "container.h"
 
-#include "window.h"
-#include "menubar.h"
-#include "menu.h"
-#include "menuitem.h"
-#include "label.h"
-#include "button.h"
-#include "checkbox.h"
-#include "slider.h"
+#if defined(ARC_USE_IMGUI) && ARC_USE_IMGUI
+
+#include "imgui/imgui_impl.h"
+
+#include "imgui/window.h"
+#include "imgui/menubar.h"
+#include "imgui/menu.h"
+#include "imgui/menuitem.h"
+#include "imgui/label.h"
+#include "imgui/button.h"
+#include "imgui/checkbox.h"
+#include "imgui/slider.h"
 
 // https://github.com/AirGuanZ/imgui-filebrowser
-#include "imfilebrowser.h"
+#include "imgui/imfilebrowser.h"
 
 GUI_BEGIN
 
 using ImGui::FileBrowser;
 
 GUI_END
+
+#endif

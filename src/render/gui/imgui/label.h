@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "common.h"
-#include "control.h"
+#include "../common.h"
+#include "../control.h"
 
 GUI_BEGIN
 

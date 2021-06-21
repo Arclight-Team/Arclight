@@ -93,7 +93,7 @@ bool Window::begin() {
 	bool open = m_Open;
 	if (open) {
 
-		m_Beginned = true;
+		m_Begun = true;
 		bool collapsed = !ImGui::Begin(m_Title.c_str(), &m_Open, m_Flags);
 
 		if (collapsed != m_Collapsed) {
@@ -119,8 +119,8 @@ bool Window::begin() {
 
 void Window::end() {
 
-	if (m_Beginned) {
-		m_Beginned = false;
+	if (m_Begun) {
+		m_Begun = false;
 		ImGui::End();
 	}
 

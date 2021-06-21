@@ -1,5 +1,13 @@
 #pragma once
 
+/*
+	Defines if this project should use ImGui
+*/
+
+#ifndef ARC_USE_IMGUI
+#define ARC_USE_IMGUI		0
+#endif
+
 
 /*
 	Color quantization function
