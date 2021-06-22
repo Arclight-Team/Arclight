@@ -8,6 +8,42 @@
 #define ARC_USE_IMGUI		0
 #endif
 
+/*
+	Defines if this project should use the Discord Game SDK
+*/
+
+#ifndef ARC_USE_DISCORD
+#define ARC_USE_DISCORD		0
+#endif
+
+/*
+	Switches to using constexpr in C math functions
+	Affected functions:
+		std::isinf
+		std::isnan
+		std::sin
+		std::cos
+		std::tan
+		std::asin
+		std::acos
+		std::atan
+		std::atan2
+		std::fmod
+		std::exp
+		std::pow
+		std::log
+		std::log10
+		std::sqrt
+		std::cbrt
+		std::ceil
+		std::floor
+		std::trunc
+		std::round
+
+*/
+
+#define ARC_CMATH_CONSTEXPR_FIX 0
+
 
 /*
 	Color quantization function
