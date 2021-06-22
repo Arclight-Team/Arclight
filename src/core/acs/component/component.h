@@ -1,6 +1,7 @@
 #pragma once
 
-#include <type_traits>
+#include "types.h"
+#include "util/concepts.h"
 
 
 class IComponent {};
@@ -8,7 +9,7 @@ class IComponent {};
 typedef u32 ComponentTypeID;
 
 template<class C>
-concept Component = std::is_base_of_v<IComponent, C>;
+concept Component = BaseOf<IComponent, C>;
 
 
 struct ComponentID {
@@ -27,25 +28,3 @@ template<>															\
 constexpr ComponentTypeID ComponentID::getComponentTypeID<c>() {	\
 	return id;														\
 }
-
-
-
-
-
-/*
-class Transform : public IComponent {
-
-public:
-
-#ifdef ARC_DOUBLE_PRECISION
-	Vec3d position;
-	Vec3d rotation; //ok use QuatD later
-	Vec3d scale;
-#else
-	Vec3f position;
-	Vec3f rotation; //ok use QuatF later
-	Vec3f scale;
-#endif
-
-};
-*/

@@ -2,11 +2,9 @@
 
 #include "util/sparsearray.h"
 #include "util/any.h"
-#include "component.h"
+#include "component/component.h"
 #include "arcconfig.h"
-
-
-typedef u64 ActorID;
+#include "actor/actor.h"
 
 
 
@@ -86,9 +84,9 @@ private:
     template<Component C>
     SparseArray<C>& componentCast(ComponentTypeID id) {
 #ifdef ARC_ACS_RUNTIME_CHECKS
-        return componentArrays[id].cast<C>();
+        return componentArrays[id].cast<SparseArray<C>>();
 #else
-        return componentArrays[id].unsafeCast<C>();
+        return componentArrays[id].unsafeCast<SparseArray<C>>();
 #endif
     }
 
