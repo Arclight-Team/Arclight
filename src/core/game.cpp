@@ -4,7 +4,7 @@
 #include "physics/boxcollider.h"
 #include "util/optionalref.h"
 #include "util/sparsearray.h"
-#include "acs/componentprovider.h"
+#include "acs/actormanager.h"
 #include "util/any.h"
 #include "debug.h"
 
@@ -32,7 +32,8 @@ bool Game::init() {
 		Log::info("", "%d %d", *a, 5);
 	}
 
-	ComponentProvider provider;
+	ActorManager manager;
+	manager.spawn(0);
 
 	return true;
 
