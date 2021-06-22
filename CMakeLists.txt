@@ -13,8 +13,12 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 
 #ImGui implementation
-set(ARC_BUILD_IMGUI false)
+set(ARC_BUILD_IMGUI FALSE)
 add_compile_definitions(ARC_USE_IMGUI=${ARC_BUILD_IMGUI})
+
+#Discord Game SDK implementation
+set(ARC_BUILD_DISCORD TRUE)
+add_compile_definitions(ARC_USE_DISCORD=${ARC_BUILD_DISCORD})
 
 message("Building as: ${CMAKE_BUILD_TYPE}")
 
@@ -69,31 +73,53 @@ else()
 							${BULLET_LIB_DIR}/LinearMath.lib)
 endif()
 
+
+list(APPEND SOURCE_TARGETS "src/*cpp")
+
 #Add all include directories
-include_directories("src")
-include_directories("lib/FMOD/include")
-include_directories("lib/GLFW/include")
-include_directories("lib/stb_image")
-include_directories("lib/assimp/include")
-include_directories("lib/bullet3/include/bullet")
-include_directories("lib")
-include_directories(${GLEW_INCLUDE_DIR})
+list(APPEND INCLUDE_TARGETS "src")
+list(APPEND INCLUDE_TARGETS "lib")
+list(APPEND INCLUDE_TARGETS "lib/FMOD/include")
+list(APPEND INCLUDE_TARGETS "lib/GLFW/include")
+list(APPEND INCLUDE_TARGETS "lib/stb_image")
+list(APPEND INCLUDE_TARGETS "lib/assimp/include")
+list(APPEND INCLUDE_TARGETS "lib/bullet3/include/bullet")
+list(APPEND INCLUDE_TARGETS ${GLEW_INCLUDE_DIR})
+
+#Add common libraries
+list(APPEND LIBRARY_TARGETS GLEW::GLEW)
+list(APPEND LIBRARY_TARGETS opengl32)
+list(APPEND LIBRARY_TARGETS glfw)
+list(APPEND LIBRARY_TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/lib/FMOD/fmodL_vc.lib)
+list(APPEND LIBRARY_TARGETS ${ASSIMP_LIBRARY})
+list(APPEND LIBRARY_TARGETS ${BULLET_LIBRARIES})
 
 if(${ARC_BUILD_IMGUI})
 message("Building Arclight with ImGui")
-include_directories("lib/imgui/include")
-include_directories("lib/imgui/backends")
+list(APPEND INCLUDE_TARGETS "lib/imgui/include")
+list(APPEND INCLUDE_TARGETS "lib/imgui/backends")
+list(APPEND SOURCE_TARGETS "lib/imgui/source/*.cpp" "lib/imgui/backends/*.cpp")
 endif()
 
+if(${ARC_BUILD_DISCORD})
+message("Building Arclight with Discord Game SDK")
+list(APPEND INCLUDE_TARGETS "lib/DiscordGameSDK/include")
+list(APPEND LIBRARY_TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/lib/DiscordGameSDK/lib/x64/${CMAKE_BUILD_TYPE}/discord_game_sdk_cpp.lib)
+list(APPEND LIBRARY_TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/lib/DiscordGameSDK/lib/x64/${CMAKE_BUILD_TYPE}/discord_game_sdk.dll.lib)
+endif()
+
+#Sources/includes/libraries specified
+
+#Add all include directories
+include_directories(${INCLUDE_TARGETS})
+
 #Automatically collect sources
-if(${ARC_BUILD_IMGUI})
-file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp" "lib/imgui/source/*.cpp" "lib/imgui/backends/*.cpp")
-else()
-file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp")
+file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} ${SOURCE_TARGETS})
+
+if(NOT ${ARC_BUILD_IMGUI})
 list(FILTER SOURCES EXCLUDE REGEX "src/render/gui/imgui/*")
 endif()
 
 #Create the executable and link
 add_executable (arclight ${SOURCES})
-target_link_libraries(arclight GLEW::GLEW opengl32 glfw 
-				${CMAKE_CURRENT_SOURCE_DIR}/lib/FMOD/fmodL_vc.lib ${ASSIMP_LIBRARY} ${BULLET_LIBRARIES})
+target_link_libraries(arclight ${LIBRARY_TARGETS})

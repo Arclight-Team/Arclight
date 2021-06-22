@@ -5,6 +5,13 @@
 #include "concepts.h"
 
 
+#if defined(ARC_CMATH_CONSTEXPR_FIX) && ARC_CMATH_CONSTEXPR_FIX
+#define ARC_CMATH_CONSTEXPR constexpr
+#else
+#define ARC_CMATH_CONSTEXPR __forceinline
+#endif
+
+
 namespace Math {
 
 	constexpr double pi = 3.1415926535897932384626434;
@@ -72,117 +79,117 @@ namespace Math {
 	}
 
 	template<Float F>
-	constexpr bool isInfinity(F value) {
+	ARC_CMATH_CONSTEXPR bool isInfinity(F value) {
 		return std::isinf(value);
 	}
 
 	template<Float F>
-	constexpr bool isNaN(F value) {
+	ARC_CMATH_CONSTEXPR bool isNaN(F value) {
 		return std::isnan(value);
 	}
 
 	template<Arithmetic A>
-	constexpr auto sin(A radians) {
+	ARC_CMATH_CONSTEXPR auto sin(A radians) {
 		return std::sin(radians);
 	}
 
 	template<Arithmetic A>
-	constexpr auto cos(A radians) {
+	ARC_CMATH_CONSTEXPR auto cos(A radians) {
 		return std::cos(radians);
 	}
 
 	template<Arithmetic A>
-	constexpr auto tan(A radians) {
+	ARC_CMATH_CONSTEXPR auto tan(A radians) {
 		return std::tan(radians);
 	}
 
 	template<Arithmetic A>
-	constexpr auto asin(A radians) {
-		return std::asin(radians);
+	ARC_CMATH_CONSTEXPR auto asin(A value) {
+		return std::asin(value);
 	}
 
 	template<Arithmetic A>
-	constexpr auto acos(A radians) {
-		return std::acos(radians);
+	ARC_CMATH_CONSTEXPR auto acos(A value) {
+		return std::acos(value);
 	}
 
 	template<Arithmetic A>
-	constexpr auto atan(A radians) {
-		return std::atan(radians);
+	ARC_CMATH_CONSTEXPR auto atan(A value) {
+		return std::atan(value);
 	}
 
 	template<Arithmetic A, Arithmetic B>
-	constexpr auto atan2(A y, B x) {
+	ARC_CMATH_CONSTEXPR auto atan2(A y, B x) {
 		return std::atan2(y, x);
 	}
 
-	template<Arithmetic A, Arithmetic B>
-	constexpr auto mod(A a, B b) requires (std::is_floating_point_v<A> || std::is_floating_point_v<B>) {
+	template<Float A, Float B>
+	ARC_CMATH_CONSTEXPR auto mod(A a, B b) {
 		return std::fmod(a, b);
 	}
 
-	template<Arithmetic A, Arithmetic B>
-	constexpr auto mod(A a, B b) requires (std::is_integral_v<A> && std::is_integral_v<B>) {
+	template<Integer A, Integer B>
+	constexpr auto mod(A a, B b) {
 		return a % b;
 	}
 
 	template<Arithmetic A>
-	constexpr auto exp(A exponent) {
+	ARC_CMATH_CONSTEXPR auto exp(A exponent) {
 		return std::exp(exponent);
 	}
 
 	template<Arithmetic A, Arithmetic B>
-	constexpr auto pow(A base, B exponent) {
+	ARC_CMATH_CONSTEXPR auto pow(A base, B exponent) {
 		return std::pow(base, exponent);
 	}
 
 	template<Arithmetic A>
-	constexpr auto ln(A value) {
+	ARC_CMATH_CONSTEXPR auto ln(A value) {
 		return std::log(value);
 	}
 
 	template<Arithmetic A>
-	constexpr auto log(A value) {
+	ARC_CMATH_CONSTEXPR auto log(A value) {
 		return std::log10(value);
 	}
 
 	template<Arithmetic A, Arithmetic B>
-	constexpr auto log(A base, B value) {
+	ARC_CMATH_CONSTEXPR auto log(A base, B value) {
 		return Math::log(value) / Math::log(base);
 	}
 
 	template<Arithmetic A>
-	constexpr auto sqrt(A value) {
+	ARC_CMATH_CONSTEXPR auto sqrt(A value) {
 		return std::sqrt(value);
 	}
 
 	template<Arithmetic A>
-	constexpr auto cbrt(A value) {
+	ARC_CMATH_CONSTEXPR auto cbrt(A value) {
 		return std::cbrt(value);
 	}
 
 	template<Arithmetic A>
-	constexpr auto ceil(A value) {
+	ARC_CMATH_CONSTEXPR auto ceil(A value) {
 		return std::ceil(value);
 	}
 
 	template<Arithmetic A>
-	constexpr auto floor(A value) {
+	ARC_CMATH_CONSTEXPR auto floor(A value) {
 		return std::floor(value);
 	}
 
 	template<Arithmetic A>
-	constexpr auto trunc(A value) {
+	ARC_CMATH_CONSTEXPR auto trunc(A value) {
 		return std::trunc(value);
 	}
 
 	template<Arithmetic A>
-	constexpr auto round(A value) {
+	ARC_CMATH_CONSTEXPR auto round(A value) {
 		return std::round(value);
 	}
 
 	template<Arithmetic A>
-	constexpr auto round(A value, u32 digits) noexcept {
+	ARC_CMATH_CONSTEXPR auto round(A value, u32 digits) noexcept {
 		return (value * Math::pow(10, digits) + 0.5) / Math::pow(10, digits);
 	}
 
