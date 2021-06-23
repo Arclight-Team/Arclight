@@ -10,7 +10,10 @@
 
 class ComponentProvider {
 
-    typedef Any<sizeof(SparseArray<void*>), alignof(SparseArray<void*>)> ComponentArray;
+    typedef Any<sizeof(SparseArray<void*>), alignof(SparseArray<void*>)> ComponentArrayStorage;
+    
+    template<class T>
+    using ComponentArray = SparseArray<T, ActorID>;
 
 public:
 
@@ -31,8 +34,7 @@ public:
             }
 
             componentArrays.resize(id + 1);
-            ComponentArray& array = componentArrays.back();
-            array.emplace<SparseArray<C>>();
+            componentArrays[id].emplace<ComponentArray<C>>();
 
         }
 
@@ -40,12 +42,12 @@ public:
 
     template<Component C>
     void addComponent(ActorID actor, C&& component) {
-        getComponentArray<C>().set(actor, std::forward<C>(component));
+        getComponentArray<C>().add(actor, std::forward<C>(component));
     }
 
     template<Component C>
-    SparseArray<C>& getComponentArray() {
-        return componentCast<C>(getComponentTypeID<C>());
+    void setComponent(ActorID actor, C&& component) {
+        getComponentArray<C>().set(actor, std::forward<C>(component));
     }
 
     template<Component C>
@@ -72,24 +74,32 @@ public:
 private:
 
     template<Component C>
+    auto& getComponentArray() {
+
+        using CX = std::decay_t<C>;
+        return componentCast<CX>(getComponentTypeID<CX>());
+
+    }
+
+    template<Component C>
     ComponentTypeID getComponentTypeID() const noexcept {
 
-        ComponentTypeID id = getComponentTypeID<C>();
-        arc_assert(id < componentArrays.size(), "Component ID %d out of bounds", id);
+        using CX = std::decay_t<C>;
+        ComponentTypeID id = ComponentID::getComponentTypeID<CX>();
 
         return id;
 
     }
 
     template<Component C>
-    SparseArray<C>& componentCast(ComponentTypeID id) {
+    auto& componentCast(ComponentTypeID id) {
 #ifdef ARC_ACS_RUNTIME_CHECKS
-        return componentArrays[id].cast<SparseArray<C>>();
+        return componentArrays[id].cast<ComponentArray<C>>();
 #else
-        return componentArrays[id].unsafeCast<SparseArray<C>>();
+        return componentArrays[id].unsafeCast<ComponentArray<C>>();
 #endif
     }
 
-    std::vector<ComponentArray> componentArrays;
+    std::vector<ComponentArrayStorage> componentArrays;
 
 };

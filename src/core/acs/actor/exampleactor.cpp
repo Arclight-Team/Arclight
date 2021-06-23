@@ -4,7 +4,7 @@
 
 
 
-void ExampleActor::construct(ComponentChannel& channel) {
+void ExampleActor::onCreate(ComponentChannel& channel) {
 
     channel.add(Transform{});
 

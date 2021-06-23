@@ -9,15 +9,15 @@ class IComponent {};
 typedef u32 ComponentTypeID;
 
 template<class C>
-concept Component = BaseOf<IComponent, C>;
+concept Component = BaseOf<IComponent, std::remove_reference_t<C>>;
 
 
 struct ComponentID {
 
 	template<Component C>
-	constexpr ComponentTypeID getComponentTypeID() {
+	constexpr static ComponentTypeID getComponentTypeID() {
 		static_assert(false, "Component not registered");
-		return 0;
+		return -1;
 	}
 
 };

@@ -9,13 +9,15 @@
 
 
 /*
-    Sparse Array implementatin with reverse lookup
+    Sparse Array implementation with reverse lookup
 
     Complexity for lookup, insertion, deletion is O(1). Traversal is O(n).
     Memory overhead is proportional to the number of sparse entries.
 */
 template<class T, class IndexType = u32>
 class SparseArray {
+
+    static_assert(!std::is_reference_v<T>, "T cannot be a reference type");
 
 #ifdef ARC_SPARSE_PACK
     struct Storage {
@@ -94,14 +96,14 @@ public:
         The container is resized if position exceeds the current size.
         Returns true if the element has been added, false otherwise.
     */
-    constexpr bool add(IndexType position, T&& value) {
+    constexpr bool add(IndexType position, const T& value) {
 
         checkResize(position);
         const IndexType& index = indexArray[position];
 
         if(!containsValidElement(position, index)) {
 
-            internalAdd(position, std::forward<T>(value));
+            internalAdd(position, value);
             return true;
 
         }
@@ -116,37 +118,37 @@ public:
         If an element already exists at position, the element is overwritten.
         The container is resized if position exceeds the current size.
     */
-    constexpr void set(IndexType position, T&& value) {
+    constexpr void set(IndexType position, const T& value) {
 
         checkResize(position);
         const IndexType& index = indexArray[position];
 
         if(!containsValidElement(position, index)) {
 
-            internalAdd(position, std::forward<T>(value));
+            internalAdd(position, value);
 
         } else {
 
-            internalSet(position, index, std::forward<T>(value));
+            internalSet(position, index, value);
 
         }
 
     }
 
 
-     /*
+    /*
         Sets the element at position to value.
         If an element does not already exist, no operation is performed.
         The container is resized if position exceeds the current size.
     */
-    constexpr bool trySet(IndexType position, T&& value) {
+    constexpr bool trySet(IndexType position, const T& value) {
 
         checkResize(position);
         IndexType& index = indexArray[position];
 
         if(containsValidElement(position, index)) {
 
-            internalSet(position, index, std::forward<T>(value));
+            internalSet(position, index, value);
             return true;
 
         }
@@ -399,7 +401,7 @@ public:
         If not, the invalid index is returned.
         Note that this operation has a complexity of O(n).
     */
-    constexpr IndexType find(T&& compare) const {
+    constexpr IndexType find(const T& compare) const {
 
         for(SizeT i = 0; i < denseArray.size(); i++){
             
@@ -452,7 +454,7 @@ public:
 
 private:
 
-    constexpr void internalSet(IndexType sparseIdx, IndexType denseIdx, T&& value) {
+    constexpr void internalSet(IndexType sparseIdx, IndexType denseIdx, const T& value) {
 #ifdef ARC_SPARSE_PACK
         denseArray[denseIdx].index = sparseIdx;
         denseArray[denseIdx].element = value;
@@ -481,7 +483,7 @@ private:
     }
 
 
-    constexpr void internalAdd(IndexType sparseIdx, T&& value) {
+    constexpr void internalAdd(IndexType sparseIdx, const T& value) {
 
         indexArray[sparseIdx] = denseArray.size();
 

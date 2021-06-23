@@ -17,7 +17,7 @@ set(ARC_BUILD_IMGUI FALSE)
 add_compile_definitions(ARC_USE_IMGUI=${ARC_BUILD_IMGUI})
 
 #Discord Game SDK implementation
-set(ARC_BUILD_DISCORD TRUE)
+set(ARC_BUILD_DISCORD FALSE)
 add_compile_definitions(ARC_USE_DISCORD=${ARC_BUILD_DISCORD})
 
 message("Building as: ${CMAKE_BUILD_TYPE}")

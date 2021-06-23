@@ -10,6 +10,6 @@ class ExampleActor : public IActor {
 
 public:
 
-    virtual void construct(ComponentChannel& channel) override;
+    virtual void onCreate(ComponentChannel& channel) override;
 
 };

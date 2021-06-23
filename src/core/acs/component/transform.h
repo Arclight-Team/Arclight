@@ -19,3 +19,5 @@ public:
 #endif
 
 };
+
+REGISTER_COMPONENT(Transform, 0)

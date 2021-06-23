@@ -42,7 +42,7 @@ namespace Log {
 		logfile.open(logfileUri, File::Out);
 
 		if (!logfile.isOpen()) {
-			Log::error("Logger", "Failed to open log file '%s'", logfileUri.getPath().c_str());
+			Log::error("Log", "Failed to open log file '%s'", logfileUri.getPath().c_str());
 		}
 
 	}

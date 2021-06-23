@@ -7,6 +7,7 @@
 #include "acs/actormanager.h"
 #include "util/any.h"
 #include "debug.h"
+#include "acs/actor/exampleactor.h"
 
 
 Game::Game(Window& window) : window(window) {}
@@ -33,6 +34,8 @@ bool Game::init() {
 	}
 
 	ActorManager manager;
+	manager.setup();
+	manager.registerActor<ExampleActor>(0);
 	manager.spawn(0);
 
 	return true;

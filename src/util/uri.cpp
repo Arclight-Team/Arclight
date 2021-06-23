@@ -43,12 +43,12 @@ bool Uri::createDirectory() {
 	try {
 		created = std::filesystem::create_directories(path);
 	} catch (std::exception&) {
-		Log::error("Logger", "Failed to create directory '%s'", path.string().c_str());
+		Log::error("Uri", "Failed to create directory '%s'", path.string().c_str());
 		return false;
 	}
 
 	if (!created) {
-		Log::error("Logger", "Failed to create directory '%s'", path.string().c_str());
+		Log::error("Uri", "Failed to create directory '%s'", path.string().c_str());
 		return false;
 	}
 
