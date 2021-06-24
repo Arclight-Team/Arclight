@@ -8,20 +8,40 @@
 namespace Util {
 
 
-	template<class... Args>
-	std::string format(std::string message, Args&&... args) noexcept {
+    template<class... Args>
+    std::string format(std::string message, Args&&... args) noexcept {
 
-		
-		char buffer[256];
-		std::snprintf(buffer, 256, message.c_str(), args...);
+        std::string out;
+        out.resize(message.length() * 2);
 
-		try {
-			return std::string(buffer);
-		} catch (std::exception&) {
-			//We cannot log here, so return an empty string
-			return "";
-		}
+        std::snprintf(out.data(), out.size(), message.c_str(), args...);
 
-	}
+        try {
+            return out;
+        }
+        catch (std::exception&) {
+            //We cannot log here, so return an empty string
+            return "";
+        }
+
+    }
+
+    template<class... Args>
+    std::wstring format(std::wstring message, Args&&... args) noexcept {
+
+        std::wstring out;
+        out.resize(message.length() * 2);
+
+        std::swprintf(out.data(), out.size(), message.c_str(), args...);
+
+        try {
+            return out;
+        }
+        catch (std::exception&) {
+            //We cannot log here, so return an empty string
+            return "";
+        }
+
+    }
 
 }
