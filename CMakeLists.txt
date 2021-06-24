@@ -1,6 +1,15 @@
 ﻿cmake_minimum_required (VERSION 3.12)
 
-project (arclight)
+set(PROJECT_NAME arclight)
+project (${PROJECT_NAME})
+
+if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+add_compile_definitions(ARC_DEBUG=true)
+add_compile_definitions(ARC_RELEASE=false)
+else()
+add_compile_definitions(ARC_DEBUG=false)
+add_compile_definitions(ARC_RELEASE=true)
+endif()
 
 #Enable C++20
 set(CMAKE_CXX_STANDARD 20)
@@ -13,14 +22,14 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 
 #ImGui implementation
-set(ARC_BUILD_IMGUI FALSE)
+set(ARC_BUILD_IMGUI false)
 add_compile_definitions(ARC_USE_IMGUI=${ARC_BUILD_IMGUI})
 
 #Discord Game SDK implementation
 set(ARC_BUILD_DISCORD FALSE)
 add_compile_definitions(ARC_USE_DISCORD=${ARC_BUILD_DISCORD})
 
-message("Building as: ${CMAKE_BUILD_TYPE}")
+message("Building ${PROJECT_NAME} as: ${CMAKE_BUILD_TYPE}")
 
 #Profiling via debug symbols
 if(MSVC AND CMAKE_BUILD_TYPE MATCHES "Release")
@@ -95,14 +104,14 @@ list(APPEND LIBRARY_TARGETS ${ASSIMP_LIBRARY})
 list(APPEND LIBRARY_TARGETS ${BULLET_LIBRARIES})
 
 if(${ARC_BUILD_IMGUI})
-message("Building Arclight with ImGui")
+message("Building ${PROJECT_NAME} with ImGui")
 list(APPEND INCLUDE_TARGETS "lib/imgui/include")
 list(APPEND INCLUDE_TARGETS "lib/imgui/backends")
 list(APPEND SOURCE_TARGETS "lib/imgui/source/*.cpp" "lib/imgui/backends/*.cpp")
 endif()
 
 if(${ARC_BUILD_DISCORD})
-message("Building Arclight with Discord Game SDK")
+message("Building ${PROJECT_NAME} with Discord Game SDK")
 list(APPEND INCLUDE_TARGETS "lib/DiscordGameSDK/include")
 list(APPEND LIBRARY_TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/lib/DiscordGameSDK/lib/x64/${CMAKE_BUILD_TYPE}/discord_game_sdk_cpp.lib)
 list(APPEND LIBRARY_TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/lib/DiscordGameSDK/lib/x64/${CMAKE_BUILD_TYPE}/discord_game_sdk.dll.lib)
@@ -121,5 +130,5 @@ list(FILTER SOURCES EXCLUDE REGEX "src/render/gui/imgui/*")
 endif()
 
 #Create the executable and link
-add_executable (arclight ${SOURCES})
-target_link_libraries(arclight ${LIBRARY_TARGETS})
+add_executable (${PROJECT_NAME} ${SOURCES})
+target_link_libraries(${PROJECT_NAME} ${LIBRARY_TARGETS})
