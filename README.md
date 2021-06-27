@@ -8,7 +8,7 @@ Writing games is a hard task and requires a lot of organization, flexibility and
 To ease developers in creating a game, game engines are often utilized to serve as a backend for the game.
 That way, developers don't need to delve into low-level systems.
 
-Several popular game engines exist as of now though there are several catches: Some contain mostly outdated or obsolete code, others may devide to overtake too many parts of the development process.
+Several popular game engines exist as of now though there are several catches: Some contain mostly outdated or obsolete code, others may decide to overtake too many parts of the development process.
 This is exactly what the Arclight Engine is intended for. It exposes an interface that allows a great deal of flexibility while maintaining a high grade of performance and without acquiring strong ownership of the game itself.
 
 ## Features
