@@ -8,12 +8,13 @@
 
 
 
+template<class T>
+using ComponentArray = SparseArray<T, ActorID>;
+
+
 class ComponentProvider {
 
-    typedef Any<sizeof(SparseArray<void*>), alignof(SparseArray<void*>)> ComponentArrayStorage;
-    
-    template<class T>
-    using ComponentArray = SparseArray<T, ActorID>;
+    typedef Any<sizeof(ComponentArray<void*>), alignof(ComponentArray<void*>)> ComponentArrayStorage;
 
 public:
 
@@ -60,7 +61,7 @@ public:
         return getComponentArray<C>()[id & 0xFFFFFFFF];
     }
 
-      template<Component C>
+    template<Component C>
     OptionalRef<C> tryGetComponent(ActorID id) {
         return getComponentArray<C>().tryGet(id & 0xFFFFFFFF);
     }
@@ -70,11 +71,31 @@ public:
         return getComponentArray<C>().tryGet(id & 0xFFFFFFFF);
     }
 
+    template<Component C>
+    bool hasComponent(ActorID id) const {
+        return getComponentArray<C>().contains(id & 0xFFFFFFFF);
+    }
+
+    template<Component C>
+    SizeT getActorCount() const {
+        return getComponentArray<C>().getSize();
+    }
 
 private:
 
+    template<Component... Types>
+    friend class ComponentView;
+
     template<Component C>
     auto& getComponentArray() {
+
+        using CX = std::decay_t<C>;
+        return componentCast<CX>(getComponentTypeID<CX>());
+
+    }
+
+    template<Component C>
+    const auto& getComponentArray() const {
 
         using CX = std::decay_t<C>;
         return componentCast<CX>(getComponentTypeID<CX>());
@@ -93,6 +114,15 @@ private:
 
     template<Component C>
     auto& componentCast(ComponentTypeID id) {
+#ifdef ARC_ACS_RUNTIME_CHECKS
+        return componentArrays[id].cast<ComponentArray<C>>();
+#else
+        return componentArrays[id].unsafeCast<ComponentArray<C>>();
+#endif
+    }
+
+    template<Component C>
+    const auto& componentCast(ComponentTypeID id) const {
 #ifdef ARC_ACS_RUNTIME_CHECKS
         return componentArrays[id].cast<ComponentArray<C>>();
 #else

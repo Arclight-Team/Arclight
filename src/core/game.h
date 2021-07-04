@@ -2,6 +2,7 @@
 
 #include "physics/physicstest.h"
 #include "render/physicsrenderer.h"
+#include "acs/actormanager.h"
 #include <vector>
 #include <memory>
 
@@ -46,6 +47,7 @@ public:
 
 private:
 
+	ActorManager manager;
 	Window& window;
 	PhysicsTest physicsSimulation;
 	PhysicsRenderer renderer;

@@ -4,10 +4,12 @@
 #include "physics/boxcollider.h"
 #include "util/optionalref.h"
 #include "util/sparsearray.h"
-#include "acs/actormanager.h"
 #include "util/any.h"
 #include "debug.h"
 #include "acs/actor/exampleactor.h"
+#include "util/profiler.h"
+#include "acs/componentview.h"
+#include "acs/component/transform.h"
 
 
 Game::Game(Window& window) : window(window) {}
@@ -33,10 +35,21 @@ bool Game::init() {
 		Log::info("", "%d %d", *a, 5);
 	}
 
-	ActorManager manager;
 	manager.setup();
 	manager.registerActor<ExampleActor>(0);
-	manager.spawn(0);
+	
+	Transform t{};
+
+	for(u32 i = 0; i < 20; i++) {
+		t.position += Vec3i(1, 1, 1);
+		manager.spawn(0, t);
+	}
+
+	ComponentView view = manager.view<Transform>();
+
+	for(const auto& [transform] : view) {
+		ArcDebug() << transform.position.x << transform.position.y << transform.position.z;
+	}
 
 	return true;
 
@@ -69,7 +82,7 @@ void Game::destroy() {
 void Game::addCube(float size, const Vec3f& pos, const Vec3f rot, const Vec3f& scale) {
 
 	static u64 currentID = 0;
-
+/*
 	Object object{
 		ObjectType::Cube,
 		currentID,
@@ -83,5 +96,5 @@ void Game::addCube(float size, const Vec3f& pos, const Vec3f rot, const Vec3f& s
 
 	objects.push_back(object);
 	currentID++;
-
+*/
 }

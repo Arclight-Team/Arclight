@@ -2,6 +2,7 @@
 
 #include "componentchannel.h"
 #include "componentprovider.h"
+#include "componentview.h"
 
 #include <unordered_map>
 #include <functional>
@@ -31,6 +32,11 @@ public:
     ActorID spawn(ActorTypeID id);
     ActorID spawn(ActorTypeID id, const Transform& transform);
     ActorID spawn(ActorTypeID id, const ConstructionFunction& onConstruct);
+
+    template<Component... Types>
+    ComponentView<Types...> view() {
+        return ComponentView<Types...>(provider);
+    }
 
 private:
 
