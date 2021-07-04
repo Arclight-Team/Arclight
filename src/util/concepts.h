@@ -19,6 +19,9 @@ concept HasCommonReference = std::common_reference_with<T, U>;
 template<class T, class U>
 concept HasCommonType = std::common_with<T, U>;
 
+template<class T>
+concept BaseType = !std::is_pointer_v<T> && !std::is_reference_v<T> && !std::is_member_pointer_v<T> && !std::is_void_v<T> && !std::is_const_v<T> && !std::is_volatile_v<T> && !std::is_array_v<T>;
+
 
 /* Misc concepts */
 template<class Left, class Right>

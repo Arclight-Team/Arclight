@@ -25,7 +25,7 @@ class OptionalRef {
 
 public:
 
-    static_assert(!std::is_pointer_v<T> && !std::is_reference_v<T> && !std::is_rvalue_reference_v<T>, "T must be a plain data type");
+    static_assert(BaseType<T>, "T must be a plain data type");
 
     constexpr OptionalRef() noexcept : storage(nullptr), valid(false) {}
     constexpr OptionalRef(T& ref) noexcept : storage(&ref), valid(true) {}
