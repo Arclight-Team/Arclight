@@ -42,6 +42,9 @@ class SparseArray {
         constexpr IteratorBase(pointer it) noexcept : ptr(it) {}
 #endif
 
+        template<class = std::enable_if_t<Const, void>>
+        constexpr IteratorBase(const IteratorBase<false>& it) noexcept : ptr(it.ptr) {}
+
         constexpr reference operator*() const noexcept {return *getPtr();}
         constexpr pointer operator->() const noexcept {return getPtr();}
         constexpr reference operator[](SizeT n) const noexcept {return *(*this + n);}
@@ -56,11 +59,23 @@ class SparseArray {
         constexpr IteratorBase& operator+=(SizeT n) noexcept {ptr += n; return *this;}
         constexpr IteratorBase& operator-=(SizeT n) noexcept {ptr -= n; return *this;}
 
-        constexpr difference_type operator-(const IteratorBase& other) const noexcept {return ptr - other.ptr;}
+        template<bool ConstOther>
+        constexpr difference_type operator-(const IteratorBase<ConstOther>& other) const noexcept {return ptr - other.ptr;}
 
-        constexpr auto operator<=>(const IteratorBase& other) const noexcept = default;
+        template<bool ConstOther>
+        constexpr auto operator<=>(const IteratorBase<ConstOther>& other) const noexcept {
+            return ptr <=> other.ptr;
+        }
+
+        template<bool ConstOther>
+        constexpr auto operator==(const IteratorBase<ConstOther>& other) const noexcept {
+            return ptr == other.ptr;
+        }
 
     private:
+
+        template<bool Const>
+        friend class IteratorBase;
 
 #ifdef ARC_SPARSE_PACK
         constexpr pointer getPtr() const noexcept {return &ptr->element;}
@@ -74,11 +89,11 @@ class SparseArray {
 
 public:
 
-    class Iterator : public IteratorBase<false> {};
-    class ConstIterator : public IteratorBase<true> {};
+    using Iterator = IteratorBase<false>;
+    using ConstIterator = IteratorBase<true>;
 
-    typedef std::reverse_iterator<Iterator>         ReverseIterator;
-    typedef std::reverse_iterator<ConstIterator>    ConstReverseIterator;
+    using ReverseIterator = std::reverse_iterator<Iterator>;
+    using ConstReverseIterator = std::reverse_iterator<ConstIterator>;
 
     constexpr static IndexType invalidIndex = -1;
 
@@ -211,6 +226,26 @@ public:
 
     constexpr const T& operator[](SizeT n) const {
         return get(n);
+    }
+
+
+    /*
+        Returns the corresponding sparse index to the iterator. These functions exhibits UB if no such element exists.
+    */
+    constexpr IndexType invert(const Iterator& iter) const {
+        return internalInvertIndex(iter - begin());
+    }
+
+    constexpr IndexType invert(const ConstIterator& iter) const {
+        return internalInvertIndex(iter - cbegin());
+    }
+
+    constexpr IndexType invert(const ReverseIterator& iter) const {
+        return internalInvertIndex(getSize() - iter + rbegin());
+    }
+
+    constexpr IndexType invert(const ConstReverseIterator& iter) const {
+        return internalInvertIndex(getSize() - iter + crbegin());
     }
 
 
@@ -521,6 +556,17 @@ private:
         auto newSize = denseArray.size() - 1;
         denseArray.resize(newSize);
         elementArray.resize(newSize);
+#endif
+
+    }
+
+
+    constexpr IndexType internalInvertIndex(IndexType denseIdx) const {
+
+#ifdef ARC_SPARSE_PACK
+        return denseArray[denseIdx].index;
+#else
+        return denseArray[denseIdx];
 #endif
 
     }
