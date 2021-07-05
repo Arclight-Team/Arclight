@@ -828,6 +828,7 @@ constexpr auto operator*(const Mat4<A>& m, const Vec4<B>& v) {
 	MATRIX_DEFINE_NDTS(name, dim, float, f) \
 	MATRIX_DEFINE_NDTS(name, dim, double, d) \
 	MATRIX_DEFINE_NDTS(name, dim, long double, ld) \
+	MATRIX_DEFINE_NDTS(name, dim, ARC_STD_FLOAT_TYPE, x)
 
 #define MATRIX_DEFINE_N(name) \
 	MATRIX_DEFINE_ND(name, 2) \

@@ -50,9 +50,26 @@ class ComponentView {
 
         }
 
+        template<class T, class... Pack>
+        struct Exclude {
+            using Tuple = decltype(std::tuple_cat(std::declval<std::conditional_t<std::is_same_v<T, Pack>, std::tuple<>, std::tuple<Pack>>>()...));
+        };
+
+        template<class>
+        struct ApplyComposition;
+
+        template<template<class...> class Tuple, class... Pack>
+        struct ApplyComposition<Tuple<Pack...>> {
+
+            static bool validateCompositionInternal(const ComponentChannel& channel) {
+                return (channel.contains<Pack>() && ...);
+            }
+
+        };
+
         template<class T>
         static bool validateComposition(const ComponentChannel& channel) {
-            return channel.contains<T>();
+            return ApplyComposition<Exclude<T, Types...>::Tuple>::validateCompositionInternal(channel);
         }
 
         template<class T>
@@ -86,6 +103,9 @@ class ComponentView {
                             }
 
                         }
+
+                        //Set to end
+                        channel.shift(-1);
                     }
                     break;
 

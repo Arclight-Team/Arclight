@@ -685,7 +685,8 @@ constexpr auto operator/(Vector<A> a, B b) requires (std::is_same_v<Vector<A>, V
 	VECTOR_DEFINE_NDTS(name, dim, u8, uc) \
 	VECTOR_DEFINE_NDTS(name, dim, u16, us) \
 	VECTOR_DEFINE_NDTS(name, dim, u32, ui) \
-	VECTOR_DEFINE_NDTS(name, dim, u64, ul)
+	VECTOR_DEFINE_NDTS(name, dim, u64, ul) \
+	VECTOR_DEFINE_NDTS(name, dim, ARC_STD_FLOAT_TYPE, x)
 
 #define VECTOR_DEFINE_N(name) \
 	VECTOR_DEFINE_ND(name, 2) \

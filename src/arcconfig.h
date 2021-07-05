@@ -148,3 +148,10 @@
 	ARC_ACS_MAX_COMPONENTS: Maximum number of components. Each component ID must be smaller than this.
 */
 #define ARC_ACS_MAX_COMPONENTS 256
+
+
+/*
+	Standard float type
+	ARC_STD_FLOAT_TYPE: Specifies the underlying standard float type
+*/
+#define ARC_STD_FLOAT_TYPE float
