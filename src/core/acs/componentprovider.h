@@ -1,10 +1,10 @@
 #pragma once
 
+#include "component/component.h"
 #include "util/sparsearray.h"
 #include "util/any.h"
-#include "component/component.h"
 #include "arcconfig.h"
-#include "actor/actor.h"
+#include "actor.h"
 
 
 
@@ -14,7 +14,7 @@ using ComponentArray = SparseArray<T, ActorID>;
 
 class ComponentProvider {
 
-    typedef Any<sizeof(ComponentArray<void*>), alignof(ComponentArray<void*>)> ComponentArrayStorage;
+    using ComponentArrayStorage = FastAny<ComponentArray<void*>>;
 
 public:
 
@@ -25,7 +25,7 @@ public:
     template<Component C>
     void createArray() {
 
-        ComponentTypeID id = getComponentTypeID<C>();
+        ComponentTypeID id = ComponentID::get<C>();
 
         if(id >= componentArrays.size()) {
 
@@ -42,8 +42,8 @@ public:
     }
 
     template<Component C>
-    void addComponent(ActorID actor, C&& component) {
-        getComponentArray<C>().add(actor, std::forward<C>(component));
+    bool addComponent(ActorID actor, C&& component) {
+        return getComponentArray<C>().add(actor, std::forward<C>(component));
     }
 
     template<Component C>
@@ -88,34 +88,18 @@ private:
 
     template<Component C>
     auto& getComponentArray() {
-
-        using CX = std::decay_t<C>;
-        return componentCast<CX>(getComponentTypeID<CX>());
-
+        return componentCast<C>(ComponentID::get<C>());
     }
 
     template<Component C>
     const auto& getComponentArray() const {
-
-        using CX = std::decay_t<C>;
-        return componentCast<CX>(getComponentTypeID<CX>());
-
-    }
-
-    template<Component C>
-    ComponentTypeID getComponentTypeID() const noexcept {
-
-        using CX = std::decay_t<C>;
-        ComponentTypeID id = ComponentID::getComponentTypeID<CX>();
-
-        return id;
-
+        return componentCast<C>(ComponentID::get<C>());
     }
 
     template<Component C>
     auto& componentCast(ComponentTypeID id) {
 #ifdef ARC_ACS_RUNTIME_CHECKS
-        return componentArrays[id].cast<ComponentArray<C>>();
+        return componentArrays[id].cast<ComponentArray<ComponentID::SharedType<C>>>();
 #else
         return componentArrays[id].unsafeCast<ComponentArray<C>>();
 #endif
@@ -124,7 +108,7 @@ private:
     template<Component C>
     const auto& componentCast(ComponentTypeID id) const {
 #ifdef ARC_ACS_RUNTIME_CHECKS
-        return componentArrays[id].cast<ComponentArray<C>>();
+        return componentArrays[id].cast<ComponentArray<ComponentID::SharedType<C>>>();
 #else
         return componentArrays[id].unsafeCast<ComponentArray<C>>();
 #endif

@@ -1,15 +1,16 @@
 #include "game.h"
 #include "window.h"
 #include "render/physicsrenderer.h"
-#include "physics/boxcollider.h"
 #include "util/optionalref.h"
 #include "util/sparsearray.h"
 #include "util/any.h"
 #include "debug.h"
-#include "acs/actor/exampleactor.h"
+#include "acs/actorblueprints.h"
 #include "util/profiler.h"
 #include "acs/componentview.h"
 #include "acs/component/transform.h"
+#include "acs/component/model.h"
+#include "acs/component/boxcollider.h"
 
 
 Game::Game(Window& window) : window(window) {}
@@ -23,7 +24,7 @@ bool Game::init() {
 
 	physicsSimulation.init();
 	renderer.init();
-
+/*
 	SparseArray<int> array;
 	array.add(3, 324);
 	array.add(6, 20);
@@ -34,21 +35,21 @@ bool Game::init() {
 	for(a; a != array.end(); a++){
 		Log::info("", "%d %d", *a, 5);
 	}
-
+*/
 	manager.setup();
 	manager.registerActor<ExampleActor>(0);
+	manager.registerActor<BoxActor>(1);
+
+	manager.addObserver<Transform>([](Transform& transform, ActorID actor){
+		Log::info("Observer", "Got Transform for actor %d", actor);
+	});
+
+	manager.addObserver<BoxCollider>([](BoxCollider& box, ActorID actor){
+		Log::info("Observer", "Got BoxCollider for actor %d", actor);
+	});
 	
-	Transform t{};
-
-	for(u32 i = 0; i < 20; i++) {
-		t.position += Vec3i(1, 1, 1);
-		manager.spawn(0, t);
-	}
-
-	ComponentView view = manager.view<Transform>();
-
-	for(const auto& [transform] : view) {
-		ArcDebug() << transform.position.x << transform.position.y << transform.position.z;
+	for(u32 i = 0; i < 32; i++) {
+		manager.spawn(1, Transform(Vec3x(i, 0, 0)));
 	}
 
 	return true;
@@ -60,6 +61,14 @@ bool Game::init() {
 void Game::update() {
 
 	physicsSimulation.update();
+
+	ArcDebug() << "Starting frame";
+
+	ComponentView view = manager.view<Transform, BoxCollider>();
+
+	for(const auto& [transform, collider] : view) {
+		ArcDebug() << transform.position;
+	}
 
 }
 

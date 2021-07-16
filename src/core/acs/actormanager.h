@@ -1,7 +1,8 @@
 #pragma once
 
-#include "componentchannel.h"
+#include "componentspawnchannel.h"
 #include "componentprovider.h"
+#include "componentobserver.h"
 #include "componentview.h"
 
 #include <unordered_map>
@@ -16,7 +17,7 @@ class ActorManager {
 
 public:
 
-    typedef std::function<void(ComponentChannel&)> ConstructionFunction;
+    typedef std::function<void(ComponentSpawnChannel&)> ConstructionFunction;
 
     ActorManager();
 
@@ -33,6 +34,11 @@ public:
     ActorID spawn(ActorTypeID id, const Transform& transform);
     ActorID spawn(ActorTypeID id, const ConstructionFunction& onConstruct);
 
+    template<Component C, class Func>
+    void addObserver(Func&& callback) {
+        observer.observe<C>(std::forward<Func>(callback));
+    }
+
     template<Component... Types>
     ComponentView<Types...> view() {
         return ComponentView<Types...>(provider);
@@ -44,6 +50,7 @@ private:
     ActorID getNextActorID();
 
     ComponentProvider provider;
+    ComponentObserver observer;
     std::unordered_map<ActorTypeID, std::unique_ptr<IActor>> registeredActorTypes;
 
 };

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "component/component.h"
-#include "componentchannel.h"
-#include "util/concepts.h"
+#include "componentviewchannel.h"
 #include "componentprovider.h"
+#include "component/component.h"
+#include "util/concepts.h"
 
 #include <tuple>
 #include <algorithm>
@@ -27,7 +27,7 @@ class ComponentView {
 
         };
 
-        using AnyContainer = Any<sizeof(Container<void*, true>), alignof(Container<void*, true>)>;
+        using AnyContainer = FastAny<Container<void*, true>>;
 
         enum class Action {
             Reset,
@@ -36,7 +36,7 @@ class ComponentView {
         };
 
         template<class T, bool Const>
-        static AnyContainer construct(ComponentProvider& provider, ComponentChannel& channel, bool begin) {
+        static AnyContainer construct(ComponentProvider& provider, ComponentViewChannel& channel, bool begin) {
 
             AnyContainer container(TypeTag<Container<T, Const>>{}, provider.getComponentArray<T>(), begin);
 
@@ -61,14 +61,14 @@ class ComponentView {
         template<template<class...> class Tuple, class... Pack>
         struct ApplyComposition<Tuple<Pack...>> {
 
-            static bool validateCompositionInternal(const ComponentChannel& channel) {
+            static bool validateCompositionInternal(const ComponentViewChannel& channel) {
                 return (channel.contains<Pack>() && ...);
             }
 
         };
 
         template<class T>
-        static bool validateComposition(const ComponentChannel& channel) {
+        static bool validateComposition(const ComponentViewChannel& channel) {
             return ApplyComposition<Exclude<T, Types...>::Tuple>::validateCompositionInternal(channel);
         }
 
@@ -84,7 +84,7 @@ class ComponentView {
 
 
         template<class T, bool Const>
-        static void execute(AnyContainer& containerHandle, ComponentChannel& channel, Action action) {
+        static void execute(AnyContainer& containerHandle, ComponentViewChannel& channel, Action action) {
 
             Container<T, Const>& container = containerHandle.unsafeCast<Container<T, Const>>();
             auto& array = container.array;
@@ -99,7 +99,7 @@ class ComponentView {
                             channel.shift(container.array.invert(it));
 
                             if(validateComposition<T>(channel)) {
-                                break;
+                                return;
                             }
 
                         }
@@ -156,8 +156,8 @@ class ComponentView {
 
     };
 
-    using IteratorConstructor = IteratorHelper::AnyContainer(*)(ComponentProvider&, ComponentChannel&, bool);
-    using IteratorExecutor = void(*)(IteratorHelper::AnyContainer&, ComponentChannel&, IteratorHelper::Action);
+    using IteratorConstructor = IteratorHelper::AnyContainer(*)(ComponentProvider&, ComponentViewChannel&, bool);
+    using IteratorExecutor = void(*)(IteratorHelper::AnyContainer&, ComponentViewChannel&, IteratorHelper::Action);
 
 
 public:
@@ -213,7 +213,7 @@ public:
         }
 
         ComponentProvider* provider;
-        ComponentChannel channel;
+        ComponentViewChannel channel;
         IteratorExecutor executor;
         IteratorHelper::AnyContainer container;
 
@@ -333,7 +333,7 @@ public:
 
 private:
 
-    ComponentProvider provider;
+    ComponentProvider& provider;
     IteratorConstructor iterCtor;
     IteratorConstructor constIterCtor;
     IteratorExecutor iterExec;

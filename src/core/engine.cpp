@@ -2,6 +2,7 @@
 #include "util/file.h"
 #include "util/log.h"
 #include "util/matrix.h"
+#include "config.h"
 
 
 Engine::Engine() : game(window) {}

@@ -1,5 +1,7 @@
 #include "actormanager.h"
+
 #include "component/transform.h"
+#include "component/boxcollider.h"
 
 
 ActorManager::ActorManager() {}
@@ -8,6 +10,7 @@ ActorManager::ActorManager() {}
 void ActorManager::setup() {
 
     provider.createArray<Transform>();
+    provider.createArray<BoxCollider>();
 
 }
 
@@ -32,8 +35,10 @@ ActorID ActorManager::spawn(ActorTypeID id) {
 
     ActorID actorID = getNextActorID();
 
-    ComponentChannel channel(provider, actorID);
+    ComponentSpawnChannel channel(provider, actorID, observer);
+    
     registeredActorTypes[id]->onCreate(channel);
+    observer.invokeAll();
 
     return actorID;
 
@@ -47,9 +52,11 @@ ActorID ActorManager::spawn(ActorTypeID id, const Transform& transform) {
 
     ActorID actorID = getNextActorID();
 
-    ComponentChannel channel(provider, actorID);
+    ComponentSpawnChannel channel(provider, actorID, observer);
     channel.add(transform);
+
     registeredActorTypes[id]->onCreate(channel);
+    observer.invokeAll();
 
     return actorID;
 
@@ -64,13 +71,14 @@ ActorID ActorManager::spawn(ActorTypeID id, const ConstructionFunction& onConstr
 
     ActorID actorID = getNextActorID();
 
-    ComponentChannel channel(provider, actorID);
+    ComponentSpawnChannel channel(provider, actorID, observer);
 
     if(onConstruct) {
         onConstruct(channel);
     }
     
     registeredActorTypes[id]->onCreate(channel);
+    observer.invokeAll();
 
     return actorID;
 

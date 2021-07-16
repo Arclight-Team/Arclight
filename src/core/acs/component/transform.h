@@ -8,15 +8,12 @@ class Transform : public IComponent {
 
 public:
 
-#ifdef ARC_DOUBLE_PRECISION
-	Vec3d position;
-	Vec3d rotation; //ok use QuatD later
-	Vec3d scale;
-#else
-	Vec3f position;
-	Vec3f rotation; //ok use QuatF later
-	Vec3f scale;
-#endif
+	constexpr Transform() : Transform(Vec3x(0)) {}
+	constexpr Transform(const Vec3x& position, const Vec3x& rotation = Vec3x(0), const Vec3x& scale = Vec3x(1)) : position(position), rotation(rotation), scale(scale) {}
+
+	Vec3x position;
+	Vec3x rotation; //ok use QuatX later
+	Vec3x scale;
 
 };
 

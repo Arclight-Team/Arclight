@@ -328,7 +328,6 @@ public:
         return const_cast<T&>(static_cast<const Any*>(this)->unsafeCast<T>());
     }
 
-
 private:
 
     enum class Operation {
@@ -467,3 +466,11 @@ private:
     };
 
 };
+
+
+
+/*
+    Helper template for optimized Any's
+*/
+template<class T>
+using FastAny = Any<sizeof(T), alignof(T)>;
