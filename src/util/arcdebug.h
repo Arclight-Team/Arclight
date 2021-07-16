@@ -7,7 +7,9 @@
 #include <sstream>
 #include <string>
 #include <ranges>
+
 #include "types.h"
+#include "vector.h"
 
 
 template<class T>
@@ -18,11 +20,6 @@ concept StringStreamable = requires(T&& t, std::stringstream stream) {
 template<class T>
 concept Iterable = std::ranges::range<T>;
 
-template<class T, template<class> class U>
-concept Vectorizable = requires (U<T>&& v) {
-    v.Size;
-    v[0] -> T;
-};
 
 
 class ArcDebug {
@@ -61,13 +58,13 @@ public:
         write(container);
         return *this;
     }
-/*
-    template<class T, Vectorizable<T> V>
+
+    template<Vector V>
     ArcDebug& operator<<(const V& v) {
         write(v);
         return *this;
     }
-*/
+
     ArcDebug& operator<<(Token token) {
         dispatchToken(token);
         return *this;
@@ -134,8 +131,8 @@ private:
 
     }
 
-/*
-    template<class T, Vectorizable<T> V>
+
+    template<Vector V>
     void write(const V& v) {
 
         buffer << "Vec" << v.Size << "[";
@@ -144,10 +141,11 @@ private:
             buffer << v[i] <<  ", ";
         }
             
-        buffer << v[v.Size - 1] << "]" << Token::ArcSpace;
+        buffer << v[v.Size - 1] << "]";
+        dispatchToken(Token::ArcSpace);
 
     }
-*/
+
 
     void dispatchToken(Token token);
     void flush() noexcept;

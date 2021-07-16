@@ -1,11 +1,10 @@
 #pragma once
 
 #include <string>
+#include "bits.h"
 
-#include "config.h"
 
-
-namespace Util {
+namespace String {
 
 
 	template<class... Args>
@@ -45,3 +44,42 @@ namespace Util {
 	}
 
 }
+
+
+
+class HashString {
+
+public:
+
+	using Hash = SystemT;
+
+	constexpr static u64 seed64 = 0xA842B0C912ED90ACULL;
+
+
+	constexpr HashString() : hashValue(0) {}
+	constexpr HashString(const std::string& s) noexcept {
+		hash(s);
+	}
+
+	constexpr void hash(const std::string& s) noexcept {
+		//TODO
+	}
+
+	constexpr Hash hashed(const std::string& s) noexcept {
+		hash(s);
+		return hashValue;
+	}
+
+	constexpr Hash getHash() const noexcept {
+		return hashValue;
+	}
+
+	constexpr operator Hash() const noexcept {
+		return hashValue;
+	}
+
+private:
+
+	Hash hashValue;
+
+};

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bit>
+#include "concepts.h"
 #include "types.h"
 
 namespace Bits {

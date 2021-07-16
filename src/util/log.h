@@ -1,8 +1,7 @@
 #pragma once
 
-#include "format.h"
-#include "util/format.h"
-#include <string>
+#include "string.h"
+
 
 
 namespace Log {
@@ -24,22 +23,22 @@ namespace Log {
 
 	template<class... Args>
 	void debug(const std::string& subsystem, const std::string& message, Args&&... args) noexcept {
-		Raw::debug(subsystem, Util::format(message, std::forward<Args>(args)...));
+		Raw::debug(subsystem, String::format(message, std::forward<Args>(args)...));
 	}
 
 	template<class... Args>
 	void info(const std::string& subsystem, const std::string& message, Args&&... args) noexcept {
-		Raw::info(subsystem, Util::format(message, std::forward<Args>(args)...));
+		Raw::info(subsystem, String::format(message, std::forward<Args>(args)...));
 	}
 
 	template<class... Args>
 	void warn(const std::string& subsystem, const std::string& message, Args&&... args) noexcept {
-		Raw::warn(subsystem, Util::format(message, std::forward<Args>(args)...));
+		Raw::warn(subsystem, String::format(message, std::forward<Args>(args)...));
 	}
 
 	template<class... Args>
 	void error(const std::string& subsystem, const std::string& message, Args&&... args) noexcept {
-		Raw::error(subsystem, Util::format(message, std::forward<Args>(args)...));
+		Raw::error(subsystem, String::format(message, std::forward<Args>(args)...));
 	}
 
 }
