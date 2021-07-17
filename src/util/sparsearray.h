@@ -8,6 +8,7 @@
 #include "arcconfig.h"
 
 
+
 /*
     Sparse Array implementation with reverse lookup
 
@@ -539,23 +540,21 @@ private:
         const IndexType& denseIdx = indexArray[sparseIdx];
         denseArray[denseIdx] = std::move(denseArray[indexArray[lastSparseIdx]]);
 
-        indexArray[sparseIdx] = invalidIndex;
         indexArray[lastSparseIdx] = denseIdx;
+        indexArray[sparseIdx] = invalidIndex;
 
-        auto newSize = denseArray.size() - 1;
-        denseArray.resize(newSize);
+        denseArray.pop_back();
 #else
         const IndexType& lastSparseIdx = denseArray.back();
         const IndexType& denseIdx = indexArray[sparseIdx];
         denseArray[denseIdx] = std::move(denseArray[indexArray[lastSparseIdx]]);
-        elementArray[denseIdx] = std::move(denseArray[indexArray[lastSparseIdx]]);
+        elementArray[denseIdx] = std::move(elementArray[indexArray[lastSparseIdx]]);
 
-        indexArray[sparseIdx] = invalidIndex;
         indexArray[lastSparseIdx] = denseIdx;
+        indexArray[sparseIdx] = invalidIndex;
 
-        auto newSize = denseArray.size() - 1;
-        denseArray.resize(newSize);
-        elementArray.resize(newSize);
+        denseArray.pop_back();
+        elementArray.pop_back();
 #endif
 
     }
@@ -578,8 +577,10 @@ private:
     */
     constexpr void checkResize(IndexType reqPos) {
 
+        arc_assert(reqPos <= 0xFFFFFF, "Index %d exceeds the usual array range, is your index correct?", reqPos);
+
         if(reqPos >= indexArray.size()) {
-            indexArray.resize(reqPos + 1, invalidIndex);
+            indexArray.push_back(invalidIndex);
         }
 
     }

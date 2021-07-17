@@ -40,12 +40,20 @@ bool Game::init() {
 	manager.registerActor<ExampleActor>(0);
 	manager.registerActor<BoxActor>(1);
 
-	manager.addObserver<Transform>([](Transform& transform, ActorID actor){
-		Log::info("Observer", "Got Transform for actor %d", actor);
+	manager.addObserver<Transform>(ComponentEvent::Created, [](Transform& transform, ActorID actor){
+		Log::info("Observer", "Created Transform for actor %d", actor);
 	});
 
-	manager.addObserver<BoxCollider>([](BoxCollider& box, ActorID actor){
-		Log::info("Observer", "Got BoxCollider for actor %d", actor);
+	manager.addObserver<BoxCollider>(ComponentEvent::Created, [](BoxCollider& box, ActorID actor){
+		Log::info("Observer", "Created BoxCollider for actor %d", actor);
+	});
+
+	manager.addObserver<Transform>(ComponentEvent::Destroyed, [](Transform& transform, ActorID actor){
+		Log::info("Observer", "Destroyed Transform for actor %d", actor);
+	});
+
+	manager.addObserver<BoxCollider>(ComponentEvent::Destroyed, [](BoxCollider& box, ActorID actor){
+		Log::info("Observer", "Destroyed BoxCollider for actor %d", actor);
 	});
 	
 	for(u32 i = 0; i < 32; i++) {
@@ -62,7 +70,7 @@ void Game::update() {
 
 	physicsSimulation.update();
 
-	ArcDebug() << "Starting frame";
+	//ArcDebug() << "Starting frame";
 
 	ComponentView view = manager.view<Transform, BoxCollider>();
 
@@ -83,7 +91,13 @@ void Game::render() {
 
 
 void Game::destroy() {
+
 	renderer.destroy();
+
+	for(u32 i = 0; i < 32; i++) {
+		manager.destroy(i);
+	}
+
 }
 
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "component/component.h"
+#include "components.h"
 #include "actor.h"
 #include "arcconfig.h"
 #include "util/log.h"
@@ -11,6 +11,11 @@
 #include <functional>
 
 
+enum class ComponentEvent {
+    Created,
+    Destroyed
+};
+
 
 class ComponentObserver {
 
@@ -19,45 +24,54 @@ class ComponentObserver {
 
 public:
 
+    constexpr static u32 eventCount = 2;
+
     template<Component C>
-    using Function = std::function<void(ComponentID::SharedType<C>&, ActorID)>;
+    using Function = std::function<void(ComponentHelper::SharedType<C>&, ActorID)>;
 
     ComponentObserver() {
-        observerInvokables.reserve(ARC_ACS_MAX_COMPONENTS);
+        observerInvokables.reserve(getObserverEntryIndex(ARC_ACS_MAX_COMPONENTS));
     }
 
     template<Component C, class Func> requires Constructible<Function<C>, Func&&>
-    void observe(Func&& callback) {
+    void observe(ComponentEvent event, Func&& callback) {
 
-        constexpr ComponentTypeID cid = ComponentID::get<C>();
+        constexpr ComponentID cid = ComponentHelper::getComponentID<C>();
+        u32 oei = getObserverEntryIndex(cid, event);
 
-        if(observerInvokables.size() <= cid) {
+        if(observerInvokables.size() <= oei) {
 
             if(cid >= ARC_ACS_MAX_COMPONENTS) {
                 Log::error("ACS", "ID %d exceeds the maximum component ID of %d", cid, ARC_ACS_MAX_COMPONENTS - 1);
                 return;
             }
 
-            observerInvokables.resize(cid + 1);
-            auto& vec = observerInvokables[cid];
-            vec.push_back(AnyCallback(TypeTag<Function<C>>{}, callback));
+            observerInvokables.resize(oei + 1);
 
         }
+
+        auto& vec = observerInvokables[oei];
+        vec.push_back(AnyCallback(TypeTag<Function<C>>{}, callback));
 
     }
 
     template<Component C>
     void clear() {
 
-        constexpr ComponentTypeID cid = ComponentID::get<C>();
+        constexpr ComponentID cid = ComponentHelper::get<C>();
+        constexpr u32 oei = getObserverEntryIndex(cid);
+
+        for(u32 i = 0; i < eventCount; i++) {
 
 #ifdef ARC_ACS_RUNTIME_CHECKS
-        if(observerInvokables.size() > cid) {
+            if(observerInvokables.size() > (oei + i)) {
 #endif
-            observerInvokables[cid].clear();
+                observerInvokables[oei + i].clear();
 #ifdef ARC_ACS_RUNTIME_CHECKS
-        }
+            }
 #endif
+
+        }
 
     }
 
@@ -70,18 +84,19 @@ public:
     }
 
     template<Component C>
-    void invokeDirect(C& component, ActorID actor) {
+    void invokeDirect(ComponentEvent event, C& component, ActorID actor) {
 
-        constexpr ComponentTypeID cid = ComponentID::get<C>();
+        constexpr ComponentID cid = ComponentHelper::getComponentID<C>();
+        u32 oei = getObserverEntryIndex(cid, event);
 
 #ifdef ARC_ACS_RUNTIME_CHECKS
-        if(cid >= observerInvokables.size()) {
+        if(oei >= observerInvokables.size()) {
             Log::error("ACS", "CID %d not registered for observer", cid);
             return;
         }
 #endif
 
-        auto& vec = observerInvokables[cid];
+        auto& vec = observerInvokables[oei];
 
         for(const auto& func : vec) {
 
@@ -96,16 +111,17 @@ public:
     }
 
     template<Component C>
-    void record(C& component, ActorID actor) {
+    void record(ComponentEvent event, C& component, ActorID actor) {
 
-        constexpr ComponentTypeID cid = ComponentID::get<C>();
+        constexpr ComponentID cid = ComponentHelper::getComponentID<C>();
+        u32 oei = getObserverEntryIndex(cid, event);
 
-        if(cid >= observerInvokables.size() || !observerInvokables[cid].size()) {
+        if(oei >= observerInvokables.size() || !observerInvokables[oei].size()) {
             return;
         }
 
         recordedInvokables[cid] = [=, &component, this]() {
-            invokeDirect(component, actor);
+            invokeDirect(event, component, actor);
         };
 
     }
@@ -123,7 +139,11 @@ public:
 
 private:
 
+    constexpr static u32 getObserverEntryIndex(ComponentID id, ComponentEvent event = static_cast<ComponentEvent>(0)) noexcept {
+        return id * static_cast<u32>(eventCount) + static_cast<u32>(event);
+    }
+
     std::vector<std::vector<AnyCallback>> observerInvokables;
-    std::unordered_map<ComponentTypeID, std::function<void()>> recordedInvokables;
+    std::unordered_map<ComponentID, std::function<void()>> recordedInvokables;
 
 };

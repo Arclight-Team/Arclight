@@ -16,5 +16,3 @@ public:
 	Vec3x scale;
 
 };
-
-REGISTER_COMPONENT(Transform, 0)

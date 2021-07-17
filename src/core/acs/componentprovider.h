@@ -1,8 +1,8 @@
 #pragma once
 
-#include "component/component.h"
 #include "util/sparsearray.h"
 #include "util/any.h"
+#include "components.h"
 #include "arcconfig.h"
 #include "actor.h"
 
@@ -25,7 +25,7 @@ public:
     template<Component C>
     void createArray() {
 
-        ComponentTypeID id = ComponentID::get<C>();
+        ComponentID id = ComponentHelper::getComponentID<C>();
 
         if(id >= componentArrays.size()) {
 
@@ -35,9 +35,10 @@ public:
             }
 
             componentArrays.resize(id + 1);
-            componentArrays[id].emplace<ComponentArray<C>>();
 
         }
+
+        componentArrays[id].emplace<ComponentArray<C>>();
 
     }
 
@@ -77,6 +78,16 @@ public:
     }
 
     template<Component C>
+    bool tryRemoveComponent(ActorID id) {
+        return getComponentArray<C>().tryRemove(id & 0xFFFFFFFF);
+    }
+
+    template<Component C>
+    void removeComponent(ActorID id) {
+        return getComponentArray<C>().remove(id & 0xFFFFFFFF);
+    }
+
+    template<Component C>
     SizeT getActorCount() const {
         return getComponentArray<C>().getSize();
     }
@@ -88,27 +99,27 @@ private:
 
     template<Component C>
     auto& getComponentArray() {
-        return componentCast<C>(ComponentID::get<C>());
+        return componentCast<C>(ComponentHelper::getComponentID<C>());
     }
 
     template<Component C>
     const auto& getComponentArray() const {
-        return componentCast<C>(ComponentID::get<C>());
+        return componentCast<C>(ComponentHelper::getComponentID<C>());
     }
 
     template<Component C>
-    auto& componentCast(ComponentTypeID id) {
+    auto& componentCast(ComponentID id) {
 #ifdef ARC_ACS_RUNTIME_CHECKS
-        return componentArrays[id].cast<ComponentArray<ComponentID::SharedType<C>>>();
+        return componentArrays[id].cast<ComponentArray<ComponentHelper::SharedType<C>>>();
 #else
         return componentArrays[id].unsafeCast<ComponentArray<C>>();
 #endif
     }
 
     template<Component C>
-    const auto& componentCast(ComponentTypeID id) const {
+    const auto& componentCast(ComponentID id) const {
 #ifdef ARC_ACS_RUNTIME_CHECKS
-        return componentArrays[id].cast<ComponentArray<ComponentID::SharedType<C>>>();
+        return componentArrays[id].cast<ComponentArray<ComponentHelper::SharedType<C>>>();
 #else
         return componentArrays[id].unsafeCast<ComponentArray<C>>();
 #endif

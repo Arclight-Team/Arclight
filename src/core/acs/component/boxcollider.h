@@ -14,5 +14,3 @@ public:
     Vec3x size;
 
 };
-
-REGISTER_COMPONENT(BoxCollider, 2)

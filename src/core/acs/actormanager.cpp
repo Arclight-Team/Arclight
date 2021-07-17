@@ -1,17 +1,32 @@
 #include "actormanager.h"
+#include "components.h"
 
-#include "component/transform.h"
-#include "component/boxcollider.h"
+
+
+//Lifetime helper struct
+template<class>
+struct ComponentLifetimeHelper;
+
+template<template<Component...> class Tuple, Component... Pack>
+struct ComponentLifetimeHelper<Tuple<Pack...>> {
+
+    static void createArrays(ComponentProvider& provider) {
+        (provider.createArray<Pack>(), ...);
+    }
+
+    static void destroyActor(ComponentProvider& provider, ComponentObserver& observer, ActorID actor) {
+        ((provider.hasComponent<Pack>(actor) ? (observer.invokeDirect<Pack>(ComponentEvent::Destroyed, provider.getComponent<Pack>(actor), actor), provider.removeComponent<Pack>(actor)) : void()), ...);
+    }
+
+};
+
 
 
 ActorManager::ActorManager() {}
 
 
 void ActorManager::setup() {
-
-    provider.createArray<Transform>();
-    provider.createArray<BoxCollider>();
-
+    ComponentLifetimeHelper<ComponentTypes>::createArrays(provider);
 }
 
 
@@ -82,6 +97,12 @@ ActorID ActorManager::spawn(ActorTypeID id, const ConstructionFunction& onConstr
 
     return actorID;
 
+}
+
+
+
+void ActorManager::destroy(ActorID actor) {
+    ComponentLifetimeHelper<ComponentTypes>::destroyActor(provider, observer, actor);
 }
 
 

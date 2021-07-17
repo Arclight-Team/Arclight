@@ -34,9 +34,11 @@ public:
     ActorID spawn(ActorTypeID id, const Transform& transform);
     ActorID spawn(ActorTypeID id, const ConstructionFunction& onConstruct);
 
+    void destroy(ActorID actor);
+
     template<Component C, class Func>
-    void addObserver(Func&& callback) {
-        observer.observe<C>(std::forward<Func>(callback));
+    void addObserver(ComponentEvent event, Func&& callback) {
+        observer.observe<C>(event, std::forward<Func>(callback));
     }
 
     template<Component... Types>
