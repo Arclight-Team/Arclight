@@ -21,9 +21,10 @@ Game::~Game() {}
 
 bool Game::init() {
 
+	profiler.start();
+
 	window.disableVSync();
 
-	physicsEngine.init();
 	renderer.init();
 	renderer.setAspectRatio(window.getWidth() / static_cast<float>(window.getHeight()));
 
@@ -83,11 +84,22 @@ bool Game::init() {
 
 	manager.addObserver<BoxCollider>(ComponentEvent::Created, [this](BoxCollider& collider, ActorID id) { physicsEngine.onBoxCreated(collider, id); });
 	manager.addObserver<BoxCollider>(ComponentEvent::Destroyed, [this](BoxCollider& collider, ActorID id) { physicsEngine.onBoxDestroyed(collider, id); });
-
 	
-	for(u32 i = 0; i < 32; i++) {
-		manager.spawn(1, Transform(Vec3x(i, 30, 0)));
+	physicsEngine.init(20);
+
+	for(u32 i = 0; i < 15; i++) {
+
+		for(u32 j = 0; j < 15; j++) {
+
+			for(u32 k = 0; k < 15; k++) {
+				manager.spawn(1, Transform(Vec3x(i, j, k)));
+			}
+
+		}
+
 	}
+
+	profiler.stop("Initialization");
 
 	return true;
 
@@ -99,14 +111,6 @@ void Game::update() {
 
 	inputSystem.updateContinuous(1);
 	physicsEngine.update();
-
-	//ArcDebug() << "Starting frame";
-
-	ComponentView view = manager.view<Transform, BoxCollider>();
-
-	for(const auto& [transform, collider] : view) {
-		//ArcDebug() << transform.position;
-	}
 
 }
 
@@ -122,10 +126,13 @@ void Game::render() {
 
 void Game::destroy() {
 
+	profiler.start();
 	renderer.destroy();
 
-	for(u32 i = 0; i < 32; i++) {
+	for(u32 i = 0; i < 15 * 15 * 15; i++) {
 		manager.destroy(i);
 	}
+
+	profiler.stop("Destruction");
 
 }

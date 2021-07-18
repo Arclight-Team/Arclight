@@ -21,7 +21,7 @@ PhysicsEngine::~PhysicsEngine() {
 
 
 
-void PhysicsEngine::init() {
+void PhysicsEngine::init(u32 ticksPerSecond) {
 
 	Log::info("Physics Engine", "Setting up simulation");
 
@@ -63,13 +63,11 @@ void PhysicsEngine::init() {
 
 		//add the body to the dynamics world
 		dynamicsWorld->addRigidBody(body);
+
 	}
 
-	tickTimer.start();
-
-	//Variables to store current tick state
-	lastTickTime = static_cast<u64>(tickTimer.getElapsedTime());
-	tickAccumulator = 0;
+	tps = ticksPerSecond;
+	simTimer.start();
 
 }
 
@@ -77,39 +75,33 @@ void PhysicsEngine::init() {
 
 void PhysicsEngine::update() {
 
-	//Calculate delta time and add to accumulator
-	u64 delta = static_cast<u64>(tickTimer.getElapsedTime()) - lastTickTime;
-	lastTickTime = static_cast<u64>(tickTimer.getElapsedTime());
-	tickAccumulator += delta;
-	u32 ticks = 0;
+	profiler.start();
 
-	//Get tick count on accumulator overflow
-	if (tickAccumulator > 16667) {
-		ticks = tickAccumulator / 16667;
-		tickAccumulator %= 16667;
-	}
+	double dt = simTimer.getElapsedTime(Time::Unit::Seconds);
+	dynamicsWorld->stepSimulation(dt, 1, 1.0 / tps);
+	
+	simTimer.start();
 
-	for(u32 i = 0; i < ticks; i++) {
+	profiler.stop("PhysicsSim");
 
-		dynamicsWorld->stepSimulation(1 / 60.0f, 10);
+	profiler.start();
+	ComponentView view = actorManager.view<Transform, BoxCollider>();
 
-		ComponentView view = actorManager.view<Transform, BoxCollider>();
+	for(auto [transform, collider] : view) {
 
-		for(auto [transform, collider] : view) {
+		btRigidBody* body = static_cast<btRigidBody*>(collider.handle);
+		btTransform rbtransform;
+		body->getMotionState()->getWorldTransform(rbtransform);
 
-			btRigidBody* body = static_cast<btRigidBody*>(collider.handle);
-			btTransform rbtransform;
-			body->getMotionState()->getWorldTransform(rbtransform);
+		transform.position = Bullet::fromBtVector3(rbtransform.getOrigin());
 
-			transform.position = Bullet::fromBtVector3(rbtransform.getOrigin());
-
-			btScalar rx, ry, rz;
-			rbtransform.getRotation().getEulerZYX(rz, ry, rx);
-			transform.rotation = Vec3x(rx, ry, rz);
-
-		}
+		btScalar rx, ry, rz;
+		rbtransform.getRotation().getEulerZYX(rz, ry, rx);
+		transform.rotation = Vec3x(rx, ry, rz);
 
 	}
+
+	profiler.stop("PhysicSync");
 
 }
 
@@ -118,13 +110,13 @@ void PhysicsEngine::update() {
 void PhysicsEngine::onBoxCreated(BoxCollider& collider, ActorID actor) {
 
 	const Transform& transform = actorManager.getProvider().getComponent<Transform>(actor);
-	btCollisionShape* box = new btBoxShape(Bullet::fromVec3x(collider.size));
+	btCollisionShape* box = new btBoxShape(Bullet::fromVec3x(collider.size / 2.0));
 
 	btTransform groundTransform;
 	groundTransform.setIdentity();
 	groundTransform.setOrigin(Bullet::fromVec3x(transform.position));
 
-	btScalar mass(0.1f);
+	btScalar mass(1.0f);
 	bool isDynamic = (mass != 0.f);
 
 	btVector3 localInertia(0, 0, 0);
@@ -136,6 +128,10 @@ void PhysicsEngine::onBoxCreated(BoxCollider& collider, ActorID actor) {
 	btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, box, localInertia);
 	btRigidBody* body = new btRigidBody(rbInfo);
+	body->setRestitution(1);
+	body->setDamping(0, 0);
+	body->setFriction(0);
+	//body->applyCentralImpulse(btVector3(0, -200, 0));
 
 	dynamicsWorld->addRigidBody(body);
 	collider.handle = body;

@@ -5,12 +5,12 @@
 #include "debug.h"
 
 
-PhysicsRenderer::PhysicsRenderer(ActorManager& actorManager) : actorManager(actorManager) {}
+PhysicsRenderer::PhysicsRenderer(ActorManager& actorManager) : actorManager(actorManager), prevObjects(0) {}
 
 
 bool PhysicsRenderer::init() {
 
-	auto cubeVertices = VertexHelper::createCube(2);
+	auto cubeVertices = VertexHelper::createCube(1);
 
 	objectVA.create();
 	objectVA.bind();
@@ -23,10 +23,21 @@ bool PhysicsRenderer::init() {
 
 	offsetVB.create();
 	offsetVB.bind();
-	offsetVB.allocate(cubeVertices.size() * sizeof(VertexHelper::VertexT));
+
 	objectVA.enableAttribute(1);
-	objectVA.setAttribute(1, 3, GLE::AttributeType::Float, 0, 0);
+	objectVA.enableAttribute(2);
+	objectVA.enableAttribute(3);
+	objectVA.enableAttribute(4);
+
+	objectVA.setAttribute(1, 4, GLE::AttributeType::Float, 16 * sizeof(float), 0);
+	objectVA.setAttribute(2, 4, GLE::AttributeType::Float, 16 * sizeof(float), 4 * sizeof(float));
+	objectVA.setAttribute(3, 4, GLE::AttributeType::Float, 16 * sizeof(float), 8 * sizeof(float));
+	objectVA.setAttribute(4, 4, GLE::AttributeType::Float, 16 * sizeof(float), 12 * sizeof(float));
+
 	objectVA.setDivisor(1, 1);
+	objectVA.setDivisor(2, 1);
+	objectVA.setDivisor(3, 1);
+	objectVA.setDivisor(4, 1);
 
 	try {
 
@@ -51,6 +62,8 @@ bool PhysicsRenderer::init() {
 
 void PhysicsRenderer::render() {
 
+	profiler.start();
+
 	if (camMovement != Vec3i(0, 0, 0) || camRotation != Vec3i(0, 0, 0)) {
 
 		camera.move(camMovement * camVelocity);
@@ -64,19 +77,48 @@ void PhysicsRenderer::render() {
 	}
 
 	u32 objects = 0;
-	std::vector<float> offsets;
+	modelMatrixBuffer.clear();
 
 	for(auto[transform, collider] : actorManager.view<Transform, BoxCollider>()) {
 
-		offsets.push_back(transform.position.x);
-		offsets.push_back(transform.position.y);
-		offsets.push_back(transform.position.z);
+		Mat4f modelMatrix = Mat4f::fromTranslation(transform.position) * Mat4f::fromRotationXYZ(transform.rotation.x, transform.rotation.y, transform.rotation.z);
+		
+		modelMatrixBuffer.push_back(modelMatrix[0][0]);
+		modelMatrixBuffer.push_back(modelMatrix[0][1]);
+		modelMatrixBuffer.push_back(modelMatrix[0][2]);
+		modelMatrixBuffer.push_back(modelMatrix[0][3]);
+		modelMatrixBuffer.push_back(modelMatrix[1][0]);
+		modelMatrixBuffer.push_back(modelMatrix[1][1]);
+		modelMatrixBuffer.push_back(modelMatrix[1][2]);
+		modelMatrixBuffer.push_back(modelMatrix[1][3]);
+		modelMatrixBuffer.push_back(modelMatrix[2][0]);
+		modelMatrixBuffer.push_back(modelMatrix[2][1]);
+		modelMatrixBuffer.push_back(modelMatrix[2][2]);
+		modelMatrixBuffer.push_back(modelMatrix[2][3]);
+		modelMatrixBuffer.push_back(modelMatrix[3][0]);
+		modelMatrixBuffer.push_back(modelMatrix[3][1]);
+		modelMatrixBuffer.push_back(modelMatrix[3][2]);
+		modelMatrixBuffer.push_back(modelMatrix[3][3]);
+		
 		objects++;
 
 	}
 
 	offsetVB.bind();
-	offsetVB.allocate(offsets.size() * sizeof(float), offsets.data());
+
+	if(prevObjects != objects) {
+
+		prevObjects = objects;
+		offsetVB.allocate(modelMatrixBuffer.size() * sizeof(float), modelMatrixBuffer.data(), GLE::BufferAccess::StreamDraw);
+
+	} else {
+
+		offsetVB.update(0, modelMatrixBuffer.size() * sizeof(float), modelMatrixBuffer.data());
+
+	}
+
+	profiler.stop("RenderA");
+	profiler.start();
 
 	GLE::clear(GLE::Color | GLE::Depth);
 	objectShader.start();
@@ -87,6 +129,7 @@ void PhysicsRenderer::render() {
 	objectVA.bind();
 	GLE::renderInstanced(GLE::PrimType::Triangle, objects, 36);
 
+	profiler.stop("RenderB");
 
 }
 

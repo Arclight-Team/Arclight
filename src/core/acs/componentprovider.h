@@ -112,7 +112,7 @@ private:
 #ifdef ARC_ACS_RUNTIME_CHECKS
         return componentArrays[id].cast<ComponentArray<ComponentHelper::SharedType<C>>>();
 #else
-        return componentArrays[id].unsafeCast<ComponentArray<C>>();
+        return componentArrays[id].unsafeCast<ComponentArray<ComponentHelper::SharedType<C>>>();
 #endif
     }
 
@@ -121,7 +121,7 @@ private:
 #ifdef ARC_ACS_RUNTIME_CHECKS
         return componentArrays[id].cast<ComponentArray<ComponentHelper::SharedType<C>>>();
 #else
-        return componentArrays[id].unsafeCast<ComponentArray<C>>();
+        return componentArrays[id].unsafeCast<ComponentArray<ComponentHelper::SharedType<C>>>();
 #endif
     }
 

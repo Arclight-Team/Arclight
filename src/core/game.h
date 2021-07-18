@@ -4,6 +4,7 @@
 #include "render/physicsrenderer.h"
 #include "input/inputsystem.h"
 #include "acs/actormanager.h"
+#include "util/profiler.h"
 
 #include <vector>
 #include <memory>
@@ -32,5 +33,7 @@ private:
 	ActorManager manager;
 	PhysicsEngine physicsEngine;
 	PhysicsRenderer renderer;
+
+	Profiler profiler;
 
 };

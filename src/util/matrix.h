@@ -677,9 +677,26 @@ public:
 		auto mcosTheta = 1.0 - cosTheta;
 
 		return Mat4(u.x * u.x * mcosTheta + cosTheta, u.x * u.y * mcosTheta - u.z * sinTheta, u.x * u.z * mcosTheta + u.y * sinTheta, 0,
-			u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta, 0,
-			u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta, 0,
-			0, 0, 0, 1);
+					u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta, 0,
+					u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta, 0,
+					0, 0, 0, 1);
+
+	}
+
+	template<Arithmetic A, Arithmetic B, Arithmetic C>
+	constexpr static Mat4 fromRotationXYZ(A yaw, B pitch, C roll) {
+
+		auto sinA = Math::sin(yaw);
+		auto cosA = Math::cos(yaw);
+		auto sinB = Math::sin(pitch);
+		auto cosB = Math::cos(pitch);
+		auto sinC = Math::sin(roll);
+		auto cosC = Math::cos(roll);
+
+		return Mat4(cosA * cosB, cosA * sinB * sinC - sinA * cosC, cosA * sinB * cosC + sinA * sinC, 0,
+					sinA * cosB, sinA * sinB * sinC + cosA * cosC, sinA * sinB * cosC - cosA * sinC, 0,
+					-sinB, cosB * sinC, cosB * cosC, 0,
+					0, 0, 0, 1);
 
 	}
 

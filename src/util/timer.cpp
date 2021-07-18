@@ -14,7 +14,7 @@ void Timer::start() {
 
 double Timer::getElapsedTime(Time::Unit unit) const {
 
-	arc_assert(startTime, "Profiler timer must be started first");
+	arc_assert(startTime, "Timer must be started first");
 
 	u64 stopTime = Time::getTimeSinceEpoch(Time::Unit::Nanoseconds);
 	u64 deltaNS = stopTime - startTime;

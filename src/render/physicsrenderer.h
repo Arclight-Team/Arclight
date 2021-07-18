@@ -4,6 +4,7 @@
 #include "atr/camera.h"
 #include "renderer.h"
 #include "util/matrix.h"
+#include "util/profiler.h"
 #include "input/keydefs.h"
 
 
@@ -54,6 +55,11 @@ private:
 
 	Mat4f projMatrix;
 	Mat4f viewMatrix;
+
+	Profiler profiler;
+
+	u32 prevObjects;
+	std::vector<float> modelMatrixBuffer;
 
 	constexpr static double camRotationScale = 0.0006;
 	constexpr static double camVelocity = 0.01;

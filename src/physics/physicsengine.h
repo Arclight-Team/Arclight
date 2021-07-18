@@ -2,7 +2,7 @@
 
 #include "core/acs/component/boxcollider.h"
 #include "core/acs/actor.h"
-#include "util/timer.h"
+#include "util/profiler.h"
 #include "types.h"
 
 
@@ -20,7 +20,7 @@ public:
 	explicit PhysicsEngine(ActorManager& actorManager);
 	~PhysicsEngine();
 
-	void init();
+	void init(u32 ticksPerSecond);
 	void update();
 
 	void onBoxCreated(BoxCollider& collider, ActorID actor);
@@ -36,8 +36,8 @@ private:
 
 	ActorManager& actorManager;
 	
-	Timer tickTimer;
-	u64 lastTickTime;
-	u64 tickAccumulator;
+	Profiler profiler;
+	Timer simTimer;
+	u32 tps;
 
 };
