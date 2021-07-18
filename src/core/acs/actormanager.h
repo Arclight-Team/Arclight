@@ -46,6 +46,9 @@ public:
         return ComponentView<Types...>(provider);
     }
 
+    ComponentProvider& getProvider();
+    const ComponentProvider& getProvider() const;
+
 private:
 
     bool isActorTypeRegistered(ActorTypeID id);

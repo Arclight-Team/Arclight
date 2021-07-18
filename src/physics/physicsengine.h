@@ -1,25 +1,30 @@
 #pragma once
 
+#include "core/acs/component/boxcollider.h"
+#include "core/acs/actor.h"
+#include "util/timer.h"
 #include "types.h"
 
 
-class BoxCollider;
+class ActorManager;
 class btDefaultCollisionConfiguration;
 class btCollisionDispatcher;
 class btBroadphaseInterface;
 class btSequentialImpulseConstraintSolver;
 class btDiscreteDynamicsWorld;
 
-class PhysicsTest {
+class PhysicsEngine {
 
 public:
-	PhysicsTest();
-	~PhysicsTest();
+
+	explicit PhysicsEngine(ActorManager& actorManager);
+	~PhysicsEngine();
 
 	void init();
 	void update();
 
-	void addBoxCollider(BoxCollider& collider, u64 ownerID);
+	void onBoxCreated(BoxCollider& collider, ActorID actor);
+	void onBoxDestroyed(BoxCollider& collider, ActorID actor);
 
 private:
 
@@ -29,5 +34,10 @@ private:
 	btSequentialImpulseConstraintSolver* solver;
 	btDiscreteDynamicsWorld* dynamicsWorld;
 
+	ActorManager& actorManager;
+	
+	Timer tickTimer;
+	u64 lastTickTime;
+	u64 tickAccumulator;
 
 };

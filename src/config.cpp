@@ -6,7 +6,7 @@ namespace Config {
 
 	const std::string appName = "Project Arclight";
 	const std::string baseWindowTitle = "Arclight Engine Debug (ATR, x64)";
-	const std::string uriRoot = "../../";
+	const std::string uriRoot = "../";
 	const std::string uriAsset = "assets/";
 	const std::string uriLog = "log/";
 	const std::string uriScreenshot = "screenshots/";

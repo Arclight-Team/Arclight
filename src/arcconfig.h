@@ -1,5 +1,10 @@
 #pragma once
 
+
+/**************************************************/
+/*			   Arclight Configuration			  */
+/**************************************************/
+
 /*
 	Defines if this project should use ImGui
 */

@@ -7,8 +7,8 @@
 //Helper functions to quickly create basic geometric shapes
 namespace VertexHelper {
 
-	using VertexT = float;
-	using VectorT = Vec3f;
+	using VertexT = ARC_STD_FLOAT_TYPE;
+	using VectorT = Vec3x;
 
 	//Creates the specified shape and returns its vertex data
 	std::vector<VertexT> createTriangle(const VectorT& v0, const VectorT& v1, const VectorT& v2);

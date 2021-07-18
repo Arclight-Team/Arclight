@@ -107,6 +107,19 @@ void ActorManager::destroy(ActorID actor) {
 
 
 
+
+ComponentProvider& ActorManager::getProvider() {
+    return provider;
+}
+
+
+
+const ComponentProvider& ActorManager::getProvider() const {
+    return provider;
+}
+
+
+
 bool ActorManager::isActorTypeRegistered(ActorTypeID id) {
     return registeredActorTypes.contains(id);
 }

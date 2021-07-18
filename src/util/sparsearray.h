@@ -580,7 +580,7 @@ private:
         arc_assert(reqPos <= 0xFFFFFF, "Index %d exceeds the usual array range, is your index correct?", reqPos);
 
         if(reqPos >= indexArray.size()) {
-            indexArray.push_back(invalidIndex);
+             indexArray.resize(reqPos + 1, invalidIndex);
         }
 
     }

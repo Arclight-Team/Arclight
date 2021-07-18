@@ -56,24 +56,8 @@ void Engine::run() {
 	Timer timer;
 	timer.start();
 
-	//Variables to store current tick state
-	u64 lastTime = timer.getElapsedTime();
-	u64 accum = 0;
-
 	//Loop until window close event is requested
 	while (!window.closeRequested()) {
-
-		//Calculate delta time and add to accumulator
-		u64 delta = timer.getElapsedTime() - lastTime;
-		lastTime = timer.getElapsedTime();
-		accum += delta;
-		u32 ticks = 0;
-
-		//Get tick count on accumulator overflow
-		if (accum > 16667) {
-			ticks = accum / 16667;
-			accum %= 16667;
-		}
 
 		//Update window and input system
 		window.pollEvents();

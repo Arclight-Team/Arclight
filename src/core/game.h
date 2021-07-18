@@ -1,31 +1,12 @@
 #pragma once
 
-#include "physics/physicstest.h"
+#include "physics/physicsengine.h"
 #include "render/physicsrenderer.h"
+#include "input/inputsystem.h"
 #include "acs/actormanager.h"
+
 #include <vector>
 #include <memory>
-
-
-
-class Collider;
-
-enum class ObjectType {
-	Cube,
-	Cuboid
-};
-
-
-struct Object {
-
-	ObjectType type;
-	u64 id;
-	Vec3f position;
-	Vec3f rotation;		//TODO: Quaternion
-	Vec3f scale;
-	Collider* collider;
-
-};
 
 
 
@@ -43,14 +24,13 @@ public:
 	void render();
 	void destroy();
 
-	void addCube(float size, const Vec3f& pos, const Vec3f rot, const Vec3f& scale);
-
 private:
 
-	ActorManager manager;
 	Window& window;
-	PhysicsTest physicsSimulation;
+	InputSystem inputSystem;
+	InputHandler inputHandler;
+	ActorManager manager;
+	PhysicsEngine physicsEngine;
 	PhysicsRenderer renderer;
-	std::vector<Object> objects;
 
 };

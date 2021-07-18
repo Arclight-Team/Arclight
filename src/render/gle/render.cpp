@@ -79,6 +79,27 @@ u32 getIndexTypeEnum(IndexType type) {
 }
 
 
+void setClearColor(float r, float g, float b, float a) {
+	glClearColor(r, g, b ,a);
+}
+
+
+
+void clear(u32 bufferMask) {
+
+	u32 mask = 0;
+	
+	mask |= bufferMask & Color ? GL_COLOR_BUFFER_BIT : 0;
+	mask |= bufferMask & Depth ? GL_DEPTH_BUFFER_BIT : 0;
+	mask |= bufferMask & Stencil ? GL_STENCIL_BUFFER_BIT : 0;
+
+	gle_assert(mask, "Clear buffer mask cannot be 0");
+
+	glClear(mask);
+
+}
+
+
 
 void render(PrimType type, u32 count, u32 start) {
 
@@ -91,15 +112,16 @@ void render(PrimType type, u32 count, u32 start) {
 
 void renderIndexed(PrimType type, IndexType idxType, u32 idxCount, u32 start) {
 
+	uintptr_t startPtr = start;
 	u32 primType = getPrimitiveTypeEnum(type);
 	u32 indexType = getIndexTypeEnum(idxType);
-	glDrawElements(primType, idxCount, indexType, reinterpret_cast<const void*>(start));
+	glDrawElements(primType, idxCount, indexType, reinterpret_cast<const void*>(startPtr));
 
 }
 
 
 
-void render(PrimType type, u32 instances, u32 count, u32 start) {
+void renderInstanced(PrimType type, u32 instances, u32 count, u32 start) {
 
 	u32 primType = getPrimitiveTypeEnum(type);
 	glDrawArraysInstanced(primType, start, count, instances);
@@ -108,11 +130,12 @@ void render(PrimType type, u32 instances, u32 count, u32 start) {
 
 
 
-void renderIndexed(PrimType type, IndexType idxType, u32 instances, u32 idxCount, u32 start) {
+void renderInstancedIndexed(PrimType type, IndexType idxType, u32 instances, u32 idxCount, u32 start) {
 
+	uintptr_t startPtr = start;
 	u32 primType = getPrimitiveTypeEnum(type);
 	u32 indexType = getIndexTypeEnum(idxType);
-	glDrawElementsInstanced(primType, idxCount, indexType, reinterpret_cast<const void*>(start), instances);
+	glDrawElementsInstanced(primType, idxCount, indexType, reinterpret_cast<const void*>(startPtr), instances);
 
 }
 

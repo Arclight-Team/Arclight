@@ -82,6 +82,9 @@ else()
 							${BULLET_LIB_DIR}/LinearMath.lib)
 endif()
 
+#Use double precision for physics simulation (causes a stack smash as of now)
+#add_compile_definitions(BT_USE_DOUBLE_PRECISION)
+
 
 list(APPEND SOURCE_TARGETS "src/*cpp")
 
