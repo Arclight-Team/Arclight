@@ -128,6 +128,22 @@ public:
 
     }
 
+    constexpr bool add(IndexType position, T&& value) {
+
+        checkResize(position);
+        const IndexType& index = indexArray[position];
+
+        if(!containsValidElement(position, index)) {
+
+            internalAdd(position, std::move(value));
+            return true;
+
+        }
+
+        return false;
+
+    }
+
 
     /*
         Sets the element at position to value.
@@ -151,6 +167,23 @@ public:
 
     }
 
+    constexpr void set(IndexType position, T&& value) {
+
+        checkResize(position);
+        const IndexType& index = indexArray[position];
+
+        if(!containsValidElement(position, index)) {
+
+            internalAdd(position, std::move(value));
+
+        } else {
+
+            internalSet(position, index, std::move(value));
+
+        }
+
+    }
+
 
     /*
         Sets the element at position to value.
@@ -165,6 +198,22 @@ public:
         if(containsValidElement(position, index)) {
 
             internalSet(position, index, value);
+            return true;
+
+        }
+
+        return false;
+
+    }
+
+    constexpr bool trySet(IndexType position, T&& value) {
+
+        checkResize(position);
+        IndexType& index = indexArray[position];
+
+        if(containsValidElement(position, index)) {
+
+            internalSet(position, index, std::move(value));
             return true;
 
         }
@@ -490,13 +539,14 @@ public:
 
 private:
 
-    constexpr void internalSet(IndexType sparseIdx, IndexType denseIdx, const T& value) {
+    template<class U>
+    constexpr void internalSet(IndexType sparseIdx, IndexType denseIdx, U&& value) {
 #ifdef ARC_SPARSE_PACK
         denseArray[denseIdx].index = sparseIdx;
-        denseArray[denseIdx].element = value;
+        denseArray[denseIdx].element = std::forward<U>(value);
 #else
         denseArray[denseIdx] = sparseIdx;
-        elementArray[denseIdx] = value;
+        elementArray[denseIdx] = std::forward<U>(value);
 #endif
     }
 
@@ -519,15 +569,16 @@ private:
     }
 
 
-    constexpr void internalAdd(IndexType sparseIdx, const T& value) {
+    template<class U>
+    constexpr void internalAdd(IndexType sparseIdx, U&& value) {
 
         indexArray[sparseIdx] = denseArray.size();
 
 #ifdef ARC_SPARSE_PACK
-        denseArray.push_back(Storage{sparseIdx, value});
+        denseArray.emplace_back(Storage{sparseIdx, std::forward<U>(value)});
 #else
-        denseArray.push_back(sparseIdx);
-        elementArray.push_back(value);
+        denseArray.emplace_back(sparseIdx);
+        elementArray.emplace_back(std::forward<U>(value));
 #endif
 
     }

@@ -14,7 +14,7 @@ using ComponentArray = SparseArray<T, ActorID>;
 
 class ComponentProvider {
 
-    using ComponentArrayStorage = FastAny<ComponentArray<void*>>;
+    using ComponentArrayStorage = FastNocopyAny<ComponentArray<void*>>;
 
 public:
 

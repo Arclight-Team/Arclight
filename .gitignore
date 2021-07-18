@@ -23,3 +23,4 @@ cmake-build-release-visual-studio/
 imgui.ini
 CMakeFiles/
 dev/
+demo/

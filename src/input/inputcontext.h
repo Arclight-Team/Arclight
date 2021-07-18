@@ -60,7 +60,6 @@ public:
 	void unregisterAllActions();
 	bool actionRegistered(u32 stateID, KeyAction action) const;
 
-
 	void disable();
 	void enable();
 

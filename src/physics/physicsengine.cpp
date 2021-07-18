@@ -60,6 +60,7 @@ void PhysicsEngine::init(u32 ticksPerSecond) {
 		btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
 		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
 		btRigidBody* body = new btRigidBody(rbInfo);
+		body->setRestitution(0.9);
 
 		//add the body to the dynamics world
 		dynamicsWorld->addRigidBody(body);
@@ -128,7 +129,7 @@ void PhysicsEngine::onBoxCreated(BoxCollider& collider, ActorID actor) {
 	btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, box, localInertia);
 	btRigidBody* body = new btRigidBody(rbInfo);
-	body->setRestitution(1);
+	body->setRestitution(2);
 	body->setDamping(0, 0);
 	body->setFriction(0);
 	//body->applyCentralImpulse(btVector3(0, -200, 0));
