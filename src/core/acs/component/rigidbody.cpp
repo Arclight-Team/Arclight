@@ -100,8 +100,38 @@ Vec3x RigidBody::getTransformOffset() const noexcept {
 
 
 
+void RigidBody::applyForce(const Vec3x& direction) {
+    rbcast(handle)->applyCentralForce(Bullet::fromVec3x(direction));
+}
+
+
+
+void RigidBody::applyForce(const Vec3x& direction, const Vec3x& contactOffset) {
+    rbcast(handle)->applyForce(Bullet::fromVec3x(direction), Bullet::fromVec3x(contactOffset));
+}
+
+
+
 void RigidBody::applyImpulse(const Vec3x& direction) {
-    rbcast(handle)->applyCentralImpulse(Bullet::fromVec3x(direction));
+    rbcast(handle)->applyTorqueImpulse(Bullet::fromVec3x(direction));
+}
+
+
+
+void RigidBody::applyImpulse(const Vec3x& direction, const Vec3x& contactOffset) {
+    rbcast(handle)->applyImpulse(Bullet::fromVec3x(direction), Bullet::fromVec3x(contactOffset));
+}
+
+
+
+void RigidBody::applyTorque(const Vec3x& torque) {
+    rbcast(handle)->applyTorque(Bullet::fromVec3x(torque));
+}
+
+
+
+void RigidBody::applyTorqueImpulse(const Vec3x& torque) {
+    rbcast(handle)->applyTorqueImpulse(Bullet::fromVec3x(torque));
 }
 
 

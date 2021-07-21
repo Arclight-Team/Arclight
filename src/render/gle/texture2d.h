@@ -12,9 +12,9 @@ public:
 
 	constexpr Texture2D() : Texture(TextureType::Texture2D) {}
 
-	void setData(u32 w, u32 h, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
-	void setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
-	void update(u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
+	void setData(u32 w, u32 h, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data);
+	void setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data);
+	void update(u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data, u32 level = 0);
 
 	using Texture::setWrapU;
 	using Texture::setWrapV;

@@ -12,21 +12,21 @@ public:
 
 	constexpr CubemapTexture() : Texture(TextureType::CubemapTexture) {}
 
-	inline void setData(u32 face, u32 s, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+	inline void setData(u32 face, u32 s, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data) {
 		setData(getCubemapFace(face), s, format, srcFormat, srcType, data);
 	}
 
-	inline void setMipmapData(u32 face, u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+	inline void setMipmapData(u32 face, u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data) {
 		setMipmapData(getCubemapFace(face), level, srcFormat, srcType, data);
 	}
 
-	inline void update(u32 face, u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0) {
+	inline void update(u32 face, u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data, u32 level = 0) {
 		update(getCubemapFace(face), x, y, w, h, srcFormat, srcType, data, level);
 	}
 
-	void setData(CubemapFace face, u32 s, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
-	void setMipmapData(CubemapFace face, u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data);
-	void update(CubemapFace face, u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level = 0);
+	void setData(CubemapFace face, u32 s, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data);
+	void setMipmapData(CubemapFace face, u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data);
+	void update(CubemapFace face, u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data, u32 level = 0);
 
 	using Texture::setWrapU;
 	using Texture::setWrapV;

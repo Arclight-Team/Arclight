@@ -39,6 +39,14 @@ enum ClearBuffer {
 u32 getPrimitiveTypeEnum(PrimType type);
 u32 getIndexTypeEnum(IndexType type);
 
+//Depth testing
+void enableDepthTests();
+void disableDepthTests();
+
+//Culling
+void enableCulling();
+void disableCulling();
+
 //Clearing
 void setClearColor(float r, float g, float b, float a);
 void clear(u32 bufferMask);

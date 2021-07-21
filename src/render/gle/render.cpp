@@ -79,6 +79,31 @@ u32 getIndexTypeEnum(IndexType type) {
 }
 
 
+
+void enableDepthTests() {
+	glEnable(GL_DEPTH_TEST);
+}
+
+
+
+void disableDepthTests() {
+	glDisable(GL_DEPTH_TEST);
+}
+
+
+
+void enableCulling() {
+	glEnable(GL_CULL_FACE);
+}
+
+
+
+void disableCulling() {
+	glDisable(GL_CULL_FACE);
+}
+
+
+
 void setClearColor(float r, float g, float b, float a) {
 	glClearColor(r, g, b ,a);
 }

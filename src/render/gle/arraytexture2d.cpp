@@ -7,7 +7,7 @@
 GLE_BEGIN
 
 
-void ArrayTexture2D::setData(u32 w, u32 h, u32 layers, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+void ArrayTexture2D::setData(u32 w, u32 h, u32 layers, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
 
@@ -32,7 +32,7 @@ void ArrayTexture2D::setData(u32 w, u32 h, u32 layers, ImageFormat format, Textu
 
 
 
-void ArrayTexture2D::setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+void ArrayTexture2D::setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set mipmap data)", id);
 
@@ -47,7 +47,7 @@ void ArrayTexture2D::setMipmapData(u32 level, TextureSourceFormat srcFormat, Tex
 
 
 
-void ArrayTexture2D::update(u32 x, u32 y, u32 w, u32 h, u32 layerStart, u32 layerCount, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level) {
+void ArrayTexture2D::update(u32 x, u32 y, u32 w, u32 h, u32 layerStart, u32 layerCount, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data, u32 level) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to update data)", id);
 

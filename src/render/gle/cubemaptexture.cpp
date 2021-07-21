@@ -7,7 +7,7 @@
 GLE_BEGIN
 
 
-void CubemapTexture::setData(CubemapFace face, u32 s, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+void CubemapTexture::setData(CubemapFace face, u32 s, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
 
@@ -34,7 +34,7 @@ void CubemapTexture::setData(CubemapFace face, u32 s, ImageFormat format, Textur
 
 
 
-void CubemapTexture::setMipmapData(CubemapFace face, u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+void CubemapTexture::setMipmapData(CubemapFace face, u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set mipmap data)", id);
 
@@ -49,7 +49,7 @@ void CubemapTexture::setMipmapData(CubemapFace face, u32 level, TextureSourceFor
 
 
 
-void CubemapTexture::update(CubemapFace face, u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level) {
+void CubemapTexture::update(CubemapFace face, u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data, u32 level) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to update data)", id);
 

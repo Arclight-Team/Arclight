@@ -41,10 +41,10 @@ public:
 
 	//Allocates the buffer's storage. Required for (re-)allocation.
 	void allocate(u32 size, BufferAccess access = BufferAccess::StaticDraw);
-	void allocate(u32 size, void* data, BufferAccess access = BufferAccess::StaticDraw);
+	void allocate(u32 size, const void* data, BufferAccess access = BufferAccess::StaticDraw);
 
 	//Updates the buffer's data. Fails if no storage has been allocated first.
-	void update(u32 offset, u32 size, void* data);
+	void update(u32 offset, u32 size, const void* data);
 
 	//Copies this buffer (or a portion of it) to destBuffer
 	void copy(Buffer& destBuffer);

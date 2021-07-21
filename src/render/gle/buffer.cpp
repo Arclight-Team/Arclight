@@ -66,7 +66,7 @@ void Buffer::allocate(u32 size, BufferAccess access) {
 
 
 
-void Buffer::allocate(u32 size, void* data, BufferAccess access) {
+void Buffer::allocate(u32 size, const void* data, BufferAccess access) {
 
 	gle_assert(isBound(), "Buffer object %d has not been bound (attempted to set buffer storage)", id);
 
@@ -78,7 +78,7 @@ void Buffer::allocate(u32 size, void* data, BufferAccess access) {
 
 
 
-void Buffer::update(u32 offset, u32 size, void* data) {
+void Buffer::update(u32 offset, u32 size, const void* data) {
 
 	gle_assert(isBound(), "Buffer object %d has not been bound (attempted to set buffer data)", id);
 	gle_assert((offset + size) <= this->size, "Attempted to write data out of bounds for buffer object %d", id);

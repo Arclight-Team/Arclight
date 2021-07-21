@@ -8,7 +8,7 @@ GLE_BEGIN
 
 
 
-void Texture1D::setData(u32 w, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+void Texture1D::setData(u32 w, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
 
@@ -28,7 +28,7 @@ void Texture1D::setData(u32 w, ImageFormat format, TextureSourceFormat srcFormat
 
 
 
-void Texture1D::setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data) {
+void Texture1D::setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set mipmap data)", id);
 
@@ -43,7 +43,7 @@ void Texture1D::setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureS
 
 
 
-void Texture1D::update(u32 x, u32 w, TextureSourceFormat srcFormat, TextureSourceType srcType, void* data, u32 level) {
+void Texture1D::update(u32 x, u32 w, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data, u32 level) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to update data)", id);
 

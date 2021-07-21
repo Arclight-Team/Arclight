@@ -6,26 +6,17 @@
 #include "util/matrix.h"
 #include "util/profiler.h"
 #include "input/keydefs.h"
+#include "model/model.h"
+#include "input/inputhandler.h"
+#include "atr/simplecamera.h"
 
 
 class ActorManager;
+class InputContext;
 
 class PhysicsRenderer : public Renderer {
 
 public:
-
-	enum ActionID {
-		CameraRotLeft = 1,
-		CameraRotRight,
-		CameraRotDown,
-		CameraRotUp,
-		CameraMoveLeft,
-		CameraMoveRight,
-		CameraMoveBackward,
-		CameraMoveForward,
-		CameraMoveDown,
-		CameraMoveUp
-	};
 
 	PhysicsRenderer(ActorManager& actorManager);
 
@@ -36,20 +27,44 @@ public:
 	void setAspectRatio(float aspect);
 	void setCameraMatrix(const Vec3f& pos, const Vec3f& lookat);
 
-	void onKeyAction(KeyAction action);
+	void setupCamera(InputContext& context);
 
 private:
 
+	void renderModel(arcModel& model, const Mat4f& transform);
+	void renderNode(arcModel& model, arcNode& node, const Mat4f& transform);
+	void renderMesh(arcModel& model, arcMesh& mesh, const Mat4f& transform);
+	void applyMaterial(arcModel& model, arcMaterial& material);
+
 	ActorManager& actorManager;
 
-	GLE::ShaderProgram objectShader;
-	GLE::VertexArray objectVA;
-	GLE::VertexBuffer objectVB;
-	GLE::VertexBuffer offsetVB;
+	GLE::ShaderProgram modelShader;
 
-	GLE::Uniform mvpMatrixUniform;
+	GLE::Uniform modelMVPUniform;
+	GLE::Uniform modelMVUniform;
+	GLE::Uniform modelNormalUniform;
+	GLE::Uniform modelBoneTransformsUniform;
+	GLE::Uniform modelUseBonesUniform;
+	GLE::Uniform modelDiffuseTexUniform;
+	GLE::Uniform modelAmbientTexUniform;
+	GLE::Uniform modelSpecularTexUniform;
+	GLE::Uniform modelNormalTexUniform;
+	GLE::Uniform modelBumpSelectUniform;
+	GLE::Uniform modelAmbientEnableUniform;
+	GLE::Uniform modelDiffuseEnableUniform;
+	GLE::Uniform modelNormalEnableUniform;
+	GLE::Uniform modelSpecularEnableUniform;
+	GLE::Uniform modelLightColorUniform;
+	GLE::Uniform modelLightPositionUniform;
+	GLE::Uniform modelViewPositionUniform;
+	GLE::Uniform lightPositionUniform;
+	GLE::Uniform lightColorUniform;
 
-	Camera camera;
+	arcModel model;
+	std::vector<Mat4f> boneTransforms;
+
+	u64 startTime;
+
 	Vec3i camMovement;
 	Vec3i camRotation;
 
@@ -57,11 +72,10 @@ private:
 	Mat4f viewMatrix;
 
 	Profiler profiler;
+	InputHandler inputHandler;
+	SimpleCamera camera;
 
-	u32 prevObjects;
-	std::vector<float> modelMatrixBuffer;
-
-	constexpr static double camRotationScale = 0.06;
-	constexpr static double camVelocity = 1;
+	constexpr static double camRotationScale = 0.01;
+	constexpr static double camVelocity = 0.04;
 
 };
