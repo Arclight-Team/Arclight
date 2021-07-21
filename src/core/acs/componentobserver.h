@@ -89,12 +89,9 @@ public:
         constexpr ComponentID cid = ComponentHelper::getComponentID<C>();
         u32 oei = getObserverEntryIndex(cid, event);
 
-#ifdef ARC_ACS_RUNTIME_CHECKS
         if(oei >= observerInvokables.size()) {
-            Log::error("ACS", "CID %d not registered for observer", cid);
             return;
         }
-#endif
 
         auto& vec = observerInvokables[oei];
 

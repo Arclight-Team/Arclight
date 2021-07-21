@@ -1,11 +1,13 @@
 #pragma once
 
-#include "core/acs/component/boxcollider.h"
 #include "core/acs/actor.h"
 #include "util/profiler.h"
 #include "types.h"
 
 
+
+class RigidBody;
+class BoxCollider;
 class ActorManager;
 class btDefaultCollisionConfiguration;
 class btCollisionDispatcher;
@@ -24,7 +26,7 @@ public:
 	void update();
 
 	void onBoxCreated(BoxCollider& collider, ActorID actor);
-	void onBoxDestroyed(BoxCollider& collider, ActorID actor);
+	void onRigidBodyAdded(RigidBody& body, ActorID actor);
 
 private:
 

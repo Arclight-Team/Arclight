@@ -5,6 +5,7 @@
 #include "input/inputsystem.h"
 #include "acs/actormanager.h"
 #include "util/profiler.h"
+#include "util/ticker.h"
 
 #include <vector>
 #include <memory>
@@ -29,11 +30,13 @@ private:
 
 	Window& window;
 	InputSystem inputSystem;
-	InputHandler inputHandler;
+	InputHandler rootInputHandler;
+	InputHandler renderInputHandler;
 	ActorManager manager;
 	PhysicsEngine physicsEngine;
 	PhysicsRenderer renderer;
 
 	Profiler profiler;
+	Ticker inputTicker;
 
 };

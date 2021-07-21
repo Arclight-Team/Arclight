@@ -120,8 +120,7 @@
 	Final release build
 	ARC_FINAL_BUILD: Builds the program ready for release. Disables debugging functionality and optimizes certain functions.
 */
-
-#define ARC_FINAL_BUILD
+//#define ARC_FINAL_BUILD
 
 
 /*
@@ -145,7 +144,7 @@
 	ACS runtime checks
 	ARC_ACS_RUNTIME_CHECKS: Enables safety guards/barriers at runtime
 */
-//#define ARC_ACS_RUNTIME_CHECKS
+#define ARC_ACS_RUNTIME_CHECKS
 
 
 /*
@@ -166,4 +165,4 @@
 	Profiling mode
 	ARC_ENABLE_PROFILER: Enables profilers
 */
-//#define ARC_ENABLE_PROFILER
+#define ARC_ENABLE_PROFILER

@@ -1,6 +1,8 @@
 #include "physicsengine.h"
 #include "bulletconv.h"
 #include "core/acs/actormanager.h"
+#include "core/acs/component/boxcollider.h"
+#include "core/acs/component/rigidbody.h"
 #include "util/log.h"
 #include "types.h"
 
@@ -86,19 +88,13 @@ void PhysicsEngine::update() {
 	profiler.stop("PhysicsSim");
 
 	profiler.start();
-	ComponentView view = actorManager.view<Transform, BoxCollider>();
+	ComponentView view = actorManager.view<Transform, RigidBody>();
 
-	for(auto [transform, collider] : view) {
+	for(auto [transform, rigidbody] : view) {
 
-		btRigidBody* body = static_cast<btRigidBody*>(collider.handle);
-		btTransform rbtransform;
-		body->getMotionState()->getWorldTransform(rbtransform);
-
-		transform.position = Bullet::fromBtVector3(rbtransform.getOrigin());
-
-		btScalar rx, ry, rz;
-		rbtransform.getRotation().getEulerZYX(rz, ry, rx);
-		transform.rotation = Vec3x(rx, ry, rz);
+		WorldTransform wt = rigidbody.getTransform();
+		transform.position = wt.getTranslation() - rigidbody.getTransformOffset();
+		transform.rotation = wt.getRotation();
 
 	}
 
@@ -141,14 +137,15 @@ void PhysicsEngine::onBoxCreated(BoxCollider& collider, ActorID actor) {
 
 
 
-void PhysicsEngine::onBoxDestroyed(BoxCollider& collider, ActorID actor) {
+void PhysicsEngine::onRigidBodyAdded(RigidBody& body, ActorID actor) {
 
-	btRigidBody* body = static_cast<btRigidBody*>(collider.handle);
+	if(!body.isCreated()) {
 
-	delete body->getCollisionShape();
-	delete body->getMotionState();
-	delete body;
+		const Transform& transform = actorManager.getProvider().getComponent<Transform>(actor);
+		body.create(WorldTransform(transform.position, transform.rotation), 1.0);
 
-	body = nullptr;
+	}
+
+	dynamicsWorld->addRigidBody(static_cast<btRigidBody*>(body.handle));
 
 }

@@ -79,7 +79,7 @@ void PhysicsRenderer::render() {
 	u32 objects = 0;
 	modelMatrixBuffer.clear();
 
-	for(auto[transform, collider] : actorManager.view<Transform, BoxCollider>()) {
+	for(auto[transform, collider] : actorManager.view<Transform, RigidBody>()) {
 
 		Mat4f modelMatrix = Mat4f::fromTranslation(transform.position) * Mat4f::fromRotationXYZ(transform.rotation.x, transform.rotation.y, transform.rotation.z);
 		

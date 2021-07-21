@@ -61,7 +61,7 @@ private:
 	u32 prevObjects;
 	std::vector<float> modelMatrixBuffer;
 
-	constexpr static double camRotationScale = 0.0006;
-	constexpr static double camVelocity = 0.01;
+	constexpr static double camRotationScale = 0.06;
+	constexpr static double camVelocity = 1;
 
 };

@@ -19,12 +19,14 @@ public:
 	typedef std::function<bool(double, double)> CursorListener;
 	typedef std::function<bool(double, double)> ScrollListener;
 
-	inline InputHandler() : context(nullptr), actionListener(nullptr), coActionListener(nullptr), keyListener(nullptr), charListener(nullptr), cursorListener(nullptr), scrollListener(nullptr) {};
+	inline InputHandler() noexcept : context(nullptr), actionListener(nullptr), coActionListener(nullptr), keyListener(nullptr), charListener(nullptr), cursorListener(nullptr), scrollListener(nullptr) {};
 
 	virtual ~InputHandler();
 
-	InputHandler(const InputHandler& handler) = delete;
-	InputHandler& operator=(const InputHandler& handler) = delete;
+	InputHandler(const InputHandler& handler) noexcept = delete;
+	InputHandler& operator=(const InputHandler& handler) noexcept = delete;
+	InputHandler(InputHandler&& handler) noexcept = default;
+	InputHandler& operator=(InputHandler&& handler) noexcept = default;
 
 	inline void setActionListener(ActionListener listener) {
 		actionListener = listener;

@@ -2,11 +2,13 @@
 
 #include "component/transform.h"
 #include "component/boxcollider.h"
+#include "component/inputcontroller.h"
+#include "component/rigidbody.h"
 
 #include <tuple>
 
 
-using ComponentTypes = std::tuple<Transform, BoxCollider>;
+using ComponentTypes = std::tuple<Transform, BoxCollider, RigidBody>;
 
 
 struct ComponentHelper {

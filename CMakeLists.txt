@@ -32,7 +32,7 @@ add_compile_definitions(ARC_USE_DISCORD=${ARC_BUILD_DISCORD})
 message("Building ${PROJECT_NAME} as: ${CMAKE_BUILD_TYPE}")
 
 #Profiling via debug symbols
-if(MSVC AND CMAKE_BUILD_TYPE MATCHES "Release" AND 0)
+if(MSVC AND CMAKE_BUILD_TYPE MATCHES "Release")
 	message("Profiling active")
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
 	add_link_options("/DEBUG")

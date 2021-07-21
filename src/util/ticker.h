@@ -15,7 +15,7 @@ public:
 private:
 
     Timer timer;
-    u32 nsPerTick;
+    u32 usPerTick;
 	u64 accumulator;
 
 };

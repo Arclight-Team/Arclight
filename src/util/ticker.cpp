@@ -1,14 +1,14 @@
 #include "ticker.h"
 
 
-Ticker::Ticker() : nsPerTick(1), accumulator(0) {}
+Ticker::Ticker() : usPerTick(1), accumulator(0) {}
 
 
 void Ticker::start(u32 tps) {
 
     timer.start();
 	accumulator = 0;
-    nsPerTick = 1000000ULL / tps;
+    usPerTick = 1000000ULL / tps;
 
 }
 
@@ -22,10 +22,10 @@ u32 Ticker::getTicks() {
 	accumulator += delta;
 	u32 ticks = 0;
 
-	if (accumulator > nsPerTick) {
+	if (accumulator > usPerTick) {
 
-		ticks = accumulator / nsPerTick;
-		accumulator %= nsPerTick;
+		ticks = accumulator / usPerTick;
+		accumulator %= usPerTick;
 
 	}
 

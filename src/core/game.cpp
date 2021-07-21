@@ -32,61 +32,78 @@ bool Game::init() {
 		GLE::Framebuffer::setViewport(w, h);
 		renderer.setAspectRatio(window.getWidth() / static_cast<float>(window.getHeight())); 
 	});
+	
 
-	window.setSize(1920, 1080);
+	window.setSize(1080, 720);
 
 	//Connect the input system to the window in order to receive events
 	inputSystem.connect(window);
 
 	//Create the root context and add actions to it
 	InputContext& rootContext = inputSystem.createContext(0);
+	InputContext& inputRenderContext = inputSystem.createContext(1);
 	rootContext.addState(0);
+	inputRenderContext.addState(0);
 
-	rootContext.addAction(PhysicsRenderer::ActionID::CameraRotRight,	KeyTrigger({ KeyCode::Right }), true);
-	rootContext.addAction(PhysicsRenderer::ActionID::CameraRotLeft,		KeyTrigger({ KeyCode::Left }), true);
-	rootContext.addAction(PhysicsRenderer::ActionID::CameraRotDown,		KeyTrigger({ KeyCode::Down }), true);
-	rootContext.addAction(PhysicsRenderer::ActionID::CameraRotUp,		KeyTrigger({ KeyCode::Up }), true);
-	rootContext.addAction(PhysicsRenderer::ActionID::CameraMoveLeft,	KeyTrigger({ KeyCode::A }), true);
-	rootContext.addAction(PhysicsRenderer::ActionID::CameraMoveRight,	KeyTrigger({ KeyCode::D }), true);
-	rootContext.addAction(PhysicsRenderer::ActionID::CameraMoveBackward,KeyTrigger({ KeyCode::S }), true);
-	rootContext.addAction(PhysicsRenderer::ActionID::CameraMoveForward,	KeyTrigger({ KeyCode::W }), true);
-	rootContext.addAction(PhysicsRenderer::ActionID::CameraMoveDown,	KeyTrigger({ KeyCode::Q }), true);
-	rootContext.addAction(PhysicsRenderer::ActionID::CameraMoveUp,		KeyTrigger({ KeyCode::E }), true);
+	inputRenderContext.addAction(PhysicsRenderer::ActionID::CameraRotRight,	KeyTrigger({ KeyCode::Right }), true);
+	inputRenderContext.addAction(PhysicsRenderer::ActionID::CameraRotLeft,		KeyTrigger({ KeyCode::Left }), true);
+	inputRenderContext.addAction(PhysicsRenderer::ActionID::CameraRotDown,		KeyTrigger({ KeyCode::Down }), true);
+	inputRenderContext.addAction(PhysicsRenderer::ActionID::CameraRotUp,		KeyTrigger({ KeyCode::Up }), true);
+	inputRenderContext.addAction(PhysicsRenderer::ActionID::CameraMoveLeft,	KeyTrigger({ KeyCode::A }), true);
+	inputRenderContext.addAction(PhysicsRenderer::ActionID::CameraMoveRight,	KeyTrigger({ KeyCode::D }), true);
+	inputRenderContext.addAction(PhysicsRenderer::ActionID::CameraMoveBackward,KeyTrigger({ KeyCode::S }), true);
+	inputRenderContext.addAction(PhysicsRenderer::ActionID::CameraMoveForward,	KeyTrigger({ KeyCode::W }), true);
+	inputRenderContext.addAction(PhysicsRenderer::ActionID::CameraMoveDown,	KeyTrigger({ KeyCode::Q }), true);
+	inputRenderContext.addAction(PhysicsRenderer::ActionID::CameraMoveUp,		KeyTrigger({ KeyCode::E }), true);
 	
-	rootContext.registerAction(0, PhysicsRenderer::ActionID::CameraRotLeft);
-	rootContext.registerAction(0, PhysicsRenderer::ActionID::CameraRotRight);
-	rootContext.registerAction(0, PhysicsRenderer::ActionID::CameraRotDown);
-	rootContext.registerAction(0, PhysicsRenderer::ActionID::CameraRotUp);
-	rootContext.registerAction(0, PhysicsRenderer::ActionID::CameraMoveLeft);
-	rootContext.registerAction(0, PhysicsRenderer::ActionID::CameraMoveRight);
-	rootContext.registerAction(0, PhysicsRenderer::ActionID::CameraMoveBackward);
-	rootContext.registerAction(0, PhysicsRenderer::ActionID::CameraMoveForward);
-	rootContext.registerAction(0, PhysicsRenderer::ActionID::CameraMoveDown);
-	rootContext.registerAction(0, PhysicsRenderer::ActionID::CameraMoveUp);
+	inputRenderContext.registerAction(0, PhysicsRenderer::ActionID::CameraRotLeft);
+	inputRenderContext.registerAction(0, PhysicsRenderer::ActionID::CameraRotRight);
+	inputRenderContext.registerAction(0, PhysicsRenderer::ActionID::CameraRotDown);
+	inputRenderContext.registerAction(0, PhysicsRenderer::ActionID::CameraRotUp);
+	inputRenderContext.registerAction(0, PhysicsRenderer::ActionID::CameraMoveLeft);
+	inputRenderContext.registerAction(0, PhysicsRenderer::ActionID::CameraMoveRight);
+	inputRenderContext.registerAction(0, PhysicsRenderer::ActionID::CameraMoveBackward);
+	inputRenderContext.registerAction(0, PhysicsRenderer::ActionID::CameraMoveForward);
+	inputRenderContext.registerAction(0, PhysicsRenderer::ActionID::CameraMoveDown);
+	inputRenderContext.registerAction(0, PhysicsRenderer::ActionID::CameraMoveUp);
+
+	rootContext.addAction(0, KeyTrigger({ KeyCode::F }), true);
+	rootContext.registerAction(0, 0);
 
 	//Define input handler callbacks
-	inputHandler.setCoActionListener([this](KeyAction action, double scale) {
+	rootInputHandler.setCoActionListener([this](KeyAction action, double scale) {
+
+		if(action == 0) {
+			Random& random = Random::getRandom();
+			manager.getProvider().getComponent<RigidBody>(manager.spawn(1, Transform(Vec3x(0, 5, 0)))).setGravity(Vec3x(random.getInt(-50, 50), random.getInt(-50, 50), random.getInt(-50, 50)));
+			return true;
+		}
+
+		return false;
+
+	});
+
+	renderInputHandler.setCoActionListener([this](KeyAction action, double scale) {
 		renderer.onKeyAction(action);
 		return true;
 	});
 
-	inputHandler.setActionListener([this](KeyAction action) {
+	renderInputHandler.setActionListener([this](KeyAction action) {
 		renderer.onKeyAction(action);
 		return true;
 	});
 
 	//Link handler to the root context
-	rootContext.linkHandler(inputHandler);
+	rootContext.linkHandler(rootInputHandler);
+	inputRenderContext.linkHandler(renderInputHandler);
 
 	manager.setup();
 	manager.registerActor<ExampleActor>(0);
 	manager.registerActor<BoxActor>(1);
 
-	manager.addObserver<BoxCollider>(ComponentEvent::Created, [this](BoxCollider& collider, ActorID id) { physicsEngine.onBoxCreated(collider, id); });
-	manager.addObserver<BoxCollider>(ComponentEvent::Destroyed, [this](BoxCollider& collider, ActorID id) { physicsEngine.onBoxDestroyed(collider, id); });
-	
+	manager.addObserver<RigidBody>(ComponentEvent::Created, [this](RigidBody& body, ActorID id) { physicsEngine.onRigidBodyAdded(body, id); });
 	physicsEngine.init(20);
-
+/*
 	for(u32 i = 0; i < 15; i++) {
 
 		for(u32 j = 0; j < 15; j++) {
@@ -98,8 +115,10 @@ bool Game::init() {
 		}
 
 	}
-
+*/	
 	profiler.stop("Initialization");
+
+	inputTicker.start(120);
 
 	return true;
 
@@ -109,7 +128,7 @@ bool Game::init() {
 
 void Game::update() {
 
-	inputSystem.updateContinuous(1);
+	inputSystem.updateContinuous(inputTicker.getTicks());
 	physicsEngine.update();
 
 }

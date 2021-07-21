@@ -1,6 +1,8 @@
 #pragma once
 
 #include "LinearMath/btVector3.h"
+#include "LinearMath/btTransform.h"
+#include "worldtransform.h"
 #include "util/vector.h"
 
 
@@ -12,6 +14,16 @@ namespace Bullet {
 
     inline btVector3 fromVec3x(const Vec3x& v) {
         return btVector3(v.x, v.y, v.z);
+    }
+
+    inline WorldTransform fromBtTransform(const btTransform& t) {
+        btScalar rx, ry, rz;
+        t.getRotation().getEulerZYX(rx, ry, rz);
+        return WorldTransform(fromBtVector3(t.getOrigin()), Vec3x(rx, ry, rz));
+    }
+
+    inline btTransform fromWorldTransform(const WorldTransform& t) {
+        return btTransform(btQuaternion(t.getRotation().x, t.getRotation().y, t.getRotation().z), fromVec3x(t.getTranslation()));
     }
 
 }
