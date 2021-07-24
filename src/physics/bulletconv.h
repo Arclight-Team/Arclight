@@ -4,6 +4,7 @@
 #include "LinearMath/btTransform.h"
 #include "worldtransform.h"
 #include "util/vector.h"
+#include "util/quaternion.h"
 
 
 namespace Bullet {
@@ -16,14 +17,20 @@ namespace Bullet {
         return btVector3(v.x, v.y, v.z);
     }
 
+    inline QuatX fromBtQuaternion(const btQuaternion& q) {
+        return QuatX(q.x(), q.y(), q.z(), q.w());
+    }
+
+    inline btQuaternion fromQuatX(const QuatX& q) {
+        return btQuaternion(q.x, q.y, q.z, q.w);
+    }
+
     inline WorldTransform fromBtTransform(const btTransform& t) {
-        btScalar rx, ry, rz;
-        t.getRotation().getEulerZYX(rx, ry, rz);
-        return WorldTransform(fromBtVector3(t.getOrigin()), Vec3x(rx, ry, rz));
+        return WorldTransform(fromBtVector3(t.getOrigin()), fromBtQuaternion(t.getRotation()));
     }
 
     inline btTransform fromWorldTransform(const WorldTransform& t) {
-        return btTransform(btQuaternion(t.getRotation().x, t.getRotation().y, t.getRotation().z), fromVec3x(t.getTranslation()));
+        return btTransform(fromQuatX(t.rotation), fromVec3x(t.translation));
     }
 
 }

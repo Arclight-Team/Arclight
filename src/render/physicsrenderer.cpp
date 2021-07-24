@@ -20,7 +20,7 @@ bool PhysicsRenderer::init() {
 		return false;
 	}
 
-	if(!model.load(":/models/test/test.fbx", false)) {
+	if(!model.load(":/models/cube/cube.obj", true)) {
 		Log::error("Physics Renderer", "Failed to load model");
 		return false;
 	}
@@ -81,9 +81,9 @@ void PhysicsRenderer::render() {
 	lightPositionUniform.setVec3(lightPos.toVec3());
 	lightColorUniform.setVec3(Vec3f(1));
 	
-	for(auto[transform, collider] : actorManager.view<Transform, RigidBody>()) {
+	for(auto[transform, rigidbody] : actorManager.view<Transform, RigidBody>()) {
 
-		Mat4f modelMatrix = Mat4f::fromTranslation(transform.position) * Mat4f::fromRotationXYZ(transform.rotation.x, transform.rotation.y, transform.rotation.z) * Mat4f::fromScale(Vec3x(0.5));
+		Mat4f modelMatrix = Mat4f::fromTranslation(transform.position) * transform.rotation.toMat4() * Mat4f::fromScale(1.0);
 		renderModel(model, modelMatrix);
 
 	}
@@ -146,8 +146,8 @@ void PhysicsRenderer::renderMesh(arcModel& model, arcMesh& mesh, const Mat4f& tr
 
 	mesh.createTransformTree(boneTransforms);
 	modelBoneTransformsUniform.setMat4Array(boneTransforms.data(), boneTransforms.size());
-	//modelUseBonesUniform.setInt(mesh.hasBones());
-	modelUseBonesUniform.setInt(false);
+	modelUseBonesUniform.setInt(mesh.hasBones());
+	//modelUseBonesUniform.setInt(false);
 
 	modelMVPUniform.setMat4(mvpMatrix);
 	modelMVUniform.setMat4(modelViewMatrix);
@@ -174,7 +174,7 @@ void PhysicsRenderer::applyMaterial(arcModel& model, arcMaterial& material) {
 	bool useAmbientTex = true;
 	bool useSpecularTex = true;
 	bool useNormalsTex = true;
-	bool useBump = true;
+	bool useBump = false;
 
 	modelAmbientEnableUniform.setInt(0);
 	modelDiffuseEnableUniform.setInt(0);

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "util/math.h"
-#include "util/assert.h"
-#include "util/random.h"
+#include "math.h"
+#include "assert.h"
+#include "random.h"
 #include "typetraits.h"
 
 

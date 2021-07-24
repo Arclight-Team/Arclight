@@ -10,6 +10,8 @@
 
 #include "types.h"
 #include "vector.h"
+#include "matrix.h"
+#include "quaternion.h"
 
 
 template<class T>
@@ -62,6 +64,18 @@ public:
     template<Vector V>
     ArcDebug& operator<<(const V& v) {
         write(v);
+        return *this;
+    }
+
+    template<Matrix M>
+    ArcDebug& operator<<(const M& m) {
+        write(m);
+        return *this;
+    }
+
+    template<Float F>
+    ArcDebug& operator<<(const Quaternion<F>& q) {
+        write(q);
         return *this;
     }
 
@@ -142,6 +156,55 @@ private:
         }
             
         buffer << v[v.Size - 1] << "]";
+        dispatchToken(Token::ArcSpace);
+
+    }
+
+
+    template<Matrix M>
+    void write(const M& m) {
+
+        buffer << "Mat" << m.Size << "[";
+        
+        for(u32 i = 0; i < m.Size; i++) {
+
+            if(i) {
+                buffer << "     [";
+            } else {
+                buffer << "[";
+            }
+
+            for(u32 j = 0; j < m.Size - 1; j++) {
+                buffer << m[j][i] <<  ", ";
+            }
+
+            buffer << m[m.Size - 1][i];
+            
+            if(i != m.Size - 1) {
+
+                buffer << "]";
+                dispatchToken(Token::ArcEndl);
+
+            } else {
+
+                buffer << "]]";
+
+            }
+
+        }
+
+    }
+
+    
+    template<Float F>
+    void write(const Quaternion<F>& q) {
+
+        buffer << "Quat" << "[";
+        buffer << q.w << ", ";
+        buffer << q.x << ", ";
+        buffer << q.y << ", ";
+        buffer << q.z << "]";
+            
         dispatchToken(Token::ArcSpace);
 
     }

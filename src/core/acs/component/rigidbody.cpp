@@ -40,8 +40,7 @@ void RigidBody::create(const WorldTransform& transform, double mass) {
 	}
 
 	btDefaultMotionState* motionState = new btDefaultMotionState(rbTransform);
-	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, box, localInertia);
-	btRigidBody* rb = new btRigidBody(rbInfo);
+	btRigidBody* rb = new btRigidBody(mass, motionState, box, localInertia);
 
     handle = rb;
 
@@ -65,11 +64,11 @@ void RigidBody::destroy() {
 
 
 
-RigidBody::RigidBody(RigidBody&& body) noexcept : transformOffset(std::move(body.transformOffset)), handle(std::exchange(body.handle, nullptr)) {}
+RigidBody::RigidBody(RigidBody&& body) : transformOffset(std::move(body.transformOffset)), handle(std::exchange(body.handle, nullptr)) {}
 
 
 
-RigidBody& RigidBody::operator=(RigidBody&& body) noexcept {
+RigidBody& RigidBody::operator=(RigidBody&& body) {
 
     transformOffset = std::move(body.transformOffset);
     handle = std::exchange(body.handle, nullptr);
@@ -94,8 +93,32 @@ WorldTransform RigidBody::getTransform() const {
 }
 
 
-Vec3x RigidBody::getTransformOffset() const noexcept {
+WorldTransform RigidBody::getTransformOffset() const {
     return transformOffset;
+}
+
+
+
+Vec3x RigidBody::getLinearVelocity() const {
+    return Bullet::fromBtVector3(rbcast(handle)->getLinearVelocity());
+}
+
+
+
+Vec3x RigidBody::getAngularVelocity() const {
+    return Bullet::fromBtVector3(rbcast(handle)->getAngularVelocity());
+}
+
+
+
+void RigidBody::activate() {
+    rbcast(handle)->activate(true);
+}
+
+
+
+void RigidBody::deactivate() {
+    rbcast(handle)->setActivationState(0);
 }
 
 
@@ -136,6 +159,61 @@ void RigidBody::applyTorqueImpulse(const Vec3x& torque) {
 
 
 
+void RigidBody::clearForces() {
+    rbcast(handle)->clearForces();
+}
+
+
+
+void RigidBody::disableGravity() {
+    setGravity(Vec3x(0));
+}
+
+
+
+void RigidBody::disableFriction() {
+    setLinearDamping(0);
+    setAngularDamping(0);
+}
+
+
+
+void RigidBody::setLinearVelocity(const Vec3x& velocity) {
+    rbcast(handle)->setLinearVelocity(Bullet::fromVec3x(velocity));
+}
+
+
+
+void RigidBody::setAngularVelocity(const Vec3x& velocity) {
+    rbcast(handle)->setAngularVelocity(Bullet::fromVec3x(velocity));
+}
+
+
+
+void RigidBody::setLinearDamping(double damping) {
+    rbcast(handle)->setDamping(damping, rbcast(handle)->getAngularDamping());
+}
+
+
+
+void RigidBody::setAngularDamping(double damping) {
+    rbcast(handle)->setDamping(rbcast(handle)->getLinearDamping(), damping);
+}
+
+
+
+void RigidBody::setLinearScale(const Vec3x& scale) {
+    rbcast(handle)->setLinearFactor(Bullet::fromVec3x(scale));
+}
+
+
+
+void RigidBody::setAngularScale(const Vec3x& scale) {
+    rbcast(handle)->setAngularFactor(Bullet::fromVec3x(scale));
+}
+
+
+
 void RigidBody::setRestitution(double restitution) {
     rbcast(handle)->setRestitution(restitution);
 }
@@ -163,6 +241,6 @@ void RigidBody::setGravity(const Vec3x& gravity) {
 
 
 
-void RigidBody::setTransformOffset(const Vec3x& offset) noexcept {
+void RigidBody::setTransformOffset(const WorldTransform& offset) {
     transformOffset = offset;
 }

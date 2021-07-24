@@ -165,4 +165,18 @@
 	Profiling mode
 	ARC_ENABLE_PROFILER: Enables profilers
 */
-#define ARC_ENABLE_PROFILER
+//#define ARC_ENABLE_PROFILER
+
+
+/*
+	Matrix -> Quaternion default conversion method
+	ARC_QUATERNION_MATCONV_BRANCHLESS: Prefers a branchless conversion algorithm
+*/
+//#define ARC_QUATERNION_MATCONV_BRANCHLESS
+
+
+/*
+	Quaternion memory layout
+	ARC_QUATERNION_XYZW: Sets w to be the last component
+*/
+//#define ARC_QUATERNION_XYZW

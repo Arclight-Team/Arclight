@@ -92,9 +92,10 @@ void PhysicsEngine::update() {
 
 	for(auto [transform, rigidbody] : view) {
 
-		WorldTransform wt = rigidbody.getTransform();
-		transform.position = wt.getTranslation() - rigidbody.getTransformOffset();
-		transform.rotation = wt.getRotation();
+		WorldTransform rbwt = rigidbody.getTransform();
+		WorldTransform owt = rigidbody.getTransformOffset();
+		transform.position = rbwt.translation - owt.translation;
+		transform.rotation = rbwt.rotation;// * owt.rotation.inverse();
 
 	}
 

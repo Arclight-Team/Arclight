@@ -194,8 +194,18 @@ namespace Math {
 	}
 
 	template<Arithmetic A>
-	constexpr auto sign(A value) noexcept {
-		return (value > A(0)) - (value < A(0));
+	constexpr auto copysign(A value, A sgn) noexcept {
+		return std::copysign(value, sgn);
+	}
+
+	template<Integer I>
+	constexpr auto sign(I value) noexcept {
+		return (value > I(0)) - (value < I(0));
+	}
+
+	template<Float F>
+	constexpr auto sign(F value) noexcept {
+		return 1 - std::signbit(value) * 2;
 	}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D, Arithmetic E>

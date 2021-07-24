@@ -10,6 +10,11 @@ class Mat2 {
 
 public:
 
+	using Type = T;
+
+	constexpr static u32 Size = 2;
+
+
 	constexpr Mat2() {
 		setIdentity();
 	}
@@ -105,6 +110,10 @@ public:
 		v[1] = { 0, 1 };
 	}
 
+	constexpr T trace() const {
+		return v[0][0] + v[1][1];
+	}
+
 	template<Float A>
 	constexpr Mat2& operator=(const Mat2<A>& m) {
 		v[0] = m[0];
@@ -163,6 +172,11 @@ template<Float T>
 class Mat3 {
 
 public:
+
+	using Type = T;
+
+	constexpr static u32 Size = 3;
+
 
 	constexpr Mat3() {
 		setIdentity();
@@ -299,6 +313,10 @@ public:
 		v[2] = { 0, 0, 1 };
 	}
 
+	constexpr T trace() const {
+		return v[0][0] + v[1][1] + v[2][2];
+	}
+
 	template<Float A>
 	constexpr Mat3& operator=(const Mat3<A>& m) {
 		v[0] = m[0];
@@ -358,6 +376,11 @@ template<Float T>
 class Mat4 {
 
 public:
+
+	using Type = T;
+	
+	constexpr static u32 Size = 4;
+
 
 	constexpr Mat4() {
 		setIdentity();
@@ -551,6 +574,10 @@ public:
 		v[1] = { 0, 1, 0, 0 };
 		v[2] = { 0, 0, 1, 0 };
 		v[3] = { 0, 0, 0, 1 };
+	}
+
+	constexpr T trace() const {
+		return v[0][0] + v[1][1] + v[2][2] + v[3][3];
 	}
 
 	template<Float A>
@@ -785,6 +812,10 @@ public:
 
 
 
+template<class T>
+concept Matrix = TypeTraits::IsAnyOfV<T, Mat2<typename T::Type>, Mat3<typename T::Type>, Mat4<typename T::Type>>;
+
+
 template<Float A, Float B, template<Float> class Matrix>
 constexpr auto operator+(Matrix<A> m, const Matrix<B>& n) requires (std::is_same_v<Matrix<A>, Mat2<A>> || std::is_same_v<Matrix<A>, Mat3<A>> || std::is_same_v<Matrix<A>, Mat4<A>>) {
 	m += n;
@@ -836,6 +867,7 @@ constexpr auto operator*(const Mat4<A>& m, const Vec4<B>& v) {
 	return Vec4<A>(x, y, z, w);
 
 }
+
 
 
 
