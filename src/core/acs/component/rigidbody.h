@@ -5,7 +5,7 @@
 #include "component.h"
 
 
-class WorldTransform;
+struct WorldTransform;
 
 class RigidBody : public IComponent {
 
@@ -55,6 +55,7 @@ public:
 
 private:
 
+    friend class DynamicsWorld;
     friend class PhysicsEngine;
     
     WorldTransform transformOffset;

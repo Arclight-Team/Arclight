@@ -7,7 +7,7 @@ class Collider : public IComponent {
 
 public:
 
-    enum class Type : u8{
+    enum class Type : u8 {
         Box
     };
 

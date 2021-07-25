@@ -10,7 +10,6 @@
 #include "acs/componentview.h"
 #include "acs/component/transform.h"
 #include "acs/component/model.h"
-#include "acs/component/boxcollider.h"
 #include "input/inputcontext.h"
 #include "util/quaternion.h"
 
@@ -101,8 +100,9 @@ bool Game::init() {
 	manager.registerActor<ExampleActor>(0);
 	manager.registerActor<BoxActor>(1);
 
-	manager.addObserver<RigidBody>(ComponentEvent::Created, [this](RigidBody& body, ActorID id) { physicsEngine.onRigidBodyAdded(body, id); });
+	manager.addObserver<RigidBody>(ComponentEvent::Created, [this](RigidBody& body, ActorID id) { physicsEngine.onRigidBodyAdded(id % 1, body, id); });
 	physicsEngine.init(20);
+	physicsEngine.createWorld(1);
 
 	for(u32 i = 0; i < 15; i++) {
 
@@ -116,8 +116,6 @@ bool Game::init() {
 		}
 
 	}
-
-	manager.spawn(1, Transform());
 
 	profiler.stop("Initialization");
 
@@ -140,15 +138,15 @@ bool Game::init() {
 
 
 void Game::update() {
-/*
+
 	for(auto [rigidbody] : manager.view<RigidBody>()) {
 
-		Vec3x delta = -rigidbody.getTransform().getTranslation();
+		Vec3x delta = -rigidbody.getTransform().translation;
 		delta.y = 0;
 		rigidbody.applyForce(delta.normalized() * 10.0);
 
 	}
-*/
+
 	inputSystem.updateContinuous(inputTicker.getTicks());
 	physicsEngine.update();
 

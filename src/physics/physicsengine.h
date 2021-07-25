@@ -2,41 +2,35 @@
 
 #include "core/acs/actor.h"
 #include "util/profiler.h"
+#include "dynamicsworld.h"
 #include "types.h"
+
+#include <unordered_map>
 
 
 
 class RigidBody;
-class BoxCollider;
 class ActorManager;
-class btDefaultCollisionConfiguration;
-class btCollisionDispatcher;
-class btBroadphaseInterface;
-class btSequentialImpulseConstraintSolver;
-class btDiscreteDynamicsWorld;
 
 class PhysicsEngine {
 
 public:
 
-	explicit PhysicsEngine(ActorManager& actorManager);
-	~PhysicsEngine();
+	explicit PhysicsEngine(ActorManager& actorManager) : actorManager(actorManager), tps(1) {}
 
 	void init(u32 ticksPerSecond);
 	void update();
 
-	void onBoxCreated(BoxCollider& collider, ActorID actor);
-	void onRigidBodyAdded(RigidBody& body, ActorID actor);
+	bool createWorld(u32 worldID);
+	void destroyWorld(u32 worldID);
+	DynamicsWorld& getWorld(u32 worldID);
+
+	void onRigidBodyAdded(u32 worldID, RigidBody& body, ActorID actor);
 
 private:
 
-	btDefaultCollisionConfiguration* collisionConfiguration;
-	btCollisionDispatcher* dispatcher;
-	btBroadphaseInterface* overlappingPairCache;
-	btSequentialImpulseConstraintSolver* solver;
-	btDiscreteDynamicsWorld* dynamicsWorld;
-
 	ActorManager& actorManager;
+	std::unordered_map<u32, DynamicsWorld> dynamicWorlds;
 	
 	Profiler profiler;
 	Timer simTimer;
