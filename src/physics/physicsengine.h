@@ -20,12 +20,14 @@ public:
 
 	void init(u32 ticksPerSecond);
 	void update();
+	void destroy();
 
 	bool createWorld(u32 worldID);
 	void destroyWorld(u32 worldID);
 	DynamicsWorld& getWorld(u32 worldID);
 
 	void onRigidBodyAdded(u32 worldID, RigidBody& body, ActorID actor);
+	void onRigidBodyDeleted(u32 worldID, RigidBody& body);
 
 private:
 

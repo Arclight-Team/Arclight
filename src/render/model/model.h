@@ -173,10 +173,10 @@ namespace arc
 		Material(const Material& other) = delete;
 		Material& operator=(const Material& other) = delete;
 
-		constexpr void setTextureOptions(bool flipY = false, bool srgb = false) {
+		constexpr void setTextureOptions(bool flipY = false, bool sRGB = false) {
 
 			textureFlipY = flipY;
-			textureSRGB = srgb;
+			textureSRGB = sRGB;
 
 		}
 
@@ -206,7 +206,9 @@ namespace arc
 						//resPath.move("..");
 						resPath.move(texPath.C_Str());
 
-						texture.load(resPath, textureFlipY, textureSRGB);
+						if (!texture.load(resPath, textureFlipY, textureSRGB)) {
+							target.pop_back();
+						}
 					}
 				}
 			}
@@ -1293,9 +1295,12 @@ namespace arc
 	{
 	public:
 
-		bool load(const Uri& path, bool flipY = false) {
+		bool load(const Uri& path, bool flipY = false, bool sRGB = false) {
 
-			ModelParser parser(path, ModelParser::DefaultProcessFlags | (flipY ? aiProcess_FlipUVs : 0));
+			ModelParser parser(path, ModelParser::DefaultProcessFlags/* | (flipY ? aiProcess_FlipUVs : 0)*/);
+
+			textureFlipY = flipY;
+			textureSRGB = sRGB;
 
 			/*aiScene* scene = (aiScene*)"tua madre";*/
 
@@ -1395,6 +1400,7 @@ namespace arc
 			for (u32 i = 0; i < parser.getMaterialCount(); i++) {
 				const aiMaterial* material = parser.getMaterials()[i];
 
+				materials[i].setTextureOptions(textureFlipY, textureSRGB);
 				if (!materials[i].parse(material, parser.getRootPath()))
 					return false;
 			}
@@ -1426,6 +1432,8 @@ namespace arc
 		NodeCollection nodes;
 		std::deque<Material> materials;
 		std::deque<Mesh> meshes;
+		bool textureFlipY;
+		bool textureSRGB;
 
 	};
 

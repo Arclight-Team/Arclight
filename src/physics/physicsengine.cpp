@@ -82,6 +82,13 @@ void PhysicsEngine::update() {
 
 
 
+void PhysicsEngine::destroy() {
+
+	dynamicWorlds.clear();
+
+}
+
+
 
 bool PhysicsEngine::createWorld(u32 worldID) {
 
@@ -138,5 +145,17 @@ void PhysicsEngine::onRigidBodyAdded(u32 worldID, RigidBody& body, ActorID actor
 	}
 
 	dynamicWorlds[worldID].addRigidBody(body);
+
+}
+
+
+
+void PhysicsEngine::onRigidBodyDeleted(u32 worldID, RigidBody& body) {
+
+	arc_assert(dynamicWorlds.contains(worldID), "Bad dynamics world ID = %d", worldID);
+
+	dynamicWorlds[worldID].deleteRigidBody(body);
+
+	body.destroy();
 
 }

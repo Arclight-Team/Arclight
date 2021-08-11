@@ -20,7 +20,7 @@ bool PhysicsRenderer::init() {
 		return false;
 	}
 
-	if(!model.load(":/models/cube/cube.obj", true)) {
+	if(!model.load(":/models/cube/cube.obj", false)) {
 		Log::error("Physics Renderer", "Failed to load model");
 		return false;
 	}

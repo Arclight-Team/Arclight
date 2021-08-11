@@ -14,25 +14,55 @@ struct DynamicsWorldConfiguration {
 
 	DynamicsWorldConfiguration(Type type = Type::Default) {
 
-		collisionConfiguration = new btDefaultCollisionConfiguration;
+		collisionConfiguration = new btDefaultCollisionConfiguration();
 		dispatcher = new btCollisionDispatcher(collisionConfiguration);
-		overlappingPairCache = new btDbvtBroadphase;
-		solver = new btSequentialImpulseConstraintSolver;
+		overlappingPairCache = new btDbvtBroadphase();
+		solver = new btSequentialImpulseConstraintSolver();
 		world = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 
 	}
 
 	~DynamicsWorldConfiguration() {
 
-		delete collisionConfiguration;
-		delete dispatcher;
-		delete overlappingPairCache;
-		delete solver;
+		for (int i = world->getNumConstraints() - 1; i >= 0; i--) {
+			auto constraint = world->getConstraint(i);
+
+			world->removeConstraint(constraint);
+
+			delete constraint;
+		}
+
+		for (int i = world->getNumCollisionObjects() - 1; i >= 0; i--)
+		{
+			auto object = world->getCollisionObjectArray()[i];
+			auto* rb = btRigidBody::upcast(object);
+
+			if (rb && rb->getMotionState()) {
+				while (rb->getNumConstraintRefs()) {
+					auto* constraint = rb->getConstraintRef(0);
+					world->removeConstraint(constraint);
+					delete constraint;
+				}
+
+				delete rb->getMotionState();
+				world->removeRigidBody(rb);
+			}
+			else {
+				world->removeCollisionObject(object);
+			}
+
+			delete object;
+		}
+
 		delete world;
+		delete solver;
+		delete overlappingPairCache;
+		delete dispatcher;
+		delete collisionConfiguration;
 
 	}
 
-    btDefaultCollisionConfiguration* collisionConfiguration;
+	btDefaultCollisionConfiguration* collisionConfiguration;
 	btCollisionDispatcher* dispatcher;
 	btBroadphaseInterface* overlappingPairCache;
 	btSequentialImpulseConstraintSolver* solver;
@@ -43,7 +73,7 @@ struct DynamicsWorldConfiguration {
 
 
 void DynamicsWorld::create() {
-    config = std::make_shared<DynamicsWorldConfiguration>();
+	config = std::make_shared<DynamicsWorldConfiguration>();
 }
 
 

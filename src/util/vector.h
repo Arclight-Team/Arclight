@@ -149,6 +149,10 @@ public:
 		return Math::sqrt(magSquared());
 	}
 
+	constexpr bool isNull() const {
+		return !(x && y);
+	}
+
 	constexpr void normalize() {
 		divide(length());
 	}
@@ -352,6 +356,10 @@ public:
 
 	constexpr auto length() const {
 		return Math::sqrt(magSquared());
+	}
+
+	constexpr bool isNull() const {
+		return !(x && y && z);
 	}
 
 	constexpr void normalize() {
@@ -573,6 +581,10 @@ public:
 
 	constexpr auto length() const {
 		return Math::sqrt(magSquared());
+	}
+
+	constexpr bool isNull() const {
+		return !(x && y && z && w);
 	}
 
 	constexpr void normalize() {

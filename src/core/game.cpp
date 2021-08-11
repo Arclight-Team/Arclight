@@ -100,7 +100,8 @@ bool Game::init() {
 	manager.registerActor<ExampleActor>(0);
 	manager.registerActor<BoxActor>(1);
 
-	manager.addObserver<RigidBody>(ComponentEvent::Created, [this](RigidBody& body, ActorID id) { physicsEngine.onRigidBodyAdded(id % 1, body, id); });
+	manager.addObserver<RigidBody>(ComponentEvent::Created, [this](RigidBody& body, ActorID id) { physicsEngine.onRigidBodyAdded(id & 1, body, id); });
+	manager.addObserver<RigidBody>(ComponentEvent::Destroyed, [this](RigidBody& body, ActorID id) { physicsEngine.onRigidBodyDeleted(id & 1, body); });
 	physicsEngine.init(20);
 	physicsEngine.createWorld(1);
 
@@ -143,8 +144,10 @@ void Game::update() {
 
 		Vec3x delta = -rigidbody.getTransform().translation;
 		delta.y = 0;
-		rigidbody.applyForce(delta.normalized() * 10.0);
 
+		if (!delta.isNull()) {
+			rigidbody.applyForce(delta.normalized() * 10.0);
+		}
 	}
 
 	inputSystem.updateContinuous(inputTicker.getTicks());
@@ -170,6 +173,8 @@ void Game::destroy() {
 	for(u32 i = 0; i < 15 * 15 * 15; i++) {
 		manager.destroy(i);
 	}
+
+	physicsEngine.destroy();
 
 	profiler.stop("Destruction");
 
