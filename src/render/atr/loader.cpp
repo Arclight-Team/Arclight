@@ -185,8 +185,9 @@ namespace Loader {
 
 		texture.create();
 		texture.bind();
-		texture.setData(width, height,	hasAlpha ? GLE::ImageFormat::SRGBA8 : GLE::ImageFormat::SRGB8, 
-										hasAlpha ? GLE::TextureSourceFormat::RGBA : GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, data);
+		//texture.setData(width, height,	hasAlpha ? GLE::ImageFormat::SRGBA8 : GLE::ImageFormat::SRGB8, 
+		texture.setData(width, height, hasAlpha ? GLE::ImageFormat::RGBA8 : GLE::ImageFormat::RGB8,
+			hasAlpha ? GLE::TextureSourceFormat::RGBA : GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, data);
 
 		stbi_image_free(data);
 		texture.generateMipmaps();
@@ -239,7 +240,8 @@ namespace Loader {
 				srcFormat = hasAlpha ? GLE::TextureSourceFormat::RGBA : GLE::TextureSourceFormat::RGB;
 				texture.setData(width, height, layers, format, srcFormat, GLE::TextureSourceType::UByte, nullptr);
 
-			} else {
+			}
+			else {
 
 				i32 w = 0;
 				i32 h = 0;
@@ -325,7 +327,8 @@ namespace Loader {
 				srcFormat = hasAlpha ? GLE::TextureSourceFormat::RGBA : GLE::TextureSourceFormat::RGB;
 				cubemap.setData(i, width, format, srcFormat, GLE::TextureSourceType::UByte, data);
 
-			} else {
+			}
+			else {
 
 				i32 w = 0;
 				i32 h = 0;
@@ -366,9 +369,11 @@ namespace Loader {
 
 		aiMatrix4x4 sceneTransform = sceneNode->mTransformation;
 		Mat4f thisTransform(sceneTransform[0][0], sceneTransform[0][1], sceneTransform[0][2], sceneTransform[0][3],
-							sceneTransform[1][0], sceneTransform[1][1], sceneTransform[1][2], sceneTransform[1][3],
-							sceneTransform[2][0], sceneTransform[2][1], sceneTransform[2][2], sceneTransform[2][3],
-							sceneTransform[3][0], sceneTransform[3][1], sceneTransform[3][2], sceneTransform[3][3]);
+			sceneTransform[1][0], sceneTransform[1][1], sceneTransform[1][2], sceneTransform[1][3],
+			sceneTransform[2][0], sceneTransform[2][1], sceneTransform[2][2], sceneTransform[2][3],
+			sceneTransform[3][0], sceneTransform[3][1], sceneTransform[3][2], sceneTransform[3][3]);
+
+		node.name = sceneNode->mName.C_Str();
 
 		node.baseTransform = thisTransform * transform;
 		node.visible = true;
@@ -380,6 +385,78 @@ namespace Loader {
 
 		node.children.resize(sceneNode->mNumChildren);
 
+		Log::debug("Loader", "Node: %s", node.name.c_str());
+
+		if (sceneNode->mMetaData) {
+			if (sceneNode->mMetaData->mNumProperties) {
+				Log::debug("Loader", "Metadata:");
+			}
+
+			for (u32 i = 0; i < sceneNode->mMetaData->mNumProperties; i++) {
+				Log::debug("Loader", "Name: %s", sceneNode->mMetaData->mKeys[i].C_Str());
+				switch (sceneNode->mMetaData->mValues[i].mType) {
+				case AI_BOOL:
+				{
+					bool v;
+					Log::debug("Loader", "Type: BOOL");
+					sceneNode->mMetaData->Get(i, v);
+					Log::debug("Loader", "Data: %s", v ? "true" : "false");
+					break;
+				}
+				case AI_INT32:
+				{
+					i32 v;
+					Log::debug("Loader", "Type: INT32");
+					sceneNode->mMetaData->Get(i, v);
+					Log::debug("Loader", "Data: %d", v);
+					break;
+				}
+				case AI_UINT64:
+				{
+					u64 v;
+					Log::debug("Loader", "Type: UINT64");
+					sceneNode->mMetaData->Get(i, v);
+					Log::debug("Loader", "Data: %d", v);
+					break;
+				}
+				case AI_FLOAT:
+				{
+					float v;
+					Log::debug("Loader", "Type: FLOAT");
+					sceneNode->mMetaData->Get(i, v);
+					Log::debug("Loader", "Data: %f", v);
+					break;
+				}
+				case AI_DOUBLE:
+				{
+					double v;
+					Log::debug("Loader", "Type: DOUBLE");
+					sceneNode->mMetaData->Get(i, v);
+					Log::debug("Loader", "Data: %f", v);
+					break;
+				}
+				case AI_AISTRING:
+				{
+					aiString v;
+					Log::debug("Loader", "Type: AISTRING");
+					sceneNode->mMetaData->Get(i, v);
+					Log::debug("Loader", "Data: %s", v.C_Str());
+					break;
+				}
+				case AI_AIVECTOR3D:
+				{
+					aiVector3D v;
+					Log::debug("Loader", "Type: AIVECTOR3D");
+					sceneNode->mMetaData->Get(i, v);
+					Log::debug("Loader", "Data: %f, %f, %f", v.x, v.y, v.z);
+					break;
+				}
+				}
+			}
+		}
+
+		Log::debug("Loader", "");
+
 		for (u32 i = 0; i < sceneNode->mNumChildren; i++) {
 			loadNode(sceneNode->mChildren[i], node.children[i], node.baseTransform);
 		}
@@ -389,7 +466,7 @@ namespace Loader {
 
 
 	bool loadModel(Model& model, const Uri& path, bool flipY) {
-		
+
 		u32 flags = aiProcess_ValidateDataStructure
 			| aiProcess_SortByPType
 			| aiProcess_FindInvalidData
@@ -428,57 +505,57 @@ namespace Loader {
 
 					switch (type) {
 
-						case aiTextureType_DIFFUSE:
-							name = "diffuse";
-							break;
+					case aiTextureType_DIFFUSE:
+						name = "diffuse";
+						break;
 
-						case aiTextureType_SPECULAR:
-							name = "specular";
-							break;
+					case aiTextureType_SPECULAR:
+						name = "specular";
+						break;
 
-						case aiTextureType_AMBIENT:
-							name = "ambient";
-							break;
+					case aiTextureType_AMBIENT:
+						name = "ambient";
+						break;
 
-						case aiTextureType_EMISSIVE:
-							name = "emissive";
-							break;
+					case aiTextureType_EMISSIVE:
+						name = "emissive";
+						break;
 
-						case aiTextureType_NORMALS:
-							name = "normals";
-							break;
+					case aiTextureType_NORMALS:
+						name = "normals";
+						break;
 
-						case aiTextureType_SHININESS:
-							name = "shininess";
-							break;
+					case aiTextureType_SHININESS:
+						name = "shininess";
+						break;
 
-						case aiTextureType_OPACITY:
-							name = "opacity";
-							break;
+					case aiTextureType_OPACITY:
+						name = "opacity";
+						break;
 
-						case aiTextureType_DISPLACEMENT:
-							name = "displacement";
-							break;
+					case aiTextureType_DISPLACEMENT:
+						name = "displacement";
+						break;
 
-						case aiTextureType_LIGHTMAP:
-							name = "lightmap";
-							break;
+					case aiTextureType_LIGHTMAP:
+						name = "lightmap";
+						break;
 
-						case aiTextureType_REFLECTION:
-							name = "reflection";
-							break;
+					case aiTextureType_REFLECTION:
+						name = "reflection";
+						break;
 
-						case aiTextureType_HEIGHT:
-						case aiTextureType_BASE_COLOR:
-						case aiTextureType_NORMAL_CAMERA:
-						case aiTextureType_EMISSION_COLOR:
-						case aiTextureType_METALNESS:
-						case aiTextureType_DIFFUSE_ROUGHNESS:
-						case aiTextureType_AMBIENT_OCCLUSION:
-						case aiTextureType_UNKNOWN:
-						default:
-							name = "unknown";
-							break;
+					case aiTextureType_HEIGHT:
+					case aiTextureType_BASE_COLOR:
+					case aiTextureType_NORMAL_CAMERA:
+					case aiTextureType_EMISSION_COLOR:
+					case aiTextureType_METALNESS:
+					case aiTextureType_DIFFUSE_ROUGHNESS:
+					case aiTextureType_AMBIENT_OCCLUSION:
+					case aiTextureType_UNKNOWN:
+					default:
+						name = "unknown";
+						break;
 
 					}
 
@@ -548,7 +625,7 @@ namespace Loader {
 				size = vertexCount * uvComps * 4;
 
 				for (u32 j = 0; j < vertexCount; j++) {
-					
+
 					for (u32 k = 0; k < uvComps; k++) {
 						vertexData[offset / 4 + j * uvComps + k] = sceneMesh->mTextureCoords[0][j][k];
 					}
@@ -591,7 +668,7 @@ namespace Loader {
 			model.meshes.emplace_back(std::move(mesh));
 
 		}
-		
+
 		return true;
 
 	}

@@ -74,11 +74,11 @@ GLE::ShaderProgram ShaderLoader::fromString(const std::string& vs, const std::st
 	GLE::ShaderProgram program;
 	program.create();
 
-	if (!program.addShader(vs.c_str(), vs.size(), GLE::ShaderType::VertexShader)) {
+	if (!program.addShader(vs.c_str(), static_cast<u32>(vs.length()), GLE::ShaderType::VertexShader)) {
 		throw ShaderLoaderException(std::string("Compilation of vertex shader failed"));
 	}
 
-	if (!program.addShader(fs.c_str(), fs.size(), GLE::ShaderType::FragmentShader)) {
+	if (!program.addShader(fs.c_str(), static_cast<u32>(fs.length()), GLE::ShaderType::FragmentShader)) {
 		throw ShaderLoaderException(std::string("Compilation of fragment shader failed"));
 	}
 
@@ -97,15 +97,15 @@ GLE::ShaderProgram ShaderLoader::fromString(const std::string& vs, const std::st
 	GLE::ShaderProgram program;
 	program.create();
 
-	if (!program.addShader(vs.c_str(), vs.size(), GLE::ShaderType::VertexShader)) {
+	if (!program.addShader(vs.c_str(), static_cast<u32>(vs.length()), GLE::ShaderType::VertexShader)) {
 		throw ShaderLoaderException(std::string("Compilation of vertex shader failed"));
 	}
 
-	if (!program.addShader(fs.c_str(), fs.size(), GLE::ShaderType::FragmentShader)) {
+	if (!program.addShader(fs.c_str(), static_cast<u32>(fs.length()), GLE::ShaderType::FragmentShader)) {
 		throw ShaderLoaderException(std::string("Compilation of fragment shader failed"));
 	}
 
-	if (!program.addShader(gs.c_str(), gs.size(), GLE::ShaderType::GeometryShader)) {
+	if (!program.addShader(gs.c_str(), static_cast<u32>(gs.length()), GLE::ShaderType::GeometryShader)) {
 		throw ShaderLoaderException(std::string("Compilation of geometry shader failed"));
 	}
 

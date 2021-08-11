@@ -34,6 +34,7 @@ struct ModelNode {
 
 	std::vector<ModelNode> children;
 	std::vector<u32> meshIndices;
+	std::string name;
 	Mat4f baseTransform;
 	bool visible;
 
