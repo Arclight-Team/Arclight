@@ -150,7 +150,7 @@ public:
 	}
 
 	constexpr bool isNull() const {
-		return !(x && y);
+		return Math::isZero(x) && Math::isZero(y);
 	}
 
 	constexpr void normalize() {
@@ -359,7 +359,7 @@ public:
 	}
 
 	constexpr bool isNull() const {
-		return !(x && y && z);
+		return Math::isZero(x) && Math::isZero(y) && Math::isZero(z);
 	}
 
 	constexpr void normalize() {
@@ -584,7 +584,7 @@ public:
 	}
 
 	constexpr bool isNull() const {
-		return !(x && y && z && w);
+		return Math::isZero(x) && Math::isZero(y) && Math::isZero(z) && Math::isZero(w);
 	}
 
 	constexpr void normalize() {
