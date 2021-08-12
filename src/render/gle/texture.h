@@ -135,6 +135,7 @@ public:
 	u32 getHeight() const;
 	u32 getDepth() const;
 	ImageFormat getImageFormat() const;
+	CompressedImageFormat getCompressedImageFormat() const;
 
 	TextureType getTextureType() const;
 

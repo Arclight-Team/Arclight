@@ -63,4 +63,40 @@ void Texture1D::update(u32 x, u32 w, TextureSourceFormat srcFormat, TextureSourc
 
 
 
+void Texture1D::setCompressedData(u32 w, CompressedImageFormat format, const void* data, u32 size) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set data)", id);
+
+	if (w > Limits::getMaxTextureSize()) {
+		error("1D texture dimension of size %d exceeds maximum texture size of %d", w, Limits::getMaxTextureSize());
+		return;
+	}
+
+	width = w;
+	height = 0;
+	depth = 0;
+	texFormat = static_cast<ImageFormat>(format);
+
+	glCompressedTexImage1D(getTextureTypeEnum(type), 0, Image::getCompressedImageFormatEnum(format), w, 0, size, data);
+
+}
+
+
+
+void Texture1D::setCompressedMipmapData(u32 level, const void* data, u32 size) {
+
+	gle_assert(isBound(), "Texture %d has not been bound (attempted to set mipmap data)", id);
+
+	if (level > getMipmapCount()) {
+		error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
+		return;
+	}
+
+	auto format = getCompressedImageFormat();
+
+	glCompressedTexImage1D(getTextureTypeEnum(type), level, Image::getCompressedImageFormatEnum(format), getMipmapSize(level, width), 0, size, data);
+
+}
+
+
 GLE_END

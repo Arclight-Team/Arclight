@@ -16,6 +16,9 @@ public:
 	void setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data);
 	void update(u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data, u32 level = 0);
 
+	void setCompressedData(u32 w, u32 h, CompressedImageFormat format, const void* data, u32 size);
+	void setCompressedMipmapData(u32 level, const void* data, u32 size);
+
 	using Texture::setWrapU;
 	using Texture::setWrapV;
 	using Texture::setBorderColor;

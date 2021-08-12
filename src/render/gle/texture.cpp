@@ -145,8 +145,14 @@ ImageFormat Texture::getImageFormat() const {
 
 
 
+CompressedImageFormat Texture::getCompressedImageFormat() const {
+	return static_cast<CompressedImageFormat>(texFormat);
+}
+
+
+
 u32 Texture::getMipmapSize(u32 level, u32 d) {
-	return d >> level;
+	return (d >> level) ? d >> level : 1U;
 }
 
 
