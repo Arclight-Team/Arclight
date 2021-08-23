@@ -2,6 +2,7 @@
 
 #include "util/vector.h"
 #include "physics/worldtransform.h"
+#include "physics/collision/collider.h"
 #include "component.h"
 
 
@@ -26,6 +27,7 @@ public:
     bool isCreated() const;
 
     WorldTransform getTransform() const;
+    WorldTransform getInterpolatedTransform() const;
     WorldTransform getTransformOffset() const;
     Vec3x getLinearVelocity() const;
     Vec3x getAngularVelocity() const;
@@ -59,6 +61,7 @@ private:
     friend class PhysicsEngine;
     
     WorldTransform transformOffset;
+    Collider collider;
     void* handle;
 
 };

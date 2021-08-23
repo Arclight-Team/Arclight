@@ -85,12 +85,19 @@ bool RigidBody::isCreated() const {
 
 
 WorldTransform RigidBody::getTransform() const {
+    return Bullet::fromBtTransform(rbcast(handle)->getWorldTransform());
+}
+
+
+
+WorldTransform RigidBody::getInterpolatedTransform() const {
 
     btTransform t;
     rbcast(handle)->getMotionState()->getWorldTransform(t);
     return Bullet::fromBtTransform(t);
 
 }
+
 
 
 WorldTransform RigidBody::getTransformOffset() const {

@@ -83,7 +83,7 @@ void PhysicsRenderer::render() {
 	
 	for(auto[transform, rigidbody] : actorManager.view<Transform, RigidBody>()) {
 
-		Mat4f modelMatrix = Mat4f::fromTranslation(transform.position) * transform.rotation.toMat4() * Mat4f::fromScale(1.0);
+		Mat4f modelMatrix = Mat4f::fromTranslation(transform.position) * transform.rotation.toMat4() * Mat4f::fromScale(1);
 		renderModel(model, modelMatrix);
 
 	}
