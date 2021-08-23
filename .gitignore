@@ -24,3 +24,4 @@ imgui.ini
 CMakeFiles/
 dev/
 demo/
+CMakeLists.txt

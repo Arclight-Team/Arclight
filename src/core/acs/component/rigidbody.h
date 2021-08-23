@@ -2,7 +2,6 @@
 
 #include "util/vector.h"
 #include "physics/worldtransform.h"
-#include "physics/collision/collider.h"
 #include "component.h"
 
 
@@ -61,7 +60,6 @@ private:
     friend class PhysicsEngine;
     
     WorldTransform transformOffset;
-    Collider collider;
     void* handle;
 
 };
