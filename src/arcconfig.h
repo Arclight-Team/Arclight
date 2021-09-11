@@ -53,10 +53,10 @@
 /*
 	Color quantization function
 	quantizeScale8: Scales float to u8
-	quantizeRound8: Scales float to u8 and rounds
+	quantizeRound8: Scales float to u8 and rounds (CMATH_CONSTEXPR issue)
 */
 
-#define ARC_COLOR_QUANTIZE		quantizeRound8
+#define ARC_COLOR_QUANTIZE		quantizeScale8
 
 
 /*

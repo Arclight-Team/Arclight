@@ -127,6 +127,12 @@ namespace Bits {
 }
 
 
+template<class O, class I>
+constexpr O ptr_cast(I* v) {
+	return static_cast<O>(static_cast<void*>(v));
+}
+
+
 #define arc_clz(x) Bits::clz((x))
 #define arc_ctz(x) Bits::ctz((x))
 

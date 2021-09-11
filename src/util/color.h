@@ -25,6 +25,15 @@ struct ColorRGB {
 		return (r << 16) | (g << 8) | b;
 	}
 
+
+	static constexpr ColorRGB fromVec3f(const Vec3f& v) noexcept {
+		return ColorRGB(v.x * 255.0, v.y * 255.0, v.z * 255.0);
+	}
+	
+	static constexpr ColorRGB fromVec3i(const Vec3i& v) noexcept {
+		return ColorRGB(v.x, v.y, v.z);
+	}
+
 	static constexpr ColorRGB fromPacked(u32 rgb) noexcept {
 		return ColorRGB((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
 	}
@@ -69,6 +78,14 @@ struct ColorRGBA : public ColorRGB {
 
 	}
 
+
+	static constexpr ColorRGBA fromVec4f(const Vec4f& v) noexcept {
+		return ColorRGBA(v.x * 255.0, v.y * 255.0, v.z * 255.0, v.w * 255.0);
+	}
+
+	static constexpr ColorRGBA fromVec4i(const Vec4i& v) noexcept {
+		return ColorRGBA(v.x, v.y, v.z, v.w);
+	}
 
 	template<ColorRGBA::ChannelOrder Order = ColorRGBA::ARC_COLOR_DEFAULT_CHANNEL_ORDER>
 	static constexpr ColorRGBA fromPacked(u32 rgba) noexcept {
@@ -117,7 +134,7 @@ namespace Color {
 	}
 
 	//Quantize to u8 by rounding
-	constexpr u8 quantizeRound8(double value) {
+	ARC_CMATH_CONSTEXPR u8 quantizeRound8(double value) {
 		return Math::round(value * 255.0);
 	}
 

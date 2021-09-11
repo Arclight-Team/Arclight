@@ -5,6 +5,8 @@
 #include "component.h"
 
 
+class btCollisionShape;
+
 struct WorldTransform;
 
 class RigidBody : public IComponent {
@@ -41,6 +43,11 @@ public:
     void clearForces();
     void disableGravity();
     void disableFriction();
+
+
+    void setShape(btCollisionShape* shape);
+    void setShapeSize(const Vec3x& size);
+
 
     void setLinearVelocity(const Vec3x& velocity);
     void setAngularVelocity(const Vec3x& velocity);
