@@ -11,6 +11,11 @@
 
 void PhysicsEngine::init(u32 ticksPerSecond) {
 
+	if(!ticksPerSecond) {
+		Log::error("Physics Engine", "Cannot run simulations at 0 tps");
+		return;
+	}
+
 	Log::info("Physics Engine", "Setting up simulation");
 
 	createWorld(0);
@@ -72,7 +77,7 @@ void PhysicsEngine::update() {
 
 	for(auto [transform, rigidbody] : view) {
 
-		WorldTransform rbwt = rigidbody.getTransform();
+		WorldTransform rbwt = rigidbody.getInterpolatedTransform();
 		WorldTransform owt = rigidbody.getTransformOffset();
 		transform.position = rbwt.translation - owt.translation;
 		transform.rotation = rbwt.rotation * owt.rotation.inverse();

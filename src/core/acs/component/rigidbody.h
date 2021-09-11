@@ -28,6 +28,7 @@ public:
     bool isCreated() const;
 
     WorldTransform getTransform() const;
+    WorldTransform getInterpolatedTransform() const;
     WorldTransform getTransformOffset() const;
     Vec3x getLinearVelocity() const;
     Vec3x getAngularVelocity() const;

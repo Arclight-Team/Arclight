@@ -142,7 +142,7 @@ void ChunkAllocator::deallocate(void* ptr) noexcept {
 		head = storagePtr;
 
 #ifdef ARC_ALLOCATOR_DEBUG_LOG
-		Log::debug("Pool Allocator", "Pool %p deallocated memory at %p.", heap, ptr);
+		Log::debug("Chunk Allocator", "Chunk %p deallocated memory at %p.", heap, ptr);
 #endif
 
 	}
