@@ -1,20 +1,20 @@
 #pragma once
+
 #include "stream.h"
-#include <vector>
+#include <span>
 
 
-class MemoryStream : public Stream
+class ByteReader : public Stream
 {
 public:
 
-	MemoryStream(const u8* data, u64 size);
-	MemoryStream(const std::vector<u8>& data);
-	template<class T>
-	MemoryStream(const std::vector<T>& data) : position(0) {
+	ByteReader(const u8* data, u64 size);
 
-		// convert T vector to u8 vector
-		memory.resize(data.size() * sizeof(T));
-		std::memcpy(memory.data(), data.data(), memory.size());
+	template<class T>
+	ByteReader(const std::span<const T>& data) : position(0) {
+
+		//convert T span to u8 span
+		memory = data.as_bytes();
 
 	}
 
@@ -30,6 +30,6 @@ public:
 private:
 
 	u64 position;
-	std::vector<u8> memory;
+	std::span<const std::byte> memory;
 
 };

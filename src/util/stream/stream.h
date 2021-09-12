@@ -1,7 +1,9 @@
 #pragma once
 #include "types.h"
 #include "util/bits.h"
-#include "util/assert.h"
+
+#include <span>
+
 
 class Stream
 {
@@ -13,6 +15,16 @@ public:
 		Current,
 		End,
 	};
+
+	template<class T>
+	u64 read(const std::span<T>& dest) {
+		read(dest.data(), dest.size());
+	}
+
+	template<class T>
+	u64 write(const std::span<const T>& dest) {
+		write(dest.data(), dest.size());
+	}
 
 	virtual u64 read(void* dest, u64 size) = 0;
 	virtual u64 write(const void* src, u64 size) = 0;

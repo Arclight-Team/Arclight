@@ -1,4 +1,5 @@
 #include "filestream.h"
+#include "util/assert.h"
 
 
 FileStream::FileStream(File& file) : file(file) {

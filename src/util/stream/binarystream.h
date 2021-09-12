@@ -1,5 +1,7 @@
 #pragma once
+
 #include "stream.h"
+#include "util/assert.h"
 #include <vector>
 
 

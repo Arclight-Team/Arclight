@@ -1,4 +1,5 @@
 #include "binarystream.h"
+#include "util/assert.h"
 
 
 BinaryStream::BinaryStream(Stream& stream) : stream(stream), bigEndian(false) {}
