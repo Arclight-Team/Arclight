@@ -35,6 +35,4 @@ If you want to join out team, contact us through arcayn.arclight@gmail.com. Plea
 ## Credits
 - [Arcayn](https://github.com/Arcaiyn) for the project's management
 - [Ed_IT](https://github.com/Ed-1T) for the help as the second head developer
-- [KonPet](https://github.com/KonPet) for his contributions
-- [Overblade](https://github.com/Overblade) for the original project
 - [ItzTacos](https://github.com/ItzTacosOfficial) for the official logo
