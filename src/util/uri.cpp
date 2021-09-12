@@ -9,21 +9,27 @@
 Uri::Uri() : path() {}
 
 
-Uri::Uri(const char* path) {
-	setPath(path);
-};
-
-
 Uri::Uri(const std::string& path) {
 	setPath(path);
 };
 
 
 
+
+void Uri::move(const std::string& path) {
+	this->path /= path;
+}
+
+
+
 void Uri::setPath(const std::string& path) {
 
-	if (!path.empty() && path.starts_with(":/")) {
-		this->path = Config::getUriAssetPath() + path.substr(2);
+	if(path.empty()) {
+		return;
+	}
+
+	if(path.size() >= 2 && path[1] == '/') {
+		this->path = getSpecialUriRootPath(path[0]) + path;
 	} else {
 		this->path = path;
 	}
@@ -32,7 +38,7 @@ void Uri::setPath(const std::string& path) {
 
 
 
-bool Uri::createDirectory() {
+bool Uri::createDirectory() const {
 
 	if (directoryExists()) {
 		return true;
@@ -58,8 +64,14 @@ bool Uri::createDirectory() {
 
 
 
-void Uri::move(const std::string& path) {
-	this->path /= path;
+bool Uri::copy() const {
+	
+}
+
+
+
+bool Uri::remove() const {
+
 }
 
 
@@ -93,7 +105,33 @@ bool Uri::directoryExists(const std::string& path) {
 }
 
 
+	
+void Uri::setSpecialUriHandler(char symbol, SpecialUriHandler handler) {
 
-void Uri::setApplicationUriRoot(const std::string& root) {
-	std::filesystem::current_path(root);
+	if(std::string(&symbol).find_first_not_of("/<>:/\\|?*") == std::string::npos) {
+
+		Log::warn("Uri", "Cannot set uri handler for special symbol %c", symbol);
+		return;
+
+	}
+
+	specialHandlers[symbol] = handler;
+
+}
+
+
+std::string Uri::getSpecialUriRootPath(char symbol) {
+
+	if(specialHandlers.contains(symbol)) {
+		return specialHandlers[symbol]();
+	}
+
+	return "";
+
+}
+
+
+
+std::string Uri::getSystemTempPath() {
+	return std::filesystem::temp_directory_path().string();
 }
