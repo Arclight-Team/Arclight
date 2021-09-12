@@ -35,23 +35,31 @@ struct DynamicsWorldConfiguration {
 		for (int i = world->getNumCollisionObjects() - 1; i >= 0; i--)
 		{
 			auto object = world->getCollisionObjectArray()[i];
-			auto* rb = btRigidBody::upcast(object);
+			//auto* rb = btRigidBody::upcast(object);
 
-			if (rb && rb->getMotionState()) {
-				while (rb->getNumConstraintRefs()) {
-					auto* constraint = rb->getConstraintRef(0);
-					world->removeConstraint(constraint);
-					delete constraint;
-				}
+			//if (rb && rb->getMotionState()) {
+			//	while (rb->getNumConstraintRefs()) {
+			//		auto* constraint = rb->getConstraintRef(0);
+			//		world->removeConstraint(constraint);
+			//		delete constraint;
+			//	}
 
-				delete rb->getMotionState();
-				world->removeRigidBody(rb);
-			}
-			else {
+			//	delete rb->getMotionState();
+			//	delete rb->getCollisionShape();
+			//	world->removeRigidBody(rb);
+
+			//	/*RigidBody* rbc = static_cast<RigidBody*>(rb->getUserPointer());
+			//	if (rbc) {
+			//		rbc->destroy();
+			//	}*/
+
+			//	delete object;
+			//}
+			//else {
 				world->removeCollisionObject(object);
-			}
+				delete object;
+			//}
 
-			delete object;
 		}
 
 		delete world;
@@ -85,7 +93,9 @@ void DynamicsWorld::setWorldGravity(const Vec3x& gravity) {
 
 
 void DynamicsWorld::addRigidBody(RigidBody& body) {
-	config->world->addRigidBody(static_cast<btRigidBody*>(body.handle));
+	btRigidBody* rb = static_cast<btRigidBody*>(body.handle);
+	rb->setUserPointer(config->world);
+	config->world->addRigidBody(rb);
 }
 
 

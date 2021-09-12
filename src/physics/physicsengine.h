@@ -7,9 +7,11 @@
 
 #include <unordered_map>
 
+#include "core/acs/component/rigidbody.h"
 
 
-class RigidBody;
+
+//class RigidBody;
 class ActorManager;
 
 class PhysicsEngine {
@@ -34,6 +36,8 @@ private:
 	ActorManager& actorManager;
 	std::unordered_map<u32, DynamicsWorld> dynamicWorlds;
 	
+	RigidBody ground;
+
 	Profiler profiler;
 	Timer simTimer;
 	u32 tps;

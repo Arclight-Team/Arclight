@@ -19,35 +19,38 @@ void PhysicsEngine::init(u32 ticksPerSecond) {
 	Log::info("Physics Engine", "Setting up simulation");
 
 	createWorld(0);
-	getWorld(0).setWorldGravity(Vec3x(0, 0, 0));
-/*
+	getWorld(0).setWorldGravity(Vec3x(0, -9.81, 0));
+
 	{ 
-		btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
+		btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(50.), btScalar(.5), btScalar(50.)));
 
 		btTransform groundTransform;
 		groundTransform.setIdentity();
-		groundTransform.setOrigin(btVector3(0, -56, 0));
+		groundTransform.setOrigin(btVector3(0, /*-56*/ -1, 0));
 
 		btScalar mass(0.);
 
-		//rigidbody is dynamic if and only if mass is non zero, otherwise static
-		bool isDynamic = (mass != 0.f);
+		////rigidbody is dynamic if and only if mass is non zero, otherwise static
+		//bool isDynamic = (mass != 0.f);
+		//
+		//btVector3 localInertia(0, 0, 0);
+		//if (isDynamic)
+		//	groundShape->calculateLocalInertia(mass, localInertia);
+		//
+		////using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		//btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
+		//btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
+		//btRigidBody* body = new btRigidBody(rbInfo);
 
-		btVector3 localInertia(0, 0, 0);
-		if (isDynamic)
-			groundShape->calculateLocalInertia(mass, localInertia);
-
-		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
-		btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
-		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
-		btRigidBody* body = new btRigidBody(rbInfo);
-		body->setRestitution(0.9);
+		ground.create(WorldTransform{ { groundTransform.getOrigin().x(), groundTransform.getOrigin().y(), groundTransform.getOrigin().z()  }, {} }, mass);
+		ground.setShape(groundShape);
+		ground.setRestitution(0.9);
 
 		//add the body to the dynamics world
-		dynamicsWorld->addRigidBody(body);
+		getWorld(0).addRigidBody(ground);
 
 	}
-*/
+
 	tps = ticksPerSecond;
 	simTimer.start();
 
@@ -88,6 +91,8 @@ void PhysicsEngine::update() {
 
 
 void PhysicsEngine::destroy() {
+
+	ground.destroy();
 
 	dynamicWorlds.clear();
 

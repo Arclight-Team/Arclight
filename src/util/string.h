@@ -17,6 +17,8 @@ namespace String {
 
 			std::snprintf(out.data(), out.size(), message.c_str(), args...);
 
+			out.erase(out.end() - 1);
+
 			return out;
 		}
 		catch (std::exception&) {
@@ -36,6 +38,8 @@ namespace String {
 			out.resize(length + 1);
 
 			std::swprintf(out.data(), out.size(), message.c_str(), args...);
+
+			out.erase(out.end() - 1);
 
 			return out;
 		}
