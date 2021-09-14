@@ -18,7 +18,7 @@ public:
 	u64 write(const void* src, u64 size);
 
 	void seek(i64 offset, SeekMode mode = SeekMode::Begin);
-	u64 tell() const;
+	u64 getPosition() const;
 
 	u64 getSize() const;
 	bool isOpen() const;

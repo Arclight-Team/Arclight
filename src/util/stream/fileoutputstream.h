@@ -1,18 +1,17 @@
 #pragma once
 
-#include "stream.h"
+#include "outputstream.h"
 #include "filestreamimpl.h"
 
 
 class File;
 
-class FileStream : public Stream, private FileStreamImpl
+class FileOutputStream : public OutputStream, private FileStreamImpl
 {
 public:
 
-	FileStream(File& file);
+	FileOutputStream(File& file);
 
-	virtual u64 read(void* dest, u64 size) override;
 	virtual u64 write(const void* src, u64 size) override;
 
 	virtual u64 seek(i64 offset, SeekMode mode = SeekMode::Begin) override;

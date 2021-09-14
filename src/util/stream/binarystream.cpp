@@ -29,8 +29,8 @@ void BinaryStream::seek(i64 offset, SeekMode mode) {
 	stream.seek(offset, mode);
 }
 
-u64 BinaryStream::tell() const {
-	return stream.tell();
+u64 BinaryStream::getPosition() const {
+	return stream.getPosition();
 }
 
 

@@ -25,6 +25,7 @@ public:
 	File();
 	explicit File(const Uri& path, File::Flags flags = File::In);
 
+	bool open();
 	bool open(const Uri& path, File::Flags flags = File::In);
 	void close();
 

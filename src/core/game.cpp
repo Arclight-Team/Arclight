@@ -12,6 +12,8 @@
 #include "acs/component/model.h"
 #include "input/inputcontext.h"
 #include "util/quaternion.h"
+#include "util/file.h"
+#include "util/stream/fileinputstream.h"
 
 
 Game::Game(Window& window) : window(window), physicsEngine(manager), renderer(manager) {}
@@ -122,15 +124,15 @@ bool Game::init() {
 
 	inputTicker.start(120);
 
-	QuatF p = QuatF::fromEulerAngles(Math::toRadians(30.0), 0, 0);
-	QuatF q = QuatF::fromEulerAngles(0, Math::toRadians(15.0), 0);
-	QuatF r = p * q;
-	Mat4f mr = r.toMat4();
-	Mat4f mm = Mat4f::fromRotationXYZ(Math::toRadians(30.0), Math::toRadians(15.0), 0);
-	ArcDebug() << mr;
-	ArcDebug() << mm;
-	ArcDebug() << mr - mm;
-	ArcDebug() << p << q << r;
+	File file(":/logo.png", File::In | File::Binary);
+	file.open();
+	FileInputStream stream(file);
+	u8 buf[200];
+	stream.read(buf, 200);
+
+	for(u32 i = 0; i < 200; i++) {
+		ArcDebug() << buf[i];
+	}
 
 	return true;
 
