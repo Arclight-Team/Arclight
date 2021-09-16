@@ -4,10 +4,17 @@
 #include "concepts.h"
 #include "types.h"
 
-namespace Bits {
 
-	constexpr inline bool LittleEndian	= std::endian::native == std::endian::little;
-	constexpr inline bool BigEndian		= std::endian::native == std::endian::big;
+enum class ByteOrder {
+	Little,
+	Big
+};
+
+constexpr inline ByteOrder MachineByteOrder = std::endian::native == std::endian::little ? ByteOrder::Little : ByteOrder::Big;
+constexpr inline bool LittleEndian			= MachineByteOrder == ByteOrder::Little;
+constexpr inline bool BigEndian				= MachineByteOrder == ByteOrder::Big;
+
+namespace Bits {
 	
 	template<Integer T>
 	constexpr auto rol(T value, int bits) {
@@ -97,6 +104,10 @@ namespace Bits {
 		else {
 			return swap64(in);
 		}
+	}
+
+	constexpr bool requiresEndianConversion(ByteOrder reqOrder) {
+		return reqOrder != MachineByteOrder;
 	}
 
 	template<Integer T>

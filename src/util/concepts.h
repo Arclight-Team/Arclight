@@ -51,7 +51,7 @@ template<class T>
 concept MoveConstructible = std::move_constructible<T>;
 
 
-/* Arithmetic concepts */
+/* Fundamental type concepts */
 template<class T>
 concept Integral = std::integral<T>;
 
@@ -61,11 +61,14 @@ concept SignedIntegral = std::signed_integral<T>;
 template<class T>
 concept UnsignedIntegral = std::unsigned_integral<T>;
 
-template<typename T>
+template<class T>
 concept Arithmetic = std::is_arithmetic_v<T>;
 
-template<typename T>
+template<class T>
 concept Float = std::floating_point<T>;
 
-template<typename T>
+template<class T>
 concept Integer = Integral<T> && !Equal<std::remove_cv_t<T>, bool>;
+
+template<class T>
+concept Fundamental = std::is_fundamental_v<T>;

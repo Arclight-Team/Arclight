@@ -124,16 +124,7 @@ bool Game::init() {
 
 	inputTicker.start(120);
 
-	File file(":/logo.png", File::In | File::Binary);
-	file.open();
-	FileInputStream stream(file);
-	u8 buf[200];
-	stream.read(buf, 200);
-
-	for(u32 i = 0; i < 200; i++) {
-		ArcDebug() << buf[i];
-	}
-
+	
 	return true;
 
 }
