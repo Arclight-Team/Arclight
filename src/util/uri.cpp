@@ -313,7 +313,7 @@ bool Uri::directoryExists(const std::string& path) {
 	
 void Uri::setSpecialUriHandler(char symbol, SpecialUriHandler handler) {
 
-	if(std::string(&symbol).find_first_not_of("/<>:/\\|?*") == std::string::npos) {
+	if (std::string("/<>:/\\|?*").find(symbol) != std::string::npos) {
 
 		Log::warn("Uri", "Cannot set uri handler for special symbol %c", symbol);
 		return;
