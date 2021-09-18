@@ -1,7 +1,7 @@
 #include "rendertest.h"
 
 #include GLE_HEADER
-#include "util/random.h"
+#include "math/random.h"
 #include "util/file.h"
 #include "screenshot.h"
 #include "util/profiler.h"

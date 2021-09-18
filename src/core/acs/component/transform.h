@@ -1,8 +1,8 @@
 #pragma once
 
 #include "component.h"
-#include "util/vector.h"
-#include "util/quaternion.h"
+#include "math/vector.h"
+#include "math/quaternion.h"
 
 
 class Transform : public IComponent {

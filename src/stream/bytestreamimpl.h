@@ -2,7 +2,7 @@
 
 #include "streambase.h"
 #include "util/assert.h"
-#include "util/math.h"
+#include "math/math.h"
 #include "types.h"
 #include <span>
 #include <memory>

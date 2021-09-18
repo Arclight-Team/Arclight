@@ -1,6 +1,6 @@
 #include "time.h"
-#include "math.h"
-#include "assert.h"
+#include "math/math.h"
+#include "util/assert.h"
 
 #include <chrono>
 #include <ctime>

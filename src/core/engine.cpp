@@ -1,7 +1,7 @@
 #include "core/engine.h"
 #include "util/file.h"
 #include "util/log.h"
-#include "util/matrix.h"
+#include "math/matrix.h"
 #include "config.h"
 
 

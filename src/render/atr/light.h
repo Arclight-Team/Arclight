@@ -1,7 +1,7 @@
 #pragma once
 
-#include "util/matrix.h"
-#include "util/vector.h"
+#include "math/matrix.h"
+#include "math/vector.h"
 
 
 //PL = Point Light

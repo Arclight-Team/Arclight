@@ -1,5 +1,5 @@
 #include "fmod_common.h"
-#include "util/vector.h"
+#include "math/vector.h"
 
 class Uri;
 

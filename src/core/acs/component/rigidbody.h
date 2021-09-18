@@ -1,6 +1,6 @@
 #pragma once
 
-#include "util/vector.h"
+#include "math/vector.h"
 #include "physics/worldtransform.h"
 #include "component.h"
 

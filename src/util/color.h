@@ -2,7 +2,7 @@
 
 #include "arcconfig.h"
 #include "types.h"
-#include "vector.h"
+#include "math/vector.h"
 
 
 
@@ -178,7 +178,7 @@ namespace Color {
 
 
 
-	//Converts an HSV color to an RGB color. Hue may exceed 360°.
+	//Converts an HSV color to an RGB color. Hue may exceed 360ï¿½.
 	constexpr ColorRGB toRGB(const ColorHSV& hsv) {
 
 		double h = hsv.h;

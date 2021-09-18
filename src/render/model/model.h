@@ -2,8 +2,8 @@
 
 #include "types.h"
 #include "util/uri.h"
-#include "util/matrix.h"
-#include "util/vector.h"
+#include "math/matrix.h"
+#include "math/vector.h"
 
 #include <vector>
 #include <deque>

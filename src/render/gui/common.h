@@ -6,7 +6,7 @@
 //User includes
 #include "util/log.h"
 #include "util/assert.h"
-#include "util/vector.h"
+#include "math/vector.h"
 #include "types.h"
 
 #include "action.h"

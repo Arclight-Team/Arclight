@@ -1,9 +1,9 @@
 #include "game.h"
 #include "window.h"
 #include "render/physicsrenderer.h"
-#include "util/optionalref.h"
-#include "util/sparsearray.h"
-#include "util/any.h"
+#include "stdext/optionalref.h"
+#include "stdext/sparsearray.h"
+#include "stdext/any.h"
 #include "debug.h"
 #include "acs/actorblueprints.h"
 #include "util/profiler.h"
@@ -11,9 +11,11 @@
 #include "acs/component/transform.h"
 #include "acs/component/model.h"
 #include "input/inputcontext.h"
-#include "util/quaternion.h"
+#include "math/quaternion.h"
 #include "util/file.h"
-#include "util/stream/fileinputstream.h"
+#include "stream/byteinputstream.h"
+#include "stream/fileinputstream.h"
+//#include "compress/lz77.h"
 
 
 Game::Game(Window& window) : window(window), physicsEngine(manager), renderer(manager) {}
@@ -123,8 +125,25 @@ bool Game::init() {
 	profiler.stop("Initialization");
 
 	inputTicker.start(120);
-
+/*
+	File src(":/test.bin", File::In | File::Binary);
+	src.open();
+	FileInputStream stream(src);
 	
+	File file(":/lz77.bin", File::Out | File::Binary);
+	file.open();
+	file.write(LZ77::compress(stream));
+	file.close();
+
+	File src(":/lz77.bin", File::In | File::Binary);
+	src.open();
+	FileInputStream stream(src);
+
+	File dest(":/decomp77.bin", File::Out | File::Binary);
+	dest.open();
+	dest.write(LZ77::decompress(stream));
+	dest.close();
+*/
 	return true;
 
 }

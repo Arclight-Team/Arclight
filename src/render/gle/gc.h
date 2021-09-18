@@ -14,7 +14,7 @@
 #define GLE_PASS_UNLINKED_SHADERS 1
 
 
-#define GLE_MATRIX_HEADER	"util/matrix.h"
+#define GLE_MATRIX_HEADER	"math/matrix.h"
 #define GLE_DEFINE_MATRIX	typedef Vec2f GLEVec2; \
 							typedef Vec3f GLEVec3; \
 							typedef Vec4f GLEVec4; \

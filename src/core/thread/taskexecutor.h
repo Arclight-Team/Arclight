@@ -5,7 +5,7 @@
 
 #include "arcconfig.h"
 #include "arcintrinsic.h"
-#include "concurrentqueue.h"
+#include "stdext/concurrentqueue.h"
 #include "thread.h"
 #include "task.h"
 #include "types.h"

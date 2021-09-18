@@ -3,8 +3,8 @@
 #include "LinearMath/btVector3.h"
 #include "LinearMath/btTransform.h"
 #include "worldtransform.h"
-#include "util/vector.h"
-#include "util/quaternion.h"
+#include "math/vector.h"
+#include "math/quaternion.h"
 
 
 namespace Bullet {

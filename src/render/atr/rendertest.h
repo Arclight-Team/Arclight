@@ -2,7 +2,7 @@
 
 #include "input/keydefs.h"
 #include "render/gle/gle.h"
-#include "util/matrix.h"
+#include "math/matrix.h"
 
 #include "camera.h"
 #include "light.h"

@@ -1,5 +1,5 @@
 #include "uri.h"
-#include "assert.h"
+#include "util/assert.h"
 #include "config.h"
 #include "log.h"
 

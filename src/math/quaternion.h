@@ -1,8 +1,8 @@
 #pragma once
 
-#include "math.h"
-#include "vector.h"
-#include "matrix.h"
+#include "math/math.h"
+#include "math/vector.h"
+#include "math/matrix.h"
 #include "arcconfig.h"
 
 

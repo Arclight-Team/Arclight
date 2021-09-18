@@ -9,9 +9,9 @@
 #include <ranges>
 
 #include "types.h"
-#include "vector.h"
-#include "matrix.h"
-#include "quaternion.h"
+#include "math/vector.h"
+#include "math/matrix.h"
+#include "math/quaternion.h"
 
 
 template<class T>

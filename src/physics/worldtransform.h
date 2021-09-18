@@ -1,7 +1,7 @@
 #pragma once
 
-#include "util/vector.h"
-#include "util/quaternion.h"
+#include "math/vector.h"
+#include "math/quaternion.h"
 
 
 struct WorldTransform {

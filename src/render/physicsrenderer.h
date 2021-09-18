@@ -3,7 +3,7 @@
 #include "gle/gle.h"
 #include "atr/camera.h"
 #include "renderer.h"
-#include "util/matrix.h"
+#include "math/matrix.h"
 #include "util/profiler.h"
 #include "input/keydefs.h"
 #include "model/model.h"

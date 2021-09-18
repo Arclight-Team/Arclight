@@ -1,6 +1,6 @@
 #include "arcdebug.h"
 #include "log.h"
-#include "assert.h"
+#include "util/assert.h"
 
 
 #ifndef ARC_FINAL_BUILD

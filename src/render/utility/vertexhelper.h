@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "util/vector.h"
+#include "math/vector.h"
 
 
 //Helper functions to quickly create basic geometric shapes
