@@ -12,7 +12,7 @@ File::File(const Uri& path, File::Flags flags) : filepath(path), openFlags(flags
 
 bool File::open() {
 
-	arc_assert((flags & File::In) || (flags & File::Out), "Invalid file flags requested: %02X", flags);
+	arc_assert((openFlags & File::In) || (openFlags & File::Out), "Invalid file flags requested: %02X", openFlags);
 
 	if (isOpen()) {
 		Log::warn("File", "Attempting to open stream that has already been opened. Opened: '%s'", filepath.getPath().c_str());
