@@ -12,14 +12,15 @@ public:
     using StreamBase::SeekMode;
 
     template<class T>
-    ByteInputStream(std::span<const T>& data) : ByteStreamImplR(data) {}
+    ByteInputStream(const std::span<T>& data) : ByteStreamImplR(data) {}
 
-	virtual u64 read(void* dest, u64 size) override;
+	virtual SizeT read(void* dest, SizeT size) override;
 
-	virtual u64 seek(i64 offset, SeekMode mode) override;
-	virtual u64 getPosition() const override;
+	virtual SizeT seek(i64 offset, SeekMode mode) override;
+	virtual SizeT getPosition() const override;
 
-	virtual u64 getSize() const override;
+	virtual SizeT getSize() const override;
 	virtual bool isOpen() const override;
-    
+    virtual bool reachedEnd() const override;
+
 };

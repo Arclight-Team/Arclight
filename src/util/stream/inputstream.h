@@ -9,10 +9,10 @@ class InputStream : virtual public StreamBase {
 public:
 
     template<class T>
-	u64 read(const std::span<T>& dest) {
+	SizeT read(const std::span<T>& dest) {
 		read(dest.data(), dest.size());
 	}
 
-	virtual u64 read(void* dest, u64 size) = 0;
+	virtual SizeT read(void* dest, SizeT size) = 0;
 
 };

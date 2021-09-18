@@ -9,10 +9,10 @@ class OutputStream : virtual public StreamBase {
 public:
   
 	template<class T>
-	u64 write(const std::span<const T>& dest) {
+	SizeT write(const std::span<const T>& dest) {
 		write(dest.data(), dest.size());
 	}
 
-	virtual u64 write(const void* src, u64 size) = 0;
+	virtual SizeT write(const void* src, SizeT size) = 0;
 
 };

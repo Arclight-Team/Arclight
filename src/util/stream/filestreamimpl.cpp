@@ -7,29 +7,29 @@
 FileStreamImpl::FileStreamImpl(File& file) : file(file) {}
 
 
-u64 FileStreamImpl::read(void* dest, u64 size) {
+SizeT FileStreamImpl::read(void* dest, SizeT size) {
 
 	arc_assert(dest != nullptr, "Destination is null");
 
-	file.read(static_cast<u8*>(dest), size);
+	file.read(std::span<u8>{static_cast<u8*>(dest), size});
 	return size;
 
 }
 
-u64 FileStreamImpl::write(const void* src, u64 size) {
+SizeT FileStreamImpl::write(const void* src, SizeT size) {
 
 	arc_assert(src != nullptr, "Source is null");
 
-	file.write(static_cast<const u8*>(src), size);
+	file.write(std::span<const u8>{static_cast<const u8*>(src), size});
 	return size;
 
 }
 
 
 
-u64 FileStreamImpl::seek(i64 offset, StreamBase::SeekMode mode) {
+SizeT FileStreamImpl::seek(i64 offset, StreamBase::SeekMode mode) {
 
-	u64 pos = 0;
+	SizeT pos = 0;
 
 	switch (mode) {
 
@@ -55,16 +55,22 @@ u64 FileStreamImpl::seek(i64 offset, StreamBase::SeekMode mode) {
 
 }
 
-u64 FileStreamImpl::getPosition() const {
+SizeT FileStreamImpl::getPosition() const {
 	return file.tell();
 }
 
 
 
-u64 FileStreamImpl::getSize() const {
+SizeT FileStreamImpl::getSize() const {
 	return file.getFileSize();
 }
 
+
 bool FileStreamImpl::isOpen() const {
 	return file.isOpen();
+}
+
+
+bool FileStreamImpl::reachedEnd() const {
+	return file.tell() == file.getFileSize();
 }

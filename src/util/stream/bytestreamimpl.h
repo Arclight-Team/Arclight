@@ -20,14 +20,14 @@ public:
 
 		//convert T span to byte span
         if constexpr (Const) {
-            this->data = data.as_bytes();
+            this->data = std::as_bytes(data);
         } else {
-            this->data = data.as_writeable_bytes();
+            this->data = std::as_writable_bytes(data);
         }
 
 	}
 
-	u64 read(void* dest, u64 size) {
+	SizeT read(void* dest, SizeT size) {
 
         arc_assert(dest != nullptr, "Destination is null");
         arc_assert(position + size <= getSize(), "Cannot read past the end of the stream");
@@ -41,7 +41,7 @@ public:
 
     }
 
-	u64 write(const void* src, u64 size) requires !Const {
+	SizeT write(const void* src, SizeT size) requires !Const {
 
         arc_assert(src != nullptr, "Source is null");
         arc_assert(position + size <= getSize(), "Cannot write past the end of the stream");
@@ -55,7 +55,7 @@ public:
 
     }
 
-    u64 seek(i64 offset, StreamBase::SeekMode mode) {
+    SizeT seek(i64 offset, StreamBase::SeekMode mode) {
 
         switch (mode) {
 
@@ -79,11 +79,11 @@ public:
 
     }
 
-	u64 getPosition() const {
+	SizeT getPosition() const {
         return position;
     }
 
-    u64 getSize() const {
+    SizeT getSize() const {
         return data.size();
     }
 
@@ -91,10 +91,14 @@ public:
         return data.size();
     }
 
+    bool reachedEnd() const {
+        return position == data.size();
+    }
+
 private:
 
     std::span<ByteType> data;
-    u64 position;
+    SizeT position;
 
 };
 

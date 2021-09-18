@@ -6,25 +6,25 @@ FileOutputStream::FileOutputStream(File& file) : FileStreamImpl(file) {}
 
 
 
-u64 FileOutputStream::write(const void* src, u64 size) {
+SizeT FileOutputStream::write(const void* src, SizeT size) {
 	return FileStreamImpl::write(src, size);
 }
 
 
 
-u64 FileOutputStream::seek(i64 offset, StreamBase::SeekMode mode) {
+SizeT FileOutputStream::seek(i64 offset, StreamBase::SeekMode mode) {
 	return FileStreamImpl::seek(offset, mode);
 }
 
 
 
-u64 FileOutputStream::getPosition() const {
+SizeT FileOutputStream::getPosition() const {
 	return FileStreamImpl::getPosition();
 }
 
 
 
-u64 FileOutputStream::getSize() const {
+SizeT FileOutputStream::getSize() const {
 	return FileStreamImpl::getSize();
 }
 
@@ -32,4 +32,9 @@ u64 FileOutputStream::getSize() const {
 
 bool FileOutputStream::isOpen() const {
 	return FileStreamImpl::isOpen();
+}
+
+
+bool FileOutputStream::reachedEnd() const {
+	return FileStreamImpl::reachedEnd();
 }

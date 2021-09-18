@@ -19,9 +19,9 @@ public:
 
 		if (convert) {
 
-			if constexpr (sizeof(Type) == 2) { in = static_cast<Type>(arc_swap16(static_cast<u16>(in))) }
-			else if constexpr (sizeof(Type) == 4) { in = static_cast<Type>(arc_swap32(static_cast<u32>(in))) }
-			else if constexpr (sizeof(Type) == 8) { in = static_cast<Type>(arc_swap64(static_cast<u64>(in))) }
+			if constexpr (sizeof(Type) == 2) { in = static_cast<Type>(arc_swap16(static_cast<u16>(in))); }
+			else if constexpr (sizeof(Type) == 4) { in = static_cast<Type>(arc_swap32(static_cast<u32>(in))); }
+			else if constexpr (sizeof(Type) == 8) { in = static_cast<Type>(arc_swap64(static_cast<u64>(in))); }
             else { /* Don't convert here */ }
 
 		}
@@ -33,7 +33,7 @@ public:
 	}
 
     template<Arithmetic T>
-	void write(const std::span<T>& data, SizeT count) {
+	void write(const std::span<const T>& data, SizeT count) {
         write(data.subspan(0, count));
 	}
 
@@ -50,9 +50,9 @@ public:
 
                 Type in = data[i];
 
-                if constexpr (sizeof(Type) == 2) { in = static_cast<Type>(arc_swap16(static_cast<u16>(in))) }
-                else if constexpr (sizeof(Type) == 4) { in = static_cast<Type>(arc_swap32(static_cast<u32>(in))) }
-                else if constexpr (sizeof(Type) == 8) { in = static_cast<Type>(arc_swap64(static_cast<u64>(in))) }
+                if constexpr (sizeof(Type) == 2) { in = static_cast<Type>(arc_swap16(static_cast<u16>(in))); }
+                else if constexpr (sizeof(Type) == 4) { in = static_cast<Type>(arc_swap32(static_cast<u32>(in))); }
+                else if constexpr (sizeof(Type) == 8) { in = static_cast<Type>(arc_swap64(static_cast<u64>(in))); }
     
                 if (stream.write(&in, sizeof(Type)) != sizeof(Type)) {
                     arc_force_assert("Failed to write data to stream");

@@ -2,6 +2,7 @@
 
 #include "util/bits.h"
 #include "inputstream.h"
+#include "util/assert.h"
 
 
 class BinaryReader {
@@ -24,9 +25,9 @@ public:
 
 		if (convert) {
 
-			if constexpr (sizeof(Type) == 2) { in = static_cast<Type>(arc_swap16(static_cast<u16>(in))) }
-			else if constexpr (sizeof(Type) == 4) { in = static_cast<Type>(arc_swap32(static_cast<u32>(in))) }
-			else if constexpr (sizeof(Type) == 8) { in = static_cast<Type>(arc_swap64(static_cast<u64>(in))) }
+			if constexpr (sizeof(Type) == 2) { in = static_cast<Type>(arc_swap16(static_cast<u16>(in))); }
+			else if constexpr (sizeof(Type) == 4) { in = static_cast<Type>(arc_swap32(static_cast<u32>(in))); }
+			else if constexpr (sizeof(Type) == 8) { in = static_cast<Type>(arc_swap64(static_cast<u64>(in))); }
             else { /* Don't convert here */ }
 
 		}
@@ -41,7 +42,7 @@ public:
 	}
 
 	template<Arithmetic T>
-	void write(const std::span<T>& data) {
+	void read(const std::span<T>& data) {
 
         SizeT size = data.size();
         SizeT bytes = sizeof(T) * size;
@@ -54,12 +55,12 @@ public:
 
                 if (stream.read(&in, sizeof(T)) != sizeof(T)) {
 			        arc_force_assert("Failed to read data from stream");
-                    return {};
+                    return;
                 }
 
-                if constexpr (sizeof(Type) == 2) { in = static_cast<Type>(arc_swap16(static_cast<u16>(in))) }
-                else if constexpr (sizeof(Type) == 4) { in = static_cast<Type>(arc_swap32(static_cast<u32>(in))) }
-                else if constexpr (sizeof(Type) == 8) { in = static_cast<Type>(arc_swap64(static_cast<u64>(in))) }
+                if constexpr (sizeof(T) == 2) { in = static_cast<T>(arc_swap16(static_cast<u16>(in))); }
+                else if constexpr (sizeof(T) == 4) { in = static_cast<T>(arc_swap32(static_cast<u32>(in))); }
+                else if constexpr (sizeof(T) == 8) { in = static_cast<T>(arc_swap64(static_cast<u64>(in))); }
 
             }
 
@@ -67,7 +68,7 @@ public:
 
             if (stream.read(data.data(), bytes) != bytes) {
 			    arc_force_assert("Failed to read data from stream");
-                return {};
+                return;
             }
 
         }

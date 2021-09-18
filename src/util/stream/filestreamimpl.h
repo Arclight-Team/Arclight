@@ -11,14 +11,15 @@ public:
 
     FileStreamImpl(File& file);
 
-	u64 read(void* dest, u64 size);
-	u64 write(const void* src, u64 size);
+	SizeT read(void* dest, SizeT size);
+	SizeT write(const void* src, SizeT size);
 
-    u64 seek(i64 offset, StreamBase::SeekMode mode);
-	u64 getPosition() const;
-    u64 getSize() const;
+    SizeT seek(i64 offset, StreamBase::SeekMode mode);
+	SizeT getPosition() const;
+    SizeT getSize() const;
 
 	bool isOpen() const;
+	bool reachedEnd() const;
 
 private:
 

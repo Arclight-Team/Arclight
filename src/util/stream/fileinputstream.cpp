@@ -5,25 +5,25 @@
 FileInputStream::FileInputStream(File& file) : FileStreamImpl(file) {}
 
 
-u64 FileInputStream::read(void* dest, u64 size) {
+SizeT FileInputStream::read(void* dest, SizeT size) {
 	return FileStreamImpl::read(dest, size);
 }
 
 
 
-u64 FileInputStream::seek(i64 offset, SeekMode mode) {
+SizeT FileInputStream::seek(i64 offset, SeekMode mode) {
 	return FileStreamImpl::seek(offset, mode);
 }
 
 
 
-u64 FileInputStream::getPosition() const {
+SizeT FileInputStream::getPosition() const {
 	return FileStreamImpl::getPosition();
 }
 
 
 
-u64 FileInputStream::getSize() const {
+SizeT FileInputStream::getSize() const {
 	return FileStreamImpl::getSize();
 }
 
@@ -31,4 +31,9 @@ u64 FileInputStream::getSize() const {
 
 bool FileInputStream::isOpen() const {
 	return FileStreamImpl::isOpen();
+}
+
+
+bool FileInputStream::reachedEnd() const {
+	return FileStreamImpl::reachedEnd();
 }

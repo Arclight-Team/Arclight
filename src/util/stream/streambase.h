@@ -13,10 +13,11 @@ public:
 		End
 	};
 
-	virtual u64 seek(i64 offset, SeekMode mode = SeekMode::Begin) = 0;
-	virtual u64 getPosition() const = 0;
+	virtual SizeT seek(i64 offset, SeekMode mode = SeekMode::Begin) = 0;
+	virtual SizeT getPosition() const = 0;
 
-	virtual u64 getSize() const = 0;
+	virtual SizeT getSize() const = 0;
 	virtual bool isOpen() const = 0;
+	virtual bool reachedEnd() const = 0;
 
 };

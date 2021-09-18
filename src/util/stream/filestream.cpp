@@ -5,31 +5,31 @@
 FileStream::FileStream(File& file) : FileStreamImpl(file) {}
 
 
-u64 FileStream::read(void* dest, u64 size) {
+SizeT FileStream::read(void* dest, SizeT size) {
 	return FileStreamImpl::read(dest, size);
 }
 
 
 
-u64 FileStream::write(const void* src, u64 size) {
+SizeT FileStream::write(const void* src, SizeT size) {
 	return FileStreamImpl::write(src, size);
 }
 
 
 
-u64 FileStream::seek(i64 offset, SeekMode mode) {
+SizeT FileStream::seek(i64 offset, SeekMode mode) {
 	return FileStreamImpl::seek(offset, mode);
 }
 
 
 
-u64 FileStream::getPosition() const {
+SizeT FileStream::getPosition() const {
 	return FileStreamImpl::getPosition();
 }
 
 
 
-u64 FileStream::getSize() const {
+SizeT FileStream::getSize() const {
 	return FileStreamImpl::getSize();
 }
 
@@ -37,4 +37,9 @@ u64 FileStream::getSize() const {
 
 bool FileStream::isOpen() const {
 	return FileStreamImpl::isOpen();
+}
+
+
+bool FileStream::reachedEnd() const {
+	return FileStreamImpl::reachedEnd();
 }

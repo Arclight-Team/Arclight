@@ -2,31 +2,31 @@
 
 
 
-u64 ByteStream::read(void* dest, u64 size) {
+SizeT ByteStream::read(void* dest, SizeT size) {
 	return ByteStreamImplRW::read(dest, size);
 }
 
 
 
-u64 ByteStream::write(const void* src, u64 size) {
+SizeT ByteStream::write(const void* src, SizeT size) {
 	return ByteStreamImplRW::write(src, size);
 }
 
 
 
-u64 ByteStream::seek(i64 offset, SeekMode mode) {
+SizeT ByteStream::seek(i64 offset, SeekMode mode) {
 	return ByteStreamImplRW::seek(offset, mode);
 }
 
 
 
-u64 ByteStream::getPosition() const {
+SizeT ByteStream::getPosition() const {
 	return ByteStreamImplRW::getPosition();
 }
 
 
 
-u64 ByteStream::getSize() const {
+SizeT ByteStream::getSize() const {
 	return ByteStreamImplRW::getSize();
 }
 
@@ -34,4 +34,9 @@ u64 ByteStream::getSize() const {
 
 bool ByteStream::isOpen() const {
 	return ByteStreamImplRW::isOpen();
+}
+
+
+bool ByteStream::reachedEnd() const {
+	return ByteStreamImplRW::reachedEnd();
 }
