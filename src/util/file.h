@@ -2,7 +2,7 @@
 
 #include <string>
 #include <fstream>
-#include <stdexcept>
+#include <span>
 
 #include "uri.h"
 #include "types.h"
@@ -36,8 +36,8 @@ public:
 	void write(const std::string& text);
 	void writeLine(const std::string& line);
 
-	void read(u8* data, u64 count);
-	void write(const u8* data, u64 count);
+	void read(const std::span<u8>& data);
+	void write(const std::span<const u8>& data);
 
 	void seek(u64 pos);
 	void seekRelative(i64 pos);

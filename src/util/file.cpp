@@ -133,24 +133,24 @@ void File::writeLine(const std::string& line) {
 
 
 
-void File::read(u8* data, u64 count) {
+void File::read(const std::span<u8>& data) {
 
 	arc_assert(isOpen(), "Attempted to read from an unopened file");
 	arc_assert(openFlags & File::In, "Attempted to read from an output stream");
 	arc_assert(openFlags & File::Binary, "Attempted to read bytes from a text-based stream");
 
-	stream.read(reinterpret_cast<char*>(data), count);
+	stream.read(reinterpret_cast<char*>(data.data()), data.size());
 
 }
 
 
-void File::write(const u8* data, u64 count) {
+void File::write(const std::span<const u8>& data) {
 
 	arc_assert(isOpen(), "Attempted to write to an unopened file");
 	arc_assert(openFlags & File::Out, "Attempted to write to an input stream");
 	arc_assert(openFlags & File::Binary, "Attempted to write bytes to a text-based stream");
 
-	stream.write(reinterpret_cast<const char*>(data), count);
+	stream.write(reinterpret_cast<const char*>(data.data()), data.size());
 
 }
 

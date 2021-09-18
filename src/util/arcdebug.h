@@ -46,7 +46,7 @@ public:
 
         return *this;
 
-    } 
+    }
     
     template<class T, class U>
     ArcDebug& operator<<(const std::pair<T, U>& pair){
@@ -90,6 +90,13 @@ private:
         buffer << value;
     }
 
+    void write(u8 value) {
+        buffer << +value;
+    }
+
+    void write(i8 value) {
+        buffer << +value;
+    }
 
     template<class T, class U>
     void write(const std::pair<T, U>& pair){

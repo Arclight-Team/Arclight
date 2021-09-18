@@ -39,7 +39,7 @@ namespace Math {
 
 	template<Arithmetic A, Arithmetic B>
 	constexpr auto max(A a, B b) {
-		return std::max(a, b);
+		return std::max<std::common_type_t<A, B>>(a, b);
 	}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic... Args>
@@ -49,7 +49,7 @@ namespace Math {
 
 	template<Arithmetic A, Arithmetic B>
 	constexpr auto min(A a, B b) {
-		return std::min(a, b);
+		return std::min<std::common_type_t<A, B>>(a, b);
 	}
 
 	template<Integer I>
