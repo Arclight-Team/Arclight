@@ -78,7 +78,13 @@ bool Game::init() {
 				RigidBody& rigidbody = manager.getProvider().getComponent<RigidBody>(manager.spawn(1, Transform(spawnPos)));
 				Vec3x delta = -rigidbody.getTransform().translation;
 				delta.y = 0;
-				rigidbody.setLinearVelocity(delta.cross(Vec3x(0, 1, 0)).normalized() * 50);
+				delta.cross(Vec3x(0, 1, 0));
+
+				if (!delta.isNull()) {
+					delta.normalize();
+				}
+
+				rigidbody.setLinearVelocity(delta * 50);
 				rigidbody.disableGravity();
 				rigidbody.disableFriction();
 

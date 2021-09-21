@@ -1,15 +1,16 @@
 #include "config.h"
+#include "arcconfig.h"
 
 
 
 namespace Config {
 
 	const std::string appName = "Project Arclight";
-	const std::string baseWindowTitle = "Arclight Engine Debug (ATR, x64)";
+	const std::string baseWindowTitle = "Arclight Engine " ARC_CONFIGURATION_NAME " (ATR, x64)";
 	const std::string uriRoot = ARC_URI_ROOT;
-	const std::string uriAsset = "assets/";
-	const std::string uriLog = "log/";
-	const std::string uriScreenshot = "screenshots/";
+	const std::string uriAsset = uriRoot + "/assets/";
+	const std::string uriLog = uriRoot + "/log/";
+	const std::string uriScreenshot = uriRoot + "screenshots/";
 
 	const u32 defaultWindowWidth = 400;
 	const u32 defaultWindowHeight = 400;

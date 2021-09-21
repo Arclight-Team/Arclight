@@ -117,6 +117,17 @@
 
 
 /*
+	String representing the project's configuration type.
+*/
+
+#if ARC_DEBUG
+#define ARC_CONFIGURATION_NAME "Debug"
+#else
+#define ARC_CONFIGURATION_NAME "Release"
+#endif
+
+
+/*
 	Final release build
 	ARC_FINAL_BUILD: Builds the program ready for release. Disables debugging functionality and optimizes certain functions.
 */
