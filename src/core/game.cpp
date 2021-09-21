@@ -15,6 +15,7 @@
 #include "util/file.h"
 #include "stream/byteinputstream.h"
 #include "stream/fileinputstream.h"
+#include "image/image.h"
 //#include "compress/lz77.h"
 
 
@@ -150,6 +151,10 @@ bool Game::init() {
 	dest.write(LZ77::decompress(stream));
 	dest.close();
 */
+
+	Image<Pixel::RGBA8> img(20, 20);
+	ArcDebug() << img.getRawData();
+
 	return true;
 
 }

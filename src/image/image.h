@@ -1,115 +1,133 @@
 #pragma once
 
 #include "types.h"
-
+#include "util/assert.h"
 #include <vector>
 #include <span>
 #include <array>
 
 
-/*
-enum class PixelType {
+
+enum class Pixel {
     RGB8,
     RGBA8
 };
 
 
-template<PixelType Type, u32 Channels, u32 BytesPerPixel, bool Alpha>
-struct PixelFormat {
+template<Pixel P>
+struct PixelFormat {};
 
-public:
-
-    constexpr static u32 getChannelCount() const {
-        return channels;
-    }
-
-    constexpr static bool hasAlphaChannel() const {
-        return hasAlpha;
-    }
-
-    constexpr static bool isMonochrome() const {
-        return getChannelCount() == 1;
-    }
-
-    constexpr static u32 bytesPerPixel() const {
-        return bpp;
-    }
-
-    constexpr static u8 nullByte() const {
-        return 0;
-    }
-
-private:
-
-    constexpr static u32 channels = Channels;
-    constexpr static u32 bpp = BytesPerPixel;
-    constexpr static bool hasAlpha = Alpha;
-
-};
 
 template<>
-struct PixelFormat<PixelType::RGB8, 3, 2, false> {
+struct PixelFormat<Pixel::RGBA8> {
 
-    constexpr static void decode(u8* stream, u32& c0, u32& c1, u32& c2, u32& c3) {
+    constexpr static u32 BytesPerPixel = 4;
+    constexpr static u32 Channels = 4;
 
-        constexpr u32 shift = 24;
-        c0 = stream[0] << shift;
-        c1 = stream[1] << shift;
-        c2 = stream[2] << shift;
+    using InflationType = u32;
 
+    template<Arithmetic T>
+    constexpr static std::array<T, Channels>& inflate(const std::span<const u8>& source) {
+        return {source[0], source[1], source[2], source[3]};
     }
 
-    constexpr static void encode(u8* stream, u32& c0, u32& c1, u32& c2, u32& c3) {
-
-        constexpr u32 shift = 24;
-        c0 = stream[0] >> shift;
-        c1 = stream[1] >> shift;
-        c2 = stream[2] >> shift;
+    constexpr static void deflate(const std::array<InflationType, Channels>& src, const std::span<u8>& dest) {
+        
+        for(u32 i = 0; i < Channels; i++) {
+            dest[i] = src[i];
+        }
 
     }
 
 };
 
 
-#define ARC_IMAGE_CONVERT_IMPL(type) \
-case type: \
- \
-    for(SizeT i = 0; i < w * h; i++) { \
-        u32 a, b, c, d; \
-        PixelFormat<type>::decode(data.data() + i * 3, a, b, c, d); \
-        PixelFormat<DestType>::encode(data.data() + i * 3, a, b, c, d); \
-    } 
 
-
+template<Pixel P>
 class Image {
 
 public:
 
-    Image();
-    Image(u32 width, u32 height, PixelType type, const std::span<u8>& source);
+    constexpr static u32 PixelBytes = PixelFormat<P>::BytesPerPixel;
 
-    void setData(const std::span<u8>& source);
-    void setData(u32 width, u32 height, PixelType type, const std::span<u8>& source);
 
-    std::span<const u8> getData() const;
-    u64 getDataSize() const;
+    constexpr Image() : Image(0, 0, {}) {}
+    constexpr Image(u32 width, u32 height, const std::span<u8>& data = {}) : width(width), height(height) {
+        setRawData(data);
+    }
 
-    template<PixelType DestType>
-    void convert() {
+    constexpr void setRawData(const std::span<u8>& data, u64 offset = 0) {
 
-        switch(type) {
+        arc_assert(data.size() + offset <= this->data.size(), "Cannot copy raw pixel data to smaller image buffer");
 
+        std::copy(data.begin(), data.end(), this->data.data() + offset);
+
+    }
+
+    template<Pixel Q>
+    constexpr void setData(const std::span<u8>& data, u64 startPixel = 0) {
+
+        using SrcPixelFormat = PixelFormat<Q>;
+
+        constexpr static u32 SrcBytes = SrcPixelFormat::BytesPerPixel;
+        arc_assert(!(data.size() % SrcBytes), "Source data must be divisible by bytes per pixel");
+
+        u32 transferEnd = ((data.size() / SrcBytes) + startPixel) * PixelBytes;
+        arc_assert(transferEnd <= this->data.size(), "Cannot convert pixel data to smaller image buffer");
+
+        if constexpr (!Equal<P, Q>) {
+
+            //We gotta convert the pixels during transfer
+            for(SizeT i = 0; i < data.size() / SrcBytes; i++) {
+
+                SizeT start = i * SrcBytes;
+                auto array = SrcPixelFormat::inflate<SrcPixelFormat::InflationType>(data.subspan(start, SrcBytes));
+                PixelFormat<P>::deflate(array, {this->data.data() + (i + startPixel) * PixelBytes, PixelBytes});
+
+            }
+
+        } else {
+
+            //Copy all
+            std::copy(data.begin(), data.end(), this->data + startPixel * PixelBytes);
 
         }
 
     }
 
+    template<Pixel Q>
+    constexpr Image<Q> convertTo() const {
+
+        Image<Q> image(width, height);
+        image.setData(data);
+
+        return image;
+
+    }
+
+    constexpr u32 getWidth() const {
+        return width;
+    }
+
+    constexpr u32 getHeight() const {
+        return height;
+    }
+
+    constexpr std::span<u8> getRawData() {
+        return data;
+    }
+
+    constexpr std::span<const u8> getRawData() const {
+        return data;
+    }
+
+
+
+
 private:
 
     u32 width;
     u32 height;
-    PixelType type;
     std::vector<u8> data;
 
 };
-*/
