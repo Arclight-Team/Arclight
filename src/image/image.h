@@ -14,49 +14,21 @@ class Image {
 
 public:
 
+    using PixelType = PixelFormat<P>::PixelType;
+
     constexpr static u32 PixelBytes = PixelFormat<P>::BytesPerPixel;
 
 
-    constexpr Image() : Image(0, 0, {}) {}
-    constexpr Image(u32 width, u32 height, const std::span<u8>& data = {}) : width(width), height(height) {
-        setRawData(data);
-    }
+    constexpr Image() : Image(0, 0) {}
+    constexpr Image(u32 width, u32 height) : width(width), height(height) {}
 
-    constexpr void setRawData(const std::span<u8>& data, u64 offset = 0) {
+    constexpr void setRawData(const std::span<u8>& src, u64 startPixel = 0) {
 
-        arc_assert(data.size() + offset <= this->data.size(), "Cannot copy raw pixel data to smaller image buffer");
+        SizeT pixels = data.size() / PixelBytes;
+        arc_assert(startPixel + pixels <= data.size(), "Cannot copy pixel data to smaller image");
 
-        std::copy(data.begin(), data.end(), this->data.data() + offset);
-
-    }
-
-    template<Pixel Q>
-    constexpr void setData(const std::span<u8>& data, u64 startPixel = 0) {
-
-        using SrcPixelFormat = PixelFormat<Q>;
-
-        constexpr static u32 SrcBytes = SrcPixelFormat::BytesPerPixel;
-        arc_assert(!(data.size() % SrcBytes), "Source data must be divisible by bytes per pixel");
-
-        u32 transferEnd = ((data.size() / SrcBytes) + startPixel) * PixelBytes;
-        arc_assert(transferEnd <= this->data.size(), "Cannot convert pixel data to smaller image buffer");
-
-        if constexpr (!Equal<P, Q>) {
-
-            //We gotta convert the pixels during transfer
-            for(SizeT i = 0; i < data.size() / SrcBytes; i++) {
-
-                SizeT start = i * SrcBytes;
-                auto pixel = SrcPixelFormat::inflate<SrcPixelFormat::InflationType>(data.subspan(start, SrcBytes));
-                PixelFormat<P>::deflate(pixel, {this->data.data() + (i + startPixel) * PixelBytes, PixelBytes});
-
-            }
-
-        } else {
-
-            //Copy all
-            std::copy(data.begin(), data.end(), this->data + startPixel * PixelBytes);
-
+        for(SizeT i = 0; i < pixels; i++) {
+            data[i + startPixel] = PixelFormat<P>::fromBytes(data.subspan(src * PixelBytes));
         }
 
     }
@@ -65,7 +37,13 @@ public:
     constexpr Image<Q> convertTo() const {
 
         Image<Q> image(width, height);
-        image.setData(data);
+
+        for(u64 i = 0; i < width * height; i++) {
+
+            auto pixel = PixelFormat<P>::inflate(data[i]);
+            image.data[i] = PixelFormat<Q>::deflate(pixel);
+
+        }
 
         return image;
 
@@ -79,19 +57,39 @@ public:
         return height;
     }
 
-    constexpr std::span<u8> getRawData() {
+    constexpr std::span<PixelType> getImageBuffer() {
         return data;
     }
 
-    constexpr std::span<const u8> getRawData() const {
+    constexpr std::span<const PixelType> getImageBuffer() const {
         return data;
     }
 
+    constexpr void setPixel(u32 x, u32 y, const PixelType& pixel) {
+
+        arc_assert(x < width && y < height, "Pixel access out of bounds");
+        data[y * width + x] = pixel;
+
+    }
+
+    constexpr const PixelType& getPixel(u32 x, u32 y) const {
+        
+        arc_assert(x < width && y < height, "Pixel access out of bounds");
+        return data[y * width + x];
+
+    }
+
+    constexpr PixelType& getPixel(u32 x, u32 y) {
+        
+        arc_assert(x < width && y < height, "Pixel access out of bounds");
+        return data[y * width + x];
+
+    }
 
 private:
 
     u32 width;
     u32 height;
-    std::vector<u8> data;
+    std::vector<PixelType> data;
 
 };
