@@ -11,7 +11,7 @@ Engine::Engine() : game(window) {}
 
 bool Engine::initialize() {
 
-	Uri::setSpecialUriHandler(':', []() { return ARC_URI_ROOT + Config::getUriAssetPath(); });
+	Uri::setSpecialUriHandler(':', []() { return Config::getUriAssetPath(); });
 
 	//Open up log file
 	Log::init();

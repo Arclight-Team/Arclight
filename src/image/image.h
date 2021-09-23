@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pixel.h"
 #include "types.h"
 #include "util/assert.h"
 #include <vector>
@@ -8,42 +9,7 @@
 
 
 
-enum class Pixel {
-    RGB8,
-    RGBA8
-};
-
-
-template<Pixel P>
-struct PixelFormat {};
-
-
-template<>
-struct PixelFormat<Pixel::RGBA8> {
-
-    constexpr static u32 BytesPerPixel = 4;
-    constexpr static u32 Channels = 4;
-
-    using InflationType = u32;
-
-    template<Arithmetic T>
-    constexpr static std::array<T, Channels>& inflate(const std::span<const u8>& source) {
-        return {source[0], source[1], source[2], source[3]};
-    }
-
-    constexpr static void deflate(const std::array<InflationType, Channels>& src, const std::span<u8>& dest) {
-        
-        for(u32 i = 0; i < Channels; i++) {
-            dest[i] = src[i];
-        }
-
-    }
-
-};
-
-
-
-template<Pixel P>
+template<Pixel P = Pixel::RGBA8>
 class Image {
 
 public:
@@ -81,8 +47,8 @@ public:
             for(SizeT i = 0; i < data.size() / SrcBytes; i++) {
 
                 SizeT start = i * SrcBytes;
-                auto array = SrcPixelFormat::inflate<SrcPixelFormat::InflationType>(data.subspan(start, SrcBytes));
-                PixelFormat<P>::deflate(array, {this->data.data() + (i + startPixel) * PixelBytes, PixelBytes});
+                auto pixel = SrcPixelFormat::inflate<SrcPixelFormat::InflationType>(data.subspan(start, SrcBytes));
+                PixelFormat<P>::deflate(pixel, {this->data.data() + (i + startPixel) * PixelBytes, PixelBytes});
 
             }
 
@@ -120,8 +86,6 @@ public:
     constexpr std::span<const u8> getRawData() const {
         return data;
     }
-
-
 
 
 private:

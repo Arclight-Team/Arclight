@@ -25,7 +25,7 @@ concept BaseType = !std::is_pointer_v<T> && !std::is_reference_v<T> && !std::is_
 
 /* Misc concepts */
 template<class Left, class Right>
-concept AssingableBy = std::assignable_from<Left, Right>;
+concept AssignableBy = std::assignable_from<Left, Right>;
 
 template<class T>
 concept Swappable = std::swappable<T>;

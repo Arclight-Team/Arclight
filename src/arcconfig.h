@@ -191,3 +191,10 @@
 	ARC_QUATERNION_XYZW: Sets w to be the last component
 */
 //#define ARC_QUATERNION_XYZW
+
+
+/*
+	Image debugging
+	ARC_IMAGE_DEBUG: Prints debug output for images
+*/
+#define ARC_IMAGE_DEBUG
