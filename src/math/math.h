@@ -223,15 +223,18 @@ namespace Math {
 		return value < lowerBound ? lowerBound : (value > upperBound ? upperBound : value);
 	}
 
-	constexpr bool isAligned(AddressT x, AlignT alignment) noexcept {
+	template<Integer I>
+	constexpr bool isAligned(I x, AlignT alignment) noexcept {
 		return !(x & (alignment - 1));
 	}
 
-	constexpr AddressT alignUp(AddressT x, AlignT alignment) noexcept {
+	template<Integer I>
+	constexpr I alignUp(I x, AlignT alignment) noexcept {
 		return (x + alignment - 1) & ~(alignment - 1);
 	}
 
-	constexpr AddressT alignDown(AddressT x, AlignT alignment) noexcept {
+	template<Integer I>
+	constexpr I alignDown(I x, AlignT alignment) noexcept {
 		return x & ~(alignment - 1);
 	}
 

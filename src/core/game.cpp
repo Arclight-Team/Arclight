@@ -15,7 +15,6 @@
 #include "util/file.h"
 #include "stream/byteinputstream.h"
 #include "stream/fileinputstream.h"
-#include "image/image.h"
 //#include "compress/lz77.h"
 
 
@@ -37,9 +36,11 @@ bool Game::init() {
 		GLE::Framebuffer::setViewport(w, h);
 		renderer.setAspectRatio(window.getWidth() / static_cast<float>(window.getHeight())); 
 	});
+
+	imageRenderer.init();
 	
 
-	window.setSize(1080, 720);
+	window.setSize(720, 720);
 
 	//Connect the input system to the window in order to receive events
 	inputSystem.connect(window);
@@ -152,9 +153,6 @@ bool Game::init() {
 	dest.close();
 */
 
-	Image<Pixel::RGBA8> img(20, 20);
-	ArcDebug() << img.getRawData();
-
 	return true;
 
 }
@@ -182,7 +180,8 @@ void Game::update() {
 
 void Game::render() {
 
-	renderer.render();
+	//renderer.render();
+	imageRenderer.render();
 
 }
 
@@ -192,6 +191,7 @@ void Game::destroy() {
 
 	profiler.start();
 	renderer.destroy();
+	imageRenderer.destroy();
 
 	for(u32 i = 0; i < 15 * 15 * 15; i++) {
 		manager.destroy(i);

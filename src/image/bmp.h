@@ -102,7 +102,10 @@ namespace BMP {
     template<Pixel P>
     Image<P> loadBitmap(InputStream& stream) {
 
-        BinaryReader reader(stream, true);
+        using Format = PixelFormat<P>;
+        using PixelType = PixelType<P>::Type;
+
+        BinaryReader reader(stream, true, ByteOrder::Little);
         SizeT streamSize = stream.getSize();
 
         if(streamSize < headerSize + infoHeaderSize) {
@@ -226,8 +229,6 @@ namespace BMP {
 
 
         //Integrity checking
-        bool bottomUp = infoHeader.height >= 0;
-
         if(infoHeader.width < 0 || infoHeader.planes != 1 || Bool::none(infoHeader.bitsPerPixel, 0, 1, 4, 8, 16, 24, 32) || infoHeader.compression > 5) {
             Log::error("Bitmap Loader", "Failed to load bitmap: Invalid parameters");
             return Image<P>();
@@ -251,9 +252,157 @@ namespace BMP {
             return Image<P>();
         }
 
+        bool topDown = infoHeader.height < 0;
+        infoHeader.height = Math::abs(infoHeader.height);
+
+        Image<P> image(infoHeader.width, infoHeader.height);
 
         //Color reading
         switch(compression) {
+
+            case Compression::None:
+            {
+
+                if(infoHeader.bitsPerPixel >= 16) {
+
+                    //Direct
+                    u32 bytesPerPixel = infoHeader.bitsPerPixel / 8;
+                    u32 rowBytes = image.getWidth() * bytesPerPixel;
+                    u32 rowBytesAligned = Math::alignUp(rowBytes, 4);
+                    u32 rowAlign = rowBytesAligned - rowBytes;
+
+                    if(streamSize < header.dataOffset + rowBytesAligned * image.getHeight()) {
+                        Log::error("Bitmap Loader", "Failed to load bitmap: Stream size too small");
+                        return Image<P>();
+                    }
+
+                    stream.seek(header.dataOffset);
+                    
+                    u8 data[4];
+
+                    auto loadData = [&]<u32 N, class T>() {
+                        
+                        for(u32 y = 0; y < image.getHeight(); y++) {
+
+                            u32 ry = topDown ? image.getHeight() - y - 1 : y;
+
+                            for(u32 x = 0; x < image.getWidth(); x++) {
+                                    
+                                reader.read<u8>({data, N});
+                                image.setPixel(x, ry, PixelConverter::convert<P>(T({data, N})));
+
+                            }
+
+                            if constexpr (N == 2 || N == 3) {
+
+                                if(rowAlign) {
+                                    stream.seek(rowAlign, StreamBase::SeekMode::Current);
+                                }
+
+                            }
+
+                        }
+
+                    };
+
+                    switch(infoHeader.bitsPerPixel) {
+
+                        case 16:
+                            loadData.template operator()<2, PixelRGB5>();
+                            break;
+
+                        case 24:
+                            loadData.template operator()<3, PixelRGB8>();
+                            break;
+
+                        default:
+                        case 32:
+                            loadData.template operator()<4, PixelRGBA8>();
+                            break;
+
+                    }
+
+                } else {
+
+                    if(infoHeader.bitsPerPixel == 0) {
+                        Log::error("Bitmap Loader", "Failed to load bitmap: Bits per pixel cannot be 0 for non JPEG/PNG images");
+                        return Image<P>();
+                    }
+
+                    //Palette
+                    std::vector<PixelType> palette;
+                    u32 colorCount = infoHeader.paletteColors ? infoHeader.paletteColors : 1 << infoHeader.bitsPerPixel;
+                    
+                    SizeT streamPos = stream.getPosition();
+
+                    if(streamSize < streamPos + colorCount * 4 * 4) {
+                        Log::error("Bitmap Loader", "Failed to load bitmap: Stream size too small");
+                        return Image<P>();
+                    }
+
+                    for(u32 i = 0; i < colorCount; i++) {
+                        palette.push_back(PixelConverter::convert<P>(PixelARGB8(reader.read<u32>())));
+                    }
+
+                    u32 bitsPerRow = infoHeader.width * infoHeader.bitsPerPixel;
+                    u32 bitsPerRowAligned = Math::alignUp(bitsPerRow, 32);
+                    u32 totalImageDataSize = (bitsPerRowAligned * infoHeader.height) / 8;
+                    u32 rowReads = bitsPerRow / 32;
+                    u32 pixelsPerRead = 32 / infoHeader.bitsPerPixel;
+                    u32 mask = (1 << infoHeader.bitsPerPixel) - 1;
+                    u32 shift = infoHeader.bitsPerPixel;
+                    u32 leftoverPixels = (bitsPerRowAligned - bitsPerRow) / infoHeader.bitsPerPixel;
+                    u32 leftoverX = image.getWidth() - leftoverPixels;
+
+                    if(streamSize < header.dataOffset + totalImageDataSize) {
+                        Log::error("Bitmap Loader", "Failed to load bitmap: Stream size too small");
+                        return Image<P>();
+                    }
+
+                    for(u32 y = 0; y < image.getHeight(); y++) {
+
+                        u32 ry = topDown ? image.getHeight() - y - 1 : y;
+
+                        for(u32 x = 0; x < rowReads; x++) {
+
+                            u32 pixelData = reader.read<u32>();
+
+                            for(u32 i = 0; i < pixelsPerRead; i++) {
+
+                                u8 index = pixelData & mask;
+                                image.setPixel(x * pixelsPerRead + i, ry, palette[index]);
+                                pixelData >>= shift;
+
+                            }
+
+                        }
+
+                        u32 pixelData = reader.read<u32>();
+
+                        for(u32 i = 0; i < leftoverPixels; i++) {
+
+                            u8 index = pixelData & mask;
+                            image.setPixel(leftoverX + i, ry, palette[index]);
+                            pixelData >>= shift;
+
+                        }
+
+                    }
+
+                }
+
+            }
+            break;
+
+            case Compression::RLE4:
+            case Compression::RLE8:
+
+                if(topDown) {
+                    Log::error("Bitmap Loader", "Failed to load bitmap: Run-Length encoded bitmap cannot be top-down");
+                    return Image<P>();
+                }
+
+                break;
 
             case Compression::Masked:
             {
@@ -286,46 +435,55 @@ namespace BMP {
 
                 }
 
-                u32 redShift = Bits::clz(redMask);
-                u32 greenShift = Bits::clz(greenMask);
-                u32 blueShift = Bits::clz(blueMask);
-                u32 alphaShift = Bits::clz(alphaMask);
+                u32 redShift = Bits::ctz(redMask);
+                u32 greenShift = Bits::ctz(greenMask);
+                u32 blueShift = Bits::ctz(blueMask);
+                u32 alphaShift = Bits::ctz(alphaMask);
 
-                u32 rowBytes = Math::alignUp(infoHeader.width * infoHeader.bitsPerPixel / 8, 4);
+                u32 rowBytes = image.getWidth() * infoHeader.bitsPerPixel / 8;
+                u32 rowBytesAligned = Math::alignUp(rowBytes, 4);
+                bool rowAlign = rowBytesAligned - rowBytes;
 
-                if(streamSize < headerSize + infoHeaderSize + 3 * 4 + rowBytes * infoHeader.height) {
+                if(streamSize < header.dataOffset + rowBytesAligned * image.getHeight()) {
                     Log::error("Bitmap Loader", "Failed to load bitmap: Stream size too small");
                     return Image<P>();
                 }
 
-                Image<P> image(infoHeader.width, infoHeader.height);
+                stream.seek(header.dataOffset);
+
+                auto loadData = [&]<u32 N>() {
+
+                    using T = std::conditional_t<N != 16, u32, u16>;
+                        
+                    for(u32 y = 0; y < image.getHeight(); y++) {
+
+                        u32 ry = topDown ? image.getHeight() - y - 1 : y;
+
+                        for(u32 x = 0; x < image.getWidth(); x++) {
+
+                            T pixelData = reader.read<T>();
+                            auto pixel = PixelConverter::convert<P, T>(pixelData, redMask, redShift, greenMask, greenShift, blueMask, blueShift, alphaMask, alphaShift);
+                            image.setPixel(x, ry, pixel);
+
+                        }
+
+                        if constexpr (N == 16) {
+
+                            if(rowAlign) {
+                                stream.seek(2, StreamBase::SeekMode::Current);
+                            }
+
+                        } 
+
+                    }
+
+                };
 
                 if(infoHeader.bitsPerPixel == 16) {
-
-                    for(u32 y = 0; y < infoHeader.height; y++) {
-
-                        for(u32 x = 0; x < infoHeader.width; x++) {
-
-                            u16 pixel = reader.read<u16>();
-
-                        }
-
-                    }
-
+                    loadData.template operator()<16>();
                 } else {
-
-                    for(u32 y = 0; y < infoHeader.height; y++) {
-
-                        for(u32 x = 0; x < infoHeader.width; x++) {
-
-                            u32 pixel = reader.read<u32>();
-
-                        }
-
-                    }
-
+                    loadData.template operator()<32>();
                 }
-
 
             }
             break;
@@ -337,8 +495,7 @@ namespace BMP {
 
         }
 
-
-        return Image<P>();
+        return image;
 
     }
 

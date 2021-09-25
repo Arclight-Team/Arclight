@@ -521,7 +521,7 @@ u32 Texture::getTextureSourceTypeEnum(TextureSourceType type) {
 		case TextureSourceType::UByte332:
 			return GL_UNSIGNED_BYTE_3_3_2;
 
-		case TextureSourceType::UByte233R:
+		case TextureSourceType::UByte233:
 			return GL_UNSIGNED_BYTE_2_3_3_REV;
 
 		case TextureSourceType::UShort565:
@@ -539,7 +539,7 @@ u32 Texture::getTextureSourceTypeEnum(TextureSourceType type) {
 		case TextureSourceType::UShort5551:
 			return GL_UNSIGNED_SHORT_5_5_5_1;
 
-		case TextureSourceType::UShort1555R:
+		case TextureSourceType::UShort1555:
 			return GL_UNSIGNED_SHORT_1_5_5_5_REV;
 
 		case TextureSourceType::UInt8888:
@@ -551,7 +551,7 @@ u32 Texture::getTextureSourceTypeEnum(TextureSourceType type) {
 		case TextureSourceType::UInt10_2:
 			return GL_UNSIGNED_INT_10_10_10_2;
 
-		case TextureSourceType::UInt2_10R:
+		case TextureSourceType::UInt2_10:
 			return GL_UNSIGNED_INT_2_10_10_10_REV;
 
 		default:

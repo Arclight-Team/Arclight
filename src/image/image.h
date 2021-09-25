@@ -14,13 +14,16 @@ class Image {
 
 public:
 
-    using PixelType = PixelFormat<P>::PixelType;
+    using Format = PixelFormat<P>;
+    using PixelType = PixelType<P>::Type;
 
-    constexpr static u32 PixelBytes = PixelFormat<P>::BytesPerPixel;
+    constexpr static u32 PixelBytes = Format::BytesPerPixel;
 
 
     constexpr Image() : Image(0, 0) {}
-    constexpr Image(u32 width, u32 height) : width(width), height(height) {}
+    constexpr Image(u32 width, u32 height) : width(width), height(height) {
+        data.resize(width * height);
+    }
 
     constexpr void setRawData(const std::span<u8>& src, u64 startPixel = 0) {
 
@@ -28,7 +31,7 @@ public:
         arc_assert(startPixel + pixels <= data.size(), "Cannot copy pixel data to smaller image");
 
         for(SizeT i = 0; i < pixels; i++) {
-            data[i + startPixel] = PixelFormat<P>::fromBytes(data.subspan(src * PixelBytes));
+            data[i + startPixel] = Format::fromBytes(data.subspan(src * PixelBytes));
         }
 
     }
@@ -40,7 +43,7 @@ public:
 
         for(u64 i = 0; i < width * height; i++) {
 
-            auto pixel = PixelFormat<P>::inflate(data[i]);
+            auto pixel = Format::inflate(data[i]);
             image.data[i] = PixelFormat<Q>::deflate(pixel);
 
         }

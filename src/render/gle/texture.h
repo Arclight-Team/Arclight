@@ -77,17 +77,17 @@ enum class TextureSourceType {
 	Int,
 	Float,
 	UByte332,
-	UByte233R,
+	UByte233,
 	UShort565,
 	UShort565R,
 	UShort4444,
 	UShort4444R,
 	UShort5551,
-	UShort1555R,
+	UShort1555,
 	UInt8888,
 	UInt8888R,
 	UInt10_2,
-	UInt2_10R
+	UInt2_10
 };
 
 
