@@ -15,7 +15,9 @@ struct UnsignedType {
 
 //Pixel Types
 enum class Pixel {
+    BGR5,
     RGB5,
+    BGR8,
     RGB8,
     RGBA8,
     ABGR8,
@@ -116,6 +118,23 @@ struct PixelFormat<Pixel::RGB8> {
 
 
 template<>
+struct PixelFormat<Pixel::BGR8> {
+
+    constexpr static u32 BytesPerPixel = 3;
+    constexpr static u32 Channels = 3;
+    constexpr static u32 RedMask    = 0x00FF0000;
+    constexpr static u32 GreenMask  = 0x0000FF00;
+    constexpr static u32 BlueMask   = 0x000000FF;
+    constexpr static u32 AlphaMask  = 0x00000000;
+    constexpr static u32 RedShift   = 16;
+    constexpr static u32 GreenShift = 8;
+    constexpr static u32 BlueShift  = 0;
+    constexpr static u32 AlphaShift = 0;
+
+};
+
+
+template<>
 struct PixelFormat<Pixel::RGB5> {
 
     constexpr static u32 BytesPerPixel = 2;
@@ -127,6 +146,23 @@ struct PixelFormat<Pixel::RGB5> {
     constexpr static u32 RedShift   = 0;
     constexpr static u32 GreenShift = 5;
     constexpr static u32 BlueShift  = 10;
+    constexpr static u32 AlphaShift = 0;
+
+};
+
+
+template<>
+struct PixelFormat<Pixel::BGR5> {
+
+    constexpr static u32 BytesPerPixel = 2;
+    constexpr static u32 Channels = 3;
+    constexpr static u32 RedMask    = 0x00007C00;
+    constexpr static u32 GreenMask  = 0x000003E0;
+    constexpr static u32 BlueMask   = 0x0000001F;
+    constexpr static u32 AlphaMask  = 0x00000000;
+    constexpr static u32 RedShift   = 10;
+    constexpr static u32 GreenShift = 5;
+    constexpr static u32 BlueShift  = 0;
     constexpr static u32 AlphaShift = 0;
 
 };
@@ -264,11 +300,37 @@ struct PixelRGB5 : public PixelStorage<Pixel::RGB5, u8> {
 };
 
 
+struct PixelBGR5 : public PixelStorage<Pixel::BGR5, u8> {
+
+    constexpr PixelBGR5() : PixelStorage(0) {}
+
+    constexpr PixelBGR5(u8 r, u8 g, u8 b) {
+        setRGB(r, g, b);
+    }
+
+    using PixelStorage::PixelStorage;
+
+};
+
+
 struct PixelRGB8 : public PixelStorage<Pixel::RGB8, u8> {
 
     constexpr PixelRGB8() : PixelStorage(0) {}
 
     constexpr PixelRGB8(u8 r, u8 g, u8 b) {
+        setRGB(r, g, b);
+    }
+
+    using PixelStorage::PixelStorage;
+
+};
+
+
+struct PixelBGR8 : public PixelStorage<Pixel::BGR8, u8> {
+
+    constexpr PixelBGR8() : PixelStorage(0) {}
+
+    constexpr PixelBGR8(u8 r, u8 g, u8 b) {
         setRGB(r, g, b);
     }
 
@@ -339,8 +401,18 @@ struct PixelType<Pixel::RGB5> {
 };
 
 template<>
+struct PixelType<Pixel::BGR5> {
+    using Type = PixelBGR5;
+};
+
+template<>
 struct PixelType<Pixel::RGB8> {
     using Type = PixelRGB8;
+};
+
+template<>
+struct PixelType<Pixel::BGR8> {
+    using Type = PixelBGR8;
 };
 
 template<>

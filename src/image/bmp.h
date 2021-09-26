@@ -308,16 +308,16 @@ namespace BMP {
                     switch(infoHeader.bitsPerPixel) {
 
                         case 16:
-                            loadData.template operator()<2, PixelRGB5>();
+                            loadData.template operator()<2, PixelBGR5>();
                             break;
 
                         case 24:
-                            loadData.template operator()<3, PixelRGB8>();
+                            loadData.template operator()<3, PixelBGR8>();
                             break;
 
                         default:
                         case 32:
-                            loadData.template operator()<4, PixelRGBA8>();
+                            loadData.template operator()<4, PixelBGRA8>();
                             break;
 
                     }
@@ -347,45 +347,86 @@ namespace BMP {
                     u32 bitsPerRow = infoHeader.width * infoHeader.bitsPerPixel;
                     u32 bitsPerRowAligned = Math::alignUp(bitsPerRow, 32);
                     u32 totalImageDataSize = (bitsPerRowAligned * infoHeader.height) / 8;
-                    u32 rowReads = bitsPerRow / 32;
-                    u32 pixelsPerRead = 32 / infoHeader.bitsPerPixel;
-                    u32 mask = (1 << infoHeader.bitsPerPixel) - 1;
-                    u32 shift = infoHeader.bitsPerPixel;
+
                     u32 leftoverPixels = (bitsPerRowAligned - bitsPerRow) / infoHeader.bitsPerPixel;
                     u32 leftoverX = image.getWidth() - leftoverPixels;
+
+                    u32 rowReads = bitsPerRow / 32;
 
                     if(streamSize < header.dataOffset + totalImageDataSize) {
                         Log::error("Bitmap Loader", "Failed to load bitmap: Stream size too small");
                         return Image<P>();
                     }
 
-                    for(u32 y = 0; y < image.getHeight(); y++) {
+                    stream.seek(header.dataOffset);
 
-                        u32 ry = topDown ? image.getHeight() - y - 1 : y;
+                    auto loadData = [&]<u32 BPP>() {
 
-                        for(u32 x = 0; x < rowReads; x++) {
+                        constexpr static u32 pixelsPerRead = 32 / BPP;
+                        constexpr static u32 pixelsPerByte = pixelsPerRead / 4;
+                        constexpr static u32 bytemask = ((1 << BPP) - 1) << (8 - BPP);
 
+                        for(u32 y = 0; y < image.getHeight(); y++) {
+
+                            u32 ry = topDown ? image.getHeight() - y - 1 : y;
+
+                            for(u32 x = 0; x < rowReads; x++) {
+
+                                u32 pixelData = reader.read<u32>();
+
+                                for(u32 i = 0; i < 4; i++) {
+
+                                    u32 mask = bytemask;
+
+                                    for(u32 j = 0; j < pixelsPerByte; j++) {
+                                        
+                                        image.setPixel(x * pixelsPerRead + i * pixelsPerByte + j, ry, palette[(pixelData >> (8 * i) & mask) >> (8 - (j + 1) * BPP)]);
+                                        mask >>= BPP;
+
+                                    }
+
+                                }
+
+                            }
+
+                            u32 k = 0;
                             u32 pixelData = reader.read<u32>();
 
-                            for(u32 i = 0; i < pixelsPerRead; i++) {
+                            for(u32 i = 0; i < Math::alignUp(leftoverPixels, 8) / 8; i++) {
 
-                                u8 index = pixelData & mask;
-                                image.setPixel(x * pixelsPerRead + i, ry, palette[index]);
-                                pixelData >>= shift;
+                                u32 mask = bytemask;
+
+                                for(u32 j = 0; j < pixelsPerByte; j++) {
+                                    
+                                    image.setPixel(leftoverX + k, ry, palette[(pixelData >> (8 * i) & mask) >> (8 - (j + 1) * BPP)]);
+                                    mask >>= BPP;
+
+                                    if(++k == leftoverPixels) {
+                                        break;
+                                    }
+
+                                }
 
                             }
 
                         }
 
-                        u32 pixelData = reader.read<u32>();
+                    };
 
-                        for(u32 i = 0; i < leftoverPixels; i++) {
+                    switch(infoHeader.bitsPerPixel) {
 
-                            u8 index = pixelData & mask;
-                            image.setPixel(leftoverX + i, ry, palette[index]);
-                            pixelData >>= shift;
+                        case 1:
+                            loadData.template operator()<1>();
+                            break;
 
-                        }
+                        case 4:
+                            loadData.template operator()<4>();
+                            break;
+
+                        default:
+                        case 8:
+                            loadData.template operator()<8>();
+                            break;
 
                     }
 
@@ -396,13 +437,149 @@ namespace BMP {
 
             case Compression::RLE4:
             case Compression::RLE8:
+            {
 
                 if(topDown) {
                     Log::error("Bitmap Loader", "Failed to load bitmap: Run-Length encoded bitmap cannot be top-down");
                     return Image<P>();
                 }
 
-                break;
+                //Palette
+                std::vector<PixelType> palette;
+                u32 colorCount = infoHeader.paletteColors ? infoHeader.paletteColors : 1 << infoHeader.bitsPerPixel;
+                
+                SizeT streamPos = stream.getPosition();
+
+                if(streamSize < streamPos + colorCount * 4 * 4) {
+                    Log::error("Bitmap Loader", "Failed to load bitmap: Stream size too small");
+                    return Image<P>();
+                }
+
+                for(u32 i = 0; i < colorCount; i++) {
+                    palette.push_back(PixelConverter::convert<P>(PixelARGB8(reader.read<u32>())));
+                }
+
+                stream.seek(header.dataOffset);
+
+                u8 ctrl[2];
+                u32 x = 0;
+                u32 y = 0;
+                bool eob = false;
+                constexpr u32 skipColorIdx = 0;
+
+                auto loadData = [&]<u32 N>() {
+
+                    constexpr static bool IsRLE4 = N == 4;
+                    constexpr static u32 directIndexBytes = IsRLE4 ? 0x80 : 0xFF;
+
+                    while(!eob) {
+
+                        reader.read(std::span<u8>{ctrl, 2});
+
+                        if(ctrl[0]) {
+
+                            //n times index
+                            for(u32 i = 0; i < ctrl[0]; i++) {
+
+                                if constexpr (IsRLE4) {
+
+                                    u32 shift = (!(i & 1) * 4);
+                                    image.setPixel(x++, y, palette[(ctrl[1] & (0xF << shift)) >> shift]);
+
+                                } else {
+
+                                    image.setPixel(x++, y, palette[ctrl[1]]);
+
+                                }
+
+
+                            }
+
+                        } else {
+
+                            switch(ctrl[1]) {
+
+                                case 0:
+
+                                    //End of line
+                                    x = 0;
+                                    y++;
+                                    break;
+
+                                case 1:
+
+                                    //End of bitmap
+                                    eob = true;
+                                    break;
+
+                                case 2:
+
+                                    //Delta
+                                    reader.read(std::span<u8>{ctrl, 2});
+
+                                    for(u32 i = 0; i < ctrl[0]; i++) {
+                                        image.setPixel(x++, y, palette[skipColorIdx]);
+                                    }
+
+                                    for(u32 i = 0; i < ctrl[1]; i++) {
+
+                                        for(x = 0; x < image.getWidth(); x++) {
+                                            image.setPixel(x, y, palette[skipColorIdx]);
+                                        }
+
+                                        y++;
+
+                                    }
+
+                                    break;
+
+                                default:
+                                {
+                                    //Direct
+                                    u32 pixelCount = ctrl[1];
+                                    u32 byteCount = IsRLE4 ? (pixelCount + 1) / 2 : pixelCount;
+                                    u8 indices[directIndexBytes];
+
+                                    reader.read(std::span<u8>{indices, byteCount});
+
+                                    if(byteCount & 1) {
+                                        stream.seek(1, StreamBase::SeekMode::Current);
+                                    }
+
+                                    for(u32 i = 0; i < pixelCount; i++) {
+
+                                        if constexpr (IsRLE4) {
+
+                                            u32 shift = (!(i & 1) * 4);
+                                            image.setPixel(x++, y, palette[(indices[i / 2] & (0xF << shift)) >> shift]);
+
+                                        } else {
+
+                                            image.setPixel(x++, y, palette[indices[i]]);
+
+                                        }
+
+                                    }
+
+                                }
+                                break;
+
+                            }
+
+                        }
+
+                    }
+
+                };
+
+                if (compression == Compression::RLE4) {
+                    loadData.template operator()<4>();
+                } else {
+                    loadData.template operator()<8>();
+                }
+
+            }
+            break;
 
             case Compression::Masked:
             {

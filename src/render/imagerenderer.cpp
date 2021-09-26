@@ -37,14 +37,14 @@ void main() {
 )";
 
 
-
+#include "util/timer.h"
 bool ImageRenderer::init() {
 
     try {
 
         imageShader = ShaderLoader::fromString(vsShader, fsShader);
 
-    } catch(std::exception& e) {
+    } catch(std::exception&) {
 
         Log::error("Image Renderer", "Failed to load image shaders");
         return false;
@@ -53,12 +53,6 @@ bool ImageRenderer::init() {
 
     std::vector<float> attributeData = VertexHelper::createQuad(1.8, 1.8);
     attributeData.resize(30);
-    
-    auto uvs = {
-        0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1
-    };
-
-    std::copy(uvs.begin(), uvs.end(), &attributeData[18]);
 
     File textureFile(":/textures/test.bmp", File::In | File::Binary);
     
@@ -68,10 +62,23 @@ bool ImageRenderer::init() {
     }
 
     FileInputStream stream(textureFile);
-    Image image = BMP::loadBitmap<Pixel::RGB8>(stream);
-
+    Timer timer;
+    timer.start();
+    Image image = BMP::loadBitmap<Pixel::RGB5>(stream);
+    Log::info("", "%f", timer.getElapsedTime());
     GLE::setRowUnpackAlignment(GLE::Alignment::None);
 	GLE::setRowPackAlignment(GLE::Alignment::None);
+
+    float lx = 0.5f / image.getWidth();
+    float hx = 1 - lx;
+    float ly = 0.5f / image.getHeight();
+    float hy = 1 - ly;
+
+    auto uvs = {
+        lx, ly, hx, ly, hx, hy, lx, ly, hx, hy, lx, hy
+    };
+
+    std::copy(uvs.begin(), uvs.end(), &attributeData[18]);
 
     imageVAO.create();
     imageVAO.bind();
@@ -87,13 +94,16 @@ bool ImageRenderer::init() {
 
     imageTexture.create();
     imageTexture.bind();
-    imageTexture.setData(image.getWidth(), image.getHeight(), GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, image.getImageBuffer().data());
+    imageTexture.setData(image.getWidth(), image.getHeight(), GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UShort1555, image.getImageBuffer().data());
+    imageTexture.setMagFilter(GLE::TextureFilter::Trilinear);
+    imageTexture.setMinFilter(GLE::TextureFilter::Trilinear);
     imageTexture.generateMipmaps();
 
     imageTextureUnitUniform = imageShader.getUniform("image");
 
     GLE::enableDepthTests();
     GLE::enableCulling();
+    GLE::setClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
     return true;
 
