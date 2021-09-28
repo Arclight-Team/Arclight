@@ -287,7 +287,7 @@ namespace BMP {
                             u32 ry = topDown ? image.getHeight() - y - 1 : y;
 
                             for(u32 x = 0; x < image.getWidth(); x++) {
-                                    
+
                                 reader.read<u8>({data, N});
                                 image.setPixel(x, ry, PixelConverter::convert<P>(T({data, N})));
 

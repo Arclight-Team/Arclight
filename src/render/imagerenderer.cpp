@@ -1,11 +1,17 @@
+#include "image/filter/sepia.h"
 #include "imagerenderer.h"
 #include "utility/vertexhelper.h"
 #include "utility/shaderloader.h"
 #include "util/log.h"
 
 #include "util/file.h"
-#include "stream/fileinputstream.h"
+#include "util/timer.h"
 #include "image/bmp.h"
+#include "stream/fileinputstream.h"
+#include "image/filter/invert.h"
+#include "image/filter/grayscale.h"
+#include "image/filter/exponential.h"
+#include "image/filter/contrast.h"
 
 
 
@@ -37,7 +43,7 @@ void main() {
 )";
 
 
-#include "util/timer.h"
+
 bool ImageRenderer::init() {
 
     try {
@@ -62,10 +68,17 @@ bool ImageRenderer::init() {
     }
 
     FileInputStream stream(textureFile);
+    Image image = BMP::loadBitmap<Pixel::RGB8>(stream);
+
     Timer timer;
     timer.start();
-    Image image = BMP::loadBitmap<Pixel::RGB5>(stream);
+    //image.applyFilter<GrayscaleFilter>();
+    //image.applyFilter<InversionFilter>();
+    image.applyFilter<SepiaFilter>();
+    image.applyFilter<ExponentialFilter>(2.2);
+    image.applyFilter<ContrastFilter>(2);
     Log::info("", "%f", timer.getElapsedTime());
+
     GLE::setRowUnpackAlignment(GLE::Alignment::None);
 	GLE::setRowPackAlignment(GLE::Alignment::None);
 
@@ -94,7 +107,7 @@ bool ImageRenderer::init() {
 
     imageTexture.create();
     imageTexture.bind();
-    imageTexture.setData(image.getWidth(), image.getHeight(), GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UShort1555, image.getImageBuffer().data());
+    imageTexture.setData(image.getWidth(), image.getHeight(), GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, image.getImageBuffer().data());
     imageTexture.setMagFilter(GLE::TextureFilter::Trilinear);
     imageTexture.setMinFilter(GLE::TextureFilter::Trilinear);
     imageTexture.generateMipmaps();

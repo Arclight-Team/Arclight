@@ -3,7 +3,9 @@
 #include "types.h"
 #include "util/typetraits.h"
 #include "arcconfig.h"
-#include <initializer_list>
+#include "util/bits.h"
+#include <algorithm>
+#include <span>
 
 
 //Pixel Storage Helper
@@ -179,6 +181,7 @@ public:
     constexpr static u32 Size = Format::BytesPerPixel;
     using PackedT = UnsignedType<Size>::Type;
 
+
     constexpr PixelStorage() {
         std::fill(p, p + Size, 0);
     }
@@ -270,8 +273,7 @@ public:
         PackedT t = 0;
 
         for(u32 i = 0; i < Size; i++) {
-            t <<= 8;
-            t |= p[i];
+            t |= p[i] << (i * 8);
         }
 
         return t;
@@ -304,7 +306,7 @@ struct PixelBGR5 : public PixelStorage<Pixel::BGR5, u8> {
 
     constexpr PixelBGR5() : PixelStorage(0) {}
 
-    constexpr PixelBGR5(u8 r, u8 g, u8 b) {
+    constexpr PixelBGR5(u8 b, u8 g, u8 r) {
         setRGB(r, g, b);
     }
 
@@ -330,7 +332,7 @@ struct PixelBGR8 : public PixelStorage<Pixel::BGR8, u8> {
 
     constexpr PixelBGR8() : PixelStorage(0) {}
 
-    constexpr PixelBGR8(u8 r, u8 g, u8 b) {
+    constexpr PixelBGR8(u8 b, u8 g, u8 r) {
         setRGB(r, g, b);
     }
 
@@ -474,7 +476,7 @@ private:
 public:
 
     template<Pixel DestPixel, class T>
-    constexpr static auto convert(T&& pixel) {
+    static auto convert(T&& pixel) {
 
         using SrcFormat = T::Format;
         using DestFormat = PixelFormat<DestPixel>;

@@ -89,6 +89,12 @@ public:
 
     }
 
+    template<class Filter, class... Args>
+    void applyFilter(Args&&... args) {
+        Filter::run(*this, std::forward<Args>(args)...);
+    }
+
+
 private:
 
     u32 width;
