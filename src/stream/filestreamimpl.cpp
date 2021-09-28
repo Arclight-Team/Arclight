@@ -10,9 +10,7 @@ FileStreamImpl::FileStreamImpl(File& file) : file(file) {}
 SizeT FileStreamImpl::read(void* dest, SizeT size) {
 
 	arc_assert(dest != nullptr, "Destination is null");
-
-	file.read(std::span<u8>{static_cast<u8*>(dest), size});
-	return size;
+	return file.read(std::span<u8>{static_cast<u8*>(dest), size});
 
 }
 
@@ -72,5 +70,8 @@ bool FileStreamImpl::isOpen() const {
 
 
 bool FileStreamImpl::reachedEnd() const {
-	return file.tell() == file.getFileSize();
+
+	auto pos = getPosition();
+	return pos == file.getFileSize() || pos == -1;
+
 }

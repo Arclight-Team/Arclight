@@ -205,3 +205,10 @@
 	ARC_PIXEL_EXACT: Use rounding instead of shifting during conversion. Note that this method is a lot slower than the imprecise shift version.
 */
 #define ARC_PIXEL_EXACT
+
+
+/*
+	Stream I/O acceleration
+	ARC_STREAM_ACCELERATE: Accelerates stream performance by disabling runtime checks
+*/
+#define ARC_STREAM_ACCELERATE

@@ -36,7 +36,7 @@ public:
 	void write(const std::string& text);
 	void writeLine(const std::string& line);
 
-	void read(const std::span<u8>& data);
+	SizeT read(const std::span<u8>& data);
 	void write(const std::span<const u8>& data);
 
 	void seek(u64 pos);
@@ -53,8 +53,10 @@ public:
 	
 
 private:
+
 	mutable std::fstream stream;
 	Uri filepath;
 	Flags openFlags;
+	SizeT fileSize;
 
 };

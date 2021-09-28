@@ -3,6 +3,7 @@
 #include "util/bits.h"
 #include "inputstream.h"
 #include "util/assert.h"
+#include "arcconfig.h"
 
 
 class BinaryReader {
@@ -18,18 +19,17 @@ public:
 
 		Type in;
 
-		if (stream.read(&in, sizeof(Type)) != sizeof(Type)) {
+        auto readBytes = stream.read(&in, sizeof(Type));
+
+#ifndef ARC_STREAM_ACCELERATE
+		if (readBytes != sizeof(Type)) {
 			arc_force_assert("Failed to read data from stream");
             return {};
 		}
+#endif
 
 		if (convert) {
-
-			if constexpr (sizeof(Type) == 2) { in = static_cast<Type>(arc_swap16(static_cast<u16>(in))); }
-			else if constexpr (sizeof(Type) == 4) { in = static_cast<Type>(arc_swap32(static_cast<u32>(in))); }
-			else if constexpr (sizeof(Type) == 8) { in = static_cast<Type>(arc_swap64(static_cast<u64>(in))); }
-            else { /* Don't convert here */ }
-
+            in = Bits::swap(in);
 		}
 
         return in;
@@ -52,28 +52,41 @@ public:
             for(SizeT i = 0; i < size; i++) {
 
                 T& in = data[i];
+                auto readBytes = stream.read(&in, sizeof(T));
 
-                if (stream.read(&in, sizeof(T)) != sizeof(T)) {
-			        arc_force_assert("Failed to read data from stream");
+#ifndef ARC_STREAM_ACCELERATE
+                if (readBytes != sizeof(T)) {
+                    arc_force_assert("Failed to read data from stream");
                     return;
                 }
+#endif
 
-                if constexpr (sizeof(T) == 2) { in = static_cast<T>(arc_swap16(static_cast<u16>(in))); }
-                else if constexpr (sizeof(T) == 4) { in = static_cast<T>(arc_swap32(static_cast<u32>(in))); }
-                else if constexpr (sizeof(T) == 8) { in = static_cast<T>(arc_swap64(static_cast<u64>(in))); }
+                in = Bits::swap(in);
 
             }
 
 		} else {
 
-            if (stream.read(data.data(), bytes) != bytes) {
+            auto readBytes = stream.read(data.data(), bytes);
+
+#ifndef ARC_STREAM_ACCELERATE
+            if (readBytes != bytes) {
 			    arc_force_assert("Failed to read data from stream");
                 return;
             }
+#endif
 
         }
 
 	}
+
+    InputStream& getStream() {
+        return stream;
+    }
+
+    const InputStream& getStream() const {
+        return stream;
+    }
 
 private:
 

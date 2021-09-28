@@ -2,6 +2,7 @@
 
 #include "util/bits.h"
 #include "outputstream.h"
+#include "arcconfig.h"
 
 
 class BinaryWriter {
@@ -18,17 +19,16 @@ public:
 		Type in = value;
 
 		if (convert) {
-
-			if constexpr (sizeof(Type) == 2) { in = static_cast<Type>(arc_swap16(static_cast<u16>(in))); }
-			else if constexpr (sizeof(Type) == 4) { in = static_cast<Type>(arc_swap32(static_cast<u32>(in))); }
-			else if constexpr (sizeof(Type) == 8) { in = static_cast<Type>(arc_swap64(static_cast<u64>(in))); }
-            else { /* Don't convert here */ }
-
+            in = Bits::swap(in);
 		}
 
-		if (stream.write(&in, sizeof(Type)) != sizeof(Type)) {
+        auto writtenBytes = stream.write(&in, sizeof(Type));
+
+#ifndef ARC_STREAM_ACCELERATE
+		if (writtenBytes != sizeof(Type)) {
 			arc_force_assert("Failed to write data to stream");
 		}
+#endif
 
 	}
 
@@ -49,26 +49,39 @@ public:
             for(SizeT i = 0; i < size; i++) {
 
                 Type in = data[i];
-
-                if constexpr (sizeof(Type) == 2) { in = static_cast<Type>(arc_swap16(static_cast<u16>(in))); }
-                else if constexpr (sizeof(Type) == 4) { in = static_cast<Type>(arc_swap32(static_cast<u32>(in))); }
-                else if constexpr (sizeof(Type) == 8) { in = static_cast<Type>(arc_swap64(static_cast<u64>(in))); }
+                in = Bits::swap(in);
     
-                if (stream.write(&in, sizeof(Type)) != sizeof(Type)) {
+                auto writtenBytes = stream.write(&in, sizeof(Type));
+
+#ifndef ARC_STREAM_ACCELERATE
+                if (writtenBytes != sizeof(Type)) {
                     arc_force_assert("Failed to write data to stream");
                 }
+#endif
 
             }
 
 		} else {
 
-            if (stream.write(data.data(), bytes) != bytes) {
+            auto writtenBytes = stream.write(data.data(), bytes);
+
+#ifndef ARC_STREAM_ACCELERATE
+            if (writtenBytes != bytes) {
                 arc_force_assert("Failed to write data to stream");
             }
+#endif
 
         }
 
 	}
+
+    OutputStream& getStream() {
+        return stream;
+    }
+
+    const OutputStream& getStream() const {
+        return stream;
+    }
 
 private:
 

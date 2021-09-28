@@ -53,6 +53,21 @@ namespace Bits {
 		return (u64(swap32(in & 0xFFFFFFFF)) << 32) | (swap32(in >> 32));
 	}
 
+	template<Integer T>
+	constexpr T swap(T in) {
+
+		if constexpr (sizeof(T) == 8) {
+			return swap64(in);
+		} else if constexpr (sizeof(T) == 4) {
+			return swap32(in);
+		} else if constexpr (sizeof(T) == 2) {
+			return swap16(in);
+		}
+
+		return in;
+
+	}
+
 	constexpr auto big16(u16 in) {
 		if constexpr (BigEndian) {
 			return in;

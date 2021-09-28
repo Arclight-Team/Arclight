@@ -3,10 +3,10 @@
 
 
 
-File::File() : openFlags(0) {}
+File::File() : openFlags(0), fileSize(0) {}
 
 
-File::File(const Uri& path, File::Flags flags) : filepath(path), openFlags(flags) {};
+File::File(const Uri& path, File::Flags flags) : filepath(path), openFlags(flags), fileSize(0) {};
 
 
 
@@ -21,7 +21,12 @@ bool File::open() {
 
 	stream.open(filepath.getPath(), openFlags);
 
-	return isOpen();
+	if(isOpen()) {
+		fileSize = std::filesystem::file_size(filepath.getPath());
+		return true;
+	}
+
+	return false;
 
 }
 
@@ -45,6 +50,7 @@ void File::close() {
 	}
 
 	stream.close();
+	fileSize = 0;
 
 }
 
@@ -133,13 +139,14 @@ void File::writeLine(const std::string& line) {
 
 
 
-void File::read(const std::span<u8>& data) {
+SizeT File::read(const std::span<u8>& data) {
 
 	arc_assert(isOpen(), "Attempted to read from an unopened file");
 	arc_assert(openFlags & File::In, "Attempted to read from an output stream");
 	arc_assert(openFlags & File::Binary, "Attempted to read bytes from a text-based stream");
 
 	stream.read(reinterpret_cast<char*>(data.data()), data.size());
+	return stream.gcount();
 
 }
 
@@ -185,8 +192,7 @@ bool File::isOpen() const {
 
 
 u64 File::getFileSize() const {
-	arc_assert(filepath.fileExists(), "Invalid URI '%s'", filepath.getPath().c_str());
-	return std::filesystem::file_size(filepath.getPath());
+	return fileSize;
 }
 
 
