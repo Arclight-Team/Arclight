@@ -3,6 +3,7 @@
 #include "pixel.h"
 #include "types.h"
 #include "math/math.h"
+#include "math/vector.h"
 #include "util/assert.h"
 #include <vector>
 #include <span>
@@ -167,7 +168,6 @@ public:
 
                         float fx = (x + 0.5f) * width / w;
                         float tx = fx - static_cast<u32>(fx);
-
                         u32 cx0, cx1;
 
                         if(tx >= 0.5) {
@@ -181,10 +181,28 @@ public:
 
                         float dx = tx - 0.5f;
                         
-                        PixelType a0 = (1.0f - dx) * getPixel(cx0, cy0) + dx * getPixel(cx1, cy0);
-                        PixelType a1 = (1.0f - dx) * getPixel(cx0, cy1) + dx * getPixel(cx1, cy1);
+                        const PixelType& p00 = getPixel(cx0, cy0);
+                        const PixelType& p01 = getPixel(cx0, cy1);
+                        const PixelType& p10 = getPixel(cx1, cy0);
+                        const PixelType& p11 = getPixel(cx1, cy1);
+
+                        //No need to check for max pixel values since those are impossible to reach by standard interpolation
+                        Vec4f v00(p00.getRed(), p00.getGreen(), p00.getBlue(), p00.getAlpha());
+                        Vec4f v01(p01.getRed(), p01.getGreen(), p01.getBlue(), p01.getAlpha());
+                        Vec4f v10(p10.getRed(), p10.getGreen(), p10.getBlue(), p10.getAlpha());
+                        Vec4f v11(p11.getRed(), p11.getGreen(), p11.getBlue(), p11.getAlpha());
                         
-                        resizedData[y * w + x] = (1.0f - dy) * a0 + dy * a1;
+                        Vec4f a0 = (1.0f - dx) * v00 + dx * v10;
+                        Vec4f a1 = (1.0f - dx) * v01 + dx * v11;
+                        Vec4f a = (1.0f - dy) * a0 + dy * a1;
+                        
+                        PixelType p;
+#ifdef ARC_PIXEL_EXACT
+                        p.setRGBA(static_cast<u32>(Math::round(a.x)), static_cast<u32>(Math::round(a.y)), static_cast<u32>(Math::round(a.z)), static_cast<u32>(Math::round(a.w)));
+#else
+                        p.setRGBA(static_cast<u32>(a.x), static_cast<u32>(a.y), static_cast<u32>(a.z), static_cast<u32>(a.w));
+#endif
+                        resizedData[y * w + x] = p;
 
                     }
 

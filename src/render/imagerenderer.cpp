@@ -60,7 +60,7 @@ bool ImageRenderer::init() {
     std::vector<float> attributeData = VertexHelper::createQuad(1.8, 1.8);
     attributeData.resize(30);
 
-    File textureFile(":/textures/test.bmp", File::In | File::Binary);
+    File textureFile(":/textures/paolo.bmp", File::In | File::Binary);
     
     if(!textureFile.open()){
         Log::error("Image Renderer", "Failed to open image texture");
@@ -79,7 +79,7 @@ bool ImageRenderer::init() {
     image.applyFilter<ContrastFilter>(1);
     image.applyFilter<InversionFilter>();
     image.resize(ImageScaling::Bilinear, 160);
-    image.resize(ImageScaling::Bilinear, 600);
+    image.resize(ImageScaling::Bilinear, 700);
 
     Log::info("", "%f", timer.getElapsedTime());
 

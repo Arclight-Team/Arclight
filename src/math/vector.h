@@ -674,6 +674,13 @@ constexpr auto operator*(Vector<A> a, B b) requires (std::is_same_v<Vector<A>, V
 }
 
 template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
+constexpr auto operator*(B b, Vector<A> a) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
+	Vector<decltype(a[0] * b)> ax = a;
+	ax *= b;
+	return ax;
+}
+
+template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
 constexpr auto operator/(Vector<A> a, B b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
 	Vector<decltype(a[0] / b)> ax = a;
 	ax /= b;

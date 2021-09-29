@@ -201,8 +201,8 @@
 
 
 /*
-	Pixel conversion strategy
-	ARC_PIXEL_EXACT: Use rounding instead of shifting during conversion. Note that this method is a lot slower than the imprecise shift version.
+	Pixel interpolation strategy
+	ARC_PIXEL_EXACT: Use rounding instead of truncation during conversion. Note that this method is a lot slower.
 */
 //#define ARC_PIXEL_EXACT
 
