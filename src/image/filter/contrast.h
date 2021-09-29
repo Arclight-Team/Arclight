@@ -13,9 +13,9 @@ public:
     constexpr static void run(Image<P>& image, double contrast) {
 
         using Format = Image<P>::Format;
-        constexpr u32 maxValueRed = Format::RedMask >> Format::RedShift;
-        constexpr u32 maxValueGreen = Format::GreenMask >> Format::GreenShift;
-        constexpr u32 maxValueBlue = Format::BlueMask >> Format::BlueShift;
+        constexpr u32 maxValueRed = Image<P>::PixelType::getMaxRed();
+        constexpr u32 maxValueGreen = Image<P>::PixelType::getMaxGreen();
+        constexpr u32 maxValueBlue = Image<P>::PixelType::getMaxBlue();
         constexpr u32 halfValueRed = (maxValueRed + 1) / 2;
         constexpr u32 halfValueGreen = (maxValueGreen + 1) / 2;
         constexpr u32 halfValueBlue = (maxValueBlue + 1) / 2;

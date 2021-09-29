@@ -15,9 +15,9 @@ public:
     constexpr static void run(Image<P>& image) {
 
         using Format = Image<P>::Format;
-        constexpr u32 maxValueRed = Format::RedMask >> Format::RedShift;
-        constexpr u32 maxValueGreen = Format::GreenMask >> Format::GreenShift;
-        constexpr u32 maxValueBlue = Format::BlueMask >> Format::BlueShift;
+        constexpr u32 maxValueRed = Image<P>::PixelType::getMaxRed();
+        constexpr u32 maxValueGreen = Image<P>::PixelType::getMaxGreen();
+        constexpr u32 maxValueBlue = Image<P>::PixelType::getMaxBlue();
         constexpr Mat3f sepiaMatrix = Mat3f(0.393, 0.769, 0.189, 0.349, 0.686, 0.168, 0.272, 0.534, 0.131);
 
         for(u32 y = 0; y < image.getHeight(); y++) {

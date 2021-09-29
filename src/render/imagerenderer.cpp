@@ -68,15 +68,19 @@ bool ImageRenderer::init() {
     }
 
     FileInputStream stream(textureFile);
-    Image image = BMP::loadBitmap<Pixel::RGB8>(stream);
+    Image image = BMP::loadBitmap<Pixel::RGB5>(stream);
 
     Timer timer;
     timer.start();
-    //image.applyFilter<GrayscaleFilter>();
-    //image.applyFilter<InversionFilter>();
+
+    image.applyFilter<GrayscaleFilter>();
     image.applyFilter<SepiaFilter>();
-    image.applyFilter<ExponentialFilter>(2.2);
-    image.applyFilter<ContrastFilter>(2);
+    //image.applyFilter<ExponentialFilter>(2);
+    image.applyFilter<ContrastFilter>(1);
+    image.applyFilter<InversionFilter>();
+    image.resize(ImageScaling::Bilinear, 160);
+    image.resize(ImageScaling::Bilinear, 600);
+
     Log::info("", "%f", timer.getElapsedTime());
 
     GLE::setRowUnpackAlignment(GLE::Alignment::None);
@@ -107,9 +111,10 @@ bool ImageRenderer::init() {
 
     imageTexture.create();
     imageTexture.bind();
-    imageTexture.setData(image.getWidth(), image.getHeight(), GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, image.getImageBuffer().data());
-    imageTexture.setMagFilter(GLE::TextureFilter::Trilinear);
-    imageTexture.setMinFilter(GLE::TextureFilter::Trilinear);
+    //imageTexture.setData(image.getWidth(), image.getHeight(), GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, image.getImageBuffer().data());
+    imageTexture.setData(image.getWidth(), image.getHeight(), GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UShort1555, image.getImageBuffer().data());
+    imageTexture.setMagFilter(GLE::TextureFilter::None);
+    imageTexture.setMinFilter(GLE::TextureFilter::None);
     imageTexture.generateMipmaps();
 
     imageTextureUnitUniform = imageShader.getUniform("image");

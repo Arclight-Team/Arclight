@@ -1,9 +1,11 @@
 #pragma once
 
 #include "types.h"
-#include "util/typetraits.h"
 #include "arcconfig.h"
+#include "math/math.h"
+#include "util/assert.h"
 #include "util/bits.h"
+#include "util/typetraits.h"
 #include <algorithm>
 #include <span>
 
@@ -177,21 +179,28 @@ struct PixelStorage {
 
 public:
 
+    constexpr static Pixel PixelType = P;
+    using ColorType = ColorT;
+
     using Format = PixelFormat<P>;
     constexpr static u32 Size = Format::BytesPerPixel;
     using PackedT = UnsignedType<Size>::Type;
-
+    using PixelT = PixelStorage<P, ColorT>;
 
     constexpr PixelStorage() {
         std::fill(p, p + Size, 0);
     }
 
-    constexpr PixelStorage(const std::span<const u8>& data) {
+    constexpr explicit PixelStorage(const std::span<const u8>& data) {
         std::copy(data.begin(), data.begin() + Size, p);
     }
 
-    constexpr PixelStorage(PackedT color) {
+    constexpr explicit PixelStorage(PackedT color) {
         unpack(color);
+    }
+
+    constexpr explicit PixelStorage(const PixelT& t) {
+        *this = t;
     }
 
     constexpr void setMonochrome(ColorT v) {
@@ -199,7 +208,7 @@ public:
     }
 
     constexpr void setRGB(ColorT r, ColorT g, ColorT b) {
-        unpack(r << Format::RedShift | g << Format::GreenShift | b << Format::BlueShift);
+        setRGBA(r, g, b, getAlpha());
     }
 
     constexpr void setRGBA(ColorT r, ColorT g, ColorT b, ColorT a) {
@@ -258,6 +267,21 @@ public:
         return (pack() & Format::AlphaMask) >> Format::AlphaShift;
     }
 
+    constexpr static ColorT getMaxRed() {
+        return Format::RedMask >> Format::RedShift;
+    }
+
+    constexpr static ColorT getMaxGreen() {
+        return Format::GreenMask >> Format::GreenShift;
+    }
+
+    constexpr static ColorT getMaxBlue() {
+        return Format::BlueMask >> Format::BlueShift;
+    }
+
+    constexpr static ColorT getMaxAlpha() {
+        return Format::AlphaMask >> Format::AlphaShift;
+    }
 
     constexpr void unpack(PackedT t) {
 
@@ -280,6 +304,87 @@ public:
 
     }
 
+    constexpr void add(const PixelT& t) {
+
+        auto r = getRed() + t.getRed();
+        auto g = getGreen() + t.getGreen();
+        auto b = getBlue() + t.getBlue();
+        r = Math::min(r, getMaxRed());
+        g = Math::min(g, getMaxGreen());
+        b = Math::min(b, getMaxBlue());
+        setRGB(r, g, b);
+
+    }
+
+    constexpr void subtract(const PixelT& t) {
+
+        using SColor = std::make_signed_t<ColorT>;
+
+        SColor r = getRed() - t.getRed();
+        SColor g = getGreen() - t.getGreen();
+        SColor b = getBlue() - t.getBlue();
+        r = Math::max(r, 0);
+        g = Math::max(g, 0);
+        b = Math::max(b, 0);
+        setRGB(r, g, b);
+
+    }
+
+    constexpr void multiply(double f) {
+
+        arc_assert(f > 0.0, "Cannot multiply pixel with a factor less than 0");
+
+        auto r = f * getRed();
+        auto g = f * getGreen();
+        auto b = f * getBlue();
+        r = Math::min(r, getMaxRed());
+        g = Math::min(g, getMaxGreen());
+        b = Math::min(b, getMaxBlue());
+        
+#ifdef ARC_PIXEL_EXACT
+        setRGB(static_cast<u32>(Math::round(r)), static_cast<u32>(Math::round(g)), static_cast<u32>(Math::round(b)));
+#else
+        setRGB(static_cast<u32>(r), static_cast<u32>(g), static_cast<u32>(b));
+#endif
+
+    }
+
+    constexpr void divide(double f) {
+
+        arc_assert(!Math::isZero, "Cannot multiply pixel with a factor less than 0");
+        multiply(1 / f);
+
+    }
+
+    constexpr PixelT& operator+=(const PixelT& t) {
+        add(t);
+        return *this;
+    }
+
+    constexpr PixelT& operator-=(const PixelT& t) {
+        subtract(t);
+        return *this;
+    }
+
+    constexpr PixelT& operator*=(double f) {
+        multiply(f);
+        return *this;
+    }
+
+    constexpr PixelT& operator/=(double f) {
+        divide(f);
+        return *this;
+    }
+
+	constexpr PixelT& operator=(const PixelT& t) {
+        unpack(t.pack());
+		return *this;
+	}
+
+    constexpr bool operator==(const PixelT& t) {
+        return pack() == t.pack();
+    }
+
     constexpr u8 operator[](SizeT i) const {
         return p[i];
     }
@@ -287,6 +392,37 @@ public:
     u8 p[Size];
 
 };
+
+
+template<class T>
+concept PixelStorageType = BaseOf<PixelStorage<T::PixelType, typename T::ColorType>, T>;
+
+
+constexpr auto operator+(PixelStorageType auto a, const PixelStorageType auto& b) {
+    a += b;
+    return a;
+}
+
+constexpr auto operator-(PixelStorageType auto a, const PixelStorageType auto& b) {
+    a -= b;
+    return a;
+}
+
+constexpr auto operator*(PixelStorageType auto a, double f) {
+    a *= f;
+    return a;
+}
+
+constexpr auto operator*(double f, PixelStorageType auto a) {
+    a *= f;
+    return a;
+}
+
+constexpr auto operator/(PixelStorageType auto a, double f) {
+    a /= f;
+    return a;
+}
+
 
 
 struct PixelRGB5 : public PixelStorage<Pixel::RGB5, u8> {

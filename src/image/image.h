@@ -2,11 +2,18 @@
 
 #include "pixel.h"
 #include "types.h"
+#include "math/math.h"
 #include "util/assert.h"
 #include <vector>
 #include <span>
 #include <array>
 
+
+
+enum class ImageScaling {
+    Nearest,
+    Bilinear
+};
 
 
 template<Pixel P = Pixel::RGBA8>
@@ -92,6 +99,109 @@ public:
     template<class Filter, class... Args>
     void applyFilter(Args&&... args) {
         Filter::run(*this, std::forward<Args>(args)...);
+    }
+
+    constexpr void resize(ImageScaling scaling, u32 w, u32 h = 0) {
+
+        if(!w) {
+            Log::error("Image", "Cannot resize image to a width of 0");
+            return;
+        }
+
+
+        if(!h) {
+
+            //Take the aspect ratio
+            float aspect = static_cast<float>(width) / height;
+            h = static_cast<u32>(Math::round(w / aspect));
+
+        }
+
+        //Skip case
+        if(w == width && h == height) {
+            return;
+        }
+
+        std::vector<PixelType> resizedData(w * h);
+
+        switch(scaling) {
+
+            case ImageScaling::Nearest:
+
+                for(u32 y = 0; y < h; y++) {
+
+                    u32 cy = static_cast<u32>(Math::floor((y + 0.5) * height / h));
+
+                    for(u32 x = 0; x < w; x++) {
+
+                        u32 cx = static_cast<u32>(Math::floor((x + 0.5) * width / w));
+                        resizedData[y * w + x] = getPixel(cx, cy);
+
+                    }
+
+                }
+
+                break;
+
+            case ImageScaling::Bilinear:
+
+                for(u32 y = 0; y < h; y++) {
+
+                    float fy = (y + 0.5f) * height / h;
+                    float ty = fy - static_cast<u32>(fy);
+
+                    u32 cy0, cy1;
+
+                    if(ty >= 0.5) {
+                        cy0 = static_cast<u32>(fy);
+                        cy1 = Math::min(cy0 + 1, height - 1);
+                    } else {
+                        cy1 = static_cast<u32>(fy);
+                        cy0 = cy1 ? cy1 - 1 : 0;
+                        ty += 1;
+                    }
+                    
+                    float dy = ty - 0.5f;
+
+                    for(u32 x = 0; x < w; x++) {
+
+                        float fx = (x + 0.5f) * width / w;
+                        float tx = fx - static_cast<u32>(fx);
+
+                        u32 cx0, cx1;
+
+                        if(tx >= 0.5) {
+                            cx0 = static_cast<u32>(fx);
+                            cx1 = Math::min(cx0 + 1, width - 1);
+                        } else {
+                            cx1 = static_cast<u32>(fx);
+                            cx0 = cx1 ? cx1 - 1 : 0;
+                            tx += 1;
+                        }
+
+                        float dx = tx - 0.5f;
+                        
+                        PixelType a0 = (1.0f - dx) * getPixel(cx0, cy0) + dx * getPixel(cx1, cy0);
+                        PixelType a1 = (1.0f - dx) * getPixel(cx0, cy1) + dx * getPixel(cx1, cy1);
+                        
+                        resizedData[y * w + x] = (1.0f - dy) * a0 + dy * a1;
+
+                    }
+
+                }
+
+                break;
+
+            default:
+                arc_force_assert("Illegal scaling parameter");
+                break;
+
+        }
+        
+        width = w;
+        height = h;
+        data.swap(resizedData);
+
     }
 
 

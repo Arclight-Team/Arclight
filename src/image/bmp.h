@@ -341,7 +341,7 @@ namespace BMP {
                     }
 
                     for(u32 i = 0; i < colorCount; i++) {
-                        palette.push_back(PixelConverter::convert<P>(PixelARGB8(reader.read<u32>())));
+                        palette.push_back(PixelConverter::convert<P>(PixelBGRA8(reader.read<u32>())));
                     }
 
                     u32 bitsPerRow = infoHeader.width * infoHeader.bitsPerPixel;
@@ -456,7 +456,7 @@ namespace BMP {
                 }
 
                 for(u32 i = 0; i < colorCount; i++) {
-                    palette.push_back(PixelConverter::convert<P>(PixelARGB8(reader.read<u32>())));
+                    palette.push_back(PixelConverter::convert<P>(PixelBGRA8(reader.read<u32>())));
                 }
 
                 stream.seek(header.dataOffset);
