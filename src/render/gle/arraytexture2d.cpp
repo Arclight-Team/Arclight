@@ -17,7 +17,7 @@ void ArrayTexture2D::setData(u32 w, u32 h, u32 layers, ImageFormat format, Textu
 	}
 
 	if (layers > Limits::getMaxArrayTextureLayers()) {
-		error("2D array texture layer count of %d exceeds maximum array layer count of %d", w, Limits::getMaxArrayTextureLayers());
+		error("2D array texture layer count of %d exceeds maximum array layer count of %d", layers, Limits::getMaxArrayTextureLayers());
 		return;
 	}
 

@@ -17,7 +17,7 @@ void ArrayTexture1D::setData(u32 w, u32 layers, ImageFormat format, TextureSourc
 	}
 
 	if (layers > Limits::getMaxArrayTextureLayers()) {
-		error("1D array texture layer count of %d exceeds maximum array layer count of %d", w, Limits::getMaxArrayTextureLayers());
+		error("1D array texture layer count of %d exceeds maximum array layer count of %d", layers, Limits::getMaxArrayTextureLayers());
 		return;
 	}
 

@@ -17,7 +17,7 @@ void MultisampleArrayTexture2D::init(u32 w, u32 h, u32 layers, u32 samples, Imag
 	}
 
 	if (layers > Limits::getMaxArrayTextureLayers()) {
-		error("2D multisample array texture layer count of %d exceeds maximum array layer count of %d", w, Limits::getMaxArrayTextureLayers());
+		error("2D multisample array texture layer count of %d exceeds maximum array layer count of %d", layers, Limits::getMaxArrayTextureLayers());
 		return;
 	}
 
