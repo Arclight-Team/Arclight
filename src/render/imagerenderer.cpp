@@ -1,13 +1,13 @@
-#include "image/filter/sepia.h"
 #include "imagerenderer.h"
 #include "utility/vertexhelper.h"
 #include "utility/shaderloader.h"
 #include "util/log.h"
-
 #include "util/file.h"
 #include "util/timer.h"
-#include "image/bmp.h"
 #include "stream/fileinputstream.h"
+#include "image/bmp.h"
+#include "image/video.h"
+#include "image/filter/sepia.h"
 #include "image/filter/invert.h"
 #include "image/filter/grayscale.h"
 #include "image/filter/exponential.h"
@@ -60,7 +60,7 @@ bool ImageRenderer::init() {
     std::vector<float> attributeData = VertexHelper::createQuad(1.8, 1.8);
     attributeData.resize(30);
 
-    File textureFile(":/textures/paolo.bmp", File::In | File::Binary);
+    File textureFile(":/textures/test.bmp", File::In | File::Binary);
     
     if(!textureFile.open()){
         Log::error("Image Renderer", "Failed to open image texture");
@@ -73,13 +73,12 @@ bool ImageRenderer::init() {
     Timer timer;
     timer.start();
 
-    image.applyFilter<GrayscaleFilter>();
-    image.applyFilter<SepiaFilter>();
+    //image.applyFilter<GrayscaleFilter>();
+    //image.applyFilter<SepiaFilter>();
     //image.applyFilter<ExponentialFilter>(2);
-    image.applyFilter<ContrastFilter>(1);
-    image.applyFilter<InversionFilter>();
-    image.resize(ImageScaling::Bilinear, 160);
-    image.resize(ImageScaling::Bilinear, 700);
+    //image.applyFilter<ContrastFilter>(1);
+    //image.applyFilter<InversionFilter>();
+    image.resize(ImageScaling::Nearest, 160);
 
     Log::info("", "%f", timer.getElapsedTime());
 
@@ -122,6 +121,8 @@ bool ImageRenderer::init() {
     GLE::enableDepthTests();
     GLE::enableCulling();
     GLE::setClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+
+    Video video;
 
     return true;
 

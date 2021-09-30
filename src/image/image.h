@@ -17,7 +17,7 @@ enum class ImageScaling {
 };
 
 
-template<Pixel P = Pixel::RGBA8>
+template<Pixel P = Pixel::RGB8>
 class Image {
 
 public:
