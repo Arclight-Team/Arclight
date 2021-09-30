@@ -22,7 +22,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 
 #Set Uri root path
-add_definitions(-DARC_URI_ROOT="../../")
+add_definitions(-DARC_URI_ROOT="../")
 
 #ImGui implementation
 set(ARC_BUILD_IMGUI false)
@@ -32,12 +32,13 @@ add_compile_definitions(ARC_USE_IMGUI=${ARC_BUILD_IMGUI})
 set(ARC_BUILD_DISCORD FALSE)
 add_compile_definitions(ARC_USE_DISCORD=${ARC_BUILD_DISCORD})
 
+
 message("Building ${PROJECT_NAME} as: ${CMAKE_BUILD_TYPE}")
 
 #Profiling via debug symbols
 if(MSVC AND CMAKE_BUILD_TYPE MATCHES "Release")
 	message("Profiling active")
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi /Ox")
 	add_link_options("/DEBUG")
 endif()
 
@@ -123,7 +124,10 @@ list(APPEND LIBRARY_TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/lib/DiscordGameSDK/lib/x
 list(APPEND LIBRARY_TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/lib/DiscordGameSDK/lib/x64/${CMAKE_BUILD_TYPE}/discord_game_sdk.dll.lib)
 endif()
 
-#Sources/includes/libraries specified
+#Windows specific
+list(APPEND SOURCE_TARGETS "windows_logo.rc")
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+#set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 
 #Add all include directories
 include_directories(${INCLUDE_TARGETS})
@@ -137,4 +141,5 @@ endif()
 
 #Create the executable and link
 add_executable (${PROJECT_NAME} ${SOURCES})
+#add_executable (${PROJECT_NAME} WIN32 ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${LIBRARY_TARGETS})

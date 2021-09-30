@@ -1,13 +1,17 @@
 #pragma once
 
 #include "types.h"
+#include "core/windowhandle.h"
+#include "image/pixel.h"
 #include <string>
 #include <memory>
 #include <functional>
-#include "windowhandle.h"
 
 
 class Window;
+
+template<Pixel P>
+class Image;
 
 class WindowConfig {
 
@@ -122,7 +126,7 @@ public:
 	void setMaxLimits(u32 maxW, u32 maxH);
 	void setAspectRatio(double aspect);
 	void setOpacity(double opacity);
-	//void setIcon(); //Define when textures are implemented
+	void setIcon(const Image<Pixel::RGBA8>& icon);
 
 	u32 getWidth() const;
 	u32 getHeight() const;
@@ -130,8 +134,6 @@ public:
 	u32 getFramebufferHeight() const;
 	u32 getX() const;
 	u32 getY() const;
-
-	//void getIcon();
 
 	void minimize();
 	void restore();

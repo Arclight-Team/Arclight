@@ -105,7 +105,7 @@ bool Game::init() {
 
 	//Link handler to the root context
 	rootContext.linkHandler(rootInputHandler);
-
+/*
 	renderer.setupCamera(inputSystem.createContext(1));
 
 	manager.setup();
@@ -129,7 +129,7 @@ bool Game::init() {
 		}
 
 	}
-
+*/
 	profiler.stop("Initialization");
 
 	inputTicker.start(120);
@@ -160,7 +160,7 @@ bool Game::init() {
 
 
 void Game::update() {
-
+/*
 	for(auto [rigidbody] : manager.view<RigidBody>()) {
 
 		Vec3x delta = -rigidbody.getTransform().translation;
@@ -173,7 +173,7 @@ void Game::update() {
 
 	inputSystem.updateContinuous(inputTicker.getTicks());
 	physicsEngine.update();
-
+*/
 }
 
 

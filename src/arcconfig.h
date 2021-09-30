@@ -197,7 +197,7 @@
 	Image debugging
 	ARC_IMAGE_DEBUG: Prints debug output for images
 */
-//#define ARC_IMAGE_DEBUG
+#define ARC_IMAGE_DEBUG
 
 
 /*
@@ -219,3 +219,10 @@
 	ARC_FILTER_EXACT: Favor precision over speed.
 */
 #define ARC_FILTER_EXACT
+
+
+/*
+	Load application icon
+	ARC_APP_ICON_ENABLE: Loads the app icon upon boot
+*/
+//#define ARC_APP_ICON_ENABLE

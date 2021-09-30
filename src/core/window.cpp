@@ -3,6 +3,7 @@
 #include "input/inputsystem.h"
 #include "util/assert.h"
 #include "render/gle/glecore.h"
+#include "image/image.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -415,6 +416,18 @@ void Window::setOpacity(double opacity) {
 
 	arc_assert(isOpen(), "Tried to set window opacity for non-existing window");
 	glfwSetWindowOpacity(windowHandle->handle, opacity);
+
+}
+
+
+
+void Window::setIcon(const Image<Pixel::RGBA8>& icon) {
+
+	arc_assert(isOpen(), "Tried to get window width for non-existing window");
+	
+	//Ugly, but legal here: img is const so the data will never be modified (and shouldn't anyways)
+	const GLFWimage img {icon.getWidth(), icon.getHeight(), reinterpret_cast<u8*>(const_cast<PixelRGBA8*>(icon.getImageBuffer().data()))};
+	glfwSetWindowIcon(windowHandle->handle, 1, &img);
 
 }
 

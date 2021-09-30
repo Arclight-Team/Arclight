@@ -1,8 +1,10 @@
 #include "core/engine.h"
-#include "util/file.h"
-#include "util/log.h"
-#include "math/matrix.h"
+#include "arcconfig.h"
 #include "config.h"
+#include "util/log.h"
+#include "util/file.h"
+#include "image/bmp.h"
+#include "stream/fileinputstream.h"
 
 
 Engine::Engine() : game(window) {}
@@ -117,6 +119,29 @@ void Engine::shutdownBackend() {
 bool Engine::createWindow() {
 
 	window.setWindowConfig(WindowConfig().setResizable(true).setOpenGLVersion(3, 3));
-	return window.create(Config::getDefaultWindowWidth(), Config::getDefaultWindowHeight(), Config::getBaseWindowTitle());
+	 
+	if(!window.create(Config::getDefaultWindowWidth(), Config::getDefaultWindowHeight(), Config::getBaseWindowTitle())) {
+		return false;
+	}
+
+#ifdef ARC_APP_ICON_ENABLE
+	File iconFile(":/logo.bmp", File::In | File::Binary);
+
+	if(iconFile.open()) {
+
+		FileInputStream iconStream(iconFile);
+		Image<Pixel::RGBA8> iconImage = BMP::loadBitmap<Pixel::RGBA8>(iconStream);
+		iconImage.resize(ImageScaling::Bilinear, 64, 64);
+		iconImage.flipY();
+		window.setIcon(iconImage);
+
+	} else {
+
+		Log::warn("Engine", "Failed to set window icon");
+
+	}
+#endif
+
+	return true;
 
 }
