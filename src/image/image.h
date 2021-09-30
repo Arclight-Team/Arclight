@@ -222,6 +222,14 @@ public:
 
     }
 
+    constexpr void flipY() {
+
+        for(u32 i = 0; i < height / 2; i++) {
+            std::swap_ranges(data.begin() + width * i, data.begin() + width * (i + 1), data.begin() + width * (height - i - 1));
+        }
+
+    }
+
 
 private:
 

@@ -18,9 +18,9 @@ namespace BMP {
 
     constexpr inline u32 csCalibratedRGB = 0;
     constexpr inline u32 csSRGB = 0x73524742;
-    constexpr inline u32 csSystemDefault = 0;
-    constexpr inline u32 csLinkedProfile = 0;
-    constexpr inline u32 csEmbeddedProfile = 0;
+    constexpr inline u32 csSystemDefault = 0x57696E20;
+    constexpr inline u32 csLinkedProfile = 0x4C494E4B;
+    constexpr inline u32 csEmbeddedProfile = 0x4D424544;
 
     constexpr inline u32 riBusiness = 1;
     constexpr inline u32 riGraphics = 2;
@@ -247,7 +247,7 @@ namespace BMP {
             return Image<P>();
         }
 
-        if(version == Version::V5 && Bool::none(infoHeader.renderIntent, riBusiness, riGraphics, riImages, riColorimetric)) {
+        if(version == Version::V5 && Bool::none(infoHeader.renderIntent, 0, riBusiness, riGraphics, riImages, riColorimetric)) {
             Log::error("Bitmap Loader", "Failed to load bitmap: Illegal render intent");
             return Image<P>();
         }

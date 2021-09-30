@@ -67,7 +67,7 @@ public:
         } else {
 
             Image<P> resizedImage = image;
-            resizedImage.resize(ImageScaling::Bilinear, width, height);
+            resizedImage.resize(ImageScaling::Nearest, width, height);
             frames.emplace(std::upper_bound(frames.begin(), frames.end(), time), resizedImage, time);
 
         }

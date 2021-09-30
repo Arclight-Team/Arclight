@@ -90,9 +90,9 @@ bool ImageRenderer::init() {
     frameTexture.create();
     frameTexture.bind();
 
-    for(u32 i = 0; i < 12; i++) {
+    for(u32 i = 0; i < videoFrameCount; i++) {
 
-        File frameFile(":/textures/test" + std::to_string(i + 1) + ".bmp", File::In | File::Binary);
+        File frameFile(":/textures/test/frame" + std::to_string(i + 1) + ".bmp", File::In | File::Binary);
     
         if(!frameFile.open()){
             Log::error("Image Renderer", "Failed to open frame texture");
@@ -100,17 +100,20 @@ bool ImageRenderer::init() {
         }
 
         FileInputStream frameStream(frameFile);
-        Image frameImage = BMP::loadBitmap<Pixel::RGB8>(frameStream);
+        Image<PixelFormat> frameImage = BMP::loadBitmap<PixelFormat>(frameStream);
+        frameImage.resize(ImageScaling::Nearest, 256, 192);
         video.addFrame(frameImage, i);
 
     }
 
-    frameTexture.setData(video.getWidth(), video.getHeight(), video.getFrameCount(), GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, nullptr);
+    u32 gleLayers = Math::min(videoFrameCount, GLE::Limits::getMaxArrayTextureLayers());
 
-    for(u32 i = 0; i < video.getFrameCount(); i++) {
+    frameTexture.setData(video.getWidth(), video.getHeight(), gleLayers, GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UShort1555, nullptr);
 
-        const Image<>& videoFrameImage = video.getFrame(i).getImage();
-        frameTexture.update(0, 0, video.getWidth(), video.getHeight(), i, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, videoFrameImage.getImageBuffer().data());
+    for(u32 i = 0; i < gleLayers; i++) {
+
+        const Image<PixelFormat>& videoFrameImage = video.getFrame(i).getImage();
+        frameTexture.update(0, 0, video.getWidth(), video.getHeight(), i, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UShort1555, videoFrameImage.getImageBuffer().data());
 
     }
 
@@ -126,8 +129,8 @@ bool ImageRenderer::init() {
     GLE::setClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
     lastTime = Time::convert(Time::getTimeSinceEpoch(Time::Unit::Nanoseconds), Time::Unit::Nanoseconds, Time::Unit::Seconds);
-    video.setSpeed(30);
-    //video.setReversed(true);
+    video.setSpeed(80);
+    video.setReversed(true);
     video.setLooping(true);
     video.restart();
 

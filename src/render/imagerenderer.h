@@ -2,6 +2,7 @@
 
 #include "renderer.h"
 #include "gle/gle.h"
+#include "math/math.h"
 #include "image/video.h"
 
 
@@ -24,7 +25,11 @@ private:
     GLE::Uniform imageTextureUnitUniform;
     GLE::Uniform currentFrameIDUniform;
 
-    Video<> video;
+    constexpr static Pixel PixelFormat = Pixel::RGB5;
+
+    Video<PixelFormat> video;
     double lastTime;
+
+    constexpr static u32 videoFrameCount = 512;
 
 };
