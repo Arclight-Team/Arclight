@@ -197,7 +197,7 @@
 	Image debugging
 	ARC_IMAGE_DEBUG: Prints debug output for images
 */
-#define ARC_IMAGE_DEBUG
+//#define ARC_IMAGE_DEBUG
 
 
 /*

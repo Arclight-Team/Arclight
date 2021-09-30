@@ -2,7 +2,7 @@
 
 #include "renderer.h"
 #include "gle/gle.h"
-
+#include "image/video.h"
 
 
 class ImageRenderer : public Renderer {
@@ -20,6 +20,11 @@ private:
     GLE::VertexArray imageVAO;
 
     GLE::Texture2D imageTexture;
+    GLE::ArrayTexture2D frameTexture;
     GLE::Uniform imageTextureUnitUniform;
+    GLE::Uniform currentFrameIDUniform;
+
+    Video<> video;
+    double lastTime;
 
 };

@@ -15,40 +15,11 @@
 
 
 
-const static std::string vsShader = R"(
-#version 330 core
-
-layout(location = 0) in vec3 vertex;
-layout(location = 1) in vec2 uv;
-
-out vec2 fragUv;
-
-void main() {
-    fragUv = uv;
-    gl_Position = vec4(vertex, 1.0);
-}
-)";
-
-const static std::string fsShader = R"(
-#version 330 core
-
-uniform sampler2D image;
-
-in vec2 fragUv;
-out vec4 color;
-
-void main() {
-    color = vec4(texture(image, fragUv).rgb, 1.0);
-}
-)";
-
-
-
 bool ImageRenderer::init() {
 
     try {
 
-        imageShader = ShaderLoader::fromString(vsShader, fsShader);
+        imageShader = ShaderLoader::fromFiles(":/shaders/image.avs", ":/shaders/image.afs");
 
     } catch(std::exception&) {
 
@@ -78,7 +49,7 @@ bool ImageRenderer::init() {
     //image.applyFilter<ExponentialFilter>(2);
     //image.applyFilter<ContrastFilter>(1);
     //image.applyFilter<InversionFilter>();
-    image.resize(ImageScaling::Nearest, 160);
+    image.resize(ImageScaling::Bilinear, 160);
 
     Log::info("", "%f", timer.getElapsedTime());
 
@@ -91,7 +62,7 @@ bool ImageRenderer::init() {
     float hy = 1 - ly;
 
     auto uvs = {
-        lx, ly, hx, ly, hx, hy, lx, ly, hx, hy, lx, hy
+        0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1
     };
 
     std::copy(uvs.begin(), uvs.end(), &attributeData[18]);
@@ -116,13 +87,49 @@ bool ImageRenderer::init() {
     imageTexture.setMinFilter(GLE::TextureFilter::None);
     imageTexture.generateMipmaps();
 
+    frameTexture.create();
+    frameTexture.bind();
+
+    for(u32 i = 0; i < 12; i++) {
+
+        File frameFile(":/textures/test" + std::to_string(i + 1) + ".bmp", File::In | File::Binary);
+    
+        if(!frameFile.open()){
+            Log::error("Image Renderer", "Failed to open frame texture");
+            return false;
+        }
+
+        FileInputStream frameStream(frameFile);
+        Image frameImage = BMP::loadBitmap<Pixel::RGB8>(frameStream);
+        video.addFrame(frameImage, i);
+
+    }
+
+    frameTexture.setData(video.getWidth(), video.getHeight(), video.getFrameCount(), GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, nullptr);
+
+    for(u32 i = 0; i < video.getFrameCount(); i++) {
+
+        const Image<>& videoFrameImage = video.getFrame(i).getImage();
+        frameTexture.update(0, 0, video.getWidth(), video.getHeight(), i, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, videoFrameImage.getImageBuffer().data());
+
+    }
+
+    frameTexture.setMagFilter(GLE::TextureFilter::None);
+    frameTexture.setMinFilter(GLE::TextureFilter::None);
+    frameTexture.generateMipmaps();
+
     imageTextureUnitUniform = imageShader.getUniform("image");
+    currentFrameIDUniform = imageShader.getUniform("currentFrameID");
 
     GLE::enableDepthTests();
     GLE::enableCulling();
     GLE::setClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-    Video video;
+    lastTime = Time::convert(Time::getTimeSinceEpoch(Time::Unit::Nanoseconds), Time::Unit::Nanoseconds, Time::Unit::Seconds);
+    video.setSpeed(30);
+    //video.setReversed(true);
+    video.setLooping(true);
+    video.restart();
 
     return true;
 
@@ -132,11 +139,18 @@ bool ImageRenderer::init() {
 
 void ImageRenderer::render() {
 
+    double currentTime = Time::convert(Time::getTimeSinceEpoch(Time::Unit::Nanoseconds), Time::Unit::Nanoseconds, Time::Unit::Seconds);
+    double dt  = currentTime - lastTime;
+    lastTime = currentTime;
+
+    video.step(dt);
+
 	GLE::clear(GLE::Color | GLE::Depth);
     imageShader.start();
 
     imageTexture.activate(0);
     imageTextureUnitUniform.setInt(0);
+    currentFrameIDUniform.setInt(video.getCurrentFrameID());
 
     imageVAO.bind();
     GLE::render(GLE::PrimType::Triangle, 6);
