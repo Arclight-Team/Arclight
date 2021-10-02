@@ -24,3 +24,5 @@ imgui.ini
 CMakeFiles/
 dev/
 demo/
+!assets/logo.bmp
+!assets/logo.ico
