@@ -127,6 +127,7 @@ public:
 	void setAspectRatio(double aspect);
 	void setOpacity(double opacity);
 	void setIcon(const Image<Pixel::RGBA8>& icon);
+	void setAlwaysOnTop(bool onTop);
 
 	u32 getWidth() const;
 	u32 getHeight() const;
@@ -159,7 +160,6 @@ public:
 	bool decorated() const;
 	bool alwaysOnTop() const;
 	
-
 	void enableContext();
 	void disableContext();
 	void enableVSync();

@@ -423,11 +423,20 @@ void Window::setOpacity(double opacity) {
 
 void Window::setIcon(const Image<Pixel::RGBA8>& icon) {
 
-	arc_assert(isOpen(), "Tried to get window width for non-existing window");
+	arc_assert(isOpen(), "Tried to set window icon for non-existing window");
 	
 	//Ugly, but legal here: img is const so the data will never be modified (and shouldn't anyways)
 	const GLFWimage img {icon.getWidth(), icon.getHeight(), reinterpret_cast<u8*>(const_cast<PixelRGBA8*>(icon.getImageBuffer().data()))};
 	glfwSetWindowIcon(windowHandle->handle, 1, &img);
+
+}
+
+
+
+void Window::setAlwaysOnTop(bool onTop) {
+
+	arc_assert(isOpen(), "Tried to set window always-on-top on non-existing window");
+	glfwSetWindowAttrib(windowHandle->handle, GLFW_FLOATING, onTop);
 
 }
 
