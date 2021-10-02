@@ -20,7 +20,6 @@ private:
     GLE::VertexBuffer imageVBO;
     GLE::VertexArray imageVAO;
 
-    GLE::Texture2D imageTexture;
     GLE::ArrayTexture2D frameTexture;
     GLE::Uniform imageTextureUnitUniform;
     GLE::Uniform currentFrameIDUniform;
@@ -30,6 +29,7 @@ private:
     Video<PixelFormat> video;
     double lastTime;
 
-    constexpr static u32 videoFrameCount = 512;
+    constexpr static u32 videoFrameCount = 12;
+    constexpr static bool isVideo = false;
 
 };

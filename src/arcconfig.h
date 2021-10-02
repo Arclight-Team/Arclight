@@ -197,7 +197,7 @@
 	Image debugging
 	ARC_IMAGE_DEBUG: Prints debug output for images
 */
-#define ARC_IMAGE_DEBUG
+//#define ARC_IMAGE_DEBUG
 
 
 /*
@@ -226,3 +226,10 @@
 	ARC_APP_ICON_ENABLE: Loads the app icon upon boot
 */
 //#define ARC_APP_ICON_ENABLE
+
+
+/*
+	Font debugging
+	ARC_FONT_DEBUG: Prints debug output for fonts
+*/
+#define ARC_FONT_DEBUG

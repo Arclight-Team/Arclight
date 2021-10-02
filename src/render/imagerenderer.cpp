@@ -12,6 +12,7 @@
 #include "image/filter/grayscale.h"
 #include "image/filter/exponential.h"
 #include "image/filter/contrast.h"
+#include "font/truetype/loader.h"
 
 
 
@@ -31,35 +32,13 @@ bool ImageRenderer::init() {
     std::vector<float> attributeData = VertexHelper::createQuad(1.8, 1.8);
     attributeData.resize(30);
 
-    File textureFile(":/textures/test.bmp", File::In | File::Binary);
-    
-    if(!textureFile.open()){
-        Log::error("Image Renderer", "Failed to open image texture");
-        return false;
-    }
-
-    FileInputStream stream(textureFile);
-    Image image = BMP::loadBitmap<Pixel::RGB5>(stream);
-
-    Timer timer;
-    timer.start();
-
-    //image.applyFilter<GrayscaleFilter>();
-    //image.applyFilter<SepiaFilter>();
-    //image.applyFilter<ExponentialFilter>(2);
-    //image.applyFilter<ContrastFilter>(1);
-    //image.applyFilter<InversionFilter>();
-    image.resize(ImageScaling::Bilinear, 160);
-
-    Log::info("", "%f", timer.getElapsedTime());
+    File fontFile(":/fonts/comic.ttf", File::In | File::Binary);
+    fontFile.open();
+    FileInputStream fontFileStream(fontFile);
+    TrueType::loadFont(fontFileStream);
 
     GLE::setRowUnpackAlignment(GLE::Alignment::None);
 	GLE::setRowPackAlignment(GLE::Alignment::None);
-
-    float lx = 0.5f / image.getWidth();
-    float hx = 1 - lx;
-    float ly = 0.5f / image.getHeight();
-    float hy = 1 - ly;
 
     auto uvs = {
         0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1
@@ -79,35 +58,44 @@ bool ImageRenderer::init() {
     imageVAO.setAttribute(0, 3, GLE::AttributeType::Float, 0, 0);
     imageVAO.setAttribute(1, 2, GLE::AttributeType::Float, 0, 18 * sizeof(float));
 
-    imageTexture.create();
-    imageTexture.bind();
-    //imageTexture.setData(image.getWidth(), image.getHeight(), GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGB, GLE::TextureSourceType::UByte, image.getImageBuffer().data());
-    imageTexture.setData(image.getWidth(), image.getHeight(), GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UShort1555, image.getImageBuffer().data());
-    imageTexture.setMagFilter(GLE::TextureFilter::None);
-    imageTexture.setMinFilter(GLE::TextureFilter::None);
-    imageTexture.generateMipmaps();
-
     frameTexture.create();
     frameTexture.bind();
 
-    for(u32 i = 0; i < videoFrameCount; i++) {
+    if(isVideo) {
 
-        File frameFile(":/textures/test/frame" + std::to_string(i + 1) + ".bmp", File::In | File::Binary);
-    
-        if(!frameFile.open()){
-            Log::error("Image Renderer", "Failed to open frame texture");
+        for(u32 i = 0; i < videoFrameCount; i++) {
+
+            File frameFile(":/textures/test/frame" + std::to_string(i + 1) + ".bmp", File::In | File::Binary);
+        
+            if(!frameFile.open()){
+                Log::error("Image Renderer", "Failed to open frame texture");
+                return false;
+            }
+
+            FileInputStream frameStream(frameFile);
+            Image<PixelFormat> frameImage = BMP::loadBitmap<PixelFormat>(frameStream);
+            frameImage.resize(ImageScaling::Nearest, 256, 192);
+            video.addFrame(frameImage, i);
+
+        }
+
+    } else {
+
+        File textureFile(":/textures/what.bmp", File::In | File::Binary);
+        
+        if(!textureFile.open()){
+            Log::error("Image Renderer", "Failed to open image texture");
             return false;
         }
 
-        FileInputStream frameStream(frameFile);
-        Image<PixelFormat> frameImage = BMP::loadBitmap<PixelFormat>(frameStream);
-        frameImage.resize(ImageScaling::Nearest, 256, 192);
-        video.addFrame(frameImage, i);
+        FileInputStream stream(textureFile);
+        Image<PixelFormat> image = BMP::loadBitmap<PixelFormat>(stream);
+        image.resize(ImageScaling::Bilinear, 160);
+        video.addFrame(image, 0);
 
     }
 
-    u32 gleLayers = Math::min(videoFrameCount, GLE::Limits::getMaxArrayTextureLayers());
-
+    u32 gleLayers = Math::min(video.getFrameCount(), GLE::Limits::getMaxArrayTextureLayers());
     frameTexture.setData(video.getWidth(), video.getHeight(), gleLayers, GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UShort1555, nullptr);
 
     for(u32 i = 0; i < gleLayers; i++) {
@@ -129,9 +117,9 @@ bool ImageRenderer::init() {
     GLE::setClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
     lastTime = Time::convert(Time::getTimeSinceEpoch(Time::Unit::Nanoseconds), Time::Unit::Nanoseconds, Time::Unit::Seconds);
-    video.setSpeed(80);
-    video.setReversed(true);
-    video.setLooping(true);
+    video.setSpeed(60);
+    video.setReversed(false);
+    video.setLooping(false);
     video.restart();
 
     return true;
@@ -151,8 +139,7 @@ void ImageRenderer::render() {
 	GLE::clear(GLE::Color | GLE::Depth);
     imageShader.start();
 
-    imageTexture.activate(0);
-    imageTextureUnitUniform.setInt(0);
+    frameTexture.activate(0);    
     currentFrameIDUniform.setInt(video.getCurrentFrameID());
 
     imageVAO.bind();
@@ -167,6 +154,6 @@ void ImageRenderer::destroy() {
     imageShader.destroy();
     imageVBO.destroy();
     imageVAO.destroy();
-    imageTexture.destroy();
+    frameTexture.destroy();
 
 }
