@@ -1,36 +1,57 @@
 <img src="assets/logo.png" height="150" align="right">
 
-# Arclight Engine
-High-performance and flexible game engine
+# Arclight - High-performance C++20 framework
+
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/424f1b0554d8435e90b66ee8bcca0c36)](https://www.codacy.com/gh/Arclight-Team/Arclight/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Arclight-Team/Arclight&amp;utm_campaign=Badge_Grade)
+[![GitHub Stars](https://badgen.net/github/stars/Arclight-Team/Arclight)](https://github.com/Arclight-Team/Arclight/stargazers/)
+![Version](https://img.shields.io/badge/version-unreleased-yellow)
+![Standard](https://img.shields.io/badge/C%2B%2B-20-blueviolet)
+![License](https://img.shields.io/badge/license-none-red)
 
 ## General
-Writing games is a hard task and requires a lot of organization, flexibility and knowledge.
-To ease developers in creating a game, game engines are often utilized to serve as a backend for the game.
-That way, developers don't need to delve into low-level systems.
+Arclight is an ecosystem intended to help developers in creating new C++ projects quickly without having to setup a common codebase everytime.
+It offers a wide range of features, ranging from basic utilities over image manipulation up to 3D rendering.
 
-Several popular game engines exist as of now though there are several catches: Some contain mostly outdated or obsolete code, others may decide to overtake too many parts of the development process.
-This is exactly what the Arclight Engine is intended for. It exposes an interface that allows a great deal of flexibility while maintaining a high grade of performance and without acquiring strong ownership of the game itself.
+Additionally, all code is written in C++20 by making heavy use of new concepts introduced in later C++ standards.
+No code cruft, no old libraries from over 20 years, no license confusion: Arclight unifies all aspects of application development into one toolbox.
+
+The code is not aimed towards a particular audience; Instead, everyone can write applications with it, no matter your level of profession or skill.
+And if you once decide to look how a particular feature is implemented, go ahead! Everything was written to be as clear as possible without requiring too much prior knowledge from the user's side.
+
+### So, why would you want to use Arclight?
+
+Because development has never been that simple. We aim at maximum flexibility, user experience and performance so that you can get exactly what you want.
+
+*Note that Arclight is under heavy development right now.* Interfaces might drastically change on active branches.
+Due to that, most of the code is yet to be documented in the near future. If you need stability and consistency, we recommend waiting until the first full release.
 
 ## Features
-Planned features are the following:
-- Lossless callback-driven window and input interface
-- Audio Engine powered by FMOD for input/output streams
-- Powerful Rendering Engine (GLE) with OpenGL backend and pipeline abstraction
-- Hybrid game logic engine with a fast and efficient component system
-- Networking support for multiplayer games
-- Fast and precise physics with a high grade of extensibility/flexibility
-- Lua integration and JIT interoperability to offer easy scripting support
-- Caching resource API
-- Collection of util functions and classes
+The following features have been fully implemented:
+- OpenGL 3D rendering backend GLE
+- Advanced input management
+- Actor-Component-System (ACS)
+- Image manipulation library (+ BMP loading)
+- Mathematics (Vectors, Matrices, Quaternions)
+- Logging & Debugging
+- Timing utilities
+- Streams
+- Additional containers/extensions to std
+- Configuration & Platform macros
 
-## Progress
-As of now, progress is published mainly on the master branch.
-You can check out progress in the projects tab. It shows what has already been done, what is in progress right now and what still needs to be done in the future.
+Following features are being worked on/are planned:
+- Command-line argument parser
+- Compression algorithms
+- Encryption algorithms
+- Audio engine
+- Physics engine
+- Advanced imaging formats (GIF/PNG/JPEG)
+- Font render engine with TTF/OTF support
+- Noise library (extension to imaging)
+- Full 3D render engine
 
 ## Support
 If you want to support this project, feel free to donate as soon as donation is set up.
-
-If you want to join out team, contact us through arcayn.arclight@gmail.com. Please note that this is a very advanced project and requires knowledge in game engine design and game development. Therefore, before you will be able to contribute we must evaluate your skills first.
+If you consider joining our team, contact us through arcayn.arclight@gmail.com. 
 
 ## Credits
 - [Arcayn](https://github.com/Arcaiyn) for the project's management
