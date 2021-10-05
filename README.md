@@ -1,6 +1,6 @@
 <img src="assets/logo.png" height="150" align="right">
 
-# Arclight - High-performance C++20 framework
+# Arclight - High-performance C++20 ecosystem
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/424f1b0554d8435e90b66ee8bcca0c36)](https://www.codacy.com/gh/Arclight-Team/Arclight/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Arclight-Team/Arclight&amp;utm_campaign=Badge_Grade)
 [![GitHub Stars](https://badgen.net/github/stars/Arclight-Team/Arclight)](https://github.com/Arclight-Team/Arclight/stargazers/)
@@ -16,7 +16,7 @@ Additionally, all code is written in C++20 by making heavy use of new concepts i
 No code cruft, no old libraries from over 20 years, no license confusion: Arclight unifies all aspects of application development into one toolbox.
 
 The code is not aimed towards a particular audience; Instead, everyone can write applications with it, no matter your level of profession or skill.
-And if you once decide to look how a particular feature is implemented, go ahead! Everything was written to be as clear as possible without requiring too much prior knowledge from the user's side.
+And if you once decide to look how a particular feature is implemented, go ahead! Everything was written to be as clear as possible without requiring too much prior knowledge on the user's side.
 
 ### So, why would you want to use Arclight?
 
@@ -35,6 +35,7 @@ The following features have been fully implemented:
 - Logging & Debugging
 - Timing utilities
 - Streams
+- Unicode conversion support
 - Additional containers/extensions to std
 - Configuration & Platform macros
 
