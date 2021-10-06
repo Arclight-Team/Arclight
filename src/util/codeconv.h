@@ -2,6 +2,7 @@
 
 #include <string>
 #include "types.h"
+#include "util/string.h"
 #include "util/bits.h"
 
 
@@ -30,19 +31,19 @@ namespace CodeConv {
 
             if(codepoint < 0x80) {
 
-                return {codepoint};
+                return String::fromChars(codepoint);
 
             } else if (codepoint < 0x800) {
 
-                return {(codepoint >> 6) | 0xC0, (codepoint & 0x3F) | 0x80};
+                return String::fromChars((codepoint >> 6) | 0xC0, (codepoint & 0x3F) | 0x80);
 
             } else if (codepoint < 0x10000) {
 
-                return {(codepoint >> 12) | 0xE0, (codepoint >> 6 & 0x3F) | 0x80, (codepoint & 0x3F) | 0x80};
+                return String::fromChars((codepoint >> 12) | 0xE0, (codepoint >> 6 & 0x3F) | 0x80, (codepoint & 0x3F) | 0x80);
 
             } else {
 
-                return {(codepoint >> 18) | 0xF0, (codepoint >> 12 & 0x3F) | 0x80, (codepoint >> 6 & 0x3F) | 0x80, (codepoint & 0x3F) | 0x80};
+                return String::fromChars((codepoint >> 18) | 0xF0, (codepoint >> 12 & 0x3F) | 0x80, (codepoint >> 6 & 0x3F) | 0x80, (codepoint & 0x3F) | 0x80);
 
             }
 
@@ -60,7 +61,7 @@ namespace CodeConv {
                     highSurrogate = Bits::swap16(highSurrogate);
                 }
 
-                return {highSurrogate & 0xFF, highSurrogate >> 8 & 0xFF, lowSurrogate & 0xFF, lowSurrogate >> 8 & 0xFF};
+                return String::fromChars(highSurrogate & 0xFF, highSurrogate >> 8 & 0xFF, lowSurrogate & 0xFF, lowSurrogate >> 8 & 0xFF);
 
             } else {
 
@@ -70,7 +71,7 @@ namespace CodeConv {
                     c = Bits::swap16(c);
                 }
 
-                return {c & 0xFF, c >> 8 & 0xFF};
+                return String::fromChars(c & 0xFF, c >> 8 & 0xFF);
 
             }
 
@@ -82,7 +83,7 @@ namespace CodeConv {
                 codepoint = Bits::swap32(codepoint);
             }
 
-            return {codepoint & 0xFF, codepoint >> 8 & 0xFF, codepoint >> 16 & 0xFF, codepoint >> 24 & 0xFF};
+            return String::fromChars(codepoint & 0xFF, codepoint >> 8 & 0xFF, codepoint >> 16 & 0xFF, codepoint >> 24 & 0xFF);
 
         }
 

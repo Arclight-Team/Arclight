@@ -53,6 +53,10 @@ namespace TrueType {
                 throw LoaderException("Failed to load name table: Stream size too small");
             }
 
+            if(!verifyPlatformID(record.platformID, record.platformSpecificID, false)) {
+                throw LoaderException("Illegal platform ID/specific ID combination (PID: %d, SID: %d)", record.platformID, record.platformSpecificID);
+            }
+
             nameRecords.push_back(record);
 
         }
@@ -91,16 +95,17 @@ namespace TrueType {
 
         }
 
-        std::vector<char> textBuffer;
+        std::string text;
 
         for(NameRecord& record : nameRecords) {
 
             //TODO: Manage encodings dependent on platform IDs, verify values
             reader.getStream().seek(offset + stringOffset + record.offset);
 
-            textBuffer.resize(Math::max(record.length, textBuffer.size()));
-            reader.read(std::span<char>{textBuffer}, record.length);
-            record.content = std::string(textBuffer.data(), record.length);
+            text.resize(Math::max(record.length, text.size()));
+            reader.read(std::span{text}, record.length);
+
+            record.content = decodeText(static_cast<PlatformID>(record.platformID), record.platformSpecificID, text);
 
 #ifdef ARC_FONT_DEBUG
             Log::info("TrueType Loader", "[Name String] %d: %s", record.nameID, record.content.c_str());

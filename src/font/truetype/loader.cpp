@@ -24,6 +24,9 @@ namespace TrueType {
 
             stream.seek(tables[TableType::MaxProfile].offset);
             MaximumProfile maxp = parseMaxProfileTable(reader, tables[TableType::MaxProfile].length);
+            
+            stream.seek(tables[TableType::PostScript].offset);
+            parsePostScriptTable(reader, tables[TableType::PostScript].length, maxp.glyphCount);
 
             stream.seek(tables[TableType::HorizontalHeader].offset);
             HorizontalHeader hhead = parseHorizontalHeaderTable(reader, tables[TableType::HorizontalHeader].length);
@@ -31,9 +34,8 @@ namespace TrueType {
             stream.seek(tables[TableType::HorizontalMetrics].offset);
             std::vector<HorizontalMetric> metrics = parseHorizontalMetricsTable(reader, tables[TableType::HorizontalMetrics].length, hhead, maxp.glyphCount);
 
-            for(const HorizontalMetric& metric : metrics) {
-                Log::info("TrueType Debug", "Advance: %d, Bearing: %d", metric.advance, metric.bearing);
-            }
+            stream.seek(tables[TableType::CharMap].offset);
+            parseCharacterMapTable(reader, tables[TableType::CharMap].length);
 
         } catch (LoaderException& e) {
             Log::error("TrueType Loader", e.what());

@@ -42,23 +42,25 @@ namespace TrueType {
 
     using TableMap = std::unordered_map<u32, TableDirectoryEntry>;
 
-    //Name
-    enum class NameTablePlatform {
+    //Encoding
+    enum class PlatformID {
         Unicode,
         Macintosh,
         Reserved,
         Microsoft
     };
 
-    enum class UnicodeEncoding {
+    enum class UnicodeEncoding : u16 {
         Version10,
         Version11,
         ISO10646,
         Unicode2BMP,
-        Unicode2Full
+        Unicode2Full,
+        UVS,
+        LastResort
     };
 
-    enum class MacintoshEncoding {
+    enum class MacintoshEncoding : u16 {
         Roman,
         Japanese,
         TraditionalChinese,
@@ -94,7 +96,7 @@ namespace TrueType {
         Uninterpreted
     };
 
-    enum class MicrosoftEncoding {
+    enum class MicrosoftEncoding : u16 {
         Symbol,
         UnicodeBMP,
         ShiftJIS,
@@ -125,7 +127,7 @@ namespace TrueType {
         {16, "Maltese"},
         {17, "Turkish"},
         {18, "Croatian"},
-        {19, "Chinese (Traditional"},
+        {19, "Chinese (Traditional)"},
         {20, "Urdu"},
         {21, "Hindi"},
         {22, "Thai"},
@@ -139,7 +141,7 @@ namespace TrueType {
         {30, "Faroese"},
         {31, "Farsi/Persian"},
         {32, "Russian"},
-        {33, "Chinese (Simplified"},
+        {33, "Chinese (Simplified)"},
         {34, "Flemish"},
         {35, "Irish Gaelic"},
         {36, "Albanian"},
@@ -155,16 +157,16 @@ namespace TrueType {
         {46, "Byelorussian"},
         {47, "Uzbek"},
         {48, "Kazakh"},
-        {49, "Azerbaijani (Cyrillic script"},
-        {50, "Azerbaijani (Arabic script"},
+        {49, "Azerbaijani (Cyrillic script)"},
+        {50, "Azerbaijani (Arabic script)"},
         {51, "Armenian"},
         {52, "Georgian"},
         {53, "Moldavian"},
         {54, "Kirghiz"},
         {55, "Tajiki"},
         {56, "Turkmen"},
-        {57, "Mongolian (Mongolian script"},
-        {58, "Mongolian (Cyrillic script"},
+        {57, "Mongolian (Mongolian script)"},
+        {58, "Mongolian (Cyrillic script)"},
         {59, "Pashto"},
         {60, "Kurdish"},
         {61, "Kashmiri"},
@@ -508,6 +510,16 @@ namespace TrueType {
         i16 bearing;
     };
 
+    //Character Mapping
+    struct CMapSubtableHeader {
+
+        u16 platformID;
+        u16 platformSpecificID;
+        u32 offset;
+        
+    };
+    
+
     //Exception
     class LoaderException : public std::runtime_error {
 
@@ -536,5 +548,10 @@ namespace TrueType {
     HorizontalHeader parseHorizontalHeaderTable(BinaryReader& reader, u32 tableSize);
     MaximumProfile parseMaxProfileTable(BinaryReader& reader, u32 tableSize);
     std::vector<HorizontalMetric> parseHorizontalMetricsTable(BinaryReader& reader, u32 tableSize, const HorizontalHeader& header, u32 glyphCount);
+    void parsePostScriptTable(BinaryReader& reader, u32 tableSize, u32 glyphCount);
+    void parseCharacterMapTable(BinaryReader& reader, u32 tableSize);
+
+    bool verifyPlatformID(u16 platformID, u16 specificID, bool cmapExt);
+    std::string decodeText(PlatformID platformID, u16 specificID, const std::string& in);
 
 }

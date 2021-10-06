@@ -31,7 +31,7 @@ namespace TrueType {
 
 #ifdef ARC_FONT_DEBUG
         Log::info("TrueType Loader", "[Header] Version 0x%08X, Revision 0x%08X", version, fontRevision);
-        Log::info("TrueType Loader", "[Header] ChecksumAdj: 0x%08X, Magic: 0x%08X, Flags: 0x%04X, UnitsPerEM: %d, Created: %llu, Modified %llu",
+        Log::info("TrueType Loader", "[Header] ChecksumAdj: 0x%08X, Magic: 0x%08X, Flags: 0x%04X, UnitsPerEM: %d, Created: %llu, Modified: %llu",
                     checkSumAdjustment, magicNumber, flags, unitsPerEm, created, modified);
         Log::info("TrueType Loader", "[Header] XMin: %d, YMin: %d, XMax: %d, YMax: %d, Style: 0x%04X, LowestRecPPEM: %d, Direction: %d, IndexToLocFormat: %d, GlyphDataFormat: %d",
                     xMin, yMin, xMax, yMax, macStyle, lowestRecPPEM, fontDirectionHint, indexToLocFormat, glyphDataFormat);

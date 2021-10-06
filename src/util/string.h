@@ -1,10 +1,16 @@
 #pragma once
 
 #include <string>
+#include "concepts.h"
 #include "bits.h"
 
 
 namespace String {
+
+	template<class... Chars>
+	constexpr std::string fromChars(Chars&&... c) requires ((Convertible<Chars, char>) && ...) {
+		return {(static_cast<char>(c), ...)};
+	}
 
 	template<class... Args>
 	std::string format(std::string message, Args&&... args) noexcept {
