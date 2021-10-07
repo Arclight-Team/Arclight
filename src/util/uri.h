@@ -53,6 +53,7 @@ public:
 	bool fileExists() const;
 	bool directoryExists() const;
 	std::string getPath() const;
+	u64 getFileSize() const;
 	bool empty() const;
 
 	bool hasRootName() const;

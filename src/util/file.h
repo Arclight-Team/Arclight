@@ -39,10 +39,10 @@ public:
 	SizeT read(const std::span<u8>& data);
 	void write(const std::span<const u8>& data);
 
+	u64 tell() const;
 	void seek(u64 pos);
 	void seekRelative(i64 pos);
 
-	u64 tell() const;
 
 	bool isOpen() const;
 	u64 getFileSize() const;
@@ -57,6 +57,5 @@ private:
 	mutable std::fstream stream;
 	Uri filepath;
 	Flags openFlags;
-	SizeT fileSize;
 
 };

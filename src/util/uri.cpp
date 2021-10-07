@@ -198,6 +198,12 @@ std::string Uri::getPath() const {
 
 
 
+u64 Uri::getFileSize() const {
+	return std::filesystem::file_size(path);
+}
+
+
+
 Uri Uri::rootName() const {
 	return Uri(path.root_name().string(), true);
 }

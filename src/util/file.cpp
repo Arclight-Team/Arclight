@@ -3,10 +3,10 @@
 
 
 
-File::File() : openFlags(0), fileSize(0) {}
+File::File() : openFlags(0) {}
 
 
-File::File(const Uri& path, File::Flags flags) : filepath(path), openFlags(flags), fileSize(0) {};
+File::File(const Uri& path, File::Flags flags) : filepath(path), openFlags(flags) {};
 
 
 
@@ -21,12 +21,7 @@ bool File::open() {
 
 	stream.open(filepath.getPath(), openFlags);
 
-	if(isOpen()) {
-		fileSize = std::filesystem::file_size(filepath.getPath());
-		return true;
-	}
-
-	return false;
+	return isOpen();
 
 }
 
@@ -50,7 +45,6 @@ void File::close() {
 	}
 
 	stream.close();
-	fileSize = 0;
 
 }
 
@@ -163,6 +157,13 @@ void File::write(const std::span<const u8>& data) {
 
 
 
+u64 File::tell() const {
+	arc_assert(isOpen(), "Attempted to seek in an unopened file");
+	return stream.tellg();
+}
+
+
+
 void File::seek(u64 pos) {
 	arc_assert(isOpen(), "Attempted to seek in an unopened file");
 	stream.seekg(pos, std::ios::beg);
@@ -179,20 +180,14 @@ void File::seekRelative(i64 pos) {
 
 
 
-u64 File::tell() const {
-	arc_assert(isOpen(), "Attempted to seek in an unopened file");
-	return stream.tellg();
-}
-
-
-
 bool File::isOpen() const {
 	return stream.is_open();
 }
 
 
+
 u64 File::getFileSize() const {
-	return fileSize;
+	return filepath.getFileSize();
 }
 
 

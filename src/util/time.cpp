@@ -3,12 +3,11 @@
 #include "util/assert.h"
 
 #include <chrono>
-#include <ctime>
 
 
 namespace Time {
 
-	typedef std::chrono::system_clock SystemClock;
+	typedef std::chrono::high_resolution_clock Clock;
 
 	constexpr const char* unitSuffixes[] = {
 		"s", "ms", "us", "ns"
@@ -57,17 +56,18 @@ namespace Time {
 
 
 	u64 getTimeSinceEpoch(Time::Unit unit) {
-		return timeCount(unit, SystemClock::now().time_since_epoch());
+		return timeCount(unit, Clock::now().time_since_epoch());
 	}
 
 
 
 	TimeData getCurrentTime() {
 
-		auto time = SystemClock::to_time_t(SystemClock::now());
-		std::tm* timeData = std::localtime(&time);
+		auto now = Clock::now();
+		std::chrono::hh_mm_ss hms(now.time_since_epoch());
+		std::chrono::year_month_day ymd(std::chrono::floor<std::chrono::days>(std::chrono::system_clock::now()));
 
-		return TimeData(timeData->tm_sec, timeData->tm_min, timeData->tm_hour, timeData->tm_mday, timeData->tm_mon + 1, timeData->tm_year + 1900);
+		return TimeData(hms.seconds().count(), hms.minutes().count(), hms.hours().count(), u32(ymd.day()), u32(ymd.month()), i32(ymd.year()));
 
 	}
 
