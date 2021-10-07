@@ -55,6 +55,6 @@ If you want to support this project, feel free to donate as soon as donation is 
 If you consider joining our team, contact us through arcayn.arclight@gmail.com. 
 
 ## Credits
-- [Arcayn](https://github.com/Arcaiyn) for the project's management
+- [Arcayn](https://github.com/Arcaynx) for the project's management
 - [Ed_IT](https://github.com/Ed-1T) for the help as the second head developer
 - [ItzTacos](https://github.com/ItzTacosOfficial) for the official logo
