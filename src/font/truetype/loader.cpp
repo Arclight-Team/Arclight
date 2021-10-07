@@ -20,7 +20,7 @@ namespace TrueType {
             parseNameTable(reader, tables[TableType::Name].length);
 
             stream.seek(tables[TableType::Header].offset);
-            parseHeaderTable(reader, tables[TableType::Header].length);
+            FontHeader fontHeader = parseHeaderTable(reader, tables[TableType::Header].length);
 
             stream.seek(tables[TableType::MaxProfile].offset);
             MaximumProfile maxp = parseMaxProfileTable(reader, tables[TableType::MaxProfile].length);
@@ -35,7 +35,10 @@ namespace TrueType {
             std::vector<HorizontalMetric> metrics = parseHorizontalMetricsTable(reader, tables[TableType::HorizontalMetrics].length, hhead, maxp.glyphCount);
 
             stream.seek(tables[TableType::CharMap].offset);
-            parseCharacterMapTable(reader, tables[TableType::CharMap].length);
+            std::unordered_map<u32, u32> glyphMap = parseCharacterMapTable(reader, tables[TableType::CharMap].length);
+
+            stream.seek(tables[TableType::Location].offset);
+            std::vector<u32> glyphOffsets = parseGlyphLocationTable(reader, tables[TableType::Location].length, maxp.glyphCount, fontHeader.longLocationFormat);
 
         } catch (LoaderException& e) {
             Log::error("TrueType Loader", e.what());

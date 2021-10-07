@@ -518,6 +518,25 @@ namespace TrueType {
         u32 offset;
         
     };
+
+    //Header
+    struct FontHeader {
+
+        u32 revision;
+        u16 flags;
+        u16 unitsPerEm;
+        u64 created;
+        u64 modified;
+        i16 xMin;
+        i16 yMin;
+        i16 xMax;
+        i16 yMax;
+        u16 macStyle;
+        u16 lowestRecPPEM;
+        i16 fontDirectionHint;
+        bool longLocationFormat;
+
+    };
     
 
     //Exception
@@ -544,12 +563,13 @@ namespace TrueType {
 
     TableMap parseFileHeader(BinaryReader& reader);
     void parseNameTable(BinaryReader& reader, u32 tableSize);
-    void parseHeaderTable(BinaryReader& reader, u32 tableSize);
+    FontHeader parseHeaderTable(BinaryReader& reader, u32 tableSize);
     HorizontalHeader parseHorizontalHeaderTable(BinaryReader& reader, u32 tableSize);
     MaximumProfile parseMaxProfileTable(BinaryReader& reader, u32 tableSize);
     std::vector<HorizontalMetric> parseHorizontalMetricsTable(BinaryReader& reader, u32 tableSize, const HorizontalHeader& header, u32 glyphCount);
     void parsePostScriptTable(BinaryReader& reader, u32 tableSize, u32 glyphCount);
-    void parseCharacterMapTable(BinaryReader& reader, u32 tableSize);
+    std::unordered_map<u32, u32> parseCharacterMapTable(BinaryReader& reader, u32 tableSize);
+    std::vector<u32>  parseGlyphLocationTable(BinaryReader& reader, u32 tableSize, u32 glyphCount, bool longVersion);
 
     bool verifyPlatformID(u16 platformID, u16 specificID, bool cmapExt);
     std::string decodeText(PlatformID platformID, u16 specificID, const std::string& in);

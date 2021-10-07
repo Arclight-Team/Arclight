@@ -5,7 +5,7 @@
 
 namespace TrueType {
 
-    void parseHeaderTable(BinaryReader& reader, u32 tableSize) {
+    FontHeader parseHeaderTable(BinaryReader& reader, u32 tableSize) {
 
         if(tableSize < 54) {
             throw LoaderException("Failed to load header table: Stream size too small");
@@ -60,6 +60,23 @@ namespace TrueType {
         if(glyphDataFormat != 0) {
             throw LoaderException("Glyph data format cannot be %d", glyphDataFormat);
         }
+
+        FontHeader header;
+        header.revision = fontRevision;
+        header.flags = flags;
+        header.unitsPerEm = unitsPerEm;
+        header.created = created;
+        header.modified = modified;
+        header.xMin = xMin;
+        header.yMin = yMin;
+        header.xMax = xMax;
+        header.yMax = yMax;
+        header.macStyle = macStyle;
+        header.lowestRecPPEM = lowestRecPPEM;
+        header.fontDirectionHint = fontDirectionHint;
+        header.longLocationFormat = indexToLocFormat;
+
+        return header;
 
     }
 

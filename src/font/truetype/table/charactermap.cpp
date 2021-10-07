@@ -6,7 +6,7 @@
 namespace TrueType {
 
 
-    void parseSubtableVersion4(BinaryReader& reader, u32 tableSize) {
+    std::unordered_map<u32, u32> parseSubtableVersion4(BinaryReader& reader, u32 tableSize) {
 
         if(tableSize < 12) {
             throw LoaderException("Failed to load character map subtable 4: Stream size too small");
@@ -121,10 +121,12 @@ namespace TrueType {
 
         }
 
+        return glyphMap;
+
     }
 
 
-    void parseCharacterMapTable(BinaryReader& reader, u32 tableSize) {
+    std::unordered_map<u32, u32> parseCharacterMapTable(BinaryReader& reader, u32 tableSize) {
 
         if(tableSize < 4) {
             throw LoaderException("Failed to load character map table: Stream size too small");
@@ -325,8 +327,8 @@ namespace TrueType {
         switch(subtableFormat) {
 
             case 4:
-                parseSubtableVersion4(reader, tableSize - targetOffset - 2);
-                break;
+                return parseSubtableVersion4(reader, tableSize - targetOffset - 2);
+                //break;
 
             default:
                 throw LoaderException("Not yet implemented");
