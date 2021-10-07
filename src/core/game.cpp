@@ -192,11 +192,11 @@ void Game::destroy() {
 	profiler.start();
 	renderer.destroy();
 	imageRenderer.destroy();
-
+/*
 	for(u32 i = 0; i < 15 * 15 * 15; i++) {
 		manager.destroy(i);
 	}
-
+*/
 	physicsEngine.destroy();
 
 	profiler.stop("Destruction");

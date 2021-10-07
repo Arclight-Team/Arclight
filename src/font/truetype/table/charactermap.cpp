@@ -6,6 +6,123 @@
 namespace TrueType {
 
 
+    void parseSubtableVersion4(BinaryReader& reader, u32 tableSize) {
+
+        if(tableSize < 12) {
+            throw LoaderException("Failed to load character map subtable 4: Stream size too small");
+        }
+
+        SizeT tableBase = reader.getStream().getPosition();
+
+        u16 length = reader.read<u16>();
+        u16 language = reader.read<u16>();
+        u16 segCountX2 = reader.read<u16>();
+        u16 searchRange = reader.read<u16>();
+        u16 entrySelector = reader.read<u16>();
+        u16 rangeShift = reader.read<u16>();
+
+#ifdef ARC_FONT_DEBUG
+        Log::info("TrueType Loader", "[Character Map Subtable 4] Length: 0x%X, Language: %d, SegCountX2: %d, Range: %d, Entry: %d, Unspotted: %d",
+            length, language, segCountX2, searchRange, entrySelector, rangeShift);
+#endif
+
+        u32 segmentCount = segCountX2 / 2;
+        u32 reqSize = segmentCount * 8 + 2 + 12;
+
+        if(segmentCount < 2) {
+            throw LoaderException("Failed to load character map subtable 4: Table must contain at least 2 segments");
+        }
+
+        if(tableSize < reqSize) {
+            throw LoaderException("Failed to load character map subtable 4: Stream size too small");
+        }
+
+        std::vector<u16> segmentStarts(segmentCount);
+        std::vector<u16> segmentEnds(segmentCount);
+        std::vector<u16> segmentDeltas(segmentCount);
+        std::vector<u16> segmentOffsets(segmentCount);
+        
+        for(u32 i = 0; i < segmentCount; i++) {
+            segmentEnds[i] = reader.read<u16>();
+        }
+
+        u16 reservedPad = reader.read<u16>();
+
+        for(u32 i = 0; i < segmentCount; i++) {
+            segmentStarts[i] = reader.read<u16>();
+        }
+
+        for(u32 i = 0; i < segmentCount; i++) {
+            segmentDeltas[i] = reader.read<u16>();
+        }
+
+        for(u32 i = 0; i < segmentCount; i++) {
+            segmentOffsets[i] = reader.read<u16>();
+        }
+
+        std::unordered_map<u32, u32> glyphMap;
+        u32 rangeBase = segmentCount * 6 + 14;
+
+        for(u32 i = 0; i < segmentCount; i++) {
+
+            u32 start = segmentStarts[i];
+            u32 end = segmentEnds[i];
+
+            if(start == 0xFFFF || end == 0xFFFF) {
+
+                if(i != segmentCount - 1) {
+                    throw LoaderException("Failed to load character map subtable 4: Illegal table terminator");
+                }
+
+                break;
+
+            }
+
+            if(start > end) {
+                throw LoaderException("Failed to load character map subtable 4: Segment start cannot be greater than segment end");
+            }
+
+            //Per segment
+            u32 rangeOffset = segmentOffsets[i];
+            u32 delta = segmentDeltas[i];
+
+            if(rangeOffset != 0) {
+
+                u32 glyphIndexBaseOffset = rangeBase + rangeOffset + i * 2;
+
+                if(tableSize < glyphIndexBaseOffset + (end - start + 1) * 2) {
+                    throw LoaderException("Failed to load character map subtable 4: Stream size too small");
+                }
+
+                reader.getStream().seek(tableBase + glyphIndexBaseOffset);
+
+                for(u32 cp = start; cp <= end; cp++) {
+
+                    u32 glyphID = reader.read<u16>();
+
+                    if(glyphID != 0) {
+
+                        glyphID += delta;
+                        glyphID &= 0xFFFF;
+
+                    }
+
+                    glyphMap[cp] = glyphID;
+
+                }
+
+            } else {
+
+                for(u32 cp = start; cp <= end; cp++) {
+                    glyphMap[cp] = (cp + delta) & 0xFFFF;
+                }
+
+            }
+
+        }
+
+    }
+
 
     void parseCharacterMapTable(BinaryReader& reader, u32 tableSize) {
 
@@ -13,6 +130,7 @@ namespace TrueType {
             throw LoaderException("Failed to load character map table: Stream size too small");
         }
 
+        SizeT startStreamPos = reader.getStream().getPosition();
         u16 version = reader.read<u16>();
         u16 numberSubtables = reader.read<u16>();
 
@@ -28,7 +146,9 @@ namespace TrueType {
             throw LoaderException("Failed to load character map table: Subtable count cannot be 0"); 
         }
 
-        if(tableSize < static_cast<u32>(numberSubtables) * 8 + 4) {
+        u32 subtableHeaderSize = numberSubtables * 8 + 4;
+
+        if(tableSize < subtableHeaderSize) {
             throw LoaderException("Failed to load character map table: Stream size too small");
         }
 
@@ -104,14 +224,14 @@ namespace TrueType {
                 useUvs = true;
             }
 
-            u16 bestUnicodeEncoding = -1;
+            u16 bestUnicodeEncoding = 6;
             u32 bestIndex = -1;
 
             constexpr static UnicodeEncoding encodingOrder[] = {
                 UnicodeEncoding::Unicode2Full, UnicodeEncoding::Unicode2BMP, UnicodeEncoding::Version11, UnicodeEncoding::Version10, UnicodeEncoding::ISO10646, UnicodeEncoding::LastResort
             };
 
-            for(u32 i = 1; i < unicodeHeaders.size(); i++) {
+            for(u32 i = 0; i < unicodeHeaders.size(); i++) {
 
                 UnicodeEncoding curEncoding = static_cast<UnicodeEncoding>(unicodeHeaders[i].platformSpecificID);
 
@@ -134,7 +254,7 @@ namespace TrueType {
 
             }
 
-            if(bestUnicodeEncoding == -1) {
+            if(bestUnicodeEncoding >= 6) {
                 throw LoaderException("Illegal state for subtable chooser");
             }
 
@@ -142,14 +262,14 @@ namespace TrueType {
 
         } else if (microsoftHeaders.size()) {
 
-            u16 bestMicrosoftEncoding = -1;
+            u16 bestMicrosoftEncoding = 7;
             u32 bestIndex = -1;
 
             constexpr static MicrosoftEncoding encodingOrder[] = {
                 MicrosoftEncoding::UnicodeFull, MicrosoftEncoding::UnicodeBMP, MicrosoftEncoding::ShiftJIS, MicrosoftEncoding::PRC, MicrosoftEncoding::Big5, MicrosoftEncoding::Wansung, MicrosoftEncoding::Johab
             };
 
-            for(u32 i = 1; i < unicodeHeaders.size(); i++) {
+            for(u32 i = 0; i < microsoftHeaders.size(); i++) {
 
                 MicrosoftEncoding curEncoding = static_cast<MicrosoftEncoding>(microsoftHeaders[i].platformSpecificID);
 
@@ -172,7 +292,7 @@ namespace TrueType {
 
             }
 
-            if(bestMicrosoftEncoding == -1) {
+            if(bestMicrosoftEncoding >= 7) {
                 throw LoaderException("Illegal state for subtable chooser");
             }
 
@@ -185,6 +305,32 @@ namespace TrueType {
         } else {
 
             throw LoaderException("No valid cmap subtable has been found");
+
+        }
+
+        //Subtable found, now parse it
+        u32 targetOffset = bestHeader.offset;
+
+        if(tableSize < targetOffset + 2) {
+            throw LoaderException("Failed to load character map table: Stream size too small");
+        }
+
+        reader.getStream().seek(startStreamPos + targetOffset);
+        u16 subtableFormat = reader.read<u16>();
+
+#ifdef ARC_FONT_DEBUG
+        Log::info("TrueType Loader", "[Character Map Subtable] Subtable version %d", subtableFormat);
+#endif
+
+        switch(subtableFormat) {
+
+            case 4:
+                parseSubtableVersion4(reader, tableSize - targetOffset - 2);
+                break;
+
+            default:
+                throw LoaderException("Not yet implemented");
+                break;
 
         }
 

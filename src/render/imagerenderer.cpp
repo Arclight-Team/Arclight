@@ -32,10 +32,15 @@ bool ImageRenderer::init() {
     std::vector<float> attributeData = VertexHelper::createQuad(1.8, 1.8);
     attributeData.resize(30);
 
+    Timer timer;
+    timer.start();
+
     File fontFile(":/fonts/comic.ttf", File::In | File::Binary);
     fontFile.open();
     FileInputStream fontFileStream(fontFile);
     TrueType::loadFont(fontFileStream);
+
+    Log::info("Timer", "TTF loading time: %fus", timer.getElapsedTime(Time::Unit::Microseconds));
 
     GLE::setRowUnpackAlignment(GLE::Alignment::None);
 	GLE::setRowPackAlignment(GLE::Alignment::None);

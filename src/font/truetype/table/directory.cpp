@@ -44,7 +44,6 @@ namespace TrueType {
 
         if(streamSize < offsetSubtableSize + totalTableDirectorySize) {
             throw LoaderException("Failed to load TrueType font: Stream size too small");
-
         }
 
         //Table directory
