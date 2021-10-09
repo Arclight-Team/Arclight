@@ -62,6 +62,8 @@ namespace TrueType {
             glyph.yMin = yMin;
             glyph.xMax = xMax;
             glyph.yMax = yMax;
+            glyph.advance = xMax - xMin;
+            glyph.bearing = 0;
 
             if(compound) {
 

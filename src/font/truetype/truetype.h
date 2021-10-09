@@ -505,11 +505,6 @@ namespace TrueType {
         u32 glyphCount;
     };
 
-    //Horizontal Metric
-    struct HorizontalMetric {
-        u16 advance;
-        i16 bearing;
-    };
 
     //Character Mapping
     struct CMapSubtableHeader {
@@ -549,6 +544,8 @@ namespace TrueType {
         i32 xMax;
         i32 yMax;
         std::vector<Vec2i> points;
+        i32 bearing;
+        u32 advance;
 
     };
 
@@ -587,11 +584,11 @@ namespace TrueType {
     FontHeader parseHeaderTable(BinaryReader& reader, u32 tableSize);
     HorizontalHeader parseHorizontalHeaderTable(BinaryReader& reader, u32 tableSize);
     MaximumProfile parseMaxProfileTable(BinaryReader& reader, u32 tableSize);
-    std::vector<HorizontalMetric> parseHorizontalMetricsTable(BinaryReader& reader, u32 tableSize, const HorizontalHeader& header, u32 glyphCount);
     void parsePostScriptTable(BinaryReader& reader, u32 tableSize, u32 glyphCount);
     std::unordered_map<u32, u32> parseCharacterMapTable(BinaryReader& reader, u32 tableSize);
     std::vector<u32>  parseGlyphLocationTable(BinaryReader& reader, u32 tableSize, u32 glyphCount, bool longVersion);
     std::vector<Glyph> parseGlyphTable(BinaryReader& reader, u32 tableSize, const std::vector<u32>& glyphOffsets);
+    void parseHorizontalMetricsTable(BinaryReader& reader, u32 tableSize, std::vector<Glyph>& glyphs, u32 metricsCount);
 
     bool verifyPlatformID(u16 platformID, u16 specificID, bool cmapExt);
     std::string decodeText(PlatformID platformID, u16 specificID, const std::string& in);

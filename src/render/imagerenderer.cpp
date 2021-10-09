@@ -86,7 +86,7 @@ bool ImageRenderer::init() {
         TrueType::Font font = TrueType::loadFont(fontFileStream);
 
         Image<PixelFormat> image(2000, 1000);
-        std::string text = "ΑαΒβΓγΔδΕεΖζΗηΘθΙιΚκΛλΜμΝνΞξΟοΠπΡρΣσΤτΥυΦφΧχΨψΩω";
+        std::string text = "This sample text demonstrates bearings";
         u32 caretX = 200;
         u32 caretY = 100;
         UnicodeIterator unicodeIt = Unicode::begin<Unicode::UTF8>(text);
@@ -98,14 +98,14 @@ bool ImageRenderer::init() {
             const TrueType::Glyph& glyph = font.glyphs[font.charMap[*it]];
             const auto& points = glyph.points;
 
-            constexpr static u32 divisor = 10;
+            constexpr static u32 divisor = 25;
             u32 width = (glyph.xMax - glyph.xMin) / divisor;
             u32 height = (glyph.yMax - glyph.yMin) / divisor;
 
             for(u32 j = 0; j < points.size(); j++) {
 
                 const Vec2i& point = points[j];
-                i32 x = caretX + point.x / divisor;
+                i32 x = caretX + (glyph.bearing + point.x) / divisor;
                 i32 y = caretY + point.y / divisor;
                 
                 if(x >= 0 && y >= 0 && x < image.getWidth() && y < image.getHeight()) {
@@ -119,7 +119,7 @@ bool ImageRenderer::init() {
             image.setPixel(caretX, caretY + height, PixelRGB5(20, 0, 0));
             image.setPixel(caretX + width, caretY + height, PixelRGB5(20, 0, 0));
 
-            caretX += width;
+            caretX += glyph.advance / divisor;
 
         }
 

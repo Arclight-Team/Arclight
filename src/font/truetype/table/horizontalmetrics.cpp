@@ -6,9 +6,9 @@
 
 namespace TrueType {
 
-    std::vector<HorizontalMetric> parseHorizontalMetricsTable(BinaryReader& reader, u32 tableSize, const HorizontalHeader& header, u32 glyphCount) {
+    void parseHorizontalMetricsTable(BinaryReader& reader, u32 tableSize, std::vector<Glyph>& glyphs, u32 metricsCount) {
 
-        u32 metricsCount = header.metricsCount;
+        u32 glyphCount = glyphs.size();
 
         if(metricsCount > glyphCount) {
             throw LoaderException("Horizontal metrics count cannot exceed number of glyphs (Metrics: %d, Glyphs: %d)", metricsCount, glyphCount);
@@ -25,32 +25,21 @@ namespace TrueType {
             throw LoaderException("Failed to load horizontal metrics table: Stream size too small");
         }
 
-        std::vector<HorizontalMetric> metrics;
-        metrics.reserve(glyphCount);
-
         for(u32 i = 0; i < metricsCount; i++) {
 
-            HorizontalMetric metric;
-            metric.advance = reader.read<u16>();
-            metric.bearing = reader.read<i16>();
-
-            metrics.push_back(metric);
+            glyphs[i].advance = reader.read<u16>();
+            glyphs[i].bearing = reader.read<i16>();
 
         }
 
-        u16 lastAdvance = metrics.back().advance;
+        u16 lastAdvance = glyphs[metricsCount - 1].advance;
 
         for(u32 i = 0; i < nonmetricsCount; i++) {
 
-            HorizontalMetric metric;
-            metric.advance = lastAdvance;
-            metric.bearing = reader.read<i16>();
-
-            metrics.push_back(metric);
+            glyphs[metricsCount + i].advance = lastAdvance;
+            glyphs[metricsCount + i].bearing = reader.read<i16>();
 
         }
-
-        return metrics;
 
     }
 

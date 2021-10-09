@@ -31,9 +31,6 @@ namespace TrueType {
             stream.seek(tables[TableType::HorizontalHeader].offset);
             HorizontalHeader hhead = parseHorizontalHeaderTable(reader, tables[TableType::HorizontalHeader].length);
 
-            stream.seek(tables[TableType::HorizontalMetrics].offset);
-            std::vector<HorizontalMetric> metrics = parseHorizontalMetricsTable(reader, tables[TableType::HorizontalMetrics].length, hhead, maxp.glyphCount);
-
             stream.seek(tables[TableType::CharMap].offset);
             std::unordered_map<u32, u32> charMap = parseCharacterMapTable(reader, tables[TableType::CharMap].length);
 
@@ -42,6 +39,9 @@ namespace TrueType {
 
             stream.seek(tables[TableType::GlyphData].offset);
             std::vector<Glyph> glyphs = parseGlyphTable(reader, tables[TableType::GlyphData].length, glyphOffsets);
+
+            stream.seek(tables[TableType::HorizontalMetrics].offset);
+            parseHorizontalMetricsTable(reader, tables[TableType::HorizontalMetrics].length, glyphs, hhead.metricsCount);
 
             return {charMap, glyphs};
 
