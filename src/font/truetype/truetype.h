@@ -1,5 +1,6 @@
 #pragma once
 
+#include "math/vector.h"
 #include "util/assert.h"
 #include "util/string.h"
 #include "arcconfig.h"
@@ -537,7 +538,27 @@ namespace TrueType {
         bool longLocationFormat;
 
     };
-    
+
+    //Glyph
+    struct Glyph {
+
+        u16 contours;
+        bool compound;
+        i32 xMin;
+        i32 yMin;
+        i32 xMax;
+        i32 yMax;
+        std::vector<Vec2i> points;
+
+    };
+
+    //Font (TEMPORARY STRUCTURE)
+    struct Font {
+
+        std::unordered_map<u32, u32> charMap;
+        std::vector<Glyph> glyphs;
+        
+    };
 
     //Exception
     class LoaderException : public std::runtime_error {
@@ -570,6 +591,7 @@ namespace TrueType {
     void parsePostScriptTable(BinaryReader& reader, u32 tableSize, u32 glyphCount);
     std::unordered_map<u32, u32> parseCharacterMapTable(BinaryReader& reader, u32 tableSize);
     std::vector<u32>  parseGlyphLocationTable(BinaryReader& reader, u32 tableSize, u32 glyphCount, bool longVersion);
+    std::vector<Glyph> parseGlyphTable(BinaryReader& reader, u32 tableSize, const std::vector<u32>& glyphOffsets);
 
     bool verifyPlatformID(u16 platformID, u16 specificID, bool cmapExt);
     std::string decodeText(PlatformID platformID, u16 specificID, const std::string& in);

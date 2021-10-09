@@ -38,6 +38,10 @@ namespace TrueType {
 
         }
 
+#ifdef ARC_FONT_DEBUG
+        Log::info("TrueType Loader", "[Location] Loaded %d entries", glyphOffsets.size());
+#endif
+
         return glyphOffsets;
 
     }

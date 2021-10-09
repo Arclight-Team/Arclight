@@ -7,7 +7,7 @@
 
 namespace TrueType {
 
-    void loadFont(InputStream& stream) {
+    Font loadFont(InputStream& stream) {
 
         BinaryReader reader(stream, true, ByteOrder::Big);
         SizeT streamSize = stream.getSize();
@@ -24,7 +24,7 @@ namespace TrueType {
 
             stream.seek(tables[TableType::MaxProfile].offset);
             MaximumProfile maxp = parseMaxProfileTable(reader, tables[TableType::MaxProfile].length);
-            
+
             stream.seek(tables[TableType::PostScript].offset);
             parsePostScriptTable(reader, tables[TableType::PostScript].length, maxp.glyphCount);
 
@@ -35,14 +35,19 @@ namespace TrueType {
             std::vector<HorizontalMetric> metrics = parseHorizontalMetricsTable(reader, tables[TableType::HorizontalMetrics].length, hhead, maxp.glyphCount);
 
             stream.seek(tables[TableType::CharMap].offset);
-            std::unordered_map<u32, u32> glyphMap = parseCharacterMapTable(reader, tables[TableType::CharMap].length);
+            std::unordered_map<u32, u32> charMap = parseCharacterMapTable(reader, tables[TableType::CharMap].length);
 
             stream.seek(tables[TableType::Location].offset);
             std::vector<u32> glyphOffsets = parseGlyphLocationTable(reader, tables[TableType::Location].length, maxp.glyphCount, fontHeader.longLocationFormat);
 
+            stream.seek(tables[TableType::GlyphData].offset);
+            std::vector<Glyph> glyphs = parseGlyphTable(reader, tables[TableType::GlyphData].length, glyphOffsets);
+
+            return {charMap, glyphs};
+
         } catch (LoaderException& e) {
             Log::error("TrueType Loader", e.what());
-            return;
+            return {};
         }
 
     }

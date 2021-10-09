@@ -30,7 +30,8 @@ public:
 
     enum class Token {
         ArcEndl,
-        ArcSpace
+        ArcSpace,
+        ArcHex
     };
 
     constexpr static auto maxLineElements = 20;

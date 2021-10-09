@@ -31,5 +31,6 @@ private:
 
     constexpr static u32 videoFrameCount = 12;
     constexpr static bool isVideo = false;
+    constexpr static bool renderFont = true;
 
 };

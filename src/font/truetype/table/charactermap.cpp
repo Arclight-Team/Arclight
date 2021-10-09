@@ -60,7 +60,7 @@ namespace TrueType {
             segmentOffsets[i] = reader.read<u16>();
         }
 
-        std::unordered_map<u32, u32> glyphMap;
+        std::unordered_map<u32, u32> charMap;
         u32 rangeBase = segmentCount * 6 + 14;
 
         for(u32 i = 0; i < segmentCount; i++) {
@@ -107,21 +107,21 @@ namespace TrueType {
 
                     }
 
-                    glyphMap[cp] = glyphID;
+                    charMap[cp] = glyphID;
 
                 }
 
             } else {
 
                 for(u32 cp = start; cp <= end; cp++) {
-                    glyphMap[cp] = (cp + delta) & 0xFFFF;
+                    charMap[cp] = (cp + delta) & 0xFFFF;
                 }
 
             }
 
         }
 
-        return glyphMap;
+        return charMap;
 
     }
 

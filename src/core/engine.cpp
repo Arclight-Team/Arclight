@@ -43,7 +43,7 @@ bool Engine::initialize() {
 	//We're successfully running
 	Log::info("Core", "Engine up and running");
 
-	window.setAlwaysOnTop(true);
+	window.setAlwaysOnTop(false);
 
 	return true;
 

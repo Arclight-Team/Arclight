@@ -1,11 +1,12 @@
 #pragma once
 
+#include "truetype.h"
 
 
 class InputStream;
 
 namespace TrueType {
 
-    void loadFont(InputStream& stream);
+    Font loadFont(InputStream& stream);
 
 }

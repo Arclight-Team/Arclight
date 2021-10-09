@@ -13,7 +13,7 @@
 #include "image/filter/exponential.h"
 #include "image/filter/contrast.h"
 #include "font/truetype/loader.h"
-
+#include "debug.h"
 
 
 bool ImageRenderer::init() {
@@ -31,16 +31,6 @@ bool ImageRenderer::init() {
 
     std::vector<float> attributeData = VertexHelper::createQuad(1.8, 1.8);
     attributeData.resize(30);
-
-    Timer timer;
-    timer.start();
-
-    File fontFile(":/fonts/comic.ttf", File::In | File::Binary);
-    fontFile.open();
-    FileInputStream fontFileStream(fontFile);
-    TrueType::loadFont(fontFileStream);
-
-    Log::info("Timer", "TTF loading time: %fus", timer.getElapsedTime(Time::Unit::Microseconds));
 
     GLE::setRowUnpackAlignment(GLE::Alignment::None);
 	GLE::setRowPackAlignment(GLE::Alignment::None);
@@ -66,7 +56,7 @@ bool ImageRenderer::init() {
     frameTexture.create();
     frameTexture.bind();
 
-    if(isVideo) {
+    if constexpr (isVideo) {
 
         for(u32 i = 0; i < videoFrameCount; i++) {
 
@@ -83,6 +73,55 @@ bool ImageRenderer::init() {
             video.addFrame(frameImage, i);
 
         }
+
+    } else if constexpr (renderFont) {
+
+        Timer timer;
+        timer.start();
+
+        File fontFile(":/fonts/comic.ttf", File::In | File::Binary);
+        fontFile.open();
+        FileInputStream fontFileStream(fontFile);
+        TrueType::Font font = TrueType::loadFont(fontFileStream);
+
+        Image<PixelFormat> image(2000, 1000);
+        std::string text = "String";
+        u32 caretX = 200;
+        u32 caretY = 100;
+
+        for(u32 i = 0; i < text.size(); i++) {
+
+            const TrueType::Glyph& glyph = font.glyphs[font.charMap[text[i]]];
+            const auto& points = glyph.points;
+
+            constexpr static u32 divisor = 10;
+            u32 width = (glyph.xMax - glyph.xMin) / divisor;
+            u32 height = (glyph.yMax - glyph.yMin) / divisor;
+
+            for(u32 j = 0; j < points.size(); j++) {
+
+                const Vec2i& point = points[j];
+                i32 x = caretX + point.x / divisor;
+                i32 y = caretY + point.y / divisor;
+                
+                if(x >= 0 && y >= 0 && x < image.getWidth() && y < image.getHeight()) {
+                    image.setPixel(x, y, PixelRGB5(20, 20, 20));
+                }
+
+            }
+                    
+            image.setPixel(caretX, caretY, PixelRGB5(20, 0, 0));
+            image.setPixel(caretX + width, caretY, PixelRGB5(20, 0, 0));
+            image.setPixel(caretX, caretY + height, PixelRGB5(20, 0, 0));
+            image.setPixel(caretX + width, caretY + height, PixelRGB5(20, 0, 0));
+
+            caretX += width;
+
+        }
+
+        video.addFrame(image, 0);
+
+        Log::info("Timer", "TTF loading time: %fus", timer.getElapsedTime(Time::Unit::Microseconds));
 
     } else {
 

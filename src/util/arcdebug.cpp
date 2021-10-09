@@ -24,6 +24,10 @@ void ArcDebug::dispatchToken(Token token) {
             flush();
             break;
 
+        case ArcHex:
+            buffer << std::hex << std::uppercase;
+            break;
+
         default:
             arc_force_assert("Invalid ArcDebug token");
             break;
