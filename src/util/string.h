@@ -7,6 +7,23 @@
 
 namespace String {
 
+	//Noexcept because the string is checked against any faults
+	constexpr std::string_view view(const std::string& str, SizeT start = 0, SizeT count = -1) noexcept {
+
+		if(start >= str.size()) {
+			return std::string_view();
+		}
+
+		if(count == -1) {
+			count = str.size() - start;
+		} else if (start + count >= str.size()) {
+			return std::string_view();
+		}
+
+		return std::string_view(&str[start], count);
+
+	}
+
 	template<class... Chars>
 	constexpr std::string fromChars(Chars&&... c) requires ((Convertible<Chars, char>) && ...) {
 		return {(static_cast<char>(c), ...)};

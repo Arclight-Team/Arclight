@@ -70,16 +70,16 @@ namespace TrueType {
                 switch(encoding) {
 
                     case MicrosoftEncoding::ShiftJIS:
-                        return CodeConv::fromShiftJIS<CodeConv::Encoding::UTF8>(in);
+                        return CodeConv::fromShiftJIS<Unicode::Encoding::UTF8>(in);
 
                     case MicrosoftEncoding::Big5:
-                        return CodeConv::fromBig5<CodeConv::Encoding::UTF8>(in);
+                        return CodeConv::fromBig5<Unicode::Encoding::UTF8>(in);
                         
                     case MicrosoftEncoding::Wansung:
-                        return CodeConv::fromWansung<CodeConv::Encoding::UTF8>(in);
+                        return CodeConv::fromWansung<Unicode::Encoding::UTF8>(in);
                         
                     case MicrosoftEncoding::Johab:
-                        return CodeConv::fromJohab<CodeConv::Encoding::UTF8>(in);
+                        return CodeConv::fromJohab<Unicode::Encoding::UTF8>(in);
 
                     case MicrosoftEncoding::PRC:
                         //PRC is not supported as of now

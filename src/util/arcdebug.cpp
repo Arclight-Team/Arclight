@@ -25,7 +25,11 @@ void ArcDebug::dispatchToken(Token token) {
             break;
 
         case ArcHex:
-            buffer << std::hex << std::uppercase;
+            buffer << std::hex;
+            break;
+
+        case ArcDec:
+            buffer << std::dec;
             break;
 
         default:

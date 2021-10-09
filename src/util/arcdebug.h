@@ -31,6 +31,7 @@ public:
     enum class Token {
         ArcEndl,
         ArcSpace,
+        ArcDec,
         ArcHex
     };
 

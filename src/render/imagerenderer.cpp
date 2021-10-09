@@ -14,6 +14,7 @@
 #include "image/filter/contrast.h"
 #include "font/truetype/loader.h"
 #include "debug.h"
+#include "util/unicode.h"
 
 
 bool ImageRenderer::init() {
@@ -85,13 +86,16 @@ bool ImageRenderer::init() {
         TrueType::Font font = TrueType::loadFont(fontFileStream);
 
         Image<PixelFormat> image(2000, 1000);
-        std::string text = "String";
+        std::string text = "ΑαΒβΓγΔδΕεΖζΗηΘθΙιΚκΛλΜμΝνΞξΟοΠπΡρΣσΤτΥυΦφΧχΨψΩω";
         u32 caretX = 200;
         u32 caretY = 100;
+        UnicodeIterator unicodeIt = Unicode::begin<Unicode::UTF8>(text);
 
-        for(u32 i = 0; i < text.size(); i++) {
+        for(auto it = Unicode::begin<Unicode::UTF8>(text); it != Unicode::end<Unicode::UTF8>(text); it++) {
 
-            const TrueType::Glyph& glyph = font.glyphs[font.charMap[text[i]]];
+            Log::info("", "%d", *it);
+
+            const TrueType::Glyph& glyph = font.glyphs[font.charMap[*it]];
             const auto& points = glyph.points;
 
             constexpr static u32 divisor = 10;
