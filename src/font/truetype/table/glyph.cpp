@@ -27,12 +27,17 @@ namespace TrueType {
 
         SizeT glyfStart = reader.getStream().getPosition();
 
-        std::vector<u16> endpoints;
+        std::vector<Vec2ui> contours;
         std::vector<u8> instructions;
         std::vector<u8> flags;
         std::vector<Vec2i> points;
 
         for(u32 offset : glyphOffsets) {
+
+            if(offset == noOutlineGlyphOffset) {   
+                glyphs.emplace_back();
+                continue;
+            }
 
             u32 requiredSize = 10;
 
@@ -49,7 +54,7 @@ namespace TrueType {
             i16 yMax = reader.read<i16>();
 
             bool compound = numberOfContours < 0;
-            u32 contours = compound ? 0 : numberOfContours;
+            u32 contourCount = compound ? 0 : numberOfContours;
 
             if(xMax < xMin || yMax < yMin) {
                 throw LoaderException("Failed to load glyph table: Illegal glyph bounds");
@@ -57,7 +62,6 @@ namespace TrueType {
 
             Glyph glyph;
             glyph.compound = compound;
-            glyph.contours = contours;
             glyph.xMin = xMin;
             glyph.yMin = yMin;
             glyph.xMax = xMax;
@@ -71,14 +75,23 @@ namespace TrueType {
 
             } else {
 
-                requiredSize += contours * 2 + 2;
+                requiredSize += contourCount * 2 + 2;
 
                 if(tableSize < offset + requiredSize) {
                     throw LoaderException("Failed to load glyph table: Stream size too small");
                 }
 
-                endpoints.resize(contours);
-                reader.read<u16>(endpoints);
+                contours.resize(contourCount);
+
+                u32 lastContourStart = 0;
+
+                for(u32 i = 0; i < contourCount; i++) {
+
+                    u32 contourEnd = reader.read<u16>();
+                    contours[i] = Vec2ui(lastContourStart, contourEnd);
+                    lastContourStart = contourEnd + 1;
+
+                }
 
                 u16 instructionLength = reader.read<u16>();
                 requiredSize += instructionLength;
@@ -90,9 +103,9 @@ namespace TrueType {
                 instructions.resize(instructionLength);
                 reader.read<u8>(instructions);
 
-                if(contours) {
+                if(contourCount) {
 
-                    u32 pointCount = endpoints.back() + 1;
+                    u32 pointCount = contours.back().y + 1;
                     flags.resize(pointCount);
 
                     u32 i = 0;
@@ -182,6 +195,7 @@ namespace TrueType {
                     }
 
                     glyph.points = points;
+                    glyph.contours = contours;
 
                 }
 

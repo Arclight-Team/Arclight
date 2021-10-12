@@ -18,24 +18,34 @@ namespace TrueType {
         std::vector<u32> glyphOffsets;
         glyphOffsets.reserve(glyphCount);
 
+        u32 offset = 0;
+
+        auto readOffsets = [&]<bool Long>() {
+
+            using Type = std::conditional_t<Long, u32, u16>;
+            
+            offset = reader.read<Type>();
+
+            for(u32 i = 0; i < glyphCount; i++) {
+
+                u32 nextOffset = reader.read<Type>() * (Long ? 1 : 2);
+
+                if(nextOffset == offset) {
+                    glyphOffsets.push_back(noOutlineGlyphOffset);
+                } else {
+                    glyphOffsets.push_back(offset);
+                }
+
+                offset = nextOffset;
+
+            }
+
+        };
+
         if(longVersion) {
-
-            for(u32 i = 0; i < glyphCount; i++) {
-
-                u32 offset = reader.read<u32>();
-                glyphOffsets.push_back(offset);
-
-            }
-
+            readOffsets.template operator()<true>();
         } else {
-
-            for(u32 i = 0; i < glyphCount; i++) {
-
-                u32 offset = reader.read<u16>() * 2;
-                glyphOffsets.push_back(offset);
-
-            }
-
+            readOffsets.template operator()<false>();
         }
 
 #ifdef ARC_FONT_DEBUG

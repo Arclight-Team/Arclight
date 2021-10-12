@@ -13,8 +13,9 @@
 #include "image/filter/exponential.h"
 #include "image/filter/contrast.h"
 #include "font/truetype/loader.h"
-#include "debug.h"
+#include "font/rasterizer.h"
 #include "util/unicode.h"
+#include "debug.h"
 
 
 bool ImageRenderer::init() {
@@ -78,7 +79,6 @@ bool ImageRenderer::init() {
     } else if constexpr (renderFont) {
 
         Timer timer;
-        timer.start();
 
         File fontFile(":/fonts/comic.ttf", File::In | File::Binary);
         fontFile.open();
@@ -86,46 +86,82 @@ bool ImageRenderer::init() {
         TrueType::Font font = TrueType::loadFont(fontFileStream);
 
         Image<PixelFormat> image(2000, 1000);
-        std::string text = "This sample text demonstrates bearings";
-        u32 caretX = 200;
-        u32 caretY = 100;
-        UnicodeIterator unicodeIt = Unicode::begin<Unicode::UTF8>(text);
+        std::string text =
+R"(Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   
+Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
+Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.   
+Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.   
+Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.   
+At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat.   
+Consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus.   
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   
+Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
+Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.   
+Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo)";
+
+        u32 caretX = 0;
+        u32 caretY = 800;
+
+        timer.start();
 
         for(auto it = Unicode::begin<Unicode::UTF8>(text); it != Unicode::end<Unicode::UTF8>(text); it++) {
 
-            Log::info("", "%d", *it);
+            u32 codepoint = *it;
+        
+            if(codepoint == 0x0A) {
+
+                caretX = 0;
+                caretY -= 40;
+                continue;
+
+            }
+
+            u32 glyphIndex = font.charMap[codepoint];
+
+            if(glyphIndex >= font.glyphs.size()) {
+                glyphIndex = 0;
+            }
 
             const TrueType::Glyph& glyph = font.glyphs[font.charMap[*it]];
             const auto& points = glyph.points;
 
-            constexpr static u32 divisor = 25;
-            u32 width = (glyph.xMax - glyph.xMin) / divisor;
-            u32 height = (glyph.yMax - glyph.yMin) / divisor;
+            constexpr static double scale = 0.02;
+            u32 width = (glyph.xMax - glyph.xMin) * scale;
+            u32 height = (glyph.yMax - glyph.yMin) * scale;
+            i32 bearing = glyph.bearing * scale;
 
-            for(u32 j = 0; j < points.size(); j++) {
+            Font::rasterize(image, Vec2i(caretX, caretY), glyph, scale);
 
-                const Vec2i& point = points[j];
-                i32 x = caretX + (glyph.bearing + point.x) / divisor;
-                i32 y = caretY + point.y / divisor;
-                
-                if(x >= 0 && y >= 0 && x < image.getWidth() && y < image.getHeight()) {
-                    image.setPixel(x, y, PixelRGB5(20, 20, 20));
+            i32 bx0 = caretX + Math::floor(glyph.xMin * scale);
+            i32 bx1 = caretX + Math::ceil(glyph.xMax * scale);
+            i32 by0 = caretY + Math::floor(glyph.yMin * scale);
+            i32 by1 = caretY + Math::ceil(glyph.yMax * scale);
+
+            if(bx0 >= 0 && by0 >= 0 && bx1 < image.getWidth() && by1 < image.getHeight()) {
+
+                for(i32 x = bx0; x <= bx1; x++) {
+
+                    image.setPixel(x, by0, PixelRGB5(20, 0, 0));
+                    image.setPixel(x, by1, PixelRGB5(20, 0, 0));
+
+                }
+
+                for(i32 y = by0; y <= by1; y++) {
+
+                    image.setPixel(bx0, y, PixelRGB5(20, 0, 0));
+                    image.setPixel(bx1, y, PixelRGB5(20, 0, 0));
+
                 }
 
             }
-                    
-            image.setPixel(caretX, caretY, PixelRGB5(20, 0, 0));
-            image.setPixel(caretX + width, caretY, PixelRGB5(20, 0, 0));
-            image.setPixel(caretX, caretY + height, PixelRGB5(20, 0, 0));
-            image.setPixel(caretX + width, caretY + height, PixelRGB5(20, 0, 0));
 
-            caretX += glyph.advance / divisor;
+            caretX += glyph.advance * scale;
 
         }
 
+        Log::info("Timer", "TTF rendering time: %fus", timer.getElapsedTime(Time::Unit::Microseconds));
+        
         video.addFrame(image, 0);
-
-        Log::info("Timer", "TTF loading time: %fus", timer.getElapsedTime(Time::Unit::Microseconds));
 
     } else {
 

@@ -537,17 +537,21 @@ namespace TrueType {
     //Glyph
     struct Glyph {
 
-        u16 contours;
+        constexpr Glyph() : compound(false), xMin(0), xMax(0), yMin(0), yMax(0), bearing(0), advance(0) {}
+
         bool compound;
         i32 xMin;
         i32 yMin;
         i32 xMax;
         i32 yMax;
+        std::vector<Vec2ui> contours;
         std::vector<Vec2i> points;
         i32 bearing;
         u32 advance;
 
     };
+
+    constexpr inline u32 noOutlineGlyphOffset = -1;
 
     //Font (TEMPORARY STRUCTURE)
     struct Font {
