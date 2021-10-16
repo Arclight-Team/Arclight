@@ -15,10 +15,20 @@
 #include "font/truetype/loader.h"
 #include "font/rasterizer.h"
 #include "util/unicode.h"
+#include "math/line.h"
 #include "debug.h"
 
 
 bool ImageRenderer::init() {
+
+
+    LineF l(Vec2d(2, 3), Vec2f(4.3, 4));
+    LineF ll(Vec2f(0, 0), Vec2f(1, 2));
+    auto x = l.intersection(ll);
+
+    if(x) {
+        ArcDebug() << *x;
+    }
 
     try {
 

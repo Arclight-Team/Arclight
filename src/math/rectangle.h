@@ -10,10 +10,10 @@ class Rectangle {
 public:
 
     constexpr Rectangle() : Rectangle(0, 0, 0, 0) {}
-    constexpr explicit Rectangle(const Vec2<F>& pos, const Vec2<F>& size) : Rectangle(pos.x, pos.y, size.x, size.y) {}
+    constexpr Rectangle(const Vec2<F>& pos, const Vec2<F>& size) : Rectangle(pos.x, pos.y, size.x, size.y) {}
 
     template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
-    constexpr explicit Rectangle(A x, B y, C w, D h) : x(F(x)), y(F(y)), w(F(w)), h(F(h)) {}
+    constexpr Rectangle(A x, B y, C w, D h) : x(F(x)), y(F(y)), w(F(w)), h(F(h)) {}
 
     template<Float G>
     constexpr Rectangle(const Rectangle<G>& rect) : Rectangle(rect.x, rect.y, rect.w, rect.h) {}
