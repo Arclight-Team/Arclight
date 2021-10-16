@@ -18,6 +18,8 @@
 #include "math/line.h"
 #include "debug.h"
 
+#include <complex>
+
 
 bool ImageRenderer::init() {
 
@@ -171,6 +173,75 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
 
         Log::info("Timer", "TTF rendering time: %fus", timer.getElapsedTime(Time::Unit::Microseconds));
         
+        video.addFrame(image, 0);
+
+    } else if (renderCanvas) {
+
+        constexpr static u32 imageWidth = 2000;
+        constexpr static u32 imageHeight = 1100;
+        constexpr static double scale = 0.002;
+        constexpr static double divergence = 100;
+        constexpr static u32 maxIterations = 31 * 4;
+        constexpr static u32 type = 0;
+
+        Image<PixelFormat> image(imageWidth, imageHeight);
+
+        for(u32 y = 0; y < imageHeight; y++) {
+
+            for(u32 x = 0; x < imageWidth; x++) {
+
+                if constexpr (type == 0) {
+
+                    const std::complex<double> c((static_cast<double>(x) - imageWidth / 2.0) * scale, (static_cast<double>(y) - imageHeight / 2.0) * scale);
+                    std::complex<double> z;
+                    u32 iterations = maxIterations;
+
+                    for(u32 i = 0; i < maxIterations; i++) {
+
+                        z = z * z + c;
+
+                        if(std::abs(z) > divergence) {
+                            iterations = i;
+                            break;
+                        }
+
+                    }
+
+                    image.setPixel(x, y, PixelRGB5(iterations / 4, iterations / 4, iterations / 4));
+
+                } else if constexpr (type == 1) {
+
+                    std::complex<double> z((static_cast<double>(x) - imageWidth / 2.0) * scale, (static_cast<double>(y) - imageHeight / 2.0) * scale);
+
+                    auto polynomial = [](std::complex<double> z) {
+                        return -z * z * z + z * z - std::complex<double>(7) * z + std::complex<double>(6);
+                    };
+
+                    auto derivative = [](std::complex<double> z) {
+                        return z * z * std::complex<double>(-3) + z * std::complex<double>(2) + std::complex<double>(-7);
+                    };
+
+                    u32 iterations = maxIterations;
+
+                    for(u32 i = 0; i < maxIterations; i++) {
+
+                        z = z - polynomial(z) / derivative(z);
+
+                        if(std::abs(z) > divergence) {
+                            iterations = i;
+                            break;
+                        }
+
+                    }
+
+                    image.setPixel(x, y, PixelRGB5(maxIterations, maxIterations, maxIterations));
+
+                }
+
+            }
+
+        }
+
         video.addFrame(image, 0);
 
     } else {
