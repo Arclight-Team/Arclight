@@ -612,7 +612,7 @@ private:
 public:
 
     template<Pixel DestPixel, class T>
-    static auto convert(T&& pixel) {
+    constexpr static auto convert(T&& pixel) {
 
         using SrcFormat = T::Format;
         using DestFormat = PixelFormat<DestPixel>;

@@ -26,14 +26,16 @@ public:
 		//Start only if it's not running already
 		if (done()) {
 
-			std::packaged_task<void(Function&&, Args&&...)> task(std::bind(std::forward<Function>(f), std::forward<Args>(args)...));
+			std::packaged_task<void()> task(std::bind(std::forward<Function>(f), std::forward<Args>(args)...));
 			future = task.get_future();
-			thread = std::move(std::thread(std::move(task), std::move(f), std::move(args)...));
+			thread = std::move(std::thread(std::move(task)));
 
 			return true;
 
 		} else {
+
 			return false;
+
 		}
 
 	}

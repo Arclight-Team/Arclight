@@ -17,6 +17,7 @@
 #include "util/unicode.h"
 #include "math/line.h"
 #include "debug.h"
+#include "core/thread/thread.h"
 
 #include <complex>
 
@@ -82,7 +83,7 @@ bool ImageRenderer::init() {
             }
 
             FileInputStream frameStream(frameFile);
-            Image<PixelFormat> frameImage = BMP::loadBitmap<PixelFormat>(frameStream);
+            Image<PixelFmt> frameImage = BMP::loadBitmap<PixelFmt>(frameStream);
             frameImage.resize(ImageScaling::Nearest, 256, 192);
             video.addFrame(frameImage, i);
 
@@ -97,7 +98,7 @@ bool ImageRenderer::init() {
         FileInputStream fontFileStream(fontFile);
         TrueType::Font font = TrueType::loadFont(fontFileStream);
 
-        Image<PixelFormat> image(2000, 1000);
+        Image<PixelFmt> image(2000, 1000);
         std::string text =
 R"(Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   
 Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
@@ -175,72 +176,96 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
         
         video.addFrame(image, 0);
 
-    } else if (renderCanvas) {
+    } else if constexpr (renderCanvas) {
 
         constexpr static u32 imageWidth = 2000;
         constexpr static u32 imageHeight = 1100;
-        constexpr static double scale = 0.002;
-        constexpr static double divergence = 100;
-        constexpr static u32 maxIterations = 31 * 4;
-        constexpr static u32 type = 0;
+        constexpr static double scale = 0.005;
+        constexpr static double divergence = 10000;
+        constexpr static u32 maxIterations = 100;
+        constexpr static u32 type = 1;
 
-        Image<PixelFormat> image(imageWidth, imageHeight);
+        constexpr static u32 palette[] = {
+            0xC11602, 0xCC3709, 0xDC6115, 0xE5851C, 0xE7A51E, 0xD9C620, 0xC0C11C, 0x9FB916, 0x7AAE0E, 0x58A507, 0x00AE01, 0x01BA10, 0x0FCB30, 0x26DE59, 0x3FF286, 0x53FFAE, 
+            0x4CFEFC, 0x3ACDED, 0x2B9EE0, 0x1B71D3, 0x174FD0, 0x2230D9, 0x3634DF, 0x4B3AE6, 0x8547F3, 0xB852FF, 0xE358FF, 0xFB4FFB, 0xFF3BE7, 0xF228D0, 0xD9129A, 0xC40069
+        };
 
-        for(u32 y = 0; y < imageHeight; y++) {
+        PixelType<PixelFmt>::Type colorPalette[32];
 
-            for(u32 x = 0; x < imageWidth; x++) {
+        for(u32 i = 0; i < 32; i++) {
+            colorPalette[i] = PixelConverter::convert<PixelFmt>(PixelRGB8(palette[i] >> 16, (palette[i] & 0xFF00) >> 8, palette[i] & 0xFF));
+        }
 
-                if constexpr (type == 0) {
+        Image<PixelFmt> image(imageWidth, imageHeight);
+        Timer t;
+        t.start();
+
+        constexpr static u32 threadCount = 8;
+        Thread threads[threadCount];
+
+        auto function = [&](u32 i) {
+
+            u32 startHeight = imageHeight / threadCount * i;
+            u32 endHeight = i == threadCount - 1 ? imageHeight : startHeight + imageHeight / threadCount;
+
+            for(u32 y = startHeight; y < endHeight; y++) {
+
+                for(u32 x = 0; x < imageWidth; x++) {
 
                     const std::complex<double> c((static_cast<double>(x) - imageWidth / 2.0) * scale, (static_cast<double>(y) - imageHeight / 2.0) * scale);
                     std::complex<double> z;
                     u32 iterations = maxIterations;
 
-                    for(u32 i = 0; i < maxIterations; i++) {
+                    if constexpr (type == 0) {
 
-                        z = z * z + c;
+                        for(u32 i = 0; i < maxIterations; i++) {
 
-                        if(std::abs(z) > divergence) {
-                            iterations = i;
-                            break;
+                            z = z * z + c;
+
+                            if(std::abs(z) > divergence) {
+                                iterations = i;
+                                break;
+                            }
+
+                        }
+
+                    } else {
+
+                        i32 lambda = 1;
+
+                        for(u32 i = 0; i < maxIterations; i++) {
+
+                            z = std::pow(z, static_cast<i32>(i) * lambda) + c;
+
+                            if(std::abs(z) > divergence) {
+                                iterations = i;
+                                break;
+                            }
+
+                            lambda *= -1;
+
                         }
 
                     }
 
-                    image.setPixel(x, y, PixelRGB5(iterations / 4, iterations / 4, iterations / 4));
-
-                } else if constexpr (type == 1) {
-
-                    std::complex<double> z((static_cast<double>(x) - imageWidth / 2.0) * scale, (static_cast<double>(y) - imageHeight / 2.0) * scale);
-
-                    auto polynomial = [](std::complex<double> z) {
-                        return -z * z * z + z * z - std::complex<double>(7) * z + std::complex<double>(6);
-                    };
-
-                    auto derivative = [](std::complex<double> z) {
-                        return z * z * std::complex<double>(-3) + z * std::complex<double>(2) + std::complex<double>(-7);
-                    };
-
-                    u32 iterations = maxIterations;
-
-                    for(u32 i = 0; i < maxIterations; i++) {
-
-                        z = z - polynomial(z) / derivative(z);
-
-                        if(std::abs(z) > divergence) {
-                            iterations = i;
-                            break;
-                        }
-
-                    }
-
-                    image.setPixel(x, y, PixelRGB5(maxIterations, maxIterations, maxIterations));
+                    u32 color = iterations * 31 / maxIterations;
+                    image.setPixel(x, y, colorPalette[color]);
 
                 }
 
             }
 
+        };
+
+        for(u32 i = 0; i < threadCount; i++) {
+            threads[i].start(function, i);
         }
+
+        for(u32 i = 0; i < threadCount; i++) {
+            threads[i].finish();
+        }
+
+        Log::info("Fractal Renderer", "Rendering time: %fus", t.getElapsedTime());
 
         video.addFrame(image, 0);
 
@@ -254,7 +279,7 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
         }
 
         FileInputStream stream(textureFile);
-        Image<PixelFormat> image = BMP::loadBitmap<PixelFormat>(stream);
+        Image<PixelFmt> image = BMP::loadBitmap<PixelFmt>(stream);
         image.resize(ImageScaling::Bilinear, 160);
         video.addFrame(image, 0);
 
@@ -265,7 +290,7 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
 
     for(u32 i = 0; i < gleLayers; i++) {
 
-        const Image<PixelFormat>& videoFrameImage = video.getFrame(i).getImage();
+        const Image<PixelFmt>& videoFrameImage = video.getFrame(i).getImage();
         frameTexture.update(0, 0, video.getWidth(), video.getHeight(), i, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UShort1555, videoFrameImage.getImageBuffer().data());
 
     }

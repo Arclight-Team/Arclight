@@ -24,9 +24,9 @@ private:
     GLE::Uniform imageTextureUnitUniform;
     GLE::Uniform currentFrameIDUniform;
 
-    constexpr static Pixel PixelFormat = Pixel::RGB5;
+    constexpr static Pixel PixelFmt = Pixel::RGB5;
 
-    Video<PixelFormat> video;
+    Video<PixelFmt> video;
     double lastTime;
 
     constexpr static u32 videoFrameCount = 12;
