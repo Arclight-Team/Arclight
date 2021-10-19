@@ -207,7 +207,7 @@ public:
 
     constexpr UnicodeIterator(const std::string_view& s, SizeT start = 0) noexcept : str(s), pos(start) {
 
-        if(pos > str.size()) {
+        if(pos > s.size()) {
             pos = s.size();
         }
 
@@ -303,7 +303,7 @@ private:
 
     }
 
-    const std::string_view& str;
+    std::string_view str;
     SizeT pos;
 
 };
