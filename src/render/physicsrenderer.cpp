@@ -13,14 +13,14 @@ bool PhysicsRenderer::init() {
 
 	try {
 
-		modelShader = ShaderLoader::fromFiles(":/shaders/test/model_assimp.avs", ":/shaders/test/model_assimp.afs");
+		modelShader = ShaderLoader::fromFiles("@/shaders/test/model_assimp.avs", "@/shaders/test/model_assimp.afs");
 
 	} catch (std::exception& e) {
 		Log::error("Physics Renderer", e.what());
 		return false;
 	}
 
-	if(!model.load(":/models/cube/cube.obj", false)) {
+	if(!model.load("@/models/cube/cube.obj", false)) {
 		Log::error("Physics Renderer", "Failed to load model");
 		return false;
 	}

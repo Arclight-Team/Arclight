@@ -13,7 +13,7 @@ Engine::Engine() : game(window) {}
 
 bool Engine::initialize() {
 
-	Uri::setSpecialUriHandler(':', []() { return Config::getUriAssetPath(); });
+	Uri::setSpecialUriHandler('@', []() { return Config::getUriAssetPath(); });
 
 	//Open up log file
 	Log::init();

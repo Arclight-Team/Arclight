@@ -35,7 +35,7 @@ bool ImageRenderer::init() {
 
     try {
 
-        imageShader = ShaderLoader::fromFiles(":/shaders/image.avs", ":/shaders/image.afs");
+        imageShader = ShaderLoader::fromFiles("@/shaders/image.avs", "@/shaders/image.afs");
 
     } catch(std::exception&) {
 
@@ -75,7 +75,7 @@ bool ImageRenderer::init() {
 
         for(u32 i = 0; i < videoFrameCount; i++) {
 
-            File frameFile(":/textures/test/frame" + std::to_string(i + 1) + ".bmp", File::In | File::Binary);
+            File frameFile("@/textures/test/frame" + std::to_string(i + 1) + ".bmp", File::In | File::Binary);
         
             if(!frameFile.open()){
                 Log::error("Image Renderer", "Failed to open frame texture");
@@ -93,7 +93,7 @@ bool ImageRenderer::init() {
 
         Timer timer;
 
-        File fontFile(":/fonts/comic.ttf", File::In | File::Binary);
+        File fontFile("@/fonts/comic.ttf", File::In | File::Binary);
         fontFile.open();
         FileInputStream fontFileStream(fontFile);
         TrueType::Font font = TrueType::loadFont(fontFileStream);
@@ -271,7 +271,7 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
 
     } else {
 
-        File textureFile(":/textures/what.bmp", File::In | File::Binary);
+        File textureFile("@/textures/what.bmp", File::In | File::Binary);
         
         if(!textureFile.open()){
             Log::error("Image Renderer", "Failed to open image texture");

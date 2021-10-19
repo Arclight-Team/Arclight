@@ -37,7 +37,9 @@ bool Game::init() {
 		renderer.setAspectRatio(window.getWidth() / static_cast<float>(window.getHeight())); 
 	});
 
-	imageRenderer.init();
+	if (!imageRenderer.init()) {
+		return false;
+	}
 	
 
 	window.setSize(720, 720);
