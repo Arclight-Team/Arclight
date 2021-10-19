@@ -56,10 +56,6 @@ bool Uri::createDirectory() const {
 		created = std::filesystem::create_directories(path);
 
 	} catch (std::exception&) {
-
-		Log::error("Uri", "Failed to create directory '%s'", path.string().c_str());
-		return false;
-
 	}
 
 	if (!created) {
@@ -141,10 +137,6 @@ bool Uri::remove() const {
 		removed = std::filesystem::remove(path);
 
 	} catch (std::exception&) {
-
-		Log::error("Uri", "Failed to remove '%s'", path.string().c_str());
-		return false;
-
 	}
 
 	if (!removed) {
@@ -319,7 +311,7 @@ bool Uri::directoryExists(const std::string& path) {
 	
 void Uri::setSpecialUriHandler(char symbol, SpecialUriHandler handler) {
 
-	if (std::string("/<>:/\\|?*").find(symbol) == std::string::npos) {
+	if (std::string("/<>:/\\|?*").find(symbol) != std::string::npos) {
 
 		Log::warn("Uri", "Cannot set uri handler for special symbol %c", symbol);
 		return;

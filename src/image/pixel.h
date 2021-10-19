@@ -351,7 +351,7 @@ public:
 
     constexpr void divide(double f) {
 
-        arc_assert(!Math::isZero, "Cannot multiply pixel with a factor less than 0");
+        arc_assert(f > 0.0 && !Math::isZero(f), "Cannot multiply pixel with a factor less than 0");
         multiply(1 / f);
 
     }

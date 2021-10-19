@@ -103,8 +103,8 @@ public:
         return has();
     }
 
-    constexpr T& operator->() const noexcept {
-        return *storage;
+    constexpr T* operator->() const noexcept {
+        return storage;
     }
 
     constexpr T& operator*() const noexcept {
