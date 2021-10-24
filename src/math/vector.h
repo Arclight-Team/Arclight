@@ -20,8 +20,10 @@ class Vec2 {
 public:
 
 	using Type = T;
-
 	constexpr static u32 Size = 2;
+	
+	template<Arithmetic A>
+	using Untyped = Vec2<A>;
 
 
 	constexpr Vec2() : x(T(0)), y(T(0)) {}
@@ -217,8 +219,10 @@ class Vec3 {
 public:
 
 	using Type = T;
-
 	constexpr static u32 Size = 3;
+	
+	template<Arithmetic A>
+	using Untyped = Vec3<A>;
 
 
 	constexpr Vec3() : x(T(0)), y(T(0)), z(T(0)) {}
@@ -432,8 +436,10 @@ class Vec4 {
 public:
 
 	using Type = T;
-
 	constexpr static u32 Size = 4;
+
+	template<Arithmetic A>
+	using Untyped = Vec4<A>;
 
 
 	constexpr Vec4() : x(T(0)), y(T(0)), z(T(0)), w(T(0)) {}
@@ -652,37 +658,37 @@ concept Vector = TypeTraits::IsAnyOfV<T, Vec2<typename T::Type>, Vec3<typename T
 
 
 
-template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
-constexpr auto operator+(Vector<A> a, const Vector<B>& b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
-	Vector<decltype(a[0] + b[0])> ax = a;
+template<Vector A, Vector B>
+constexpr auto operator+(A a, const B& b) {
+	typename A::template Untyped<decltype(a[0] + b[0])> ax = a;
 	ax += b;
 	return ax;
 }
 
-template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
-constexpr auto operator-(Vector<A> a, const Vector<B>& b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
-	Vector<decltype(a[0] - b[0])> ax = a;
+template<Vector A, Vector B>
+constexpr auto operator-(A a, const B& b) {
+	typename A::template Untyped<decltype(a[0] - b[0])> ax = a;
 	ax -= b;
 	return ax;
 }
 
-template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
-constexpr auto operator*(Vector<A> a, B b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
-	Vector<decltype(a[0] * b)> ax = a;
+template<Vector A, Arithmetic B>
+constexpr auto operator*(A a, B b) {
+	typename A::template Untyped<decltype(a[0] * b)> ax = a;
 	ax *= b;
 	return ax;
 }
 
-template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
-constexpr auto operator*(B b, Vector<A> a) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
-	Vector<decltype(a[0] * b)> ax = a;
+template<Vector A, Arithmetic B>
+constexpr auto operator*(B b, A a) {
+	typename A::template Untyped<decltype(a[0] * b)> ax = a;
 	ax *= b;
 	return ax;
 }
 
-template<Arithmetic A, Arithmetic B, template<Arithmetic> class Vector>
-constexpr auto operator/(Vector<A> a, B b) requires (std::is_same_v<Vector<A>, Vec2<A>> || std::is_same_v<Vector<A>, Vec3<A>> || std::is_same_v<Vector<A>, Vec4<A>>) {
-	Vector<decltype(a[0] / b)> ax = a;
+template<Vector A, Arithmetic B>
+constexpr auto operator/(A a, B b) {
+	typename A::template Untyped<decltype(a[0] / b)> ax = a;
 	ax /= b;
 	return ax;
 }

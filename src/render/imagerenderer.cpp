@@ -18,6 +18,7 @@
 #include "math/line.h"
 #include "debug.h"
 #include "core/thread/thread.h"
+#include "math/bezier.h"
 
 #include <complex>
 
@@ -25,13 +26,8 @@
 bool ImageRenderer::init() {
 
 
-    LineF l(Vec2d(2, 3), Vec2f(4.3, 4));
-    LineF ll(Vec2f(0, 0), Vec2f(1, 2));
-    auto x = l.intersection(ll);
-
-    if(x) {
-        ArcDebug() << *x;
-    }
+    Bezier2f b;
+    ArcDebug() << b.controlPoints[0];
 
     try {
 
@@ -178,96 +174,23 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
 
     } else if constexpr (renderCanvas) {
 
-        constexpr static u32 imageWidth = 2000;
-        constexpr static u32 imageHeight = 1100;
-        constexpr static double scale = 0.005;
-        constexpr static double divergence = 10000;
-        constexpr static u32 maxIterations = 100;
-        constexpr static u32 type = 1;
-
         constexpr static u32 palette[] = {
             0xC11602, 0xCC3709, 0xDC6115, 0xE5851C, 0xE7A51E, 0xD9C620, 0xC0C11C, 0x9FB916, 0x7AAE0E, 0x58A507, 0x00AE01, 0x01BA10, 0x0FCB30, 0x26DE59, 0x3FF286, 0x53FFAE, 
             0x4CFEFC, 0x3ACDED, 0x2B9EE0, 0x1B71D3, 0x174FD0, 0x2230D9, 0x3634DF, 0x4B3AE6, 0x8547F3, 0xB852FF, 0xE358FF, 0xFB4FFB, 0xFF3BE7, 0xF228D0, 0xD9129A, 0xC40069
         };
 
-        PixelType<PixelFmt>::Type colorPalette[32];
-
         for(u32 i = 0; i < 32; i++) {
             colorPalette[i] = PixelConverter::convert<PixelFmt>(PixelRGB8(palette[i] >> 16, (palette[i] & 0xFF00) >> 8, palette[i] & 0xFF));
         }
 
-        Image<PixelFmt> image(imageWidth, imageHeight);
-        Timer t;
-        t.start();
+        canvas = Image<PixelFmt>(canvasWidth, canvasHeight);
+        canvasScale = 0.002;
+        newCanvasScale = canvasScale;
+        canvasPos = Vec2d(0, 0);
+        newCanvasPos = canvasPos;
 
-        constexpr static u32 threadCount = 8;
-        Thread threads[threadCount];
-
-        auto function = [&](u32 i) {
-
-            u32 startHeight = imageHeight / threadCount * i;
-            u32 endHeight = i == threadCount - 1 ? imageHeight : startHeight + imageHeight / threadCount;
-
-            for(u32 y = startHeight; y < endHeight; y++) {
-
-                for(u32 x = 0; x < imageWidth; x++) {
-
-                    const std::complex<double> c((static_cast<double>(x) - imageWidth / 2.0) * scale, (static_cast<double>(y) - imageHeight / 2.0) * scale);
-                    std::complex<double> z;
-                    u32 iterations = maxIterations;
-
-                    if constexpr (type == 0) {
-
-                        for(u32 i = 0; i < maxIterations; i++) {
-
-                            z = z * z + c;
-
-                            if(std::abs(z) > divergence) {
-                                iterations = i;
-                                break;
-                            }
-
-                        }
-
-                    } else {
-
-                        i32 lambda = 1;
-
-                        for(u32 i = 0; i < maxIterations; i++) {
-
-                            z = std::pow(z, static_cast<i32>(i) * lambda) + c;
-
-                            if(std::abs(z) > divergence) {
-                                iterations = i;
-                                break;
-                            }
-
-                            lambda *= -1;
-
-                        }
-
-                    }
-
-                    u32 color = iterations * 31 / maxIterations;
-                    image.setPixel(x, y, colorPalette[color]);
-
-                }
-
-            }
-
-        };
-
-        for(u32 i = 0; i < threadCount; i++) {
-            threads[i].start(function, i);
-        }
-
-        for(u32 i = 0; i < threadCount; i++) {
-            threads[i].finish();
-        }
-
-        Log::info("Fractal Renderer", "Rendering time: %fus", t.getElapsedTime());
-
-        video.addFrame(image, 0);
+        video.addFrame(canvas, 0);
+        recalculateCanvas();
 
     } else {
 
@@ -279,25 +202,11 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
         }
 
         FileInputStream stream(textureFile);
-        Image<PixelFmt> image = BMP::loadBitmap<PixelFmt>(stream);
-        image.resize(ImageScaling::Bilinear, 160);
-        video.addFrame(image, 0);
+        canvas = BMP::loadBitmap<PixelFmt>(stream);
+        canvas.resize(ImageScaling::Bilinear, 160);
+        video.addFrame(canvas, 0);
 
     }
-
-    u32 gleLayers = Math::min(video.getFrameCount(), GLE::Limits::getMaxArrayTextureLayers());
-    frameTexture.setData(video.getWidth(), video.getHeight(), gleLayers, GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UShort1555, nullptr);
-
-    for(u32 i = 0; i < gleLayers; i++) {
-
-        const Image<PixelFmt>& videoFrameImage = video.getFrame(i).getImage();
-        frameTexture.update(0, 0, video.getWidth(), video.getHeight(), i, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UShort1555, videoFrameImage.getImageBuffer().data());
-
-    }
-
-    frameTexture.setMagFilter(GLE::TextureFilter::None);
-    frameTexture.setMinFilter(GLE::TextureFilter::None);
-    frameTexture.generateMipmaps();
 
     imageTextureUnitUniform = imageShader.getUniform("image");
     currentFrameIDUniform = imageShader.getUniform("currentFrameID");
@@ -305,6 +214,8 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
     GLE::enableDepthTests();
     GLE::enableCulling();
     GLE::setClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+
+    updateVideo();
 
     lastTime = Time::convert(Time::getTimeSinceEpoch(Time::Unit::Nanoseconds), Time::Unit::Nanoseconds, Time::Unit::Seconds);
     video.setSpeed(60);
@@ -326,6 +237,15 @@ void ImageRenderer::render() {
 
     video.step(dt);
 
+    if(renderCanvas && (newCanvasPos != canvasPos || !Math::isEqual(newCanvasScale, canvasScale))) {
+
+        canvasPos = newCanvasPos;
+        canvasScale = newCanvasScale;
+        recalculateCanvas();
+        updateVideo();
+
+    }
+
 	GLE::clear(GLE::Color | GLE::Depth);
     imageShader.start();
 
@@ -345,5 +265,214 @@ void ImageRenderer::destroy() {
     imageVBO.destroy();
     imageVAO.destroy();
     frameTexture.destroy();
+
+}
+
+
+void ImageRenderer::recalculateCanvas() {
+
+    constexpr static double divergence = 1000;
+    constexpr static u32 maxIterations = 100;
+    constexpr static u32 type = 0;
+
+    Timer t;
+    t.start();
+
+    constexpr static u32 threadCount = 12;
+    Thread threads[threadCount];
+
+    auto function = [&](u32 i) {
+
+        u32 startHeight = canvasHeight / threadCount * i;
+        u32 endHeight = i == threadCount - 1 ? canvasHeight : startHeight + canvasHeight / threadCount;
+
+        for(u32 y = startHeight; y < endHeight; y++) {
+
+            for(u32 x = 0; x < canvasWidth; x++) {
+
+                const std::complex<double> c((static_cast<double>(x) + canvasPos.x - canvasWidth / 2.0) * canvasScale, (static_cast<double>(y) + canvasPos.y - canvasHeight / 2.0) * canvasScale);
+                std::complex<double> z;
+                u32 iterations = maxIterations;
+
+                if constexpr (type == 0) {
+
+                    for(u32 i = 0; i < maxIterations; i++) {
+
+                        z = z * z + c;
+
+                        if(std::abs(z) > divergence) {
+                            iterations = i;
+                            break;
+                        }
+
+                    }
+
+                } else if constexpr (type == 1) {
+
+                    i32 lambda = 1;
+
+                    for(u32 i = 0; i < maxIterations; i++) {
+
+                        z = std::pow(z, static_cast<i32>(i) * lambda) + c;
+
+                        if(std::abs(z) > divergence) {
+                            iterations = i;
+                            break;
+                        }
+
+                        lambda *= -1;
+
+                    }
+
+                } else if constexpr (type == 2) {
+
+                    for(u32 i = 0; i < maxIterations; i++) {
+
+                        z = std::sqrt(std::sin(z) + c);
+
+                        if(std::abs(z) > divergence) {
+                            iterations = i;
+                            break;
+                        }
+
+                    }
+
+                } else if constexpr (type == 3) {
+
+                    z = c;
+
+                    for(u32 i = 0; i < maxIterations; i++) {
+
+                        z = std::cos(std::tan(std::sqrt(z)));
+
+                        if(std::abs(z) > divergence) {
+                            iterations = i;
+                            break;
+                        }
+
+                    }
+
+                } else if constexpr (type == 4) {
+
+                    z = c;
+
+                    for(u32 i = 0; i < maxIterations; i++) {
+
+                        z = std::cos(z) / std::asin(z);
+
+                        if(std::abs(z) > divergence) {
+                            iterations = i;
+                            break;
+                        }
+
+                    }
+
+                } else if constexpr (type == 5) {
+
+                    z = c;
+
+                    for(u32 i = 0; i < maxIterations; i++) {
+
+                        z = std::log(z) / std::tan(z);
+
+                        if(std::abs(z) > divergence) {
+                            iterations = i;
+                            break;
+                        }
+
+                    }
+
+                } else if constexpr (type == 6) {
+
+                    z = c;
+
+                    for(u32 i = 0; i < maxIterations; i++) {
+
+                        z = std::cos(z) * std::cos(z) / std::sin(z);
+
+                        if(std::abs(z) > divergence) {
+                            iterations = i;
+                            break;
+                        }
+
+                    }
+
+                }
+
+                u32 color = iterations * 31 / maxIterations;
+                canvas.setPixel(x, y, colorPalette[color]);
+
+            }
+
+        }
+
+    };
+
+    for(u32 i = 0; i < threadCount; i++) {
+        threads[i].start(function, i);
+    }
+
+    for(u32 i = 0; i < threadCount; i++) {
+        threads[i].finish();
+    }
+
+    Log::info("Fractal Renderer", "Rendering time: %fus", t.getElapsedTime());
+
+    video.setFrameImage(0, canvas);
+
+}
+
+
+void ImageRenderer::updateVideo() {
+
+    u32 gleLayers = Math::min(video.getFrameCount(), GLE::Limits::getMaxArrayTextureLayers());
+    frameTexture.setData(video.getWidth(), video.getHeight(), gleLayers, GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UShort1555, nullptr);
+
+    for(u32 i = 0; i < gleLayers; i++) {
+
+        const Image<PixelFmt>& videoFrameImage = video.getFrame(i).getImage();
+        frameTexture.update(0, 0, video.getWidth(), video.getHeight(), i, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UShort1555, videoFrameImage.getImageBuffer().data());
+
+    }
+
+    frameTexture.setMagFilter(GLE::TextureFilter::None);
+    frameTexture.setMinFilter(GLE::TextureFilter::None);
+    frameTexture.generateMipmaps();
+
+}
+
+
+void ImageRenderer::moveCanvas(KeyAction action) {
+
+    constexpr static Vec2d viewMotion(1, 1);
+    constexpr static double viewScale = 0.8;
+
+    switch(action) {
+
+        case KeyAction::Up:
+            newCanvasPos.y += viewMotion.y;
+            break;
+
+        case KeyAction::Down:
+            newCanvasPos.y -= viewMotion.y;
+            break;
+
+        case KeyAction::Left:
+            newCanvasPos.x -= viewMotion.x;
+            break;
+
+        case KeyAction::Right:
+            newCanvasPos.x += viewMotion.x;
+            break;
+
+        case KeyAction::ZoomIn:
+            newCanvasScale *= viewScale;
+            break;
+
+        case KeyAction::ZoomOut:
+            newCanvasScale /= viewScale;
+            break;
+
+    }
 
 }

@@ -27,6 +27,11 @@ namespace Font {
     template<Pixel P>
     void rasterize(Image<P>& image, const Vec2i& origin, const TrueType::Glyph& glyph, double scale) {
 
+        //Skip if the image size is 0
+        if(image.getWidth() == 0 || image.getHeight() == 0) {
+            return;
+        }
+
         //The glyph's scaled bounding box size
         Vec2i bounds(Math::floor(glyph.xMax * scale) - Math::floor(glyph.xMin * scale) + 1, Math::floor(glyph.yMax * scale) - Math::floor(glyph.yMin * scale) + 1);
 
@@ -70,13 +75,6 @@ namespace Font {
                     //Add a boundary
                     addFillBoundary(glyphFills[y], x, rightwound);
 
-                    i32 px = x + origin.x;
-                    i32 py = y + origin.y;
-
-                    if(px >= 0 && py >= 0 && px < image.getWidth() && py < image.getHeight()) {
-                        image.setPixel(px, py, PixelRGB5(0, 20, 0));
-                    }
-
                 }
 
             }
@@ -85,6 +83,13 @@ namespace Font {
 
         //Fill the fills
         for(auto& [y, fills] : glyphFills) {
+
+            //Skip bad y coords
+            u32 py = origin.y + y;
+
+            if(py < 0 || py >= image.getHeight()) {
+                continue;
+            }
 
             //Skip all empty ones
             if(fills.size() == 0) {

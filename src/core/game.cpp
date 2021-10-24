@@ -51,56 +51,54 @@ bool Game::init() {
 	InputContext& rootContext = inputSystem.createContext(0);
 	rootContext.addState(0);
 
-	rootContext.addAction(0, KeyTrigger({ KeyCode::F }), true);
-	rootContext.addAction(1, KeyTrigger({ KeyCode::G }), false);
+	rootContext.addAction(0, KeyTrigger({ KeyCode::W }), true);
+	rootContext.addAction(1, KeyTrigger({ KeyCode::A }), true);
+	rootContext.addAction(2, KeyTrigger({ KeyCode::S }), true);
+	rootContext.addAction(3, KeyTrigger({ KeyCode::D }), true);
+	rootContext.addAction(4, KeyTrigger({ KeyCode::Up }), true);
+	rootContext.addAction(5, KeyTrigger({ KeyCode::Down }), true);
 	rootContext.registerAction(0, 0);
 	rootContext.registerAction(0, 1);
+	rootContext.registerAction(0, 2);
+	rootContext.registerAction(0, 3);
+	rootContext.registerAction(0, 4);
+	rootContext.registerAction(0, 5);
 
 	//Define input handler callbacks
 	rootInputHandler.setCoActionListener([this](KeyAction action, double scale) {
+		
+		switch(action) {
 
-		if(action == 0) {
+			case 0:
+				imageRenderer.moveCanvas(ImageRenderer::KeyAction::Up);
+				break;
 
-			return true;
+			case 1:
+				imageRenderer.moveCanvas(ImageRenderer::KeyAction::Left);
+				break;
 
-		}
+			case 2:
+				imageRenderer.moveCanvas(ImageRenderer::KeyAction::Down);
+				break;
 
-		return false;
+			case 3:
+				imageRenderer.moveCanvas(ImageRenderer::KeyAction::Right);
+				break;
 
-	});
+			case 4:
+				imageRenderer.moveCanvas(ImageRenderer::KeyAction::ZoomIn);
+				break;
 
-	rootInputHandler.setActionListener([this](KeyAction action) {
+			case 5:
+				imageRenderer.moveCanvas(ImageRenderer::KeyAction::ZoomOut);
+				break;
 
-		if(action == 1) {
-
-			constexpr static int maxDist = 20;
-			Random& random = Random::getRandom();
-
-			for(u32 i = 0; i < 100; i++) {
-
-				Vec3x spawnPos(random.getInt(-maxDist, maxDist), random.getInt(-maxDist, maxDist), random.getInt(-maxDist, maxDist));
-				RigidBody& rigidbody = manager.getProvider().getComponent<RigidBody>(manager.spawn(1, Transform(spawnPos)));
-				Vec3x delta = -rigidbody.getTransform().translation;
-				delta.y = 0;
-				delta.cross(Vec3x(0, 1, 0));
-
-				if (!delta.isNull()) {
-					delta.normalize();
-				}
-
-				rigidbody.setLinearVelocity(delta * 50);
-				rigidbody.disableGravity();
-				rigidbody.disableFriction();
-
-			}
-
-			Log::info("ACS", "Object count = %d", manager.getProvider().getActorCount<Transform>());
-
-			return true;
+			default:
+				return false;
 
 		}
 
-		return false;
+		return true;
 
 	});
 
@@ -135,25 +133,6 @@ bool Game::init() {
 	profiler.stop("Initialization");
 
 	inputTicker.start(120);
-/*
-	File src(":/test.bin", File::In | File::Binary);
-	src.open();
-	FileInputStream stream(src);
-	
-	File file(":/lz77.bin", File::Out | File::Binary);
-	file.open();
-	file.write(LZ77::compress(stream));
-	file.close();
-
-	File src(":/lz77.bin", File::In | File::Binary);
-	src.open();
-	FileInputStream stream(src);
-
-	File dest(":/decomp77.bin", File::Out | File::Binary);
-	dest.open();
-	dest.write(LZ77::decompress(stream));
-	dest.close();
-*/
 
 	return true;
 
@@ -173,9 +152,9 @@ void Game::update() {
 		}
 	}
 
-	inputSystem.updateContinuous(inputTicker.getTicks());
 	physicsEngine.update();
 */
+	inputSystem.updateContinuous(inputTicker.getTicks());
 }
 
 

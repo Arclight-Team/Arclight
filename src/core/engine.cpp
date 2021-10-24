@@ -44,6 +44,7 @@ bool Engine::initialize() {
 	Log::info("Core", "Engine up and running");
 
 	window.setAlwaysOnTop(false);
+	window.disableVSync();
 
 	return true;
 

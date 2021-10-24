@@ -10,11 +10,25 @@ class ImageRenderer : public Renderer {
 
 public:
 
+    enum class KeyAction {
+        Up,
+        Down,
+        Left,
+        Right,
+        ZoomIn,
+        ZoomOut
+    };
+
 	virtual bool init() override;
 	virtual void render() override;
 	virtual void destroy() override;
 
+    void moveCanvas(KeyAction action);
+
 private:
+
+    void recalculateCanvas();
+    void updateVideo();
 
     GLE::ShaderProgram imageShader;
     GLE::VertexBuffer imageVBO;
@@ -31,7 +45,18 @@ private:
 
     constexpr static u32 videoFrameCount = 12;
     constexpr static bool isVideo = false;
-    constexpr static bool renderFont = false;
-    constexpr static bool renderCanvas = true;
+    constexpr static bool renderFont = true;
+    constexpr static bool renderCanvas = false;
+
+    constexpr static u32 canvasWidth = 2000;
+    constexpr static u32 canvasHeight = 1100;
+
+    Vec2d canvasPos;
+    Vec2d newCanvasPos;
+    double canvasScale;
+    double newCanvasScale;
+
+    Image<PixelFmt> canvas;
+    PixelType<PixelFmt>::Type colorPalette[32];
 
 };
