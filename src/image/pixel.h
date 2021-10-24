@@ -184,7 +184,7 @@ public:
 
     using Format = PixelFormat<P>;
     constexpr static u32 Size = Format::BytesPerPixel;
-    using PackedT = UnsignedType<Size>::Type;
+    using PackedT = typename UnsignedType<Size>::Type;
     using PixelT = PixelStorage<P, ColorT>;
 
     constexpr PixelStorage() {

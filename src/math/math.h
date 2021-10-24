@@ -123,7 +123,7 @@ namespace Math {
 		return std::atan2(y, x);
 	}
 
-	template<Float A, Float B>
+	template<Arithmetic A, Arithmetic B>
 	ARC_CMATH_CONSTEXPR auto mod(A a, B b) {
 		return std::fmod(a, b);
 	}

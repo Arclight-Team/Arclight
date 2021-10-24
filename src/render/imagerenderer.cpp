@@ -12,6 +12,7 @@
 #include "image/filter/grayscale.h"
 #include "image/filter/exponential.h"
 #include "image/filter/contrast.h"
+#include "image/filter/multiply.h"
 #include "font/truetype/loader.h"
 #include "font/rasterizer.h"
 #include "util/unicode.h"
@@ -81,6 +82,9 @@ bool ImageRenderer::init() {
             FileInputStream frameStream(frameFile);
             Image<PixelFmt> frameImage = BMP::loadBitmap<PixelFmt>(frameStream);
             frameImage.resize(ImageScaling::Nearest, 256, 192);
+            double amount = 1.0 / videoFrameCount * i;
+            frameImage.applyFilter<MultiplicationFilter>(MultiplicationFilter::Green, amount);
+            frameImage.applyFilter<MultiplicationFilter>(MultiplicationFilter::Blue, Math::mod(amount + 0.5, 1));
             video.addFrame(frameImage, i);
 
         }
@@ -113,7 +117,7 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
 
         timer.start();
 
-        for(auto it = Unicode::begin<Unicode::UTF8>(text); it != Unicode::end<Unicode::UTF8>(text); it++) {
+        for(auto it = Unicode::begin<Unicode::Encoding::UTF8>(text); it != Unicode::end<Unicode::Encoding::UTF8>(text); it++) {
 
             u32 codepoint = *it;
         
@@ -220,7 +224,7 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
     lastTime = Time::convert(Time::getTimeSinceEpoch(Time::Unit::Nanoseconds), Time::Unit::Nanoseconds, Time::Unit::Seconds);
     video.setSpeed(60);
     video.setReversed(false);
-    video.setLooping(false);
+    video.setLooping(true);
     video.restart();
 
     return true;
