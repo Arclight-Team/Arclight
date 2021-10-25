@@ -2,6 +2,7 @@
 
 #include "math.h"
 #include "vector.h"
+#include <array>
 
 
 template<u32 Degree, Float F>
@@ -11,16 +12,85 @@ public:
 
     static_assert(Degree, "Degree must be at least 1");
 
+    using Type = F;
+    constexpr static u32 Order = Degree;
 
-    constexpr Bezier() : Bezier(Vec2<F>(0, 0), Vec2<F>(0, 0)) {}
+
+    constexpr Bezier() : Bezier(Vec2<F>(0, 0)) {}
 
     template<Vector... V>
-    constexpr Bezier(const Vec2<F>& start, const Vec2<F>& end, const V&... cps) : start(start), end(end), controlPoints {cps...} {}
+    constexpr Bezier(const V&... cps) : controlPoints {cps...} {}
+
+    template<Vector V, SizeT I>
+    constexpr Bezier(const std::array<V, I>& cps) requires (I <= Degree + 1) {
+        std::copy(cps.begin(), cps.end(), controlPoints);
+        std::fill(&controlPoints[I], &controlPoints[Degree + 1], Vec2<F>(0, 0));
+    }
 
 
-    Vec2<F> start;
-    Vec2<F> end;
-    Vec2<F> controlPoints[Degree - 1];
+    constexpr Vec2<F> evaluate(double t) const {
+
+        if constexpr (Degree == 1) {
+            return Math::lerp(controlPoints[0], controlPoints[1], t);
+        } else {
+            return evaluateHelper(t, std::make_index_sequence<Degree>{});
+        }
+
+    }
+
+
+    constexpr Vec2<F> getStartPoint() const {
+        return getControlPoint<0>();
+    }
+
+    constexpr Vec2<F> getEndPoint() const {
+        return getControlPoint<Degree>();
+    }
+
+    template<u32 I>
+    constexpr Vec2<F> getControlPoint() const requires (I < Degree + 1) {
+        return controlPoints[I];
+    }
+
+    constexpr Vec2<F> getControlPoint(u32 i) const {
+        return controlPoints[i];
+    }
+
+
+    constexpr void setStartPoint(const Vec2<F>& start) {
+        setControlPoint<0>(start);
+    }
+
+    constexpr void setEndPoint(const Vec2<F>& end) {
+        setControlPoint<Degree>(end);
+    }
+
+    template<u32 I>
+    constexpr void setControlPoint(const Vec2<F>& point) requires (I < Degree + 1) {
+        this->controlPoints[I] = point;
+    }
+
+    constexpr void setControlPoint(u32 i, const Vec2<F>& point) {
+        this->controlPoints[i] = point;
+    }
+
+
+    Vec2<F> controlPoints[Degree + 1];
+
+private:
+
+    template<SizeT... Pack>
+    constexpr auto evaluateHelper(double t, std::index_sequence<Pack...>) const {
+
+        std::array<Vec2<F>, sizeof...(Pack)> a;
+
+        for(SizeT i = 0; i < a.size(); i++) {
+            a[i] = Math::lerp(controlPoints[i], controlPoints[i + 1], t);
+        }
+
+        return Bezier<Degree - 1, F>(a).evaluate(t);
+
+    }
 
 };
 

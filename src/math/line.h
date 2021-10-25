@@ -51,6 +51,10 @@ public:
         return end.y - start.y;
     }
 
+    constexpr F length() const {
+        return Math::sqrt(dx() * dx() + dy() * dy());
+    }
+
     constexpr F derivative() const {
         arc_assert(!Math::isZero(dx()), "Cannot obtain derivative of vertical line");
         return dy() / dx();

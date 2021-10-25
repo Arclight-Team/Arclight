@@ -25,10 +25,6 @@
 
 bool ImageRenderer::init() {
 
-
-    Bezier2f b;
-    ArcDebug() << b.controlPoints[0];
-
     try {
 
         imageShader = ShaderLoader::fromFiles("@/shaders/image.avs", "@/shaders/image.afs");
@@ -138,7 +134,7 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
             u32 width = (glyph.xMax - glyph.xMin) * scale;
             u32 height = (glyph.yMax - glyph.yMin) * scale;
             i32 bearing = glyph.bearing * scale;
-
+/*
             Font::rasterize(image, Vec2i(caretX, caretY), glyph, scale);
 
             i32 bx0 = caretX + Math::floor(glyph.xMin * scale);
@@ -163,9 +159,25 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
                 }
 
             }
-
+*/
             caretX += glyph.advance * scale;
 
+        }
+
+        //Bezier2f x(Vec2f(1, 1), Vec2f(200, 800), Vec2f(1400, 467));
+        //Bezier3f x(Vec2f(1, 1), Vec2f(200, 800), Vec2f(1400, 467), Vec2f(1800, 98));
+        //Bezier4f x(Vec2f(1, 1), Vec2f(200, 800), Vec2f(400, 18), Vec2f(1400, 467), Vec2f(1800, 98));
+        //Bezier5f x(Vec2f(1, 1), Vec2f(200, 800), Vec2f(40, 798), Vec2f(1400, 467), Vec2f(400, 18), Vec2f(1800, 98));
+        Bezier<11, float> x(Vec2f(1, 1), Vec2f(200, 800), Vec2f(40, 798), Vec2f(1400, 467), Vec2f(400, 18), Vec2f(1800, 98),
+                            Vec2f(389, 26), Vec2f(230, 10), Vec2f(1987, 875), Vec2f(1189, 239), Vec2f(1089, 378), Vec2f(771, 590));
+
+        for(u32 i = 0; i < 1000; i++) {
+            Vec2f p = x.evaluate(i / 1000.0);
+            image.setPixel(p.x, p.y, PixelRGB5(0, 20, 20));
+        }
+
+        for(u32 i = 0; i < x.Order + 1; i++) {
+            image.setPixel(x.getControlPoint(i).x, x.getControlPoint(i).y, PixelRGB5(20, 20, 20));
         }
 
         Log::info("Timer", "TTF rendering time: %fus", timer.getElapsedTime(Time::Unit::Microseconds));

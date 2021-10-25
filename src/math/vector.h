@@ -695,6 +695,16 @@ constexpr auto operator/(A a, B b) {
 
 
 
+namespace Math {
+
+	template<Vector V, class Factor = decltype(std::declval<typename V::Type>() * std::declval<float>())>
+	constexpr auto lerp(V start, V end, Factor factor) {
+		return start + factor * (end - start);
+	}
+
+}
+
+
 
 #define VECTOR_DEFINE_NDTS(name, dim, type, suffix) typedef Vec##dim<type> name##dim##suffix;
 
