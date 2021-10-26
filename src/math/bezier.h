@@ -3,6 +3,8 @@
 #include "math.h"
 #include "vector.h"
 #include <array>
+#include <vector>
+#include <span>
 
 
 template<u32 Degree, Float F>
@@ -21,10 +23,10 @@ public:
     template<Vector... V>
     constexpr Bezier(const V&... cps) : controlPoints {cps...} {}
 
-    template<Vector V, SizeT I>
-    constexpr Bezier(const std::array<V, I>& cps) requires (I <= Degree + 1) {
+    template<Vector V>
+    constexpr Bezier(const std::span<V>& cps) {
         std::copy(cps.begin(), cps.end(), controlPoints);
-        std::fill(&controlPoints[I], &controlPoints[Degree + 1], Vec2<F>(0, 0));
+        std::fill_n(&controlPoints[cps.size()], Math::max<i32>(Degree + 1 - cps.size(), 0), Vec2<F>(0, 0));
     }
 
 
@@ -82,13 +84,21 @@ private:
     template<SizeT... Pack>
     constexpr auto evaluateHelper(double t, std::index_sequence<Pack...>) const {
 
-        std::array<Vec2<F>, sizeof...(Pack)> a;
+        constexpr static bool useHeap = Degree > 128;
+        constexpr static SizeT Count = sizeof...(Pack);
+        using Container = std::conditional_t<useHeap, std::vector<Vec2<F>>, std::array<Vec2<F>, Count>>;
 
-        for(SizeT i = 0; i < a.size(); i++) {
-            a[i] = Math::lerp(controlPoints[i], controlPoints[i + 1], t);
+        Container c;
+
+        if constexpr (useHeap) {
+            c.resize(Count);
         }
 
-        return Bezier<Degree - 1, F>(a).evaluate(t);
+        for(SizeT i = 0; i < c.size(); i++) {
+            c[i] = Math::lerp(controlPoints[i], controlPoints[i + 1], t);
+        }
+
+        return Bezier<Degree - 1, F>(std::span{c.data(), c.size()}).evaluate(t);
 
     }
 

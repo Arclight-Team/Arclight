@@ -4,22 +4,21 @@
 #include "arcconfig.h"
 
 
-template<Float F>
+template<Arithmetic A>
 class Rectangle {
 
 public:
 
     constexpr Rectangle() : Rectangle(0, 0, 0, 0) {}
-    constexpr Rectangle(const Vec2<F>& pos, const Vec2<F>& size) : Rectangle(pos.x, pos.y, size.x, size.y) {}
+    constexpr Rectangle(const Vec2<A>& pos, const Vec2<A>& size) : Rectangle(pos.x, pos.y, size.x, size.y) {}
 
-    template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
-    constexpr Rectangle(A x, B y, C w, D h) : x(F(x)), y(F(y)), w(F(w)), h(F(h)) {}
+    constexpr Rectangle(A x, A y, A w, A h) : x(x), y(y), w(w), h(h) {}
 
-    template<Float G>
-    constexpr Rectangle(const Rectangle<G>& rect) : Rectangle(rect.x, rect.y, rect.w, rect.h) {}
+    template<Arithmetic B>
+    constexpr Rectangle(const Rectangle<B>& rect) : Rectangle(rect.x, rect.y, rect.w, rect.h) {}
 
-    template<Float G>
-    constexpr Rectangle<F>& operator=(const Rectangle<G>& other) {
+    template<Arithmetic B>
+    constexpr Rectangle<A>& operator=(const Rectangle<B>& other) {
 
         x = other.x;
         y = other.y;
@@ -29,89 +28,89 @@ public:
 
     }
 
-    constexpr F getX() const {
+    constexpr A getX() const {
         return x;
     }
 
-    constexpr F getY() const {
+    constexpr A getY() const {
         return y;
     }
 
-    constexpr F getWidth() const {
+    constexpr A getWidth() const {
         return w;
     }
 
-    constexpr F getHeight() const {
+    constexpr A getHeight() const {
         return h;
     }
 
-    constexpr F getEndX() const {
+    constexpr A getEndX() const {
         return x + w;
     }
 
-    constexpr F getEndY() const {
+    constexpr A getEndY() const {
         return y + h;
     }
 
-    constexpr void setX(F x) {
+    constexpr void setX(A x) {
         this->x = x;
     }
 
-    constexpr void setY(F y) {
+    constexpr void setY(A y) {
         this->y = y;
     }
 
-    constexpr void setWidth(F w) {
+    constexpr void setWidth(A w) {
         this->w = w;
     }
 
-    constexpr void setHeight(F h) {
+    constexpr void setHeight(A h) {
         this->h = h;
     }
 
     
-    constexpr Vec2<F> getPosition() const {
-        return Vec2<F>(x, y);
+    constexpr Vec2<A> getPosition() const {
+        return Vec2<A>(x, y);
     }
 
-    constexpr Vec2<F> getSize() const {
-        return Vec2<F>(w, h);
+    constexpr Vec2<A> getSize() const {
+        return Vec2<A>(w, h);
     }
 
-    constexpr Vec2<F> getEndpoint() const {
-        return Vec2<F>(x + w, y + h);
+    constexpr Vec2<A> getEndpoint() const {
+        return Vec2<A>(x + w, y + h);
     }
 
-    constexpr void setPosition(const Vec2<F>& pos) {
+    constexpr void setPosition(const Vec2<A>& pos) {
         setPosition(pos.x, pos.y);
     }
 
-    constexpr void setPosition(F x, F y) {
+    constexpr void setPosition(A x, A y) {
         this->x = x;
         this->y = y;
     }
 
-    constexpr void setSize(const Vec2<F>& size) {
+    constexpr void setSize(const Vec2<A>& size) {
         setSize(size.x, size.y);
     }
 
-    constexpr void setSize(F x, F y) {
+    constexpr void setSize(A x, A y) {
         this->w = w;
         this->h = h;
     }
 
 
-    template<Float G>
-    constexpr Rectangle<F> intersect(const Rectangle<G>& other) const {
+    template<Arithmetic B>
+    constexpr Rectangle<A> intersect(const Rectangle<B>& other) const {
 
-        F ax0 = x;
-        F ax1 = x + w;
-        F bx0 = other.x;
-        F bx1 = other.x + other.w;
-        F ay0 = y;
-        F ay1 = y + h;
-        F by0 = other.y;
-        F by1 = other.y + other.h;
+        A ax0 = x;
+        A ax1 = x + w;
+        A bx0 = other.x;
+        A bx1 = other.x + other.w;
+        A ay0 = y;
+        A ay1 = y + h;
+        A by0 = other.y;
+        A by1 = other.y + other.h;
 
         if(ax0 > bx0) {
             std::swap(ax0, bx0);
@@ -123,13 +122,13 @@ public:
             std::swap(ay1, by1);
         }
 
-        Rectangle<F> r;
+        Rectangle<A> r;
 
         //First x
         if(ax1 <= bx0) {
 
             //No intersection
-            return Rectangle<F>;
+            return Rectangle<A>;
 
         } else if(ax1 >= bx1) {
 
@@ -149,7 +148,7 @@ public:
         if(ay1 <= by0) {
 
             //No intersection
-            return Rectangle<F>;
+            return Rectangle<A>;
 
         } else if(ay1 >= by1) {
 
@@ -169,51 +168,51 @@ public:
 
     }
 
-    template<Float G>
-    constexpr Rectangle<F> intersects(const Rectangle<G>& other) const {
+    template<Arithmetic B>
+    constexpr Rectangle<A> intersects(const Rectangle<B>& other) const {
         return !(getEndX() <= other.x || x >= other.getEndX() || getEndY() <= other.y || y >= other.getEndY());
     }
 
-    constexpr F perimeter() const {
+    constexpr A perimeter() const {
         return (w + h) * 2;
     }
 
-    constexpr F area() const {
+    constexpr A area() const {
         return w * h;
     }
 
-    constexpr bool contains(const Vec2<F>& point) const {
+    constexpr bool contains(const Vec2<A>& point) const {
         return point.x >= x && point.x <= getEndX() && point.y >= y && point.y <= getEndY();
     }
 
-    template<Float G>
-    constexpr Rectangle<F> unite(const Rectangle<G>& other) const {
-        return Rectangle<F>::fromPoints(Vec2<F>(Math::min(x, other.x), Math::min(y, other.y)), Vec2<F>(Math::max(x, other.x), Math::max(y, other.y)));
+    template<Arithmetic B>
+    constexpr Rectangle<A> unite(const Rectangle<B>& other) const {
+        return Rectangle<A>::fromPoints(Vec2<A>(Math::min(x, other.x), Math::min(y, other.y)), Vec2<A>(Math::max(x, other.x), Math::max(y, other.y)));
     }
 
 
-    template<Float G>
-    constexpr bool operator==(const Rectangle<G>& other) const {
+    template<Arithmetic B>
+    constexpr bool operator==(const Rectangle<B>& other) const {
         return Math::isEqual(x, other.x) && Math::isEqual(y, other.y) && Math::isEqual(w, other.w) && Math::isEqual(h, other.h);
     }
 
-    template<Float G>
-    constexpr Rectangle<F>& operator|=(const Rectangle<G>& other) const {
+    template<Arithmetic B>
+    constexpr Rectangle<A>& operator|=(const Rectangle<B>& other) const {
         
         *this = unite(other);
         return *this;
 
     }
 
-    template<Float G>
-    constexpr Rectangle<F>& operator&=(const Rectangle<G>& other) const {
+    template<Arithmetic B>
+    constexpr Rectangle<A>& operator&=(const Rectangle<B>& other) const {
         
         *this = intersect(other);
         return *this;
 
     }
 
-    constexpr static Rectangle<F> fromPoints(Vec2<F> start, Vec2<F> end) {
+    constexpr static Rectangle<A> fromPoints(Vec2<A> start, Vec2<A> end) {
 
         if(start.x > end.x) {
             std::swap(start.x, end.x);
@@ -223,27 +222,36 @@ public:
             std::swap(start.y, end.y);
         }
 
-        return Rectangle<F>(start, end - start);
+        return Rectangle<A>(start, end - start);
 
     }
 
 
-    F x, y, w, h;
+    A x, y, w, h;
 
 };
 
 
-template<Float F>
-constexpr Rectangle<F> operator|(const Rectangle<F>& a, const Rectangle<F>& b) {
+template<Arithmetic A, Arithmetic B>
+constexpr auto operator|(const Rectangle<A>& a, const Rectangle<B>& b) {
     return a.unite(b);
 }
 
-template<Float F>
-constexpr Rectangle<F> operator&(const Rectangle<F>& a, const Rectangle<F>& b) {
+template<Arithmetic A, Arithmetic B>
+constexpr auto operator&(const Rectangle<A>& a, const Rectangle<B>& b) {
     return a.intersect(b);
 }
 
 
+using RectB     = Rectangle<bool>;
+using RectC     = Rectangle<i8>;
+using RectS     = Rectangle<i16>;
+using RectI     = Rectangle<i32>;
+using RectL     = Rectangle<i64>;
+using RectUC    = Rectangle<u8>;
+using RectUS    = Rectangle<u16>;
+using RectUI    = Rectangle<u32>;
+using RectUL    = Rectangle<u64>;
 using RectF     = Rectangle<float>;
 using RectD     = Rectangle<double>;
 using RectLD    = Rectangle<long double>;

@@ -172,11 +172,16 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
         //Bezier3f x(Vec2f(1, 1), Vec2f(200, 800), Vec2f(1400, 467), Vec2f(1800, 98));
         //Bezier4f x(Vec2f(1, 1), Vec2f(200, 800), Vec2f(400, 18), Vec2f(1400, 467), Vec2f(1800, 98));
         //Bezier5f x(Vec2f(1, 1), Vec2f(200, 800), Vec2f(40, 798), Vec2f(1400, 467), Vec2f(400, 18), Vec2f(1800, 98));
-        Bezier<11, float> x(Vec2f(1, 1), Vec2f(200, 800), Vec2f(40, 798), Vec2f(1400, 467), Vec2f(400, 18), Vec2f(1800, 98),
-                            Vec2f(389, 26), Vec2f(230, 10), Vec2f(1987, 875), Vec2f(1189, 239), Vec2f(1089, 378), Vec2f(771, 590));
+        //Bezier<11, float> x(Vec2f(1, 1), Vec2f(200, 800), Vec2f(40, 798), Vec2f(1400, 467), Vec2f(400, 18), Vec2f(1800, 98),
+        //                    Vec2f(389, 26), Vec2f(230, 10), Vec2f(1987, 875), Vec2f(1189, 239), Vec2f(1089, 378), Vec2f(771, 590));
+        Bezier<450, float> x;
 
-        for(u32 i = 0; i < 1000; i++) {
-            Vec2f p = x.evaluate(i / 1000.0);
+        for(u32 i = 0; i < 450; i++) {
+            x.setControlPoint(i, Vec2f(Random::getRandom().getUint(0, 1999), Random::getRandom().getUint(0, 999)));
+        }
+
+        for(u32 i = 0; i < 10000; i++) {
+            Vec2f p = x.evaluate(i / 10000.0);
             image.setPixel(p.x, p.y, PixelRGB5(0, 20, 20));
         }
 
