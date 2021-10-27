@@ -33,6 +33,21 @@ public:
         data.resize(width * height);
     }
 
+
+    constexpr void clear(const PixelType& clearPixel = PixelType()) {
+        
+        for(u32 y = 0; y < height; y++) {
+
+            for(u32 x = 0; x < width; x++) {
+
+                data[y * width + x] = clearPixel;
+                
+            }
+
+        }
+
+    }
+
     constexpr void setRawData(const std::span<u8>& src, u64 startPixel = 0) {
 
         SizeT pixels = data.size() / PixelBytes;

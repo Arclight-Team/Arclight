@@ -41,6 +41,41 @@ public:
     }
 
 
+    constexpr Bezier<Degree - 1, F> derivative() const {
+
+        static_assert(Degree >= 2, "Derivative is not a bezier curve");
+
+        std::array<Vec2<F>, Degree> a;
+
+        for(u32 i = 0; i < Degree; i++) {
+            a[i] = Degree * (controlPoints[i + 1] - controlPoints[i]);
+        }
+
+        return Bezier<Degree - 1, F>(std::span{a.data(), a.size()});
+
+    }
+
+    constexpr Bezier<Degree - 2, F> secondDerivative() const {
+
+        static_assert(Degree >= 3, "Second derivative is not a bezier curve");
+
+        std::array<Vec2<F>, Degree - 1> a;
+
+        Vec2<F> first = Degree * (controlPoints[1] - controlPoints[0]);
+
+        for(u32 i = 0; i < Degree; i++) {
+
+            Vec2<F> second = Degree * (controlPoints[i + 2] - controlPoints[i + 1]);
+            a[i] = (Degree - 1) * (second - first);
+            first = second;
+
+        }
+
+        return Bezier<Degree - 2, F>(std::span{a.data(), a.size()});
+
+    }
+
+
     constexpr Vec2<F> getStartPoint() const {
         return getControlPoint<0>();
     }

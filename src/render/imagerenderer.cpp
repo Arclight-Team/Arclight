@@ -253,41 +253,26 @@ void ImageRenderer::recalculateCanvas() {
     Timer t;
     t.start();
 
-    using EaseFunction = double(*)(double);
-    constexpr static EaseFunction funcs[] = {
-        Fade::quadIn,
-        Fade::quadOut,
-        Fade::quadInOut,
-        Fade::cubicIn,
-        Fade::cubicOut,
-        Fade::cubicInOut,
-        Fade::quarticIn,
-        Fade::quarticOut,
-        Fade::quarticInOut,
-        Fade::quinticIn,
-        Fade::quinticOut,
-        Fade::quinticInOut,
-        [](double t) {return Fade::expIn(t);},
-        [](double t) {return Fade::expOut(t);},
-        [](double t) {return Fade::expInOut(t);},
-        Fade::circIn,
-        Fade::circOut,
-        Fade::circInOut,
-        [](double t) {return Fade::backIn(t);},
-        [](double t) {return Fade::backOut(t);},
-        [](double t) {return Fade::backInOut(t);},
-        [](double t) {return Fade::elasticIn(t);},
-        [](double t) {return Fade::elasticOut(t);},
-        [](double t) {return Fade::elasticInOut(t);},
-        Fade::sineIn,
-        Fade::sineOut,
-        Fade::sineInOut
-    };
+    canvas.clear();
 
-    canvas = Image<PixelFmt>(canvasWidth, canvasHeight);
+    Bezier3f b;
 
-    for(u32 i = 0; i < 1000; i++) {
-        canvas.setPixel(i + 500, funcs[canvasType](i / 1000.0) * 600 + 200, PixelRGB5(20, 20, 20));
+    for(u32 i = 0; i < 4; i++) {
+        b.setControlPoint(i, Vec2f(Random::getRandom().getUint(0, 500), Random::getRandom().getUint(0, 250)));
+    }
+
+    Bezier2f c = b.derivative();
+    Bezier1f d = b.secondDerivative();
+
+    for(u32 i = 0; i <= 10000; i++) {
+        
+        Vec2f p = b.evaluate(i / 10000.0);
+        canvas.setPixel(p.x, p.y, PixelRGB5(20, 20, 20));
+        p = c.evaluate(i / 10000.0);
+        canvas.setPixel(Math::clamp(p.x + 1000, 0, 1999), Math::clamp(p.y + 550, 0, 1099), PixelRGB5(20, 0, 20));
+        p = d.evaluate(i / 10000.0);
+        canvas.setPixel(Math::clamp(p.x + 1000, 0, 1999), Math::clamp(p.y + 550, 0, 1099), PixelRGB5(0, 0, 20));
+
     }
 
     video.setFrameImage(0, canvas);
