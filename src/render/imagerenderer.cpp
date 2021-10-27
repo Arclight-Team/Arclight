@@ -20,6 +20,7 @@
 #include "debug.h"
 #include "core/thread/thread.h"
 #include "math/bezier.h"
+#include "math/fade.h"
 
 #include <complex>
 
@@ -138,7 +139,7 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
             u32 width = (glyph.xMax - glyph.xMin) * scale;
             u32 height = (glyph.yMax - glyph.yMin) * scale;
             i32 bearing = glyph.bearing * scale;
-/*
+
             Font::rasterize(image, Vec2i(caretX, caretY), glyph, scale);
 
             i32 bx0 = caretX + Math::floor(glyph.xMin * scale);
@@ -163,30 +164,9 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
                 }
 
             }
-*/
+
             caretX += glyph.advance * scale;
 
-        }
-
-        //Bezier2f x(Vec2f(1, 1), Vec2f(200, 800), Vec2f(1400, 467));
-        //Bezier3f x(Vec2f(1, 1), Vec2f(200, 800), Vec2f(1400, 467), Vec2f(1800, 98));
-        //Bezier4f x(Vec2f(1, 1), Vec2f(200, 800), Vec2f(400, 18), Vec2f(1400, 467), Vec2f(1800, 98));
-        //Bezier5f x(Vec2f(1, 1), Vec2f(200, 800), Vec2f(40, 798), Vec2f(1400, 467), Vec2f(400, 18), Vec2f(1800, 98));
-        //Bezier<11, float> x(Vec2f(1, 1), Vec2f(200, 800), Vec2f(40, 798), Vec2f(1400, 467), Vec2f(400, 18), Vec2f(1800, 98),
-        //                    Vec2f(389, 26), Vec2f(230, 10), Vec2f(1987, 875), Vec2f(1189, 239), Vec2f(1089, 378), Vec2f(771, 590));
-        Bezier<450, float> x;
-
-        for(u32 i = 0; i < 450; i++) {
-            x.setControlPoint(i, Vec2f(Random::getRandom().getUint(0, 1999), Random::getRandom().getUint(0, 999)));
-        }
-
-        for(u32 i = 0; i < 10000; i++) {
-            Vec2f p = x.evaluate(i / 10000.0);
-            image.setPixel(p.x, p.y, PixelRGB5(0, 20, 20));
-        }
-
-        for(u32 i = 0; i < x.Order + 1; i++) {
-            image.setPixel(x.getControlPoint(i).x, x.getControlPoint(i).y, PixelRGB5(20, 20, 20));
         }
 
         Log::info("Timer", "TTF rendering time: %fus", timer.getElapsedTime(Time::Unit::Microseconds));
@@ -195,20 +175,9 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
 
     } else if constexpr (renderCanvas) {
 
-        constexpr static u32 palette[] = {
-            0xC11602, 0xCC3709, 0xDC6115, 0xE5851C, 0xE7A51E, 0xD9C620, 0xC0C11C, 0x9FB916, 0x7AAE0E, 0x58A507, 0x00AE01, 0x01BA10, 0x0FCB30, 0x26DE59, 0x3FF286, 0x53FFAE, 
-            0x4CFEFC, 0x3ACDED, 0x2B9EE0, 0x1B71D3, 0x174FD0, 0x2230D9, 0x3634DF, 0x4B3AE6, 0x8547F3, 0xB852FF, 0xE358FF, 0xFB4FFB, 0xFF3BE7, 0xF228D0, 0xD9129A, 0xC40069
-        };
-
-        for(u32 i = 0; i < 32; i++) {
-            colorPalette[i] = PixelConverter::convert<PixelFmt>(PixelRGB8(palette[i] >> 16, (palette[i] & 0xFF00) >> 8, palette[i] & 0xFF));
-        }
+        canvasType = 0;
 
         canvas = Image<PixelFmt>(canvasWidth, canvasHeight);
-        canvasScale = 0.002;
-        newCanvasScale = canvasScale;
-        canvasPos = Vec2d(0, 0);
-        newCanvasPos = canvasPos;
 
         video.addFrame(canvas, 0);
         recalculateCanvas();
@@ -236,8 +205,6 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
     GLE::enableCulling();
     GLE::setClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-    updateVideo();
-
     lastTime = Time::convert(Time::getTimeSinceEpoch(Time::Unit::Nanoseconds), Time::Unit::Nanoseconds, Time::Unit::Seconds);
     video.setSpeed(60);
     video.setReversed(false);
@@ -257,15 +224,6 @@ void ImageRenderer::render() {
     lastTime = currentTime;
 
     video.step(dt);
-
-    if(renderCanvas && (newCanvasPos != canvasPos || !Math::isEqual(newCanvasScale, canvasScale))) {
-
-        canvasPos = newCanvasPos;
-        canvasScale = newCanvasScale;
-        recalculateCanvas();
-        updateVideo();
-
-    }
 
 	GLE::clear(GLE::Color | GLE::Depth);
     imageShader.start();
@@ -292,154 +250,48 @@ void ImageRenderer::destroy() {
 
 void ImageRenderer::recalculateCanvas() {
 
-    constexpr static double divergence = 1000;
-    constexpr static u32 maxIterations = 100;
-    constexpr static u32 type = 0;
-
     Timer t;
     t.start();
 
-    constexpr static u32 threadCount = 12;
-    Thread threads[threadCount];
-
-    auto function = [&](u32 i) {
-
-        u32 startHeight = canvasHeight / threadCount * i;
-        u32 endHeight = i == threadCount - 1 ? canvasHeight : startHeight + canvasHeight / threadCount;
-
-        for(u32 y = startHeight; y < endHeight; y++) {
-
-            for(u32 x = 0; x < canvasWidth; x++) {
-
-                const std::complex<double> c((static_cast<double>(x) + canvasPos.x - canvasWidth / 2.0) * canvasScale, (static_cast<double>(y) + canvasPos.y - canvasHeight / 2.0) * canvasScale);
-                std::complex<double> z;
-                u32 iterations = maxIterations;
-
-                if constexpr (type == 0) {
-
-                    for(u32 i = 0; i < maxIterations; i++) {
-
-                        z = z * z + c;
-
-                        if(std::abs(z) > divergence) {
-                            iterations = i;
-                            break;
-                        }
-
-                    }
-
-                } else if constexpr (type == 1) {
-
-                    i32 lambda = 1;
-
-                    for(u32 i = 0; i < maxIterations; i++) {
-
-                        z = std::pow(z, static_cast<i32>(i) * lambda) + c;
-
-                        if(std::abs(z) > divergence) {
-                            iterations = i;
-                            break;
-                        }
-
-                        lambda *= -1;
-
-                    }
-
-                } else if constexpr (type == 2) {
-
-                    for(u32 i = 0; i < maxIterations; i++) {
-
-                        z = std::sqrt(std::sin(z) + c);
-
-                        if(std::abs(z) > divergence) {
-                            iterations = i;
-                            break;
-                        }
-
-                    }
-
-                } else if constexpr (type == 3) {
-
-                    z = c;
-
-                    for(u32 i = 0; i < maxIterations; i++) {
-
-                        z = std::cos(std::tan(std::sqrt(z)));
-
-                        if(std::abs(z) > divergence) {
-                            iterations = i;
-                            break;
-                        }
-
-                    }
-
-                } else if constexpr (type == 4) {
-
-                    z = c;
-
-                    for(u32 i = 0; i < maxIterations; i++) {
-
-                        z = std::cos(z) / std::asin(z);
-
-                        if(std::abs(z) > divergence) {
-                            iterations = i;
-                            break;
-                        }
-
-                    }
-
-                } else if constexpr (type == 5) {
-
-                    z = c;
-
-                    for(u32 i = 0; i < maxIterations; i++) {
-
-                        z = std::log(z) / std::tan(z);
-
-                        if(std::abs(z) > divergence) {
-                            iterations = i;
-                            break;
-                        }
-
-                    }
-
-                } else if constexpr (type == 6) {
-
-                    z = c;
-
-                    for(u32 i = 0; i < maxIterations; i++) {
-
-                        z = std::cos(z) * std::cos(z) / std::sin(z);
-
-                        if(std::abs(z) > divergence) {
-                            iterations = i;
-                            break;
-                        }
-
-                    }
-
-                }
-
-                u32 color = iterations * 31 / maxIterations;
-                canvas.setPixel(x, y, colorPalette[color]);
-
-            }
-
-        }
-
+    using EaseFunction = double(*)(double);
+    constexpr static EaseFunction funcs[] = {
+        Fade::quadIn,
+        Fade::quadOut,
+        Fade::quadInOut,
+        Fade::cubicIn,
+        Fade::cubicOut,
+        Fade::cubicInOut,
+        Fade::quarticIn,
+        Fade::quarticOut,
+        Fade::quarticInOut,
+        Fade::quinticIn,
+        Fade::quinticOut,
+        Fade::quinticInOut,
+        [](double t) {return Fade::expIn(t);},
+        [](double t) {return Fade::expOut(t);},
+        [](double t) {return Fade::expInOut(t);},
+        Fade::circIn,
+        Fade::circOut,
+        Fade::circInOut,
+        [](double t) {return Fade::backIn(t);},
+        [](double t) {return Fade::backOut(t);},
+        [](double t) {return Fade::backInOut(t);},
+        [](double t) {return Fade::elasticIn(t);},
+        [](double t) {return Fade::elasticOut(t);},
+        [](double t) {return Fade::elasticInOut(t);},
+        Fade::sineIn,
+        Fade::sineOut,
+        Fade::sineInOut
     };
 
-    for(u32 i = 0; i < threadCount; i++) {
-        threads[i].start(function, i);
-    }
+    canvas = Image<PixelFmt>(canvasWidth, canvasHeight);
 
-    for(u32 i = 0; i < threadCount; i++) {
-        threads[i].finish();
+    for(u32 i = 0; i < 1000; i++) {
+        canvas.setPixel(i + 500, funcs[canvasType](i / 1000.0) * 600 + 200, PixelRGB5(20, 20, 20));
     }
-
-    Log::info("Fractal Renderer", "Rendering time: %fus", t.getElapsedTime());
 
     video.setFrameImage(0, canvas);
+    updateVideo();
 
 }
 
@@ -447,6 +299,7 @@ void ImageRenderer::recalculateCanvas() {
 void ImageRenderer::updateVideo() {
 
     u32 gleLayers = Math::min(video.getFrameCount(), GLE::Limits::getMaxArrayTextureLayers());
+    frameTexture.bind();
     frameTexture.setData(video.getWidth(), video.getHeight(), gleLayers, GLE::ImageFormat::RGB8, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UShort1555, nullptr);
 
     for(u32 i = 0; i < gleLayers; i++) {
@@ -465,35 +318,21 @@ void ImageRenderer::updateVideo() {
 
 void ImageRenderer::moveCanvas(KeyAction action) {
 
-    constexpr static Vec2d viewMotion(1, 1);
-    constexpr static double viewScale = 0.8;
-
     switch(action) {
 
         case KeyAction::Up:
-            newCanvasPos.y += viewMotion.y;
+            canvasType = Math::min(canvasType + 1, 26);
             break;
 
         case KeyAction::Down:
-            newCanvasPos.y -= viewMotion.y;
+            canvasType = Math::max<i32>(canvasType - 1, 0);
             break;
 
-        case KeyAction::Left:
-            newCanvasPos.x -= viewMotion.x;
-            break;
-
-        case KeyAction::Right:
-            newCanvasPos.x += viewMotion.x;
-            break;
-
-        case KeyAction::ZoomIn:
-            newCanvasScale *= viewScale;
-            break;
-
-        case KeyAction::ZoomOut:
-            newCanvasScale /= viewScale;
+        default:
             break;
 
     }
+
+    recalculateCanvas();
 
 }

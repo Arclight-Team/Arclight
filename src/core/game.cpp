@@ -51,12 +51,12 @@ bool Game::init() {
 	InputContext& rootContext = inputSystem.createContext(0);
 	rootContext.addState(0);
 
-	rootContext.addAction(0, KeyTrigger({ KeyCode::W }), true);
-	rootContext.addAction(1, KeyTrigger({ KeyCode::A }), true);
-	rootContext.addAction(2, KeyTrigger({ KeyCode::S }), true);
-	rootContext.addAction(3, KeyTrigger({ KeyCode::D }), true);
-	rootContext.addAction(4, KeyTrigger({ KeyCode::Up }), true);
-	rootContext.addAction(5, KeyTrigger({ KeyCode::Down }), true);
+	rootContext.addAction(0, KeyTrigger({ KeyCode::W }), false);
+	rootContext.addAction(1, KeyTrigger({ KeyCode::A }), false);
+	rootContext.addAction(2, KeyTrigger({ KeyCode::S }), false);
+	rootContext.addAction(3, KeyTrigger({ KeyCode::D }), false);
+	rootContext.addAction(4, KeyTrigger({ KeyCode::Up }), false);
+	rootContext.addAction(5, KeyTrigger({ KeyCode::Down }), false);
 	rootContext.registerAction(0, 0);
 	rootContext.registerAction(0, 1);
 	rootContext.registerAction(0, 2);
@@ -65,7 +65,7 @@ bool Game::init() {
 	rootContext.registerAction(0, 5);
 
 	//Define input handler callbacks
-	rootInputHandler.setCoActionListener([this](KeyAction action, double scale) {
+	rootInputHandler.setActionListener([this](KeyAction action) {
 		
 		switch(action) {
 
@@ -105,31 +105,7 @@ bool Game::init() {
 
 	//Link handler to the root context
 	rootContext.linkHandler(rootInputHandler);
-/*
-	renderer.setupCamera(inputSystem.createContext(1));
 
-	manager.setup();
-	manager.registerActor<ExampleActor>(0);
-	manager.registerActor<BoxActor>(1);
-
-	manager.addObserver<RigidBody>(ComponentEvent::Created, [this](RigidBody& body, ActorID id) { physicsEngine.onRigidBodyAdded(id & 1, body, id); });
-	manager.addObserver<RigidBody>(ComponentEvent::Destroyed, [this](RigidBody& body, ActorID id) { physicsEngine.onRigidBodyDeleted(id & 1, body); });
-	physicsEngine.init(20);
-	physicsEngine.createWorld(1);
-
-	for(u32 i = 0; i < 15; i++) {
-
-		for(u32 j = 0; j < 15; j++) {
-
-			for(u32 k = 0; k < 15; k++) {
-				ActorID id = manager.spawn(1, Transform(Vec3x(i, j, k)));
-				manager.getProvider().getComponent<RigidBody>(id).setRestitution(0);
-			}
-
-		}
-
-	}
-*/
 	profiler.stop("Initialization");
 
 	inputTicker.start(120);
@@ -141,27 +117,15 @@ bool Game::init() {
 
 
 void Game::update() {
-/*
-	for(auto [rigidbody] : manager.view<RigidBody>()) {
 
-		Vec3x delta = -rigidbody.getTransform().translation;
-		delta.y = 0;
-
-		if (!delta.isNull()) {
-			rigidbody.applyForce(delta.normalized() * 10.0);
-		}
-	}
-
-	physicsEngine.update();
-*/
 	inputSystem.updateContinuous(inputTicker.getTicks());
+
 }
 
 
 
 void Game::render() {
 
-	//renderer.render();
 	imageRenderer.render();
 
 }
@@ -173,11 +137,7 @@ void Game::destroy() {
 	profiler.start();
 	renderer.destroy();
 	imageRenderer.destroy();
-/*
-	for(u32 i = 0; i < 15 * 15 * 15; i++) {
-		manager.destroy(i);
-	}
-*/
+
 	physicsEngine.destroy();
 
 	profiler.stop("Destruction");

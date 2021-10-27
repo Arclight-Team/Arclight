@@ -45,18 +45,13 @@ private:
 
     constexpr static u32 videoFrameCount = 12;
     constexpr static bool isVideo = false;
-    constexpr static bool renderFont = true;
-    constexpr static bool renderCanvas = false;
+    constexpr static bool renderFont = false;
+    constexpr static bool renderCanvas = true;
 
     constexpr static u32 canvasWidth = 2000;
     constexpr static u32 canvasHeight = 1100;
 
-    Vec2d canvasPos;
-    Vec2d newCanvasPos;
-    double canvasScale;
-    double newCanvasScale;
-
     Image<PixelFmt> canvas;
-    PixelType<PixelFmt>::Type colorPalette[32];
+    u32 canvasType;
 
 };
