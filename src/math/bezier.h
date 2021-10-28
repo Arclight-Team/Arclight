@@ -2,6 +2,8 @@
 
 #include "math.h"
 #include "vector.h"
+#include "rectangle.h"
+
 #include <array>
 #include <vector>
 #include <span>
@@ -72,6 +74,76 @@ public:
         }
 
         return Bezier<Degree - 2, F>(std::span{a.data(), a.size()});
+
+    }
+
+
+    constexpr Rectangle<F> boundingBox() const {
+
+        if constexpr (Degree == 1) {
+
+            //Trivial case, simply enclose line by rect
+            return Rectangle<F>::fromPoints(controlPoints[0], controlPoints[1]);
+
+        } else if constexpr (Degree <= 5) {
+
+            //Linear derivative
+            Bezier<Degree - 1, F> b = derivative();
+
+            const Vec2<F>& d0 = b.getStartPoint();
+            const Vec2<F>& d1 = b.getEndPoint();
+
+            F lx = getStartPoint().x;
+            F hx = getEndPoint().x;
+            F ly = getStartPoint().y;
+            F hy = getEndPoint().y;
+
+            Math::ascOrder(lx, hx);
+            Math::ascOrder(ly, hy);
+
+            if constexpr (Degree == 2) {
+
+                if(!Math::isEqual(d1.x, d0.x)) {
+
+                    F t = -d0.x / (d1.x - d0.x);
+
+                    if(t >= 0.0 && t <= 1.0) {
+
+                        Vec2<F> p = evaluate(t);
+                        lx = Math::min(lx, p.x);
+                        hx = Math::max(hx, p.x);
+
+                    }
+
+                }
+
+                if(!Math::isEqual(d1.y, d0.y)) {
+
+                    F t = -d0.y / (d1.y - d0.y);
+                                    
+                    if(t >= 0.0 && t <= 1.0) {
+
+                        Vec2<F> p = evaluate(t);
+                        ly = Math::min(ly, p.y);
+                        hy = Math::max(hy, p.y);
+
+                    }
+
+                }
+
+            } else if constexpr (Degree == 3) {
+
+
+                
+            }
+
+            return Rectangle<F>::fromPoints(Vec2<F>(lx, ly), Vec2<F>(hx, hy));
+
+        } else {
+
+            static_assert("Bezier bounding boxes above degree 5 are unsupported");
+
+        }
 
     }
 

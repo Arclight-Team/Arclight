@@ -52,6 +52,24 @@ namespace Math {
 		return std::min<std::common_type_t<A, B>>(a, b);
 	}
 
+	template<class T>
+	constexpr auto ascOrder(T& a, T& b) {
+
+		if(b < a) {
+			std::swap(a, b);
+		}
+
+	}
+
+	template<class T>
+	constexpr auto descOrder(T& a, T& b) {
+
+		if(a < b) {
+			std::swap(a, b);
+		}
+
+	}
+
 	template<Integer I>
 	constexpr bool isZero(I value) {
 		return value == I(0);

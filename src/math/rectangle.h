@@ -214,14 +214,9 @@ public:
 
     constexpr static Rectangle<A> fromPoints(Vec2<A> start, Vec2<A> end) {
 
-        if(start.x > end.x) {
-            std::swap(start.x, end.x);
-        }
-
-        if(start.y > end.y) {
-            std::swap(start.y, end.y);
-        }
-
+        Math::ascOrder(start.x, end.x);
+        Math::ascOrder(start.y, end.y);
+        
         return Rectangle<A>(start, end - start);
 
     }

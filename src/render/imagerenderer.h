@@ -44,9 +44,9 @@ private:
     double lastTime;
 
     constexpr static u32 videoFrameCount = 12;
-    constexpr static bool isVideo = false;
+    constexpr static bool isVideo = true;
     constexpr static bool renderFont = false;
-    constexpr static bool renderCanvas = true;
+    constexpr static bool renderCanvas = false;
 
     constexpr static u32 canvasWidth = 2000;
     constexpr static u32 canvasHeight = 1100;

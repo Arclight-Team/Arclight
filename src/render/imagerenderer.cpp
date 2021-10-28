@@ -86,6 +86,8 @@ bool ImageRenderer::init() {
 
         }
 
+        updateVideo();
+
     } else if constexpr (renderFont) {
 
         Timer timer;
@@ -255,24 +257,30 @@ void ImageRenderer::recalculateCanvas() {
 
     canvas.clear();
 
-    Bezier3f b;
+    Bezier2f b;
 
-    for(u32 i = 0; i < 4; i++) {
+    for(u32 i = 0; i < 3; i++) {
         b.setControlPoint(i, Vec2f(Random::getRandom().getUint(0, 500), Random::getRandom().getUint(0, 250)));
     }
 
-    Bezier2f c = b.derivative();
-    Bezier1f d = b.secondDerivative();
+    RectF aabb = b.boundingBox();
+    ArcDebug() << aabb.getPosition() << aabb.getEndpoint();
 
     for(u32 i = 0; i <= 10000; i++) {
         
         Vec2f p = b.evaluate(i / 10000.0);
         canvas.setPixel(p.x, p.y, PixelRGB5(20, 20, 20));
-        p = c.evaluate(i / 10000.0);
-        canvas.setPixel(Math::clamp(p.x + 1000, 0, 1999), Math::clamp(p.y + 550, 0, 1099), PixelRGB5(20, 0, 20));
-        p = d.evaluate(i / 10000.0);
-        canvas.setPixel(Math::clamp(p.x + 1000, 0, 1999), Math::clamp(p.y + 550, 0, 1099), PixelRGB5(0, 0, 20));
 
+    }
+
+    for(u32 i = aabb.x; i < aabb.x + aabb.w; i++) {
+        canvas.setPixel(i, aabb.y, PixelRGB5(20, 20, 0));
+        canvas.setPixel(i, aabb.getEndpoint().y, PixelRGB5(20, 20, 0));
+    }
+
+    for(u32 i = aabb.y; i < aabb.y + aabb.h; i++) {
+        canvas.setPixel(aabb.x, i, PixelRGB5(20, 20, 0));
+        canvas.setPixel(aabb.getEndpoint().x, i, PixelRGB5(20, 20, 0));
     }
 
     video.setFrameImage(0, canvas);
