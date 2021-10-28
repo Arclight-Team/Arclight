@@ -4,6 +4,7 @@
 #include "types.h"
 #include "math/math.h"
 #include "math/vector.h"
+#include "math/rectangle.h"
 #include "util/assert.h"
 #include <vector>
 #include <span>
@@ -241,6 +242,51 @@ public:
 
         for(u32 i = 0; i < height / 2; i++) {
             std::swap_ranges(data.begin() + width * i, data.begin() + width * (i + 1), data.begin() + width * (height - i - 1));
+        }
+
+    }
+
+    constexpr void copy(Image<P>& destImage, const RectUI& src, const Vec2ui& dest) {
+
+        if (this == &destImage) {
+            copy(src, dest);
+            return;
+        }
+
+        for (u32 y = 0; y < src.getHeight(); y++) {
+            for (u32 x = 0; x < src.getWidth(); x++) {
+                destImage.setPixel(dest.x + x, dest.y + y, this->getPixel(src.getX() + x, src.getY() + y));
+            }
+        }
+
+    }
+
+    constexpr void copy(const RectUI& src, const Vec2ui& dest) {
+
+        u32 xStart = 0;
+        u32 xEnd = 0;
+
+        u32 yStart = 0;
+        u32 yEnd = 0;
+
+        if (src.getPosition() == dest) {
+            return;
+        } else if (src.getX() + src.getY() * this->getWidth() > dest.x + dest.y * this->getWidth()) {
+            xEnd = src.getWidth();
+            yEnd = src.getHeight();
+        } else {
+            xStart = src.getWidth();
+            yStart = src.getHeight();
+        }
+
+        for (u32 y = yStart; y != yEnd; y += (yStart < yEnd ? 1 : -1)) {
+            for (u32 x = xStart; x != xEnd; x += (xStart < xEnd ? 1 : -1)) {
+                x += (xStart < xEnd ? 0 : -1);
+                y += (yStart < yEnd ? 0 : -1);
+                this->setPixel(dest.x + x, dest.y + y, this->getPixel(src.getX() + x, src.getY() + y));
+                x -= (xStart < xEnd ? 0 : -1);
+                y -= (yStart < yEnd ? 0 : -1);
+            }
         }
 
     }

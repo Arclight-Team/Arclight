@@ -47,6 +47,7 @@ private:
     constexpr static bool isVideo = true;
     constexpr static bool renderFont = false;
     constexpr static bool renderCanvas = false;
+    constexpr static bool renderImageTest = true;
 
     constexpr static u32 canvasWidth = 2000;
     constexpr static u32 canvasHeight = 1100;

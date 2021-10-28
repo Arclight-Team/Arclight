@@ -11,6 +11,7 @@
 #include "image/filter/invert.h"
 #include "image/filter/grayscale.h"
 #include "image/filter/exponential.h"
+#include "image/filter/convolution.h"
 #include "image/filter/contrast.h"
 #include "image/filter/multiply.h"
 #include "font/truetype/loader.h"
@@ -87,6 +88,33 @@ bool ImageRenderer::init() {
         }
 
         updateVideo();
+        
+    } else if constexpr (renderImageTest) {
+
+
+        File frameFile("@/textures/noise.bmp", File::In | File::Binary);
+
+        if(!frameFile.open()){
+            Log::error("Image Renderer", "Failed to open frame texture");
+            return false;
+        }
+
+        FileInputStream frameStream(frameFile);
+        Image<PixelFmt> frameImage = BMP::loadBitmap<PixelFmt>(frameStream);
+
+        // Gaussian Blur
+        Mat3d convMatrix = {
+                1, 2, 1,
+                2, 4, 2,
+                1, 2, 1
+        };
+
+        u32 iterations = 20;
+        video.addFrame(frameImage, 0);
+        for (int i = 0; i < iterations; i++) {
+            video.addFrame(frameImage, i * 100 + 1000);
+            frameImage.applyFilter<ConvolutionFilter>(convMatrix);
+        }
 
     } else if constexpr (renderFont) {
 
