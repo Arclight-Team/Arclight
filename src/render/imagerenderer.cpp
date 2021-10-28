@@ -87,8 +87,6 @@ bool ImageRenderer::init() {
 
         }
 
-        updateVideo();
-        
     } else if constexpr (renderImageTest) {
 
 
@@ -102,18 +100,31 @@ bool ImageRenderer::init() {
         FileInputStream frameStream(frameFile);
         Image<PixelFmt> frameImage = BMP::loadBitmap<PixelFmt>(frameStream);
 
-        // Gaussian Blur
         Mat3d convMatrix = {
-                1, 2, 1,
-                2, 4, 2,
-                1, 2, 1
+                0, 0, 0,
+                0, 0, 1,
+                0, 0, 0
+        };
+
+        Mat3d convMatrix2 = {
+                0, 0, 0,
+                1, 0, 0,
+                0, 0, 0
+        };
+
+        Mat3d convMatrix3 = {
+                0, 1, 0,
+                0, 0, 0,
+                0, 0, 0
         };
 
         u32 iterations = 20;
         video.addFrame(frameImage, 0);
         for (int i = 0; i < iterations; i++) {
-            video.addFrame(frameImage, i * 100 + 1000);
-            frameImage.applyFilter<ConvolutionFilter>(convMatrix);
+            video.addFrame(frameImage, i * 10 + 100);
+            frameImage.applyFilter<ConvolutionFilter>(convMatrix, ConvolutionFilter::Red);
+            frameImage.applyFilter<ConvolutionFilter>(convMatrix2, ConvolutionFilter::Green);
+            frameImage.applyFilter<ConvolutionFilter>(convMatrix3, ConvolutionFilter::Blue);
         }
 
     } else if constexpr (renderFont) {
@@ -231,6 +242,8 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
     imageTextureUnitUniform = imageShader.getUniform("image");
     currentFrameIDUniform = imageShader.getUniform("currentFrameID");
 
+    updateVideo();
+
     GLE::enableDepthTests();
     GLE::enableCulling();
     GLE::setClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -285,9 +298,9 @@ void ImageRenderer::recalculateCanvas() {
 
     canvas.clear();
 
-    Bezier2f b;
+    Bezier3f b;
 
-    for(u32 i = 0; i < 3; i++) {
+    for(u32 i = 0; i < 4; i++) {
         b.setControlPoint(i, Vec2f(Random::getRandom().getUint(0, 500), Random::getRandom().getUint(0, 250)));
     }
 
@@ -354,6 +367,8 @@ void ImageRenderer::moveCanvas(KeyAction action) {
 
     }
 
-    recalculateCanvas();
+    if constexpr (renderCanvas) {
+        recalculateCanvas();
+    }
 
 }

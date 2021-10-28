@@ -70,6 +70,12 @@ public:
 	}
 
 	template<Arithmetic A>
+	constexpr void compDivide(const Vec2<A>& v) {
+		x /= v.x;
+		y /= v.y;
+	}
+
+	template<Arithmetic A>
 	constexpr Vec2& operator=(const Vec2<A>& v) {
 		x = v.x;
 		y = v.y;
@@ -274,6 +280,13 @@ public:
 		x *= v.x;
 		y *= v.y;
 		z *= v.z;
+	}
+
+	template<Arithmetic A>
+	constexpr void compDivide(const Vec3<A>& v) {
+		x /= v.x;
+		y /= v.y;
+		z /= v.z;
 	}
 
 	template<Arithmetic A>
@@ -502,6 +515,14 @@ public:
 	}
 
 	template<Arithmetic A>
+	constexpr void compDivide(const Vec4<A>& v) {
+		x /= v.x;
+		y /= v.y;
+		z /= v.z;
+		w /= v.w;
+	}
+
+	template<Arithmetic A>
 	constexpr Vec4& operator=(const Vec4<A>& v) {
 		x = v.x;
 		y = v.y;
@@ -672,6 +693,13 @@ constexpr auto operator-(A a, const B& b) {
 	return ax;
 }
 
+template<Vector A, Vector B>
+constexpr auto operator*(A a, const B& b) {
+	typename A::template Untyped<decltype(a[0] - b[0])> ax = a;
+	ax.compMultiply(b);
+	return ax;
+}
+
 template<Vector A, Arithmetic B>
 constexpr auto operator*(A a, B b) {
 	typename A::template Untyped<decltype(a[0] * b)> ax = a;
@@ -683,6 +711,13 @@ template<Vector A, Arithmetic B>
 constexpr auto operator*(B b, A a) {
 	typename A::template Untyped<decltype(a[0] * b)> ax = a;
 	ax *= b;
+	return ax;
+}
+
+template<Vector A, Vector B>
+constexpr auto operator/(A a, const B& b) {
+	typename A::template Untyped<decltype(a[0] - b[0])> ax = a;
+	ax.compDivide(b);
 	return ax;
 }
 

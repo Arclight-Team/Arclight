@@ -241,6 +241,11 @@ namespace Math {
 		return value < lowerBound ? lowerBound : (value > upperBound ? upperBound : value);
 	}
 
+	template<Arithmetic A, Arithmetic B, Arithmetic C>
+	constexpr bool inRange(A value, B lowerBound, C upperBound) {
+		return value >= lowerBound && value <= upperBound;
+	}
+
 	template<Integer I>
 	constexpr bool isAligned(I x, AlignT alignment) noexcept {
 		return !(x & (alignment - 1));

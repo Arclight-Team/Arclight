@@ -88,10 +88,7 @@ public:
         } else if constexpr (Degree <= 5) {
 
             //Linear derivative
-            Bezier<Degree - 1, F> b = derivative();
-
-            const Vec2<F>& d0 = b.getStartPoint();
-            const Vec2<F>& d1 = b.getEndPoint();
+            Bezier<Degree - 1, F> drv = derivative();
 
             F lx = getStartPoint().x;
             F hx = getEndPoint().x;
@@ -103,11 +100,14 @@ public:
 
             if constexpr (Degree == 2) {
 
+                const Vec2<F>& d0 = drv.getStartPoint();
+                const Vec2<F>& d1 = drv.getEndPoint();
+
                 if(!Math::isEqual(d1.x, d0.x)) {
 
                     F t = -d0.x / (d1.x - d0.x);
 
-                    if(t >= 0.0 && t <= 1.0) {
+                    if(Math::inRange(t, 0, 1)) {
 
                         Vec2<F> p = evaluate(t);
                         lx = Math::min(lx, p.x);
@@ -121,7 +121,7 @@ public:
 
                     F t = -d0.y / (d1.y - d0.y);
                                     
-                    if(t >= 0.0 && t <= 1.0) {
+                    if(Math::inRange(t, 0, 1)) {
 
                         Vec2<F> p = evaluate(t);
                         ly = Math::min(ly, p.y);
@@ -133,7 +133,85 @@ public:
 
             } else if constexpr (Degree == 3) {
 
+                const Vec2<F>& d0 = drv.getStartPoint();
+                const Vec2<F>& d1 = drv.getControlPoint<1>();
+                const Vec2<F>& d2 = drv.getEndPoint();
 
+                Vec2<F> a = d0 - 2 * d1 + d2;
+                Vec2<F> b = 2 * (d1 - d0);
+                Vec2<F> c = d0;
+
+                Vec2<F> d = b * b - 4 * a * c;
+
+                if(d.x > 0) {
+
+                    F t0 = (-b.x + Math::sqrt(d.x)) / (2 * a.x);
+                    F t1 = (-b.x - Math::sqrt(d.x)) / (2 * a.x);
+
+                    if(Math::inRange(t0, 0, 1)) {
+
+                        Vec2<F> p = evaluate(t0);
+                        lx = Math::min(lx, p.x);
+                        hx = Math::max(hx, p.x);
+
+                    }
+
+                    if(Math::inRange(t1, 0, 1)) {
+
+                        Vec2<F> p = evaluate(t1);
+                        lx = Math::min(lx, p.x);
+                        hx = Math::max(hx, p.x);
+
+                    }
+
+                } else if (Math::isZero(d.x)) {
+
+                    F t = -b.x / (2 * a.x);
+
+                    if(Math::inRange(t, 0, 1)) {
+
+                        Vec2<F> p = evaluate(t);
+                        lx = Math::min(lx, p.x);
+                        hx = Math::max(hx, p.x);
+
+                    }
+
+                }
+
+                if(d.y > 0) {
+
+                    F t0 = (-b.y + Math::sqrt(d.y)) / (2 * a.y);
+                    F t1 = (-b.y - Math::sqrt(d.y)) / (2 * a.y);
+
+                    if(Math::inRange(t0, 0, 1)) {
+
+                        Vec2<F> p = evaluate(t0);
+                        ly = Math::min(ly, p.y);
+                        hy = Math::max(hy, p.y);
+
+                    }
+
+                    if(Math::inRange(t1, 0, 1)) {
+
+                        Vec2<F> p = evaluate(t1);
+                        ly = Math::min(ly, p.y);
+                        hy = Math::max(hy, p.y);
+
+                    }
+
+                } else if (Math::isZero(d.y)) {
+
+                    F t = -b.y / (2 * a.y);
+
+                    if(Math::inRange(t, 0, 1)) {
+
+                        Vec2<F> p = evaluate(t);
+                        ly = Math::min(ly, p.y);
+                        hy = Math::max(hy, p.y);
+
+                    }
+
+                }
                 
             }
 
