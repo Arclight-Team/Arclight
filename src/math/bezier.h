@@ -85,9 +85,8 @@ public:
             //Trivial case, simply enclose line by rect
             return Rectangle<F>::fromPoints(controlPoints[0], controlPoints[1]);
 
-        } else if constexpr (Degree <= 5) {
+        } else if constexpr (Degree <= 3) {
 
-            //Linear derivative
             Bezier<Degree - 1, F> drv = derivative();
 
             F lx = getStartPoint().x;
@@ -99,7 +98,8 @@ public:
             Math::ascOrder(ly, hy);
 
             if constexpr (Degree == 2) {
-
+                
+                //Linear derivative
                 const Vec2<F>& d0 = drv.getStartPoint();
                 const Vec2<F>& d1 = drv.getEndPoint();
 
@@ -133,6 +133,7 @@ public:
 
             } else if constexpr (Degree == 3) {
 
+                //Quadratic derivative
                 const Vec2<F>& d0 = drv.getStartPoint();
                 const Vec2<F>& d1 = drv.getControlPoint<1>();
                 const Vec2<F>& d2 = drv.getEndPoint();
