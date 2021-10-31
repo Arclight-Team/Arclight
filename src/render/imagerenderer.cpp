@@ -134,7 +134,10 @@ bool ImageRenderer::init() {
         File fontFile("@/fonts/comic.ttf", File::In | File::Binary);
         fontFile.open();
         FileInputStream fontFileStream(fontFile);
+
+        timer.start();
         TrueType::Font font = TrueType::loadFont(fontFileStream);
+        Log::info("Timer", "TTF loading time: %fus", timer.getElapsedTime(Time::Unit::Microseconds));
 
         Image<PixelFmt> image(2000, 1000);
         std::string text =
@@ -301,11 +304,10 @@ void ImageRenderer::recalculateCanvas() {
     Bezier3f b;
 
     for(u32 i = 0; i < 4; i++) {
-        b.setControlPoint(i, Vec2f(Random::getRandom().getUint(0, 500), Random::getRandom().getUint(0, 250)));
+        b.setControlPoint(i, Vec2f(Random::getRandom().getUint(0, 1999), Random::getRandom().getUint(0, 1099)));
     }
 
     RectF aabb = b.boundingBox();
-    ArcDebug() << aabb.getPosition() << aabb.getEndpoint();
 
     for(u32 i = 0; i <= 10000; i++) {
         

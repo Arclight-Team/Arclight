@@ -675,7 +675,7 @@ public:
 
 
 template<class T>
-concept Vector = TypeTraits::IsAnyOfV<T, Vec2<typename T::Type>, Vec3<typename T::Type>, Vec4<typename T::Type>>;
+concept Vector = TT::IsAnyOf<T, Vec2<typename T::Type>, Vec3<typename T::Type>, Vec4<typename T::Type>>;
 
 
 

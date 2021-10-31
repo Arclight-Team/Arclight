@@ -813,7 +813,7 @@ public:
 
 
 template<class T>
-concept Matrix = TypeTraits::IsAnyOfV<T, Mat2<typename T::Type>, Mat3<typename T::Type>, Mat4<typename T::Type>>;
+concept Matrix = TT::IsAnyOf<T, Mat2<typename T::Type>, Mat3<typename T::Type>, Mat4<typename T::Type>>;
 
 
 template<Float A, Float B, template<Float> class Matrix>

@@ -45,8 +45,8 @@ private:
 
     constexpr static u32 videoFrameCount = 12;
     constexpr static bool isVideo = false;
-    constexpr static bool renderFont = false;
-    constexpr static bool renderCanvas = true;
+    constexpr static bool renderFont = true;
+    constexpr static bool renderCanvas = false;
     constexpr static bool renderImageTest = false;
 
     constexpr static u32 canvasWidth = 2000;

@@ -28,6 +28,19 @@ public:
 
     }
 
+    constexpr auto toIntegerRect() const requires (Float<A>) {
+
+        using Int = TT::ToInteger<A>;
+
+        Int nx = static_cast<Int>(Math::floor(x));
+        Int ny = static_cast<Int>(Math::floor(y));
+        Int nw = static_cast<Int>(Math::ceil(getEndX())) - nx;
+        Int nh = static_cast<Int>(Math::ceil(getEndY())) - ny;
+
+        return Rectangle<Int>(nx, ny, nw, nh);
+
+    }
+
     constexpr A getX() const {
         return x;
     }
