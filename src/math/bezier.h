@@ -3,6 +3,7 @@
 #include "math.h"
 #include "vector.h"
 #include "rectangle.h"
+#include "line.h"
 
 #include <array>
 #include <vector>
@@ -227,6 +228,15 @@ public:
     }
 
 
+    constexpr std::array<std::optional<F>, Degree> getX(F y) {
+        return solveComponent<true>(y);
+    }
+
+    constexpr std::array<std::optional<F>, Degree> getY(F x) {
+        return solveComponent<false>(x);
+    }
+
+
     constexpr Vec2<F> getStartPoint() const {
         return getControlPoint<0>();
     }
@@ -266,6 +276,120 @@ public:
     Vec2<F> controlPoints[Degree + 1];
 
 private:
+
+    //B = false: x -> y, B = true: y -> x
+    template<bool B>
+    constexpr std::array<std::optional<F>, Degree> solveComponent(F v) {
+
+        if constexpr (Degree == 1) {
+
+            //Linear bezier, solve as line
+            Line<F> line(getStartPoint(), getEndPoint());
+            F s = B ? line.evaluateInverse(v) : line.evaluateAt(v);
+
+            F ls = getStartPoint()[!B];
+            F hs = getEndPoint()[!B];
+            Math::ascOrder(ls, hs);
+
+            if(Math::inRange(s, ls, hs)) {
+                return {s};
+            } else {
+                return {};
+            }
+
+        } else if constexpr (Degree == 2) {
+
+            //Quadratic bezier
+            F a = getStartPoint()[B];
+            F b = getControlPoint<1>()[B];
+            F c = getEndPoint()[B];
+
+            F n = a - 2 * b + c;
+            F d = b * b - a * c + v * n;
+
+            //If n is 0, the quadratic bezier decays to a linear problem
+            if(Math::isZero(n)) [[unlikely]] {
+
+                F m = b - a;
+
+                //If m is also 0, there is no solution
+                if(Math::isZero(m)) [[unlikely]] {
+
+                    return {};
+                    
+                } else {
+
+                    F t = (v - a) / (2 * m);
+
+                    //If t is in range, it's the only solution
+                    if(Math::inRange(t, 0, 1)) {
+                        return {evaluate(t)[!B]};
+                    } else {
+                        return {};
+                    }
+
+                }
+            
+            //No t for which the component function passes x/y
+            } else if(d < 0) [[unlikely]] {
+
+                return {};
+
+            //One t for which the component function passes x/y
+            } else if (Math::isZero(d)) [[unlikely]] {
+
+                F t = (a - b) / n;
+
+                if(!Math::inRange(t, 0, 1)) {
+                    return {};
+                }
+                
+                return {evaluate(t)[!B]};
+
+            //Two t for which the component function passes x/y
+            } else [[likely]] {
+
+                Vec2<F> t = {
+                    (a - b - Math::sqrt(d)) / n,
+                    (a - b + Math::sqrt(d)) / n
+                };
+
+                Vec2<F> s(evaluate(t[0])[!B], evaluate(t[1])[!B]);
+
+                bool t0Valid = Math::inRange(t[0], 0, 1);
+                bool t1Valid = Math::inRange(t[1], 0, 1);
+
+                u32 solutions = t0Valid + t1Valid;
+
+                switch(solutions) {
+
+                    case 0:
+                    default:
+                        return {};
+
+                    case 1:
+
+                        if(t0Valid) {
+                            return {s[0]};
+                        } else {
+                            return {s[1]};
+                        }
+
+                    case 2:
+                        Math::ascOrder(s[0], s[1]);
+                        return {s[0], s[1]};
+
+                }
+
+            }
+
+        } else {
+
+            static_assert("Bezier coordinate solutions above degree 2 are unsupported");
+
+        }
+
+    }
 
     template<SizeT... Pack>
     constexpr auto evaluateHelper(double t, std::index_sequence<Pack...>) const {

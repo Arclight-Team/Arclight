@@ -13,7 +13,8 @@ namespace TrueType {
     constexpr inline u32 offsetSubtableSize = 12;
     constexpr inline u32 tableDirectorySize = 16;
 
-    constexpr inline u32 scalerTypeTrueOSX = 0x74727565;
+    constexpr inline u32 scalerTypeTrueOSX = 0x74727565; //true
+    constexpr inline u32 scalerTypeTrueTC  = 0x74746366; //ttfc
     constexpr inline u32 scalerTypeTrueWin = 0x00010000;
 
 
@@ -36,7 +37,7 @@ namespace TrueType {
         Log::info("TrueType Loader", "[Offset Subtable] Scaler: 0x%X, Tables: %d, Range: %d, Entry: %d, Unspotted: %d", scalerType, numTables, searchRange, entrySelector, rangeShift);
 #endif
 
-        if(Bool::none(scalerType, scalerTypeTrueOSX, scalerTypeTrueWin)) {
+        if(Bool::none(scalerType, scalerTypeTrueOSX, scalerTypeTrueWin, scalerTypeTrueTC)) {
             throw LoaderException("Failed to load TrueType font: Bad requested scaler type");
         }
 

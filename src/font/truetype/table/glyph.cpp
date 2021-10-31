@@ -31,10 +31,11 @@ namespace TrueType {
         std::vector<u8> instructions;
         std::vector<u8> flags;
         std::vector<Vec2i> points;
+        std::vector<bool> onCurve;
 
         for(u32 offset : glyphOffsets) {
 
-            if(offset == noOutlineGlyphOffset) {   
+            if(offset == noOutlineGlyphOffset) {
                 glyphs.emplace_back();
                 continue;
             }
@@ -151,6 +152,7 @@ namespace TrueType {
                     }
 
                     points.resize(pointCount);
+                    onCurve.resize(pointCount);
 
                     Vec2i lastPoint;
 
@@ -158,6 +160,7 @@ namespace TrueType {
 
                         i32& x = points[j].x;
                         u8 flag = flags[j];
+                        onCurve[j] = flag & SimpleGlyphFlags::OnCurve;
 
                         if(flag & SimpleGlyphFlags::XShort) {
 
@@ -196,6 +199,7 @@ namespace TrueType {
 
                     glyph.points = points;
                     glyph.contours = contours;
+                    glyph.onCurve = onCurve;
 
                 }
 

@@ -1,9 +1,9 @@
 #pragma once
 
 #include "image/image.h"
+#include "math/bezier.h"
 #include "math/math.h"
-
-
+#include "debug.h"
 
 
 namespace Font {
@@ -45,35 +45,103 @@ namespace Font {
         //Iterate over all contours
         for(u32 i = 0; i < glyph.contours.size(); i++) {
 
+            //Implicit tangent on-curve point (after bezier spline start)
+            Vec2d tangentOnCurve;
+
             const Vec2ui& contourIndices = glyph.contours[i];
 
             //Iterate over all points in contour
             for(u32 j = contourIndices.x; j <= contourIndices.y; j++) {
 
-                //Scale the points on the line
-                Vec2d start = glyph.points[j] * scale;
-                Vec2d end = (j == contourIndices.y ? glyph.points[contourIndices.x] : glyph.points[j + 1]) * scale;
+                //Get point indices
+                u32 j0 = j;
+                u32 j1 = j == contourIndices.y ? contourIndices.x : j + 1;
 
-                //True if the contour is rightwound, i.e. pixels on the right need to be colored
-                bool rightwound = end.y >= start.y;
+                bool startOnCurve = glyph.onCurve[j0];
+                bool endOnCurve = glyph.onCurve[j1];
 
-                //Slope in x and y directions
-                double dx = end.x - start.x;
-                double dy = end.y - start.y;
+                //Straight line
+                if(startOnCurve && endOnCurve) {
 
-                //Swap so that end has the higher y coordinate
-                if(!rightwound) {
-                    std::swap(start, end);
-                }
+                    //Scale the points on the line
+                    Vec2d start = glyph.points[j0] * scale;
+                    Vec2d end = glyph.points[j1] * scale;
 
-                //Iterate over each coverage line
-                for(i32 y = static_cast<i32>(Math::floor(start.y + 0.5)); y <= static_cast<i32>(Math::floor(end.y - 0.5)); y++) {
+                    //True if the contour is rightwound, i.e. pixels on the right need to be colored
+                    bool rightwound = end.y >= start.y;
 
-                    //Calculate x intersection
-                    i32 x = Math::isZero(dy) ? static_cast<i32>(Math::floor(start.x + rightwound - 0.5)) : static_cast<i32>(Math::floor(dx / dy * (y - start.y) + start.x + rightwound - 0.5));
+                    //Slope in x and y directions
+                    double dx = end.x - start.x;
+                    double dy = end.y - start.y;
 
-                    //Add a boundary
-                    addFillBoundary(glyphFills[y], x, rightwound);
+                    //Swap so that end has the higher y coordinate
+                    if(!rightwound) {
+                        std::swap(start, end);
+                    }
+
+                    //Iterate over each coverage line
+                    for(i32 y = static_cast<i32>(Math::floor(start.y + 0.5)); y <= static_cast<i32>(Math::floor(end.y - 0.5)); y++) {
+
+                        //Calculate x intersection
+                        i32 x = Math::isZero(dy) ? static_cast<i32>(Math::floor(start.x + rightwound - 0.5)) : static_cast<i32>(Math::floor(dx / dy * (y - start.y) + start.x + rightwound - 0.5));
+
+                        //Add a boundary
+                        addFillBoundary(glyphFills[y], x, rightwound);
+
+                    }
+
+                } else if (!endOnCurve) {
+
+                    //Bezier spline
+                    Vec2d start = startOnCurve ? glyph.points[j0] * scale : tangentOnCurve;
+                    Vec2d control = glyph.points[j1] * scale;
+
+                    //End point
+                    u32 j2 = j1 == contourIndices.y ? contourIndices.x : j1 + 1;
+                    bool nextOnCurve = glyph.onCurve[j2];
+                    Vec2d next = glyph.points[j2] * scale;
+
+                    //Implied tangent on-curve point lies halfway (if next is off-curve)
+                    Vec2d end = nextOnCurve ? next : control + (next - control) / 2.0;
+
+                    //Construct the bezier
+                    Bezier2d bezier(start, control, end);
+                    RectI aabb = bezier.boundingBox().toIntegerRect();
+
+                    bool rightwound = end.y >= start.y;
+
+                    //Solve the y/x problem for each y coordinate inside the BB
+                    for(i32 y = aabb.y; y < aabb.getEndY(); y++) {
+
+                        auto xs = bezier.getX(y + 0.5);
+
+                        //Two solutions, two boundaries
+                        if(xs[1]) {
+
+                            addFillBoundary(glyphFills[y], static_cast<i32>(Math::floor(*xs[0] + rightwound - 0.5)), rightwound);
+                            addFillBoundary(glyphFills[y], static_cast<i32>(Math::floor(*xs[1] + !rightwound - 0.5)), !rightwound);
+
+                        //One solution, single-winding boundary
+                        } else if(xs[0]) {
+
+                            addFillBoundary(glyphFills[y], static_cast<i32>(Math::floor(*xs[0] + rightwound - 0.5)), rightwound);
+
+                        }
+
+                    }
+                    
+                    if(!nextOnCurve) {
+                        //Tangent should be current end point
+                        tangentOnCurve = end;
+                    } else {
+                        //Adjust counter to skip control point
+                        j++;
+                    }
+
+                } else {
+
+                    //Impossible case, the end point must be on-curve
+                    arc_force_assert("Illegal bezier definition in glyph");
 
                 }
 
@@ -159,7 +227,7 @@ namespace Font {
                     i32 px = origin.x + x;
                     i32 py = origin.y + y;
 
-                    if(px >= 0 && py >= 0 && px < image.getWidth() && py < image.getHeight()) {
+                    if(px >= 0 && py >= 0 && px < image.getWidth() && py < image.getHeight() && image.getPixel(px, py) == PixelRGB5(0, 0, 0)) {
                         image.setPixel(px, py, PixelRGB5(20, 20, 20));
                     }
 

@@ -51,12 +51,12 @@ bool Game::init() {
 	InputContext& rootContext = inputSystem.createContext(0);
 	rootContext.addState(0);
 
-	rootContext.addAction(0, KeyTrigger({ KeyCode::W }), false);
-	rootContext.addAction(1, KeyTrigger({ KeyCode::A }), false);
-	rootContext.addAction(2, KeyTrigger({ KeyCode::S }), false);
-	rootContext.addAction(3, KeyTrigger({ KeyCode::D }), false);
-	rootContext.addAction(4, KeyTrigger({ KeyCode::Up }), false);
-	rootContext.addAction(5, KeyTrigger({ KeyCode::Down }), false);
+	rootContext.addAction(0, KeyTrigger({ KeyCode::W }), true);
+	rootContext.addAction(1, KeyTrigger({ KeyCode::A }), true);
+	rootContext.addAction(2, KeyTrigger({ KeyCode::S }), true);
+	rootContext.addAction(3, KeyTrigger({ KeyCode::D }), true);
+	rootContext.addAction(4, KeyTrigger({ KeyCode::Up }), true);
+	rootContext.addAction(5, KeyTrigger({ KeyCode::Down }), true);
 	rootContext.registerAction(0, 0);
 	rootContext.registerAction(0, 1);
 	rootContext.registerAction(0, 2);
@@ -65,7 +65,7 @@ bool Game::init() {
 	rootContext.registerAction(0, 5);
 
 	//Define input handler callbacks
-	rootInputHandler.setActionListener([this](KeyAction action) {
+	rootInputHandler.setCoActionListener([this](KeyAction action, double scale) {
 		
 		switch(action) {
 

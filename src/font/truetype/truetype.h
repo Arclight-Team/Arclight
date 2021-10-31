@@ -546,6 +546,7 @@ namespace TrueType {
         i32 yMax;
         std::vector<Vec2ui> contours;
         std::vector<Vec2i> points;
+        std::vector<bool> onCurve;
         i32 bearing;
         u32 advance;
 
