@@ -15,7 +15,7 @@
 #include "util/file.h"
 #include "stream/byteinputstream.h"
 #include "stream/fileinputstream.h"
-//#include "compress/lz77.h"
+#include "util/bool.h"
 
 
 Game::Game(Window& window) : window(window), physicsEngine(manager), renderer(manager) {}
@@ -99,6 +99,40 @@ bool Game::init() {
 		}
 
 		return true;
+
+	});
+
+	rootInputHandler.setCharListener([this](KeyChar cp) {
+		imageRenderer.dispatchCodepoint(cp);
+		return true;
+	});
+
+	inputSystem.enableHeldEvent();
+
+	rootInputHandler.setKeyListener([this](Key key, KeyState state) {
+
+		if(state == KeyState::Pressed || state == KeyState::Held) {
+
+			switch(key) {
+
+				case KeyCode::Enter:
+					imageRenderer.dispatchCodepoint(0x0A);
+					break;
+				
+				case KeyCode::Backspace:
+					imageRenderer.dispatchCodepoint(0x08);
+					break;
+
+				default:
+					return false;
+
+			}
+
+			return true;
+
+		}
+
+		return false;
 
 	});
 

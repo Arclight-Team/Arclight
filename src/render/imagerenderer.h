@@ -4,6 +4,7 @@
 #include "gle/gle.h"
 #include "math/math.h"
 #include "image/video.h"
+#include "font/truetype/truetype.h"
 
 
 class ImageRenderer : public Renderer {
@@ -23,10 +24,12 @@ public:
 	virtual void render() override;
 	virtual void destroy() override;
 
+    void dispatchCodepoint(u32 cp);
     void moveCanvas(KeyAction action);
 
 private:
 
+    void recalculateFont();
     void recalculateCanvas();
     void updateVideo();
 
@@ -41,7 +44,11 @@ private:
     constexpr static Pixel PixelFmt = Pixel::RGB5;
 
     Video<PixelFmt> video;
+    Image<PixelFmt> image;
     double lastTime;
+
+    TrueType::Font font;
+    std::string fontText;
 
     constexpr static u32 videoFrameCount = 12;
     constexpr static bool isVideo = false;
@@ -52,7 +59,6 @@ private:
     constexpr static u32 canvasWidth = 2000;
     constexpr static u32 canvasHeight = 1100;
 
-    Image<PixelFmt> canvas;
     u32 canvasType;
 
 };

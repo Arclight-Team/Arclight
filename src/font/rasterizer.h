@@ -175,7 +175,6 @@ namespace Font {
                 continue;
             }
 
-            //Get the left index and resize accordingly
             //Since resizing doesn't involve a reallocation this is the best approach
             fills.resize(fills.size() - std::distance(fills.rbegin(), rightIt));
 
@@ -222,8 +221,8 @@ namespace Font {
                     i32 px = origin.x + x;
                     i32 py = origin.y + y;
 
-                    if(px >= 0 && py >= 0 && px < image.getWidth() && py < image.getHeight() && image.getPixel(px, py) == PixelRGB5(0, 0, 0)) {
-                        image.setPixel(px, py, PixelRGB5(20, 20, 20));
+                    if(px >= 0 && py >= 0 && px < image.getWidth() && py < image.getHeight()) {
+                        image.setPixel(px, py, PixelRGB5(31, 31, 31));
                     }
 
                 }

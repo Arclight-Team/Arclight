@@ -136,94 +136,21 @@ bool ImageRenderer::init() {
         FileInputStream fontFileStream(fontFile);
 
         timer.start();
-        TrueType::Font font = TrueType::loadFont(fontFileStream);
+        font = TrueType::loadFont(fontFileStream);
         Log::info("Timer", "TTF loading time: %fus", timer.getElapsedTime(Time::Unit::Microseconds));
 
-        Image<PixelFmt> image(2000, 1000);
-        std::string text =
-R"({]@Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   
-Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
-Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.   
-Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.   
-Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.   
-At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat.   
-Consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus.   
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   
-Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.   
-Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.   
-Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo)";
+        image = Image<PixelFmt>(canvasWidth, canvasHeight);
 
-        u32 caretX = 0;
-        u32 caretY = 800;
-
-        timer.start();
-
-        for(auto it = Unicode::begin<Unicode::Encoding::UTF8>(text); it != Unicode::end<Unicode::Encoding::UTF8>(text); it++) {
-
-            u32 codepoint = *it;
-        
-            if(codepoint == 0x0A) {
-
-                caretX = 0;
-                caretY -= 40;
-                continue;
-
-            }
-
-            u32 glyphIndex = font.charMap[codepoint];
-
-            if(glyphIndex >= font.glyphs.size()) {
-                glyphIndex = 0;
-            }
-
-            const TrueType::Glyph& glyph = font.glyphs[font.charMap[*it]];
-            const auto& points = glyph.points;
-
-            constexpr static double scale = 0.02;
-            u32 width = (glyph.xMax - glyph.xMin) * scale;
-            u32 height = (glyph.yMax - glyph.yMin) * scale;
-            i32 bearing = glyph.bearing * scale;
-
-            Font::rasterize(image, Vec2i(caretX, caretY), glyph, scale);
-
-            i32 bx0 = caretX + Math::floor(glyph.xMin * scale);
-            i32 bx1 = caretX + Math::ceil(glyph.xMax * scale);
-            i32 by0 = caretY + Math::floor(glyph.yMin * scale);
-            i32 by1 = caretY + Math::ceil(glyph.yMax * scale);
-
-            if(bx0 >= 0 && by0 >= 0 && bx1 < image.getWidth() && by1 < image.getHeight()) {
-
-                for(i32 x = bx0; x <= bx1; x++) {
-
-                    image.setPixel(x, by0, PixelRGB5(20, 0, 0));
-                    image.setPixel(x, by1, PixelRGB5(20, 0, 0));
-
-                }
-
-                for(i32 y = by0; y <= by1; y++) {
-
-                    image.setPixel(bx0, y, PixelRGB5(20, 0, 0));
-                    image.setPixel(bx1, y, PixelRGB5(20, 0, 0));
-
-                }
-
-            }
-
-            caretX += glyph.advance * scale;
-
-        }
-
-        Log::info("Timer", "TTF rendering time: %fus", timer.getElapsedTime(Time::Unit::Microseconds));
-        
         video.addFrame(image, 0);
+        recalculateFont();
 
     } else if constexpr (renderCanvas) {
 
         canvasType = 0;
 
-        canvas = Image<PixelFmt>(canvasWidth, canvasHeight);
+        image = Image<PixelFmt>(canvasWidth, canvasHeight);
 
-        video.addFrame(canvas, 0);
+        video.addFrame(image, 0);
         recalculateCanvas();
 
     } else {
@@ -236,9 +163,9 @@ Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming 
         }
 
         FileInputStream stream(textureFile);
-        canvas = BMP::loadBitmap<PixelFmt>(stream);
-        canvas.resize(ImageScaling::Bilinear, 160);
-        video.addFrame(canvas, 0);
+        image = BMP::loadBitmap<PixelFmt>(stream);
+        image.resize(ImageScaling::Bilinear, 160);
+        video.addFrame(image, 0);
 
     }
 
@@ -294,12 +221,91 @@ void ImageRenderer::destroy() {
 }
 
 
+
+void ImageRenderer::recalculateFont() {
+
+    u32 caretX = 0;
+    u32 caretY = canvasHeight - 101;
+
+    Timer timer;
+    timer.start();
+
+    image.clear();
+
+    for(auto it = Unicode::begin<Unicode::Encoding::UTF8>(fontText); it != Unicode::end<Unicode::Encoding::UTF8>(fontText); it++) {
+
+        u32 codepoint = *it;
+    
+        if(codepoint == 0x0A) {
+
+            caretX = 0;
+            caretY -= 100;
+            continue;
+
+        }
+
+        u32 glyphIndex = 0;
+
+        if(font.charMap.contains(codepoint)) {
+            glyphIndex = font.charMap[codepoint];
+        }
+
+        if(glyphIndex >= font.glyphs.size()) {
+            glyphIndex = 0;
+        }
+
+        const TrueType::Glyph& glyph = font.glyphs[font.charMap[*it]];
+        const auto& points = glyph.points;
+
+        constexpr static double scale = 0.05;
+        u32 width = (glyph.xMax - glyph.xMin) * scale;
+        u32 height = (glyph.yMax - glyph.yMin) * scale;
+        i32 bearing = glyph.bearing * scale;
+
+        Font::rasterize(image, Vec2i(caretX, caretY), glyph, scale);
+
+        i32 bx0 = caretX + Math::floor(glyph.xMin * scale);
+        i32 bx1 = caretX + Math::ceil(glyph.xMax * scale);
+        i32 by0 = caretY + Math::floor(glyph.yMin * scale);
+        i32 by1 = caretY + Math::ceil(glyph.yMax * scale);
+
+        if(bx0 >= 0 && by0 >= 0 && bx1 < image.getWidth() && by1 < image.getHeight()) {
+
+            for(i32 x = bx0; x <= bx1; x++) {
+
+                image.setPixel(x, by0, PixelRGB5(20, 0, 0));
+                image.setPixel(x, by1, PixelRGB5(20, 0, 0));
+
+            }
+
+            for(i32 y = by0; y <= by1; y++) {
+
+                image.setPixel(bx0, y, PixelRGB5(20, 0, 0));
+                image.setPixel(bx1, y, PixelRGB5(20, 0, 0));
+
+            }
+
+        }
+
+        caretX += glyph.advance * scale;
+
+    }
+
+    Log::info("Timer", "TTF rendering time: %fus", timer.getElapsedTime(Time::Unit::Microseconds));
+    
+    video.setFrameImage(0, image);
+    updateVideo();
+
+}
+
+
+
 void ImageRenderer::recalculateCanvas() {
 
     Timer t;
     t.start();
 
-    canvas.clear();
+    image.clear();
 
     Bezier3f b;
 
@@ -312,21 +318,21 @@ void ImageRenderer::recalculateCanvas() {
     for(u32 i = 0; i <= 10000; i++) {
         
         Vec2f p = b.evaluate(i / 10000.0);
-        canvas.setPixel(p.x, p.y, PixelRGB5(20, 20, 20));
+        image.setPixel(p.x, p.y, PixelRGB5(20, 20, 20));
 
     }
 
     for(u32 i = aabb.x; i < aabb.x + aabb.w; i++) {
-        canvas.setPixel(i, aabb.y, PixelRGB5(20, 20, 0));
-        canvas.setPixel(i, aabb.getEndpoint().y, PixelRGB5(20, 20, 0));
+        image.setPixel(i, aabb.y, PixelRGB5(20, 20, 0));
+        image.setPixel(i, aabb.getEndpoint().y, PixelRGB5(20, 20, 0));
     }
 
     for(u32 i = aabb.y; i < aabb.y + aabb.h; i++) {
-        canvas.setPixel(aabb.x, i, PixelRGB5(20, 20, 0));
-        canvas.setPixel(aabb.getEndpoint().x, i, PixelRGB5(20, 20, 0));
+        image.setPixel(aabb.x, i, PixelRGB5(20, 20, 0));
+        image.setPixel(aabb.getEndpoint().x, i, PixelRGB5(20, 20, 0));
     }
 
-    video.setFrameImage(0, canvas);
+    video.setFrameImage(0, image);
     updateVideo();
 
 }
@@ -350,6 +356,30 @@ void ImageRenderer::updateVideo() {
     frameTexture.generateMipmaps();
 
 }
+
+
+
+void ImageRenderer::dispatchCodepoint(u32 cp) {
+
+    if(cp == 0x08) {
+
+        if(fontText.empty()) {
+            return;
+        }
+
+        SizeT pos = (--Unicode::end<Unicode::UTF8>(fontText)).getStringPosition();
+        fontText.resize(pos);
+
+    } else {
+
+        fontText += Unicode::toUTF<Unicode::UTF8>(cp);
+
+    }
+
+    recalculateFont();
+
+}
+
 
 
 void ImageRenderer::moveCanvas(KeyAction action) {

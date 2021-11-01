@@ -8,7 +8,6 @@
 
 
 
-
 namespace Unicode {
     
     enum class Encoding {
@@ -227,6 +226,10 @@ public:
         return str == other.str && pos == other.pos;
     }
 
+    constexpr SizeT getStringPosition() const noexcept {
+        return pos;
+    }
+
 private:
 
     constexpr u32 getCodepoint() const noexcept {
@@ -308,9 +311,6 @@ private:
 
 };
 
-template<Unicode::Encoding E>
-using UnicodeReverseIterator = std::reverse_iterator<UnicodeIterator<E>>;
-
 
 
 namespace Unicode {
@@ -333,26 +333,6 @@ namespace Unicode {
     template<Encoding E>
     constexpr UnicodeIterator<E> cend(const std::string& str) noexcept {
         return end(str);
-    }
-
-    template<Encoding E>
-    constexpr UnicodeReverseIterator<E> rbegin(const std::string& str) noexcept {
-        return UnicodeReverseIterator<E>(str);
-    }
-
-    template<Encoding E>
-    constexpr UnicodeReverseIterator<E> rend(const std::string& str) noexcept {
-        return UnicodeReverseIterator<E>(str, str.size());
-    }
-
-    template<Encoding E>
-    constexpr UnicodeReverseIterator<E> crbegin(const std::string& str) noexcept {
-        return rbegin(str);
-    }
-
-    template<Encoding E>
-    constexpr UnicodeReverseIterator<E> crend(const std::string& str) noexcept {
-        return rend(str);
     }
 
 }

@@ -26,7 +26,7 @@ namespace String {
 
 	template<class... Chars>
 	constexpr std::string fromChars(Chars&&... c) requires ((Convertible<Chars, char>) && ...) {
-		return {(static_cast<char>(c), ...)};
+		return {static_cast<char>(c)...};
 	}
 
 	template<class... Args>
