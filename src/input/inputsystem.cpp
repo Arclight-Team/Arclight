@@ -11,7 +11,7 @@
 
 
 
-InputSystem::InputSystem() {}
+InputSystem::InputSystem() : propagateHeld(false) {}
 
 InputSystem::InputSystem(const Window& window) {
 	connect(window);
@@ -48,12 +48,38 @@ void InputSystem::connect(const Window& window) {
 
 	glfwSetKeyCallback(handle->handle, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
 
-		if (key == GLFW_KEY_UNKNOWN || action == GLFW_REPEAT) {
+		if (key == GLFW_KEY_UNKNOWN) {
 			return;
 		}
 
 		InputSystem* input = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->input;
-		input->onKeyEvent(KeyEvent(key, action == GLFW_PRESS ? KeyState::Pressed : KeyState::Released));
+
+		if(!input->isHeldEventEnabled() && action == GLFW_REPEAT) {
+			return;
+		}
+
+		KeyState state;
+
+		switch(action) {
+		
+			case GLFW_PRESS:
+				state = KeyState::Pressed;
+				break;
+
+			case GLFW_REPEAT:
+				state = KeyState::Held;
+				break;
+
+			case GLFW_RELEASE:
+				state = KeyState::Released;
+				break;
+
+			default:
+				arc_force_assert("Illegal key action received from GLFW backend");
+
+		}
+
+		input->onKeyEvent(KeyEvent(key, state));
 
 	});
 
@@ -333,6 +359,24 @@ void InputSystem::showCursor() {
 	arc_assert(handle != nullptr, "Handle unexpectedly null");
 
 	glfwSetInputMode(handle->handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+
+
+
+void InputSystem::enableHeldEvent() {
+	propagateHeld = true;
+}
+
+
+
+void InputSystem::disableHeldEvent() {
+	propagateHeld = false;
+}
+
+
+
+bool InputSystem::isHeldEventEnabled() {
+	return propagateHeld;
 }
 
 

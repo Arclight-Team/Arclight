@@ -21,7 +21,11 @@ public:
 	}
 
 	constexpr bool pressed() const {
-		return state == KeyState::Pressed;
+		return state == KeyState::Pressed || state == KeyState::Held;
+	}
+
+	constexpr bool held() const {
+		return state == KeyState::Held;
 	}
 
 	constexpr bool released() const {

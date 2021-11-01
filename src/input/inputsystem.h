@@ -48,6 +48,10 @@ public:
 	void hideCursor();
 	void showCursor();
 
+	void enableHeldEvent();
+	void disableHeldEvent();
+	bool isHeldEventEnabled();
+
 private:
 
 	void setupKeyMap();
@@ -58,5 +62,6 @@ private:
 	std::map<u32, InputContext> inputContexts;
 	std::vector<KeyState> keyStates;
 	std::vector<u32> eventCounts;
+	bool propagateHeld;
 
 };
