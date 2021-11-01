@@ -66,6 +66,8 @@ bool ImageRenderer::init() {
     frameTexture.create();
     frameTexture.bind();
 
+    fontDirty = false;
+
     if constexpr (isVideo) {
 
         for(u32 i = 0; i < videoFrameCount; i++) {
@@ -141,9 +143,9 @@ bool ImageRenderer::init() {
 
         image = Image<PixelFmt>(canvasWidth, canvasHeight);
         fontScale = 0.05;
+        fontDirty = true;
 
         video.addFrame(image, 0);
-        recalculateFont();
 
     } else if constexpr (renderCanvas) {
 
@@ -196,6 +198,13 @@ void ImageRenderer::render() {
     double currentTime = Time::convert(Time::getTimeSinceEpoch(Time::Unit::Nanoseconds), Time::Unit::Nanoseconds, Time::Unit::Seconds);
     double dt  = currentTime - lastTime;
     lastTime = currentTime;
+
+    if(fontDirty) {
+
+        recalculateFont();
+        fontDirty = false;
+
+    }
 
     video.step(dt);
 
@@ -337,10 +346,9 @@ void ImageRenderer::updateVideo() {
 void ImageRenderer::onScroll(double delta) {
 
     double scale = Math::exp(delta * 0.01);
-
     fontScale = Math::clamp(fontScale * scale, 0.001, 1);
 
-    recalculateFont();
+    fontDirty = true;
 
 }
 
@@ -363,7 +371,7 @@ void ImageRenderer::dispatchCodepoint(u32 cp) {
 
     }
 
-    recalculateFont();
+    fontDirty = true;
 
 }
 

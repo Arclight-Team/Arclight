@@ -51,6 +51,7 @@ private:
     TrueType::Font font;
     std::string fontText;
     double fontScale;
+    bool fontDirty;
 
     constexpr static u32 videoFrameCount = 12;
     constexpr static bool isVideo = false;
