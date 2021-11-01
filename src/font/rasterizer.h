@@ -10,16 +10,16 @@ namespace Font {
 
     struct FillBound {
         i32 x;
-        bool left;
+        bool winding;
     };
 
-    void addFillBoundary(std::vector<FillBound>& bounds, i32 x, bool left) {
+    void addFillBoundary(std::vector<FillBound>& bounds, i32 x, bool winding) {
 
         auto it = std::find_if(bounds.begin(), bounds.end(), [=](const FillBound& bound) {
-            return x < bound.x || (x == bound.x && left > bound.left);
+            return x < bound.x || (x == bound.x && winding > bound.winding);
         });
 
-        bounds.insert(it, FillBound(x, left));
+        bounds.insert(it, FillBound(x, winding));
 
     }
    
@@ -70,20 +70,18 @@ namespace Font {
                     //True if the contour is rightwound, i.e. pixels on the right need to be colored
                     bool rightwound = end.y >= start.y;
 
-                    //Slope in x and y directions
-                    double dx = end.x - start.x;
-                    double dy = end.y - start.y;
-
                     //Swap so that end has the higher y coordinate
                     if(!rightwound) {
                         std::swap(start, end);
                     }
 
+                    LineD line(start, end);
+
                     //Iterate over each coverage line
                     for(i32 y = static_cast<i32>(Math::floor(start.y + 0.5)); y <= static_cast<i32>(Math::floor(end.y - 0.5)); y++) {
 
                         //Calculate x intersection
-                        i32 x = Math::isZero(dy) ? static_cast<i32>(Math::floor(start.x + rightwound - 0.5)) : static_cast<i32>(Math::floor(dx / dy * (y - start.y) + start.x + rightwound - 0.5));
+                        i32 x = static_cast<i32>(Math::floor(line.evaluateInverse(y + 0.5) + rightwound - 0.5));
 
                         //Add a boundary
                         addFillBoundary(glyphFills[y], x, rightwound);
@@ -111,7 +109,7 @@ namespace Font {
                     bool rightwound = end.y >= start.y;
 
                     //Solve the y/x problem for each y coordinate inside the BB
-                    for(i32 y = aabb.y; y < aabb.getEndY(); y++) {
+                    for(i32 y = aabb.y; y <= aabb.getEndY(); y++) {
 
                         auto xs = bezier.getX(y + 0.5);
 
@@ -159,29 +157,26 @@ namespace Font {
                 continue;
             }
 
-            //Skip all empty ones
-            if(fills.size() == 0) {
+            //Skip all empty/invalid ones
+            if(fills.size() < 2) {
                 continue;
             }
 
-            //Find a valid start left bound
-            auto leftIt = std::find_if(fills.begin(), fills.end(), [](const FillBound& fill) {
-                return fill.left;
-            });
+            u32 leftIndex = 0;
+            bool winding = fills[leftIndex].winding;
 
             //Find a valid end right bound
-            auto rightIt = std::find_if(fills.rbegin(), fills.rend(), [](const FillBound& fill) {
-                return !fill.left;
+            auto rightIt = std::find_if(fills.rbegin(), fills.rend(), [=](const FillBound& fill) {
+                return fill.winding != winding;
             });
 
-            //If those iterators reached the end or the first left boundary comes after the first right one, skip
-            if(leftIt == fills.end() || rightIt == fills.rend() || leftIt > rightIt.base()) {
+            //If the right bound could not be found, skip
+            if(rightIt == fills.rend()) {
                 continue;
             }
 
             //Get the left index and resize accordingly
             //Since resizing doesn't involve a reallocation this is the best approach
-            u32 leftIndex = static_cast<u32>(std::distance(fills.begin(), leftIt));
             fills.resize(fills.size() - std::distance(fills.rbegin(), rightIt));
 
             //Loop over all valid fills
@@ -192,7 +187,7 @@ namespace Font {
                 //Find the next right border
                 for(u32 i = leftIndex + 1; i < fills.size(); i++) {
 
-                    if(!fills[i].left) {
+                    if(fills[i].winding != winding) {
                         rightIndex = i;
                         break;
                     }
@@ -204,7 +199,7 @@ namespace Font {
                 //Find the next left border
                 for(u32 i = rightIndex + 1; i < fills.size(); i++) {
 
-                    if(fills[i].left) {
+                    if(fills[i].winding == winding) {
                         nextLeftIndex = i;
                         break;
                     }

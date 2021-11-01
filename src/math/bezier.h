@@ -314,20 +314,16 @@ private:
 
                 //If m is also 0, there is no solution
                 if(Math::isZero(m)) [[unlikely]] {
-
                     return {};
-                    
+                }
+
+                F t = (v - a) / (2 * m);
+
+                //If t is in range, it's the only solution
+                if(Math::inRange(t, 0, 1)) {
+                    return {evaluate(t)[!B]};
                 } else {
-
-                    F t = (v - a) / (2 * m);
-
-                    //If t is in range, it's the only solution
-                    if(Math::inRange(t, 0, 1)) {
-                        return {evaluate(t)[!B]};
-                    } else {
-                        return {};
-                    }
-
+                    return {};
                 }
             
             //No t for which the component function passes x/y
