@@ -136,6 +136,12 @@ bool Game::init() {
 
 	});
 
+	rootInputHandler.setScrollListener([this](double dx, double dy) {
+
+		imageRenderer.onScroll(dy);
+		return true;
+
+	});
 
 	//Link handler to the root context
 	rootContext.linkHandler(rootInputHandler);

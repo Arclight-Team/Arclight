@@ -24,6 +24,7 @@ public:
 	virtual void render() override;
 	virtual void destroy() override;
 
+    void onScroll(double delta);
     void dispatchCodepoint(u32 cp);
     void moveCanvas(KeyAction action);
 
@@ -49,6 +50,7 @@ private:
 
     TrueType::Font font;
     std::string fontText;
+    double fontScale;
 
     constexpr static u32 videoFrameCount = 12;
     constexpr static bool isVideo = false;

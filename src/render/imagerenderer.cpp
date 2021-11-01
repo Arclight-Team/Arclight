@@ -140,6 +140,7 @@ bool ImageRenderer::init() {
         Log::info("Timer", "TTF loading time: %fus", timer.getElapsedTime(Time::Unit::Microseconds));
 
         image = Image<PixelFmt>(canvasWidth, canvasHeight);
+        fontScale = 0.05;
 
         video.addFrame(image, 0);
         recalculateFont();
@@ -224,8 +225,10 @@ void ImageRenderer::destroy() {
 
 void ImageRenderer::recalculateFont() {
 
-    u32 caretX = 0;
-    u32 caretY = canvasHeight - 101;
+    i32 pointY = Math::round(2000 * fontScale);
+
+    i32 caretX = 0;
+    i32 caretY = canvasHeight - 1 - pointY;
 
     Timer timer;
     timer.start();
@@ -239,7 +242,7 @@ void ImageRenderer::recalculateFont() {
         if(codepoint == 0x0A) {
 
             caretX = 0;
-            caretY -= 100;
+            caretY -= pointY;
             continue;
 
         }
@@ -257,37 +260,9 @@ void ImageRenderer::recalculateFont() {
         const TrueType::Glyph& glyph = font.glyphs[font.charMap[*it]];
         const auto& points = glyph.points;
 
-        constexpr static double scale = 0.05;
-        u32 width = (glyph.xMax - glyph.xMin) * scale;
-        u32 height = (glyph.yMax - glyph.yMin) * scale;
-        i32 bearing = glyph.bearing * scale;
+        Font::rasterize(image, Vec2i(caretX, caretY), glyph, fontScale);
 
-        Font::rasterize(image, Vec2i(caretX, caretY), glyph, scale);
-
-        i32 bx0 = caretX + Math::floor(glyph.xMin * scale);
-        i32 bx1 = caretX + Math::ceil(glyph.xMax * scale);
-        i32 by0 = caretY + Math::floor(glyph.yMin * scale);
-        i32 by1 = caretY + Math::ceil(glyph.yMax * scale);
-
-        if(bx0 >= 0 && by0 >= 0 && bx1 < image.getWidth() && by1 < image.getHeight()) {
-
-            for(i32 x = bx0; x <= bx1; x++) {
-
-                image.setPixel(x, by0, PixelRGB5(20, 0, 0));
-                image.setPixel(x, by1, PixelRGB5(20, 0, 0));
-
-            }
-
-            for(i32 y = by0; y <= by1; y++) {
-
-                image.setPixel(bx0, y, PixelRGB5(20, 0, 0));
-                image.setPixel(bx1, y, PixelRGB5(20, 0, 0));
-
-            }
-
-        }
-
-        caretX += glyph.advance * scale;
+        caretX += static_cast<i32>(Math::round(glyph.advance * fontScale));
 
     }
 
@@ -354,6 +329,18 @@ void ImageRenderer::updateVideo() {
     frameTexture.setMagFilter(GLE::TextureFilter::None);
     frameTexture.setMinFilter(GLE::TextureFilter::None);
     frameTexture.generateMipmaps();
+
+}
+
+
+
+void ImageRenderer::onScroll(double delta) {
+
+    double scale = Math::exp(delta * 0.01);
+
+    fontScale = Math::clamp(fontScale * scale, 0.001, 1);
+
+    recalculateFont();
 
 }
 
