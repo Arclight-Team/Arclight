@@ -9,17 +9,24 @@
 namespace Font {
 
     struct FillBound {
-        i32 x;
-        bool winding;
+        double x;
+        bool onTransition;
     };
 
-    void addFillBoundary(std::vector<FillBound>& bounds, i32 x, bool winding) {
+    void addFillBoundary(std::vector<FillBound>& bounds, double x, bool on) {
 
         auto it = std::find_if(bounds.begin(), bounds.end(), [=](const FillBound& bound) {
-            return x < bound.x || (x == bound.x && winding > bound.winding);
+            return x < bound.x;
         });
 
-        bounds.insert(it, FillBound(x, winding));
+        SizeT i = std::distance(bounds.begin(), it);
+
+        //Eliminate points on the same coordinates
+        if(i != 0 && on == bounds[i - 1].onTransition && Math::isEqual(x, bounds[i - 1].x)) {
+            return;
+        }
+
+        bounds.insert(it, FillBound(x, on));
 
     }
    
@@ -67,11 +74,10 @@ namespace Font {
                     Vec2d start = glyph.points[j0] * scale;
                     Vec2d end = glyph.points[j1] * scale;
 
-                    //True if the contour is rightwound, i.e. pixels on the right need to be colored
-                    bool rightwound = end.y >= start.y;
+                    bool onTransition = end.y >= start.y;
 
                     //Swap so that end has the higher y coordinate
-                    if(!rightwound) {
+                    if(!onTransition) {
                         std::swap(start, end);
                     }
 
@@ -81,10 +87,10 @@ namespace Font {
                     for(i32 y = static_cast<i32>(Math::floor(start.y + 0.5)); y <= static_cast<i32>(Math::floor(end.y - 0.5)); y++) {
 
                         //Calculate x intersection
-                        i32 x = static_cast<i32>(Math::floor(line.evaluateInverse(y + 0.5) + rightwound - 0.5));
+                        double x = line.evaluateInverse(y + 0.5);
 
                         //Add a boundary
-                        addFillBoundary(glyphFills[y], x, rightwound);
+                        addFillBoundary(glyphFills[y], x, onTransition);
 
                     }
 
@@ -104,25 +110,27 @@ namespace Font {
 
                     //Construct the bezier
                     Bezier2d bezier(start, control, end);
+                    Bezier1d derivative = bezier.derivative();
                     RectI aabb = bezier.boundingBox().toIntegerRect();
-
-                    bool rightwound = end.y >= start.y;
 
                     //Solve the y/x problem for each y coordinate inside the BB
                     for(i32 y = aabb.y; y <= aabb.getEndY(); y++) {
 
-                        auto xs = bezier.getX(y + 0.5);
+                        auto ts = bezier.parameterFromY(y + 0.5);
 
                         //Two solutions, two boundaries
-                        if(xs[1]) {
+                        if(ts[1]) {
 
-                            addFillBoundary(glyphFills[y], static_cast<i32>(Math::floor(*xs[0] + rightwound - 0.5)), rightwound);
-                            addFillBoundary(glyphFills[y], static_cast<i32>(Math::floor(*xs[1] + !rightwound - 0.5)), !rightwound);
+                            bool t0On = derivative.evaluate(*ts[0]).y >= 0;
+                            bool t1On = derivative.evaluate(*ts[1]).y >= 0;
+                            addFillBoundary(glyphFills[y], bezier.evaluate(*ts[0]).x, t0On);
+                            addFillBoundary(glyphFills[y], bezier.evaluate(*ts[1]).x, t1On);
 
                         //One solution, single-winding boundary
-                        } else if(xs[0]) {
+                        } else if(ts[0]) {
 
-                            addFillBoundary(glyphFills[y], static_cast<i32>(Math::floor(*xs[0] + rightwound - 0.5)), rightwound);
+                            bool tOn = derivative.evaluate(*ts[0]).y >= 0;
+                            addFillBoundary(glyphFills[y], bezier.evaluate(*ts[0]).x, tOn);
 
                         }
 
@@ -148,10 +156,10 @@ namespace Font {
         }
 
         //Fill the fills
-        for(auto& [y, fills] : glyphFills) {
+        for(const auto& [y, fills] : glyphFills) {
 
             //Skip bad y coords
-            u32 py = origin.y + y;
+            i32 py = origin.y + y;
 
             if(py < 0 || py >= image.getHeight()) {
                 continue;
@@ -162,69 +170,41 @@ namespace Font {
                 continue;
             }
 
-            u32 leftIndex = 0;
-            bool winding = fills[leftIndex].winding;
-
-            //Find a valid end right bound
-            auto rightIt = std::find_if(fills.rbegin(), fills.rend(), [=](const FillBound& fill) {
-                return fill.winding != winding;
-            });
-
-            //If the right bound could not be found, skip
-            if(rightIt == fills.rend()) {
-                continue;
-            }
-
-            //Since resizing doesn't involve a reallocation this is the best approach
-            fills.resize(fills.size() - std::distance(fills.rbegin(), rightIt));
+            i32 transitionState = 0;
 
             //Loop over all valid fills
-            while(leftIndex < fills.size()) {
+            for(u32 i = 0; i < fills.size(); i++) {
 
-                u32 rightIndex = 0;
+                const FillBound& startFill = fills[i];
+                transitionState += startFill.onTransition ? 1 : -1;
 
-                //Find the next right border
-                for(u32 i = leftIndex + 1; i < fills.size(); i++) {
+                i32 startX = static_cast<i32>(Math::floor(startFill.x + 0.5));
+                i32 endX = 0x7FFFFFFF;
 
-                    if(fills[i].winding != winding) {
-                        rightIndex = i;
+                for(u32 j = i + 1; j < fills.size(); j++) {
+
+                    const FillBound& endFill = fills[j];
+                    transitionState += endFill.onTransition ? 1 : -1;
+
+                    if(transitionState == 0) {
+
+                        endX = static_cast<i32>(Math::floor(endFill.x - 0.5));
+                        i = j;
+
                         break;
+
                     }
 
                 }
 
-                u32 nextLeftIndex = fills.size();
-
-                //Find the next left border
-                for(u32 i = rightIndex + 1; i < fills.size(); i++) {
-
-                    if(fills[i].winding == winding) {
-                        nextLeftIndex = i;
-                        break;
-                    }
-
+                //Illegal glyph transition (last contour does not produce a null transition)
+                if(endX == 0x7FFFFFFF) {
+                    break;
                 }
-                
-                //The correct right border is one before the next left border or end - 1
-                rightIndex = nextLeftIndex - 1;
-
-                //Get the border positions
-                i32 startX = fills[leftIndex].x;
-                i32 endX = fills[rightIndex].x;
-
-                //Update next left border
-                leftIndex = nextLeftIndex;
 
                 //Now render the fill
-                for(i32 x = startX; x <= endX; x++) {
-
-                    i32 px = origin.x + x;
-                    i32 py = origin.y + y;
-
-                    if(px >= 0 && py >= 0 && px < image.getWidth() && py < image.getHeight()) {
-                        image.setPixel(px, py, PixelRGB5(31, 31, 31));
-                    }
-
+                for(i32 x = Math::max(origin.x + startX, 0); x <= Math::min(origin.x + endX, static_cast<i32>(image.getWidth() - 1)); x++) {
+                    image.setPixel(x, py, PixelRGB5(31, 31, 31));
                 }
 
             }

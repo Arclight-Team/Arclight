@@ -227,13 +227,20 @@ public:
 
     }
 
+    constexpr std::array<std::optional<F>, Degree> parameterFromX(F x) {
+        return getParameter<false>(x);
+    }
+
+    constexpr std::array<std::optional<F>, Degree> parameterFromY(F y) {
+        return getParameter<true>(y);
+    }
 
     constexpr std::array<std::optional<F>, Degree> getX(F y) {
-        return solveComponent<true>(y);
+        return getComponent<true>(y);
     }
 
     constexpr std::array<std::optional<F>, Degree> getY(F x) {
-        return solveComponent<false>(x);
+        return getComponent<false>(x);
     }
 
 
@@ -279,20 +286,45 @@ private:
 
     //B = false: x -> y, B = true: y -> x
     template<bool B>
-    constexpr std::array<std::optional<F>, Degree> solveComponent(F v) {
+    constexpr std::array<std::optional<F>, Degree> getComponent(F v) {
+
+        auto a = getParameter<B>(v);
+
+        for(u32 i = 0; i < Degree; i++) {
+
+            if(!a[i]) {
+                break;
+            }
+
+            a[i] = evaluate(a[i])[!B];
+
+        }
+
+        return a;
+
+    }
+
+    //B = false: x -> t, B = true: y -> t
+    template<bool B>
+    constexpr std::array<std::optional<F>, Degree> getParameter(F v) {
 
         if constexpr (Degree == 1) {
 
-            //Linear bezier, solve as line
-            Line<F> line(getStartPoint(), getEndPoint());
-            F s = B ? line.evaluateInverse(v) : line.evaluateAt(v);
+            //Linear bezier
+            F a = getStartPoint()[B];
+            F b = getEndPoint()[B];
 
-            F ls = getStartPoint()[!B];
-            F hs = getEndPoint()[!B];
-            Math::ascOrder(ls, hs);
+            F m = b - a;
+            
+            //If m is also 0, there is no solution
+            if(Math::isZero(m)) [[unlikely]] {
+                return {};
+            }
 
-            if(Math::inRange(s, ls, hs)) {
-                return {s};
+            F t = (v - a) / m;
+
+            if(Math::inRange(t, 0, 1)) {
+                return {t};
             } else {
                 return {};
             }
@@ -320,11 +352,11 @@ private:
                 F t = (v - a) / (2 * m);
 
                 //If t is in range, it's the only solution
-                if(Math::inRange(t, 0, 1)) {
-                    return {evaluate(t)[!B]};
-                } else {
+                if(!Math::inRange(t, 0, 1)) {
                     return {};
                 }
+
+                return {t};
             
             //No t for which the component function passes x/y
             } else if(d < 0) [[unlikely]] {
@@ -340,7 +372,7 @@ private:
                     return {};
                 }
                 
-                return {evaluate(t)[!B]};
+                return {t};
 
             //Two t for which the component function passes x/y
             } else [[likely]] {
@@ -349,8 +381,6 @@ private:
                     (a - b - Math::sqrt(d)) / n,
                     (a - b + Math::sqrt(d)) / n
                 };
-
-                Vec2<F> s(evaluate(t[0])[!B], evaluate(t[1])[!B]);
 
                 bool t0Valid = Math::inRange(t[0], 0, 1);
                 bool t1Valid = Math::inRange(t[1], 0, 1);
@@ -366,14 +396,14 @@ private:
                     case 1:
 
                         if(t0Valid) {
-                            return {s[0]};
+                            return {t[0]};
                         } else {
-                            return {s[1]};
+                            return {t[1]};
                         }
 
                     case 2:
-                        Math::ascOrder(s[0], s[1]);
-                        return {s[0], s[1]};
+                        Math::ascOrder(t[0], t[1]);
+                        return {t[0], t[1]};
 
                 }
 

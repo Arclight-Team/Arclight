@@ -142,8 +142,13 @@ bool ImageRenderer::init() {
         Log::info("Timer", "TTF loading time: %fus", timer.getElapsedTime(Time::Unit::Microseconds));
 
         image = Image<PixelFmt>(canvasWidth, canvasHeight);
-        fontScale = 0.05;
+        fontScale = 0.1;
         fontDirty = true;
+        
+        for(u32 i = 0x21; i < 0x80; i++) {
+            if(!(i % 0x10)) fontText += "\n";
+            fontText += i;
+        }
 
         video.addFrame(image, 0);
 

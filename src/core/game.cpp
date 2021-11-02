@@ -18,7 +18,7 @@
 #include "util/bool.h"
 
 
-Game::Game(Window& window) : window(window), physicsEngine(manager), renderer(manager) {}
+Game::Game(Window& window) : window(window) {}
 
 Game::~Game() {}
 
@@ -29,19 +29,14 @@ bool Game::init() {
 
 	window.disableVSync();
 
-	renderer.init();
-	renderer.setAspectRatio(window.getWidth() / static_cast<float>(window.getHeight()));
-
 	window.setFramebufferResizeFunction([this](u32 w, u32 h) { 
 		GLE::Framebuffer::setViewport(w, h);
-		renderer.setAspectRatio(window.getWidth() / static_cast<float>(window.getHeight())); 
 	});
 
 	if (!imageRenderer.init()) {
 		return false;
 	}
 	
-
 	window.setSize(720, 720);
 
 	//Connect the input system to the window in order to receive events
@@ -175,10 +170,7 @@ void Game::render() {
 void Game::destroy() {
 
 	profiler.start();
-	renderer.destroy();
 	imageRenderer.destroy();
-
-	physicsEngine.destroy();
 
 	profiler.stop("Destruction");
 
