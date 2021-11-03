@@ -108,7 +108,7 @@ public:
 
 	template<Arithmetic A>
 	constexpr bool operator==(const Vec2<A>& v) const {
-		return Math::isEqual(x, v.x) && Math::isEqual(y, v.y);
+		return Math::equal(x, v.x) && Math::equal(y, v.y);
 	}
 
 	template<Arithmetic A>
@@ -323,7 +323,7 @@ public:
 
 	template<Arithmetic A>
 	constexpr bool operator==(const Vec3<A>& v) const {
-		return Math::isEqual(x, v.x) && Math::isEqual(y, v.y) && Math::isEqual(z, v.z);
+		return Math::equal(x, v.x) && Math::equal(y, v.y) && Math::equal(z, v.z);
 
 	}
 
@@ -557,7 +557,7 @@ public:
 
 	template<Arithmetic A>
 	constexpr bool operator==(const Vec4<A>& v) const {
-		return Math::isEqual(x, v.x) && Math::isEqual(y, v.y) && Math::isEqual(z, v.z) && Math::isEqual(w, v.w);
+		return Math::equal(x, v.x) && Math::equal(y, v.y) && Math::equal(z, v.z) && Math::equal(w, v.w);
 	}
 
 	template<Arithmetic A>

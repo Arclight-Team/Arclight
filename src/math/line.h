@@ -69,7 +69,7 @@ public:
     }
 
     constexpr bool contains(const Vec2<F>& point) const {
-        return Math::isEqual(evaluateAt(point.x), point.y);
+        return Math::equal(evaluateAt(point.x), point.y);
     }
 
     constexpr F distance(const Vec2<F>& point) const {
@@ -100,12 +100,12 @@ public:
 
     }
 
-    constexpr bool isEqual(const Line<F>& line) const {
-        return Math::isEqual(derivative(), line.derivative()) && Math::isEqual(yOffset(), line.yOffset());
+    constexpr bool equal(const Line<F>& line) const {
+        return Math::equal(derivative(), line.derivative()) && Math::equal(yOffset(), line.yOffset());
     }
 
     constexpr bool operator=(const Line<F>& line) const {
-        return isEqual(line);
+        return equal(line);
     }
 
 

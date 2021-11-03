@@ -111,7 +111,7 @@ struct ColorHSV {
 	constexpr ColorHSV(double h, double s, double v) : h(h), s(s), v(v) {}
 
 	constexpr bool operator==(const ColorHSV& color) {
-		return Math::isEqual(s, color.s) && Math::isEqual(v, color.v) && Math::isEqual(Math::mod(h, 360.0), Math::mod(color.h, 360.0));
+		return Math::equal(s, color.s) && Math::equal(v, color.v) && Math::equal(Math::mod(h, 360.0), Math::mod(color.h, 360.0));
 	}
 
 	constexpr Vec3d toVec3d() const {
@@ -334,5 +334,5 @@ constexpr auto operator==(const ColorRGBA& lhs, const ColorRGBA& rhs) {
 
 
 constexpr auto operator==(const ColorHSV& lhs, const ColorHSV& rhs) {
-	return Math::isEqual(lhs.h, rhs.h) && Math::isEqual(lhs.s, rhs.s) && Math::isEqual(lhs.v, rhs.v);
+	return Math::equal(lhs.h, rhs.h) && Math::equal(lhs.s, rhs.s) && Math::equal(lhs.v, rhs.v);
 }

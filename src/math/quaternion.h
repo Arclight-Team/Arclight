@@ -109,7 +109,7 @@ public:
     }
 
     constexpr bool isUnit() const {
-        return Math::isEqual(length(), T(1));
+        return Math::equal(length(), T(1));
     }
 
     constexpr void conjugate() {
@@ -186,7 +186,7 @@ public:
 
 	template<Float F>
 	constexpr bool operator==(const Quaternion<F>& q) const {
-		return Math::isEqual(x, q.x) && Math::isEqual(y, q.y) && Math::isEqual(z, q.z) && Math::isEqual(w, q.w);
+		return Math::equal(x, q.x) && Math::equal(y, q.y) && Math::equal(z, q.z) && Math::equal(w, q.w);
 	}
 
 	constexpr Quaternion operator-() const {

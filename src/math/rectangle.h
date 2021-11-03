@@ -206,7 +206,7 @@ public:
 
     template<Arithmetic B>
     constexpr bool operator==(const Rectangle<B>& other) const {
-        return Math::isEqual(x, other.x) && Math::isEqual(y, other.y) && Math::isEqual(w, other.w) && Math::isEqual(h, other.h);
+        return Math::equal(x, other.x) && Math::equal(y, other.y) && Math::equal(w, other.w) && Math::equal(h, other.h);
     }
 
     template<Arithmetic B>

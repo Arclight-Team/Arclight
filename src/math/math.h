@@ -1,8 +1,10 @@
 #pragma once
 
-#include <cmath>
 #include "types.h"
+#include "arcconfig.h"
 #include "util/concepts.h"
+
+#include <cmath>
 
 
 #if defined(ARC_CMATH_CONSTEXPR_FIX) && ARC_CMATH_CONSTEXPR_FIX
@@ -17,6 +19,7 @@ namespace Math {
 	constexpr double pi = 3.1415926535897932384626434;
 	constexpr double e =  2.7182818284590452353602875;
 	constexpr double epsilon = 0.000001;
+	constexpr double minEpsilon = 0.00000001;
 
 
 	constexpr double toDegrees(double radians) noexcept {
@@ -70,30 +73,90 @@ namespace Math {
 
 	}
 
-	template<Integer I>
+	template<Integral I>
 	constexpr bool isZero(I value) {
 		return value == I(0);
 	}
 
 	template<Float F>
 	constexpr bool isZero(F value) {
-		return Math::abs(value) < Math::epsilon;
+		return Math::abs(value) < minEpsilon;
 	}
 
 	template<Arithmetic A, Arithmetic B>
-	constexpr bool isEqual(A a, B b) requires (std::is_floating_point_v<A> || std::is_floating_point_v<B>) {
+	constexpr bool equal(A a, B b) requires (Float<A> || Float<B>) {
 
 		auto x = Math::abs(a - b);
 		auto y = Math::abs(a);
 		auto z = Math::abs(b);
 
-		return x <= (Math::max(y, z) * epsilon);
+		return x <= (Math::max(Math::max(y, z) * epsilon, minEpsilon));
 
 	}
 
-	template<Arithmetic A, Arithmetic B>
-	constexpr bool isEqual(A a, B b) requires (std::is_integral_v<A> && std::is_integral_v<B>) {
+	template<Integral I, Integral J>
+	constexpr bool equal(I a, J b) {
 		return a == b;
+	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr bool less(A a, B b) requires (Float<A> || Float<B>) {
+
+		auto y = Math::abs(a);
+		auto z = Math::abs(b);
+
+		return (b - a) > (Math::max(y, z) * epsilon);
+
+	}
+
+	template<Integral I, Integral J>
+	constexpr bool less(I a, J b) {
+		return a < b;
+	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr bool greater(A a, B b) requires (Float<A> || Float<B>) {
+
+		auto y = Math::abs(a);
+		auto z = Math::abs(b);
+
+		return (a - b) > (Math::max(y, z) * epsilon);
+
+	}
+
+	template<Integral I, Integral J>
+	constexpr bool greater(I a, J b) {
+		return a > b;
+	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr bool lessEqual(A a, B b) requires (Float<A> || Float<B>) {
+
+		auto y = Math::abs(a);
+		auto z = Math::abs(b);
+
+		return (b - a) > -Math::max(Math::max(y, z) * epsilon, minEpsilon);
+
+	}
+
+	template<Integral I, Integral J>
+	constexpr bool lessEqual(I a, J b) {
+		return a <= b;
+	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr bool greaterEqual(A a, B b) requires (Float<A> || Float<B>) {
+
+		auto y = Math::abs(a);
+		auto z = Math::abs(b);
+
+		return (a - b) > -Math::max(Math::max(y, z) * epsilon, minEpsilon);
+
+	}
+
+	template<Integral I, Integral J>
+	constexpr bool greaterEqual(I a, J b) {
+		return a >= b;
 	}
 
 	template<Float F>
@@ -238,12 +301,12 @@ namespace Math {
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
 	constexpr auto clamp(A value, B lowerBound, C upperBound) noexcept {
-		return value < lowerBound ? lowerBound : (value > upperBound ? upperBound : value);
+		return Math::less(value, lowerBound) ? lowerBound : (Math::greater(value, upperBound) ? upperBound : value);
 	}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
 	constexpr bool inRange(A value, B lowerBound, C upperBound) {
-		return value >= lowerBound && value <= upperBound;
+		return Math::greaterEqual(value, lowerBound) && Math::lessEqual(value, upperBound);
 	}
 
 	template<Integer I>

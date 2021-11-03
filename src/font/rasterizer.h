@@ -19,13 +19,6 @@ namespace Font {
             return x < bound.x;
         });
 
-        SizeT i = std::distance(bounds.begin(), it);
-
-        //Eliminate points on the same coordinates
-        if(i != 0 && on == bounds[i - 1].onTransition && Math::isEqual(x, bounds[i - 1].x)) {
-            return;
-        }
-
         bounds.insert(it, FillBound(x, on));
 
     }
@@ -121,17 +114,26 @@ namespace Font {
                         //Two solutions, two boundaries
                         if(ts[1]) {
 
-                            bool t0On = derivative.evaluate(*ts[0]).y >= 0;
-                            bool t1On = derivative.evaluate(*ts[1]).y >= 0;
-                            addFillBoundary(glyphFills[y], bezier.evaluate(*ts[0]).x, t0On);
-                            addFillBoundary(glyphFills[y], bezier.evaluate(*ts[1]).x, t1On);
+                            double t0On = derivative.evaluate(*ts[0]).y;
+                            double t1On = derivative.evaluate(*ts[1]).y;
+
+                            if(!Math::isZero(t0On)) {
+                                addFillBoundary(glyphFills[y], bezier.evaluate(*ts[0]).x, t0On > 0);
+                            }
+
+                            if(!Math::isZero(t1On)) {
+                                addFillBoundary(glyphFills[y], bezier.evaluate(*ts[1]).x, t1On > 0);
+                            }
 
                         //One solution, single-winding boundary
                         } else if(ts[0]) {
 
-                            bool tOn = derivative.evaluate(*ts[0]).y >= 0;
-                            addFillBoundary(glyphFills[y], bezier.evaluate(*ts[0]).x, tOn);
+                            double tOn = derivative.evaluate(*ts[0]).y;
 
+                            if(!Math::isZero(tOn)){
+                                addFillBoundary(glyphFills[y], bezier.evaluate(*ts[0]).x, tOn > 0);
+                            }
+                            
                         }
 
                     }
@@ -171,24 +173,37 @@ namespace Font {
             }
 
             i32 transitionState = 0;
+            double lastX = fills[0].x - 1.0;
 
             //Loop over all valid fills
             for(u32 i = 0; i < fills.size(); i++) {
 
                 const FillBound& startFill = fills[i];
+
+                if(Math::equal(startFill.x, lastX)) {
+                    continue;
+                }
+
                 transitionState += startFill.onTransition ? 1 : -1;
 
                 i32 startX = static_cast<i32>(Math::floor(startFill.x + 0.5));
                 i32 endX = 0x7FFFFFFF;
+                lastX = startFill.x;
 
                 for(u32 j = i + 1; j < fills.size(); j++) {
 
                     const FillBound& endFill = fills[j];
+
+                    if(Math::equal(endFill.x, lastX)) {
+                        continue;
+                    }
+
                     transitionState += endFill.onTransition ? 1 : -1;
 
                     if(transitionState == 0) {
 
                         endX = static_cast<i32>(Math::floor(endFill.x - 0.5));
+                        lastX = endFill.x;
                         i = j;
 
                         break;

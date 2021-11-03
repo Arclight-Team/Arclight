@@ -104,7 +104,7 @@ public:
                 const Vec2<F>& d0 = drv.getStartPoint();
                 const Vec2<F>& d1 = drv.getEndPoint();
 
-                if(!Math::isEqual(d1.x, d0.x)) {
+                if(!Math::equal(d1.x, d0.x)) {
 
                     F t = -d0.x / (d1.x - d0.x);
 
@@ -118,7 +118,7 @@ public:
 
                 }
 
-                if(!Math::isEqual(d1.y, d0.y)) {
+                if(!Math::equal(d1.y, d0.y)) {
 
                     F t = -d0.y / (d1.y - d0.y);
                                     
