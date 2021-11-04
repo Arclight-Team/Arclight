@@ -144,6 +144,7 @@ bool ImageRenderer::init() {
         image = Image<PixelFmt>(canvasWidth, canvasHeight);
         fontScale = 0.1;
         fontDirty = true;
+        //fontText = "2";
 
         for(u32 i = 0x21; i < 0x80; i++) {
             if(!(i % 0x10)) fontText += "\n";

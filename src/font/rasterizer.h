@@ -67,6 +67,21 @@ namespace Font {
                     Vec2d start = glyph.points[j0] * scale;
                     Vec2d end = glyph.points[j1] * scale;
 
+                    if(Math::equal(start.y, end.y)) {
+
+                        i32 y = static_cast<i32>(Math::floor(start.y));
+                        
+                        if(Math::equal(start.y - y, 0.5)) {
+
+                            addFillBoundary(glyphFills[y], start.x, false);
+                            addFillBoundary(glyphFills[y], end.x, true);
+
+                        }
+
+                        continue;
+                        
+                    }
+
                     bool onTransition = end.y >= start.y;
 
                     //Swap so that end has the higher y coordinate
@@ -77,7 +92,11 @@ namespace Font {
                     LineD line(start, end);
 
                     //Iterate over each coverage line
-                    for(i32 y = static_cast<i32>(Math::floor(start.y + 0.5)); y <= static_cast<i32>(Math::floor(end.y - 0.5)); y++) {
+                    for(i32 y = static_cast<i32>(Math::floor(start.y + 0.4999)); y <= static_cast<i32>(Math::floor(end.y - 0.5)); y++) {
+
+                        if(Math::inRange(y, -1, 1)) {
+                            ArcDebug() << start << end;
+                        }
 
                         //Calculate x intersection
                         double x = line.evaluateInverse(y + 0.5);
@@ -108,6 +127,10 @@ namespace Font {
 
                     //Solve the y/x problem for each y coordinate inside the BB
                     for(i32 y = aabb.y; y <= aabb.getEndY(); y++) {
+
+                        if(y == 0) {
+                            ArcDebug() << start << control << end;
+                        }
 
                         auto ts = bezier.parameterFromY(y + 0.5);
 
@@ -159,7 +182,15 @@ namespace Font {
 
         //Fill the fills
         for(const auto& [y, fills] : glyphFills) {
+/*
+            if(!Math::inRange(y, 0, 0)) {
+                continue;
+            }
 
+            for(const auto& e : fills) {
+                ArcDebug() << e.onTransition << e.x;
+            }
+*/
             //Skip bad y coords
             i32 py = origin.y + y;
 
@@ -174,13 +205,14 @@ namespace Font {
 
             i32 transitionState = 0;
             double lastX = fills[0].x - 1.0;
+            bool lastOn = !fills[0].onTransition;
 
             //Loop over all valid fills
             for(u32 i = 0; i < fills.size(); i++) {
 
                 const FillBound& startFill = fills[i];
 
-                if(Math::equal(startFill.x, lastX)) {
+                if(Math::equal(startFill.x, lastX) && startFill.onTransition == lastOn) {
                     continue;
                 }
 
@@ -189,12 +221,13 @@ namespace Font {
                 i32 startX = static_cast<i32>(Math::floor(startFill.x + 0.5));
                 i32 endX = 0x7FFFFFFF;
                 lastX = startFill.x;
+                lastOn = startFill.onTransition;
 
                 for(u32 j = i + 1; j < fills.size(); j++) {
 
                     const FillBound& endFill = fills[j];
 
-                    if(Math::equal(endFill.x, lastX)) {
+                    if(Math::equal(endFill.x, lastX) && startFill.onTransition == lastOn) {
                         continue;
                     }
 
@@ -204,6 +237,7 @@ namespace Font {
 
                         endX = static_cast<i32>(Math::floor(endFill.x - 0.5));
                         lastX = endFill.x;
+                        lastOn = endFill.onTransition;
                         i = j;
 
                         break;
