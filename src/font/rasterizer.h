@@ -41,14 +41,15 @@ namespace Font {
         //Container to store the fills
         std::unordered_map<i32, std::vector<FillBound>> glyphFills;
 
+        auto glyphData = glyph.getGlyphData();
 
         //Iterate over all contours
-        for(u32 i = 0; i < glyph.contours.size(); i++) {
+        for(u32 i = 0; i < glyphData.contours.size(); i++) {
 
             //Implicit tangent on-curve point (after bezier spline start)
             Vec2d tangentOnCurve;
 
-            const Vec2ui& contourIndices = glyph.contours[i];
+            const Vec2ui& contourIndices = glyphData.contours[i];
 
             //Iterate over all points in contour
             for(u32 j = contourIndices.x; j <= contourIndices.y; j++) {
@@ -57,15 +58,15 @@ namespace Font {
                 u32 j0 = j;
                 u32 j1 = j == contourIndices.y ? contourIndices.x : j + 1;
 
-                bool startOnCurve = glyph.onCurve[j0];
-                bool endOnCurve = glyph.onCurve[j1];
+                bool startOnCurve = glyphData.onCurve[j0];
+                bool endOnCurve = glyphData.onCurve[j1];
 
                 //Straight line
                 if(startOnCurve && endOnCurve) {
 
                     //Scale the points on the line
-                    Vec2d start = glyph.points[j0] * scale;
-                    Vec2d end = glyph.points[j1] * scale;
+                    Vec2d start = glyphData.points[j0] * scale;
+                    Vec2d end = glyphData.points[j1] * scale;
 
                     if(Math::equal(start.y, end.y)) {
 
@@ -94,10 +95,6 @@ namespace Font {
                     //Iterate over each coverage line
                     for(i32 y = static_cast<i32>(Math::floor(start.y + 0.4999)); y <= static_cast<i32>(Math::floor(end.y - 0.5)); y++) {
 
-                        if(Math::inRange(y, -1, 1)) {
-                            ArcDebug() << start << end;
-                        }
-
                         //Calculate x intersection
                         double x = line.evaluateInverse(y + 0.5);
 
@@ -109,13 +106,13 @@ namespace Font {
                 } else if (!endOnCurve) {
 
                     //Bezier spline
-                    Vec2d start = startOnCurve ? glyph.points[j0] * scale : tangentOnCurve;
-                    Vec2d control = glyph.points[j1] * scale;
+                    Vec2d start = startOnCurve ? glyphData.points[j0] * scale : tangentOnCurve;
+                    Vec2d control = glyphData.points[j1] * scale;
 
                     //End point
                     u32 j2 = j1 == contourIndices.y ? contourIndices.x : j1 + 1;
-                    bool nextOnCurve = glyph.onCurve[j2];
-                    Vec2d next = glyph.points[j2] * scale;
+                    bool nextOnCurve = glyphData.onCurve[j2];
+                    Vec2d next = glyphData.points[j2] * scale;
 
                     //Implied tangent on-curve point lies halfway (if next is off-curve)
                     Vec2d end = nextOnCurve ? next : control + (next - control) / 2.0;
@@ -127,10 +124,6 @@ namespace Font {
 
                     //Solve the y/x problem for each y coordinate inside the BB
                     for(i32 y = aabb.y; y <= aabb.getEndY(); y++) {
-
-                        if(y == 0) {
-                            ArcDebug() << start << control << end;
-                        }
 
                         auto ts = bezier.parameterFromY(y + 0.5);
 
@@ -182,15 +175,7 @@ namespace Font {
 
         //Fill the fills
         for(const auto& [y, fills] : glyphFills) {
-/*
-            if(!Math::inRange(y, 0, 0)) {
-                continue;
-            }
 
-            for(const auto& e : fills) {
-                ArcDebug() << e.onTransition << e.x;
-            }
-*/
             //Skip bad y coords
             i32 py = origin.y + y;
 

@@ -144,7 +144,6 @@ bool ImageRenderer::init() {
         image = Image<PixelFmt>(canvasWidth, canvasHeight);
         fontScale = 0.1;
         fontDirty = true;
-        //fontText = "2";
 
         for(u32 i = 0x21; i < 0x80; i++) {
             if(!(i % 0x10)) fontText += "\n";
@@ -273,7 +272,6 @@ void ImageRenderer::recalculateFont() {
         }
 
         const TrueType::Glyph& glyph = font.glyphs[font.charMap[*it]];
-        const auto& points = glyph.points;
 
         Font::rasterize(image, Vec2i(caretX, caretY), glyph, fontScale);
 

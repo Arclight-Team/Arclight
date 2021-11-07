@@ -1,6 +1,7 @@
 #pragma once
 
 #include "math/vector.h"
+#include "math/matrix.h"
 #include "util/assert.h"
 #include "util/string.h"
 #include "arcconfig.h"
@@ -8,6 +9,7 @@
 
 #include <stdexcept>
 #include <unordered_map>
+#include <variant>
 
 
 class BinaryReader;
@@ -537,18 +539,46 @@ namespace TrueType {
     //Glyph
     struct Glyph {
 
+        struct Component {
+
+            Vec2d offset;
+            Mat2d transform;
+
+        };
+
+        struct Data {
+            std::vector<Vec2ui> contours;
+            std::vector<Vec2i> points;
+            std::vector<bool> onCurve;
+        };
+
         constexpr Glyph() : compound(false), xMin(0), xMax(0), yMin(0), yMax(0), bearing(0), advance(0) {}
+
+        constexpr Data& getGlyphData() {
+            return std::get<Data>(data);
+        }
+        
+        constexpr const Data& getGlyphData() const {
+            return std::get<Data>(data);
+        }
+
+        constexpr std::vector<Component>& getGlyphComponents() {
+            return std::get<std::vector<Component>>(data);
+        }
+        
+        constexpr const std::vector<Component>& getGlyphComponents() const {
+            return std::get<std::vector<Component>>(data);
+        }
 
         bool compound;
         i32 xMin;
         i32 yMin;
         i32 xMax;
         i32 yMax;
-        std::vector<Vec2ui> contours;
-        std::vector<Vec2i> points;
-        std::vector<bool> onCurve;
         i32 bearing;
         u32 advance;
+        std::vector<u8> instructions;
+        std::variant<Data, std::vector<Component>> data;
 
     };
 

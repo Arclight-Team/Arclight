@@ -1,6 +1,6 @@
 #include "font/truetype/truetype.h"
 #include "stream/binaryreader.h"
-
+#include "math/matrix.h"
 
 
 namespace TrueType {
@@ -19,6 +19,25 @@ namespace TrueType {
 
     };
 
+    struct ComponentGlyphFlags {
+
+        enum {
+            WordArgs = 0x1,
+            XYArgs = 0x2,
+            RoundXY = 0x4,
+            HasScale = 0x8,
+            MoreComponents = 0x20,
+            DualScales = 0x40,
+            MatrixTransform = 0x80,
+            HasInstructions = 0x100,
+            UseComponentMetrics = 0x200,
+            OverlapCompound = 0x400,
+            ScaledComponentOffset = 0x800,
+            UnscaledComponentOffset = 0x1000
+        };
+
+    };
+
 
     std::vector<Glyph> parseGlyphTable(BinaryReader& reader, u32 tableSize, const std::vector<u32>& glyphOffsets) {
 
@@ -28,12 +47,13 @@ namespace TrueType {
         SizeT glyfStart = reader.getStream().getPosition();
 
         std::vector<Vec2ui> contours;
-        std::vector<u8> instructions;
         std::vector<u8> flags;
         std::vector<Vec2i> points;
         std::vector<bool> onCurve;
 
-        for(u32 offset : glyphOffsets) {
+        for(u32 n = 0; n < glyphOffsets.size(); n++) {
+
+            u32 offset = glyphOffsets[n];
 
             if(offset == noOutlineGlyphOffset) {
                 glyphs.emplace_back();
@@ -72,7 +92,159 @@ namespace TrueType {
 
             if(compound) {
 
+                u16 flag = 0;
+                u32 metricsID = 0;
+                u32 componentID = 0;
+                bool hasInstructions = false;
 
+                do {
+
+                    requiredSize += 4;
+
+                    if(tableSize < offset + requiredSize) {
+                        throw LoaderException("Failed to load glyph table: Stream size too small");
+                    }
+
+                    flag = reader.read<u16>();
+                    u16 glyphIndex = reader.read<u16>();
+                    i32 arg0, arg1;
+
+                    bool words = flag & ComponentGlyphFlags::WordArgs;
+                    bool sgnd = flag & ComponentGlyphFlags::XYArgs;
+
+                    bool round = flag & ComponentGlyphFlags::RoundXY;   //TODO: Apply correct rounding
+                    //TODO: Apply correct base scaling
+
+                    hasInstructions |= flag & ComponentGlyphFlags::HasInstructions;
+
+                    if(flag & ComponentGlyphFlags::UseComponentMetrics) {
+                        metricsID = componentID;
+                    }
+                    
+                    enum class ScaleData {
+                        None,
+                        Single,
+                        Dual,
+                        Matrix
+                    };
+
+                    ScaleData scaleData = flag & ComponentGlyphFlags::HasScale ? ScaleData::Single : (flag & ComponentGlyphFlags::DualScales ? ScaleData::Dual : (flag & ComponentGlyphFlags::MatrixTransform ? ScaleData::Matrix : ScaleData::None));
+                    u32 scalesToFetch = 0;
+
+                    switch(scaleData) {
+
+                        default:
+                        case ScaleData::None:
+                            scalesToFetch = 0;
+                            break;
+
+                        case ScaleData::Single:
+                            scalesToFetch = 1;
+                            break;
+
+                        case ScaleData::Dual:
+                            scalesToFetch = 2;
+                            break;
+
+                        case ScaleData::Matrix:
+                            scalesToFetch = 4;
+                            break;
+
+                    }
+
+                    requiredSize += scalesToFetch * 2 + (words + 1) * 2;
+
+                    if(tableSize < offset + requiredSize) {
+                        throw LoaderException("Failed to load glyph table: Stream size too small");
+                    }
+
+                    if(words) {
+
+                        if(sgnd) {
+                            
+                            arg0 = reader.read<i16>();
+                            arg1 = reader.read<i16>();
+
+                        } else {
+
+                            arg0 = reader.read<u16>();
+                            arg1 = reader.read<u16>();
+
+                        }
+
+                    } else {
+
+                        if(sgnd) {
+                            
+                            arg0 = reader.read<i8>();
+                            arg1 = reader.read<i8>();
+
+                        } else {
+
+                            arg0 = reader.read<u8>();
+                            arg1 = reader.read<u8>();
+
+                        }
+
+                    }
+
+                    Vec2d offset;
+
+                    Mat2d transform;
+
+                    switch(scaleData) {
+
+                        default:
+                        case ScaleData::None:
+                            break;
+
+                        case ScaleData::Single:
+                            {
+                                double scale = reader.read<i16>();
+
+                                transform[0][0] = scale;
+                                transform[1][1] = scale;
+                            }
+                            break;
+
+                        case ScaleData::Dual:
+                            {
+                                double scaleX = reader.read<i16>();
+                                double scaleY = reader.read<i16>();
+
+                                transform[0][0] = scaleX;
+                                transform[1][1] = scaleY;
+                            }
+                            break;
+
+                        case ScaleData::Matrix:
+
+                            transform = {
+                                reader.read<i16>(), reader.read<i16>(),
+                                reader.read<i16>(), reader.read<i16>()
+                            };
+
+                            break;
+
+                    }
+
+                    componentID++;
+
+                } while(flag & ComponentGlyphFlags::MoreComponents);
+
+                if(hasInstructions) {
+
+                    u16 instructionLength = reader.read<u16>();
+                    requiredSize += instructionLength;
+
+                    if(tableSize < offset + requiredSize) {
+                        throw LoaderException("Failed to load glyph table: Stream size too small");
+                    }
+
+                    glyph.instructions.resize(instructionLength);
+                    reader.read<u8>(glyph.instructions);
+
+                }
 
             } else {
 
@@ -101,8 +273,8 @@ namespace TrueType {
                     throw LoaderException("Failed to load glyph table: Stream size too small");
                 }
 
-                instructions.resize(instructionLength);
-                reader.read<u8>(instructions);
+                glyph.instructions.resize(instructionLength);
+                reader.read<u8>(glyph.instructions);
 
                 if(contourCount) {
 
@@ -197,9 +369,10 @@ namespace TrueType {
 
                     }
 
-                    glyph.points = points;
-                    glyph.contours = contours;
-                    glyph.onCurve = onCurve;
+                    auto& glyphData = glyph.getGlyphData();
+                    glyphData.points = points;
+                    glyphData.contours = contours;
+                    glyphData.onCurve = onCurve;
 
                 }
 
