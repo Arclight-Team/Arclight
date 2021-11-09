@@ -17,9 +17,17 @@
 namespace Math {
 
 	constexpr double pi = 3.1415926535897932384626434;
-	constexpr double e =  2.7182818284590452353602875;
+	constexpr double e = 2.7182818284590452353602875;
 	constexpr double epsilon = 0.000001;
 	constexpr double minEpsilon = 0.00000001;
+	constexpr double infinity = 1e+300 * 1e+300;
+	constexpr double nan = infinity * 0.0;
+
+
+	template<Arithmetic A> constexpr auto ceil(A value);
+	template<Arithmetic A> constexpr auto floor(A value);
+	template<Arithmetic A> constexpr auto trunc(A value);
+	template<Arithmetic A> constexpr auto round(A value);
 
 
 	constexpr double toDegrees(double radians) noexcept {
@@ -32,7 +40,13 @@ namespace Math {
 
 	template<Arithmetic A>
 	constexpr auto abs(A value) {
+
+		if constexpr (std::is_constant_evaluated()) {
+			return value == A(0) ? A(0) : (value < A(0) ? -value : value);
+		}
+
 		return std::abs(value);
+
 	}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic... Args>
@@ -58,7 +72,7 @@ namespace Math {
 	template<class T>
 	constexpr auto ascOrder(T& a, T& b) {
 
-		if(b < a) {
+		if (b < a) {
 			std::swap(a, b);
 		}
 
@@ -67,7 +81,7 @@ namespace Math {
 	template<class T>
 	constexpr auto descOrder(T& a, T& b) {
 
-		if(a < b) {
+		if (a < b) {
 			std::swap(a, b);
 		}
 
@@ -159,14 +173,75 @@ namespace Math {
 		return a >= b;
 	}
 
-	template<Float F>
-	ARC_CMATH_CONSTEXPR bool isInfinity(F value) {
-		return std::isinf(value);
+	template<Integer I>
+	constexpr auto sign(I value) noexcept {
+		return (value > I(0)) - (value < I(0));
 	}
 
 	template<Float F>
-	ARC_CMATH_CONSTEXPR bool isNaN(F value) {
+	constexpr auto sign(F value) noexcept {
+
+		if constexpr (std::is_constant_evaluated()) {
+			return less(value, F(0)) ? -1 : 1;
+		}
+
+		return 1 - std::signbit(value) * 2;
+
+	}
+
+	template<Arithmetic A>
+	constexpr auto copysign(A value, A sgn) noexcept {
+
+		if constexpr (std::is_constant_evaluated()) {
+			return sign(value) == sign(sgn) ? value : -value;
+		}
+
+		return std::copysign(value, sgn);
+
+	}
+
+	template<Float F>
+	constexpr bool isInfinity(F value) {
+
+		if constexpr (std::is_constant_evaluated()) {
+			return value == infinity || value == -infinity;
+		}
+
+		return std::isinf(value);
+
+	}
+
+	template<Float F>
+	constexpr bool isPositiveInfinity(F value) {
+
+		if constexpr (std::is_constant_evaluated()) {
+			return value == infinity;
+		}
+
+		return std::isinf(value) && sign(value) == 1;
+
+	}
+
+	template<Float F>
+	constexpr bool isNegativeInfinity(F value) {
+
+		if constexpr (std::is_constant_evaluated()) {
+			return value == -infinity;
+		}
+
+		return std::isinf(value) && sign(value) == -1;
+
+	}
+
+	template<Float F>
+	constexpr bool isNaN(F value) {
+
+		if constexpr (std::is_constant_evaluated()) {
+			return value == nan;
+		}
+
 		return std::isnan(value);
+
 	}
 
 	template<Arithmetic A>
@@ -205,8 +280,14 @@ namespace Math {
 	}
 
 	template<Arithmetic A, Arithmetic B>
-	ARC_CMATH_CONSTEXPR auto mod(A a, B b) {
+	constexpr auto mod(A a, B b) requires (Float<A> || Float<B>) {
+
+		if constexpr (std::is_constant_evaluated()) {
+			return a - trunc(a / b) * b;
+		}
+
 		return std::fmod(a, b);
+
 	}
 
 	template<Integer A, Integer B>
@@ -216,7 +297,7 @@ namespace Math {
 
 	template<Arithmetic A>
 	ARC_CMATH_CONSTEXPR auto exp(A exponent) {
-		return std::exp(exponent);
+		return A(std::exp(exponent));
 	}
 
 	template<Arithmetic A, Arithmetic B>
@@ -250,23 +331,48 @@ namespace Math {
 	}
 
 	template<Arithmetic A>
-	ARC_CMATH_CONSTEXPR auto ceil(A value) {
+	constexpr auto ceil(A value) {
+
+		if constexpr (std::is_constant_evaluated()) {
+			return trunc(value) + i32(greater(value, trunc(value)) && greater(value, A(0)));
+		}
+
 		return std::ceil(value);
+
 	}
 
 	template<Arithmetic A>
-	ARC_CMATH_CONSTEXPR auto floor(A value) {
+	constexpr auto floor(A value) {
+
+		if constexpr (std::is_constant_evaluated()) {
+			auto integer = trunc(value);
+			return integer + i32(less(value, integer) && less(value, A(0)));
+		}
+
 		return std::floor(value);
+
 	}
 
 	template<Arithmetic A>
-	ARC_CMATH_CONSTEXPR auto trunc(A value) {
+	constexpr auto trunc(A value) {
+
+		if constexpr (std::is_constant_evaluated()) {
+			return isZero(value) ? value : A(::TT::template ToInteger<A>(value));
+		}
+
 		return std::trunc(value);
+
 	}
 
 	template<Arithmetic A>
-	ARC_CMATH_CONSTEXPR auto round(A value) {
+	constexpr auto round(A value) {
+
+		if constexpr (std::is_constant_evaluated()) {
+			return copysign(less(abs(value) - trunc(abs(value)), A(0.5)) ? trunc(abs(value)) : trunc(abs(value)) + A(1), value);
+		}
+
 		return std::round(value);
+
 	}
 
 	template<Arithmetic A>
@@ -274,24 +380,17 @@ namespace Math {
 		return (value * Math::pow(10, digits) + 0.5) / Math::pow(10, digits);
 	}
 
-	template<Arithmetic A>
-	constexpr auto copysign(A value, A sgn) noexcept {
-		return std::copysign(value, sgn);
-	}
-
-	template<Integer I>
-	constexpr auto sign(I value) noexcept {
-		return (value > I(0)) - (value < I(0));
-	}
-
-	template<Float F>
-	constexpr auto sign(F value) noexcept {
-		return 1 - std::signbit(value) * 2;
-	}
-
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D, Arithmetic E>
 	constexpr auto map(A value, B start1, C end1, D start2, E end2) noexcept {
-		return start2 + static_cast<double>(end2 - start2) * (static_cast<double>(value - start1) / static_cast<double>(end1 - start1));
+
+		using F = std::conditional_t<::TT::template IsAnyOf<double, A, B, C, D, E>, double, float>;
+
+		auto e = F(end2) - F(start2);
+		auto s = F(end1) - F(start1);
+		auto n = F(value) - F(start1);
+
+		return start2 + e * (n / s);
+
 	};
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
@@ -301,12 +400,12 @@ namespace Math {
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
 	constexpr auto clamp(A value, B lowerBound, C upperBound) noexcept {
-		return Math::less(value, lowerBound) ? lowerBound : (Math::greater(value, upperBound) ? upperBound : value);
+		return less(value, lowerBound) ? lowerBound : (greater(value, upperBound) ? upperBound : value);
 	}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
 	constexpr bool inRange(A value, B lowerBound, C upperBound) {
-		return Math::greaterEqual(value, lowerBound) && Math::lessEqual(value, upperBound);
+		return greaterEqual(value, lowerBound) && lessEqual(value, upperBound);
 	}
 
 	template<Integer I>
@@ -329,4 +428,90 @@ namespace Math {
 		return reinterpret_cast<AddressT>(ptr);
 	}
 
+	template<class T>
+	constexpr AddressT address(T& ptr) {
+		return std::addressof(ptr);
+	}
+
+
+
+	enum class ConstantType {
+		Zero,
+		AnyInfinity,
+		PosInfinity,
+		NegInfinity,
+		NaN
+	};
+
+	template<ConstantType Type>
+	class ArithmeticConstant
+	{
+	public:
+
+		// Zero
+
+		template<Arithmetic A>
+		constexpr std::strong_ordering operator<=>(A rhs) requires(Type == ConstantType::Zero) {
+			return { i8(Math::isZero(rhs) ? 0 : (Math::greater(0, rhs) ? 1 : -1)) };
+		}
+
+		template<Arithmetic A>
+		constexpr bool operator==(A rhs) requires(Type == ConstantType::Zero) {
+			return Math::isZero(rhs);
+		}
+
+	public:
+
+		// Infinity
+
+		template<Float F>
+		constexpr bool operator==(F rhs) requires(Type == ConstantType::AnyInfinity) {
+			return Math::isInfinity(rhs);
+		}
+
+	public:
+
+		// +Infinity
+
+		template<Float F>
+		constexpr bool operator==(F rhs) requires(Type == ConstantType::PosInfinity) {
+			return Math::isPositiveInfinity(rhs);
+		}
+
+		constexpr auto operator-() const requires(Type == ConstantType::PosInfinity) {
+			return ArithmeticConstant<ConstantType::NegInfinity>{};
+		}
+
+	public:
+
+		// -Infinity
+
+		template<Float F>
+		constexpr bool operator==(F rhs) requires(Type == ConstantType::NegInfinity) {
+			return Math::isNegativeInfinity(rhs);
+		}
+
+		constexpr auto operator-() const requires(Type == ConstantType::NegInfinity) {
+			return ArithmeticConstant<ConstantType::PosInfinity>{};
+		}
+
+	public:
+
+		// NaN
+
+		template<Float F>
+		constexpr bool operator==(F rhs) requires(Type == ConstantType::NaN) {
+			return Math::isNaN(rhs);
+		}
+
+	};
+
 }
+
+inline Math::ArithmeticConstant<Math::ConstantType::Zero> Zero;
+
+inline Math::ArithmeticConstant<Math::ConstantType::AnyInfinity> AnyInfinity;
+
+inline Math::ArithmeticConstant<Math::ConstantType::PosInfinity> Infinity;
+
+inline Math::ArithmeticConstant<Math::ConstantType::NaN> NaN;
