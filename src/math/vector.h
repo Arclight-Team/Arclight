@@ -95,6 +95,18 @@ public:
 	}
 
 	template<Arithmetic A>
+	constexpr Vec2& operator*=(const Vec2<A>& v) {
+		compMultiply(v);
+		return *this;
+	}
+
+	template<Arithmetic A>
+	constexpr Vec2& operator/=(const Vec2<A>& v) {
+		compDivide(v);
+		return *this;
+	}
+
+	template<Arithmetic A>
 	constexpr Vec2& operator*=(A s) {
 		multiply(s);
 		return *this;
@@ -306,6 +318,18 @@ public:
 	template<Arithmetic A>
 	constexpr Vec3& operator-=(const Vec3<A>& v) {
 		subtract(v);
+		return *this;
+	}
+
+	template<Arithmetic A>
+	constexpr Vec3& operator*=(const Vec3<A>& v) {
+		compMultiply(v);
+		return *this;
+	}
+
+	template<Arithmetic A>
+	constexpr Vec3& operator/=(const Vec3<A>& v) {
+		compDivide(v);
 		return *this;
 	}
 
@@ -540,6 +564,18 @@ public:
 	template<Arithmetic A>
 	constexpr Vec4& operator-=(const Vec4<A>& v) {
 		subtract(v);
+		return *this;
+	}
+
+	template<Arithmetic A>
+	constexpr Vec4& operator*=(const Vec4<A>& v) {
+		compMultiply(v);
+		return *this;
+	}
+
+	template<Arithmetic A>
+	constexpr Vec4& operator/=(const Vec4<A>& v) {
+		compDivide(v);
 		return *this;
 	}
 

@@ -25,18 +25,17 @@ namespace Font {
    
 
     template<Pixel P>
-    void rasterize(Image<P>& image, const Vec2i& origin, const TrueType::Glyph& glyph, double scale) {
+    void rasterizeSingle(Image<P>& image, const Vec2i& origin, const TrueType::Glyph& glyph, double scale, const Mat2d& transform = Mat2d()) {
 
         //Skip if the image size is 0
         if(image.getWidth() == 0 || image.getHeight() == 0) {
             return;
         }
 
-        //The glyph's scaled bounding box size
-        Vec2i bounds(Math::floor(glyph.xMax * scale) - Math::floor(glyph.xMin * scale) + 1, Math::floor(glyph.yMax * scale) - Math::floor(glyph.yMin * scale) + 1);
-
-        //Bounding box offset from glyph coordinates to bounding box offset
-        Vec2i bbOffset(Math::floor(glyph.xMin * scale), Math::floor(glyph.yMin * scale));
+        //Skip if the glyph is compound
+        if(glyph.compound) {
+            return;
+        }
 
         //Container to store the fills
         std::unordered_map<i32, std::vector<FillBound>> glyphFills;
@@ -65,8 +64,8 @@ namespace Font {
                 if(startOnCurve && endOnCurve) {
 
                     //Scale the points on the line
-                    Vec2d start = glyphData.points[j0] * scale;
-                    Vec2d end = glyphData.points[j1] * scale;
+                    Vec2d start = (transform * glyphData.points[j0]) * scale;
+                    Vec2d end = (transform * glyphData.points[j1]) * scale;
 
                     if(Math::equal(start.y, end.y)) {
 
@@ -106,13 +105,13 @@ namespace Font {
                 } else if (!endOnCurve) {
 
                     //Bezier spline
-                    Vec2d start = startOnCurve ? glyphData.points[j0] * scale : tangentOnCurve;
-                    Vec2d control = glyphData.points[j1] * scale;
+                    Vec2d start = startOnCurve ? (transform * glyphData.points[j0]) * scale : tangentOnCurve;
+                    Vec2d control = (transform * glyphData.points[j1]) * scale;
 
                     //End point
                     u32 j2 = j1 == contourIndices.y ? contourIndices.x : j1 + 1;
                     bool nextOnCurve = glyphData.onCurve[j2];
-                    Vec2d next = glyphData.points[j2] * scale;
+                    Vec2d next = (transform * glyphData.points[j2]) * scale;
 
                     //Implied tangent on-curve point lies halfway (if next is off-curve)
                     Vec2d end = nextOnCurve ? next : control + (next - control) / 2.0;
@@ -242,6 +241,24 @@ namespace Font {
                 }
 
             }
+
+        }
+
+    }
+
+
+    template<Pixel P>
+    void rasterize(const TrueType::Font& font, Image<P>& image, const Vec2i& origin, const TrueType::Glyph& glyph, double scale) {
+
+        if(glyph.compound) {
+
+            for(const TrueType::Glyph::Component& component : glyph.getGlyphComponents()) {
+                rasterizeSingle<P>(image, origin + component.offset * scale, font.glyphs[component.glyphIndex], scale, component.transform);
+            }
+
+        } else {
+
+            rasterizeSingle<P>(image, origin, glyph, scale);
 
         }
 

@@ -541,6 +541,7 @@ namespace TrueType {
 
         struct Component {
 
+            u32 glyphIndex;
             Vec2d offset;
             Mat2d transform;
 

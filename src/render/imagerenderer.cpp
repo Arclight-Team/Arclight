@@ -23,7 +23,7 @@
 #include "math/bezier.h"
 #include "math/fade.h"
 
-#include <complex>
+#include <map>
 
 
 bool ImageRenderer::init() {
@@ -145,9 +145,20 @@ bool ImageRenderer::init() {
         fontScale = 0.1;
         fontDirty = true;
 
-        for(u32 i = 0x21; i < 0x80; i++) {
-            if(!(i % 0x10)) fontText += "\n";
-            fontText += i;
+        u32 i = 0;
+
+        std::map<u32, u32> sortedMap(font.charMap.begin(), font.charMap.end());
+
+        for(const auto& [cp, id] : sortedMap) {
+
+            fontText += Unicode::toUTF<Unicode::UTF8>(cp);
+
+            if(i % 64 == 63) {
+                fontText += "\n";
+            }
+
+            i++;
+
         }
 
         video.addFrame(image, 0);
@@ -273,7 +284,7 @@ void ImageRenderer::recalculateFont() {
 
         const TrueType::Glyph& glyph = font.glyphs[font.charMap[*it]];
 
-        Font::rasterize(image, Vec2i(caretX, caretY), glyph, fontScale);
+        Font::rasterize(font, image, Vec2i(caretX, caretY), glyph, fontScale);
 
         caretX += static_cast<i32>(Math::round(glyph.advance * fontScale));
 

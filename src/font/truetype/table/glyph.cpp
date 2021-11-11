@@ -2,6 +2,8 @@
 #include "stream/binaryreader.h"
 #include "math/matrix.h"
 
+#include "debug.h"
+
 
 namespace TrueType {
 
@@ -50,6 +52,7 @@ namespace TrueType {
         std::vector<u8> flags;
         std::vector<Vec2i> points;
         std::vector<bool> onCurve;
+        std::vector<Vec4i> componentDispatches;    //x = glyph ID, y = component ID, z/w = indices
 
         for(u32 n = 0; n < glyphOffsets.size(); n++) {
 
@@ -97,6 +100,8 @@ namespace TrueType {
                 u32 componentID = 0;
                 bool hasInstructions = false;
 
+                glyph.data = std::vector<Glyph::Component>();
+
                 do {
 
                     requiredSize += 4;
@@ -115,7 +120,7 @@ namespace TrueType {
                     bool round = flag & ComponentGlyphFlags::RoundXY;   //TODO: Apply correct rounding
                     //TODO: Apply correct base scaling
 
-                    hasInstructions |= flag & ComponentGlyphFlags::HasInstructions;
+                    hasInstructions |= static_cast<bool>(flag & ComponentGlyphFlags::HasInstructions);
 
                     if(flag & ComponentGlyphFlags::UseComponentMetrics) {
                         metricsID = componentID;
@@ -188,8 +193,6 @@ namespace TrueType {
 
                     }
 
-                    Vec2d offset;
-
                     Mat2d transform;
 
                     switch(scaleData) {
@@ -200,7 +203,7 @@ namespace TrueType {
 
                         case ScaleData::Single:
                             {
-                                double scale = reader.read<i16>();
+                                double scale = reader.read<i16>() / 16384.0;
 
                                 transform[0][0] = scale;
                                 transform[1][1] = scale;
@@ -209,8 +212,8 @@ namespace TrueType {
 
                         case ScaleData::Dual:
                             {
-                                double scaleX = reader.read<i16>();
-                                double scaleY = reader.read<i16>();
+                                double scaleX = reader.read<i16>() / 16384.0;
+                                double scaleY = reader.read<i16>() / 16384.0;
 
                                 transform[0][0] = scaleX;
                                 transform[1][1] = scaleY;
@@ -220,13 +223,25 @@ namespace TrueType {
                         case ScaleData::Matrix:
 
                             transform = {
-                                reader.read<i16>(), reader.read<i16>(),
-                                reader.read<i16>(), reader.read<i16>()
+                                reader.read<i16>() / 16384.0, reader.read<i16>() / 16384.0,
+                                reader.read<i16>() / 16384.0, reader.read<i16>() / 16384.0
                             };
 
                             break;
 
                     }
+
+                    Glyph::Component component;
+                    component.transform = transform;
+                    component.glyphIndex = glyphIndex;
+
+                    if(sgnd) {
+                        component.offset = Vec2d(arg0, arg1);
+                    } else {
+                        componentDispatches.emplace_back(n, componentID, arg0, arg1);
+                    }
+
+                    glyph.getGlyphComponents().push_back(component);
 
                     componentID++;
 
@@ -247,6 +262,8 @@ namespace TrueType {
                 }
 
             } else {
+
+                glyph.data = Glyph::Data();
 
                 requiredSize += contourCount * 2 + 2;
 
@@ -381,6 +398,70 @@ namespace TrueType {
             glyphs.push_back(glyph);
 
         }
+
+        for(const Vec4i& dc : componentDispatches) {
+
+            Glyph::Component& c = glyphs[dc.x].getGlyphComponents()[dc.y];
+            u32 referenceGlyphID = c.glyphIndex;
+
+            if(referenceGlyphID >= glyphs.size()) {
+                throw LoaderException("Failed to load glyph table: Component glyph reference index out of bounds");
+            }
+
+            const Glyph& refGlyph = glyphs[referenceGlyphID];
+
+            if(refGlyph.compound) {
+                throw LoaderException("Failed to load glyph table: Component reference glyph cannot be a compound glyph");
+            }
+
+            const Glyph::Data& data = refGlyph.getGlyphData();
+
+            if(data.points.size() == 0) {
+                throw LoaderException("Failed to load glyph table: Component reference point array is empty");
+            }
+
+            i32 x = dc.z;
+            i32 y = dc.w;
+
+            if(!Math::inRange(x, 0, data.points.size() - 1) || !Math::inRange(y, 0, data.points.size() - 1)) {
+                throw LoaderException("Failed to load glyph table: Component reference points are out of bounds");
+            }
+
+            c.offset = data.points[y] - data.points[x];
+
+        }
+
+        for(Glyph& glyph : glyphs) {
+
+            if(!glyph.compound) {
+                continue;
+            }
+
+            std::vector<Glyph::Component>& components = glyph.getGlyphComponents();
+
+            for(Glyph::Component& component : components) {
+
+                constexpr static double transformThreshold = 33.0 / 65536.0;
+
+                const Mat2d& transform = component.transform;
+                double a = Math::abs(transform[0][0]);
+                double b = Math::abs(transform[0][1]);
+                double c = Math::abs(transform[1][0]);
+                double d = Math::abs(transform[1][1]);
+
+                double m0 = Math::max(a, b);
+                double n0 = Math::max(c, d);
+                double m = Math::lessEqual(Math::abs(a - c), transformThreshold) ? 2 * m0 : m0;
+                double n = Math::lessEqual(Math::abs(b - d), transformThreshold) ? 2 * n0 : n0;
+
+                component.offset *= Vec2d(m, n);
+
+            }
+
+        }
+
+        Log::info("", "%d", componentDispatches.size());
+        Log::info("", "%d", glyphs.size());
 
 #ifdef ARC_FONT_DEBUG
         Log::info("TrueType Loader", "[Glyph] Loaded %d entries", glyphOffsets.size());
