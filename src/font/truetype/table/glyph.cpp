@@ -2,7 +2,6 @@
 #include "stream/binaryreader.h"
 #include "math/matrix.h"
 
-#include "debug.h"
 
 
 namespace TrueType {
@@ -459,9 +458,6 @@ namespace TrueType {
             }
 
         }
-
-        Log::info("", "%d", componentDispatches.size());
-        Log::info("", "%d", glyphs.size());
 
 #ifdef ARC_FONT_DEBUG
         Log::info("TrueType Loader", "[Glyph] Loaded %d entries", glyphOffsets.size());

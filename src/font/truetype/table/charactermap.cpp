@@ -1,5 +1,6 @@
 #include "font/truetype/truetype.h"
 #include "stream/binaryreader.h"
+#include "util/bool.h"
 
 
 
@@ -126,6 +127,45 @@ namespace TrueType {
     }
 
 
+    std::unordered_map<u32, u32> parseSubtableVersion12(BinaryReader& reader, u32 tableSize) {
+
+        if(tableSize < 14) {
+            throw LoaderException("Failed to load character map subtable 12: Stream size too small");
+        }
+
+        u16 reserved = reader.read<u16>();
+        u32 length = reader.read<u32>();
+        u32 language = reader.read<u32>();
+        u32 groups = reader.read<u32>();
+
+#ifdef ARC_FONT_DEBUG
+        Log::info("TrueType Loader", "[Character Map Subtable 12] Reserved: %d, Length: 0x%X, Language: %d, Groups: %d", reserved, length, language, groups);
+#endif
+
+        if(groups * 12 + 14 < tableSize) {
+            throw LoaderException("Failed to load character map subtable 12: Stream size too small");  
+        }
+
+        std::unordered_map<u32, u32> charMap;
+
+        for(u32 i = 0; i < groups; i++) {
+
+            u32 start = reader.read<u32>();
+            u32 end = reader.read<u32>();
+            u32 glyphStart = reader.read<u32>();
+
+            for(u32 j = start; j <= end; j++) {
+                charMap[j] = glyphStart++;
+            }
+
+        }
+
+        return charMap;
+
+    }
+
+
+
     std::unordered_map<u32, u32> parseCharacterMapTable(BinaryReader& reader, u32 tableSize) {
 
         if(tableSize < 4) {
@@ -181,7 +221,7 @@ namespace TrueType {
 
                 case PlatformID::Unicode:
 
-                    if(header.platformSpecificID == 14) {
+                    if(Bool::one<i32>(header.platformSpecificID, static_cast<i32>(UnicodeEncoding::UVS), 14)) {
                         uvsHeaders.push_back(header);
                     } else {
                         unicodeHeaders.push_back(header);
@@ -216,15 +256,15 @@ namespace TrueType {
         CMapSubtableHeader bestHeader;
         bool useUvs = false;
 
+        if(uvsHeaders.size()) {
+                useUvs = true;
+        }
+
         if(symbolHeaders.size()) {
 
             bestHeader = symbolHeaders[0];
 
-        } else if (unicodeHeaders.size()) {
-
-            if(uvsHeaders.size()) {
-                useUvs = true;
-            }
+        } else if (unicodeHeaders.size() > uvsHeaders.size()) {
 
             u16 bestUnicodeEncoding = 6;
             u32 bestIndex = -1;
@@ -328,7 +368,9 @@ namespace TrueType {
 
             case 4:
                 return parseSubtableVersion4(reader, tableSize - targetOffset - 2);
-                //break;
+
+            case 12:
+                return parseSubtableVersion12(reader, tableSize - targetOffset - 2);
 
             default:
                 throw LoaderException("Not yet implemented");

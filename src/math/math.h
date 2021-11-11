@@ -343,12 +343,12 @@ namespace Math {
 
 	template<Arithmetic A>
 	constexpr auto floor(A value) {
-
+/*
 		if constexpr (std::is_constant_evaluated()) {
 			auto integer = trunc(value);
 			return integer + i32(less(value, integer) && less(value, A(0)));
 		}
-
+*/
 		return std::floor(value);
 
 	}

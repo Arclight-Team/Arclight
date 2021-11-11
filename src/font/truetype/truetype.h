@@ -7,6 +7,7 @@
 #include "arcconfig.h"
 #include "types.h"
 
+#include <vector>
 #include <stdexcept>
 #include <unordered_map>
 #include <variant>
@@ -616,6 +617,8 @@ namespace TrueType {
     }
 
     TableMap parseFileHeader(BinaryReader& reader);
+    std::vector<TableMap> parseSharedFileHeader(BinaryReader& reader);
+
     void parseNameTable(BinaryReader& reader, u32 tableSize);
     FontHeader parseHeaderTable(BinaryReader& reader, u32 tableSize);
     HorizontalHeader parseHorizontalHeaderTable(BinaryReader& reader, u32 tableSize);

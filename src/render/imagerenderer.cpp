@@ -22,6 +22,7 @@
 #include "core/thread/thread.h"
 #include "math/bezier.h"
 #include "math/fade.h"
+#include "util/codeconv.h"
 
 #include <map>
 
@@ -133,20 +134,22 @@ bool ImageRenderer::init() {
 
         Timer timer;
 
-        File fontFile("@/fonts/comic.ttf", File::In | File::Binary);
+        File fontFile("@/fonts/msgothic.ttc", File::In | File::Binary);
         fontFile.open();
         FileInputStream fontFileStream(fontFile);
 
         timer.start();
-        font = TrueType::loadFont(fontFileStream);
+        font = TrueType::loadFontCollection(fontFileStream)[0];
         Log::info("Timer", "TTF loading time: %fus", timer.getElapsedTime(Time::Unit::Microseconds));
 
         image = Image<PixelFmt>(canvasWidth, canvasHeight);
-        fontScale = 0.1;
+        fontScale = 1;
         fontDirty = true;
 
-        u32 i = 0;
+        fontText += "アークライト";
 
+/*
+        u32 i = 0;
         std::map<u32, u32> sortedMap(font.charMap.begin(), font.charMap.end());
 
         for(const auto& [cp, id] : sortedMap) {
@@ -160,6 +163,7 @@ bool ImageRenderer::init() {
             i++;
 
         }
+*/
 
         video.addFrame(image, 0);
 
@@ -250,7 +254,7 @@ void ImageRenderer::destroy() {
 
 void ImageRenderer::recalculateFont() {
 
-    i32 pointY = Math::round(2000 * fontScale);
+    i32 pointY = Math::round(200 * fontScale);
 
     i32 caretX = 0;
     i32 caretY = canvasHeight - 1 - pointY;
