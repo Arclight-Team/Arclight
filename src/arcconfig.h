@@ -21,11 +21,19 @@
 #define ARC_USE_DISCORD		0
 #endif
 
+
+/*
+	Define if INI section and names should be treated like in Windows implementations (case insensitive)
+*/
+//#define ARC_INI_CASE_INSENSITIVE
+
+
 /*
 	Switches to using constexpr in C math functions
 	Affected functions:
-		std::isinf
-		std::isnan
+		*std::abs
+		*std::isinf
+		*std::isnan
 		std::sin
 		std::cos
 		std::tan
@@ -33,17 +41,20 @@
 		std::acos
 		std::atan
 		std::atan2
-		std::fmod
+		*std::mod
 		std::exp
 		std::pow
 		std::log
 		std::log10
 		std::sqrt
 		std::cbrt
-		std::ceil
-		std::floor
-		std::trunc
-		std::round
+		*std::ceil
+		*std::floor
+		*std::trunc
+		*std::round
+		*std::copysign
+	
+	(*) = constexpr implementations provided
 
 */
 
@@ -191,45 +202,3 @@
 	ARC_QUATERNION_XYZW: Sets w to be the last component
 */
 //#define ARC_QUATERNION_XYZW
-
-
-/*
-	Image debugging
-	ARC_IMAGE_DEBUG: Prints debug output for images
-*/
-//#define ARC_IMAGE_DEBUG
-
-
-/*
-	Pixel interpolation strategy
-	ARC_PIXEL_EXACT: Use rounding instead of truncation during conversion. Note that this method is a lot slower.
-*/
-//#define ARC_PIXEL_EXACT
-
-
-/*
-	Stream I/O acceleration
-	ARC_STREAM_ACCELERATE: Accelerates stream performance by disabling runtime checks
-*/
-#define ARC_STREAM_ACCELERATE
-
-
-/*
-	Filter application strategy
-	ARC_FILTER_EXACT: Favor precision over speed.
-*/
-#define ARC_FILTER_EXACT
-
-
-/*
-	Load application icon
-	ARC_APP_ICON_ENABLE: Loads the app icon upon boot
-*/
-//#define ARC_APP_ICON_ENABLE
-
-
-/*
-	Font debugging
-	ARC_FONT_DEBUG: Prints debug output for fonts
-*/
-#define ARC_FONT_DEBUG
