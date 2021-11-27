@@ -9,7 +9,7 @@ typedef u32 KeyAction;
 struct KeyCode {
 	enum : Key {
 		/* The unknown key */
-		Unknown               = -1,
+		Unknown               = 0xFFFFFFFF,
 	
 		/* Printable keys */
 		Space                 = 32 ,

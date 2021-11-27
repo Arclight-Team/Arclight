@@ -55,26 +55,11 @@ public:
         arc_assert(startPixel + pixels <= data.size(), "Cannot copy pixel data to smaller image");
 
         for(SizeT i = 0; i < pixels; i++) {
-            data[i + startPixel] = Format::fromBytes(data.subspan(src * PixelBytes));
+            data[i + startPixel] = Format(src.subspan(i * PixelBytes, PixelBytes));
         }
 
     }
 
-    template<Pixel Q>
-    constexpr Image<Q> convertTo() const {
-
-        Image<Q> image(width, height);
-
-        for(u64 i = 0; i < width * height; i++) {
-
-            auto pixel = Format::inflate(data[i]);
-            image.data[i] = PixelFormat<Q>::deflate(pixel);
-
-        }
-
-        return image;
-
-    }
 
     constexpr u32 getWidth() const {
         return width;

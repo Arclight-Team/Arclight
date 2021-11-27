@@ -67,11 +67,11 @@ protected:
 	static u32 getBufferTypeEnum(BufferType type);
 	static u32 getBufferAccessEnum(BufferAccess access);
 
-	constexpr void setBoundBufferID(BufferType type, u32 id) const {
+	inline void setBoundBufferID(BufferType type, u32 id) const {
 		boundBufferIDs[static_cast<u32>(type)] = id;
 	}
 
-	constexpr u32 getBoundBufferID(BufferType type) const {
+	inline u32 getBoundBufferID(BufferType type) const {
 		return boundBufferIDs[static_cast<u32>(type)];
 	}
 

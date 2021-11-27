@@ -19,7 +19,7 @@ namespace Time {
 	std::string getTimeValueString(u32 value) {
 
 		if (value < 10) {
-			return "0" + std::to_string(value);
+			return '0' + std::to_string(value);
 		} else {
 			return std::to_string(value);
 		}

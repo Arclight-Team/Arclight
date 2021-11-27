@@ -47,7 +47,7 @@ namespace Unicode {
 
         } else if constexpr (E == Encoding::UTF16LE || E == Encoding::UTF16BE) {
 
-            constexpr static bool convert = Bits::requiresEndianConversion(E == Encoding::UTF16LE ? ByteOrder::Little : ByteOrder::Big);
+            constexpr bool convert = Bits::requiresEndianConversion(E == Encoding::UTF16LE ? ByteOrder::Little : ByteOrder::Big);
 
             if (codepoint >= 0x10000) {
 
@@ -75,7 +75,7 @@ namespace Unicode {
 
         } else if constexpr (E == Encoding::UTF32LE || E == Encoding::UTF32BE) {
 
-            constexpr static bool convert = Bits::requiresEndianConversion(E == Encoding::UTF32LE ? ByteOrder::Little : ByteOrder::Big);
+            constexpr bool convert = Bits::requiresEndianConversion(E == Encoding::UTF32LE ? ByteOrder::Little : ByteOrder::Big);
 
             if constexpr (convert) {
                 codepoint = Bits::swap32(codepoint);
@@ -92,7 +92,7 @@ namespace Unicode {
     template<Encoding E>
     constexpr static u32 toCodepoint(const std::string_view& in, u32& readBytes) noexcept {
 
-        constexpr static u32 errorCodepoint = 0xFFFD;
+        constexpr u32 errorCodepoint = 0xFFFD;
 
         if constexpr (E == Encoding::UTF8) {
 
@@ -131,7 +131,7 @@ namespace Unicode {
 
         } else if constexpr (E == Encoding::UTF16LE || E == Encoding::UTF16BE) {
 
-            constexpr static bool convert = Bits::requiresEndianConversion(E == Encoding::UTF16LE ? ByteOrder::Little : ByteOrder::Big);
+            constexpr bool convert = Bits::requiresEndianConversion(E == Encoding::UTF16LE ? ByteOrder::Little : ByteOrder::Big);
 
             if(in.size() < 2) { readBytes = 0; return errorCodepoint; }
 
@@ -164,7 +164,7 @@ namespace Unicode {
 
         } else if constexpr (E == Encoding::UTF32LE || E == Encoding::UTF32BE) {
 
-            constexpr static bool convert = Bits::requiresEndianConversion(E == Encoding::UTF32LE ? ByteOrder::Little : ByteOrder::Big);
+            constexpr bool convert = Bits::requiresEndianConversion(E == Encoding::UTF32LE ? ByteOrder::Little : ByteOrder::Big);
 
             if(in.size() < 4) { readBytes = 0; return errorCodepoint; }
 
@@ -254,7 +254,7 @@ private:
 
         } else if constexpr (E == Unicode::Encoding::UTF16LE || E == Unicode::Encoding::UTF16BE) {
 
-            constexpr static bool convert = Bits::requiresEndianConversion(E == Unicode::Encoding::UTF16LE ? ByteOrder::Little : ByteOrder::Big);
+            constexpr bool convert = Bits::requiresEndianConversion(E == Unicode::Encoding::UTF16LE ? ByteOrder::Little : ByteOrder::Big);
 
             u8 c = str[pos + !convert];
 
@@ -288,7 +288,7 @@ private:
 
         } else if constexpr (E == Unicode::Encoding::UTF16LE || E == Unicode::Encoding::UTF16BE) {
 
-            constexpr static bool convert = Bits::requiresEndianConversion(E == Unicode::Encoding::UTF16LE ? ByteOrder::Little : ByteOrder::Big);
+            constexpr bool convert = Bits::requiresEndianConversion(E == Unicode::Encoding::UTF16LE ? ByteOrder::Little : ByteOrder::Big);
 
             u8 c = str[pos - 1 - convert];
 

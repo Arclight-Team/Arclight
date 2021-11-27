@@ -21,7 +21,7 @@ namespace CodeConv {
 
     //UTF inter-conversion
     template<Encoding From, Encoding To>
-    constexpr static u32 convertUnicode(const std::string_view& in) {
+    constexpr static std::string convertUnicode(const std::string_view& in) {
 
         std::string convertedString;
         convertedString.reserve(in.size());

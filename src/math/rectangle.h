@@ -141,7 +141,7 @@ public:
         if(ax1 <= bx0) {
 
             //No intersection
-            return Rectangle<A>;
+            return Rectangle<A>();
 
         } else if(ax1 >= bx1) {
 
@@ -161,7 +161,7 @@ public:
         if(ay1 <= by0) {
 
             //No intersection
-            return Rectangle<A>;
+            return Rectangle<A>();
 
         } else if(ay1 >= by1) {
 

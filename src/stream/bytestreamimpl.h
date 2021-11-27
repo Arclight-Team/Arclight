@@ -4,8 +4,10 @@
 #include "util/assert.h"
 #include "math/math.h"
 #include "types.h"
+
 #include <span>
 #include <memory>
+#include <algorithm>
 
 
 template<bool Const>
@@ -13,7 +15,7 @@ class ByteStreamImpl
 {    
 public:
 
-    using ByteType = std::conditional_t<Const, const std::byte, std::byte>;
+    using ByteType = std::conditional_t<Const, const Byte, Byte>;
 
 	template<class T>
 	ByteStreamImpl(const std::span<T>& data) : position(0) {
@@ -33,7 +35,7 @@ public:
         arc_assert(position + size <= getSize(), "Cannot read past the end of the stream");
 
         size = Math::min(size, getSize() - position);
-        std::memcpy(dest, data.data() + position, size);
+        std::copy_n(data.data() + position, size, static_cast<Byte*>(dest));
         
         position += size;
 
@@ -41,13 +43,13 @@ public:
 
     }
 
-	SizeT write(const void* src, SizeT size) requires !Const {
+	SizeT write(const void* src, SizeT size) requires (!Const) {
 
         arc_assert(src != nullptr, "Source is null");
         arc_assert(position + size <= getSize(), "Cannot write past the end of the stream");
 
         size = Math::min(size, getSize() - position);
-        std::memcpy(data.data() + position, src, size);
+        std::copy_n(static_cast<const Byte*>(src), size, data.data() + position);
 
         position += size;
 

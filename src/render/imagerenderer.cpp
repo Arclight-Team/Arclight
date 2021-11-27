@@ -23,6 +23,7 @@
 #include "math/bezier.h"
 #include "math/fade.h"
 #include "util/codeconv.h"
+#include "math/random.h"
 
 #include <map>
 

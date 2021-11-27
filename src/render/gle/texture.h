@@ -185,11 +185,11 @@ protected:
 
 private:
 
-	constexpr void setBoundTextureID(TextureType type, u32 id) const {
+	inline void setBoundTextureID(TextureType type, u32 id) const {
 		boundTextureIDs[static_cast<u32>(type)] = id;
 	}
 
-	constexpr u32 getBoundTextureID(TextureType type) const {
+	inline u32 getBoundTextureID(TextureType type) const {
 		return boundTextureIDs[static_cast<u32>(type)];
 	}
 

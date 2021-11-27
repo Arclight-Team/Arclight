@@ -2,14 +2,14 @@
 
 #include "arcbuild.h"
 
-#if defined(ARC_PLATFORM_X86) && defined(ARC_COMPILER_MSVC)
+#if defined(ARC_PLATFORM_X86)
 	/*
 		For _mm_pause
 	*/
 	#include <immintrin.h>
 #endif
 
-#ifdef ARC_COMPILER_MSVC
+#if defined(ARC_PLATFORM_X86) && defined(ARC_COMPILER_MSVC)
 	/*
 		For __nop
 	*/

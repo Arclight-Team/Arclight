@@ -75,7 +75,7 @@ class SparseArray {
 
     private:
 
-        template<bool Const>
+        template<bool ConstOther>
         friend class IteratorBase;
 
 #ifdef ARC_SPARSE_PACK

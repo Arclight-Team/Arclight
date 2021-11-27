@@ -2,7 +2,6 @@
 
 #include "math/math.h"
 #include "util/assert.h"
-#include "random.h"
 #include "util/typetraits.h"
 
 
@@ -203,18 +202,6 @@ public:
 		return v;
 	}
 
-	constexpr static Vec2 randomUnit() {
-
-		auto& random = Random::getRandom();
-
-		Vec2 v;
-		v.x = random.getInt();
-		v.y = random.getInt();
-		v.normalize();
-
-		return v;
-
-	}
 
 	constexpr Vec3<T> toVec3() const {
 		return { x, y, 0 };
@@ -438,19 +425,6 @@ public:
 		return v;
 	}
 
-	constexpr static Vec3 randomUnit() {
-
-		auto& random = Random::getRandom();
-
-		Vec3 v;
-		v.x = random.getInt();
-		v.y = random.getInt();
-		v.z = random.getInt();
-		v.normalize();
-
-		return v;
-
-	}
 
 	constexpr Vec2<T> toVec2() const {
 		return { x, y };
@@ -680,20 +654,6 @@ public:
 		return v;
 	}
 
-	constexpr static Vec4 randomUnit() {
-
-		auto& random = Random::getRandom();
-
-		Vec4 v;
-		v.x = random.getInt();
-		v.y = random.getInt();
-		v.z = random.getInt();
-		v.w = random.getInt();
-		v.normalize();
-
-		return v;
-
-	}
 
 	constexpr Vec2<T> toVec2() const {
 		return { x, y };

@@ -13,20 +13,20 @@ class File {
 
 public:
 
-	typedef u8 Flags;
-
-	static constexpr u8 In		= std::ios::in;
-	static constexpr u8 Out		= std::ios::out;
-	static constexpr u8 Binary	= std::ios::binary;
-	static constexpr u8 AtEnd	= std::ios::ate;
-	static constexpr u8 Append	= std::ios::app;
-	static constexpr u8 Trunc	= std::ios::trunc;
+	enum Flags : u32 {
+		In = 0x1,
+		Out = 0x2,
+		Binary = 0x4,
+		AtEnd = 0x8,
+		Append = 0x10,
+		Trunc = 0x20
+	};
 
 	File();
-	explicit File(const Uri& path, File::Flags flags = File::In);
+	explicit File(const Uri& path, u32 flags = File::In);
 
 	bool open();
-	bool open(const Uri& path, File::Flags flags = File::In);
+	bool open(const Uri& path, u32 flags = File::In);
 	void close();
 
 	std::string read(u64 count);
@@ -48,14 +48,13 @@ public:
 	u64 getFileSize() const;
 
 	Uri getUri() const;
-	Flags getStreamFlags() const;
+	u32 getStreamFlags() const;
 	u64 getLastWriteTime() const;
 	
-
 private:
 
 	mutable std::fstream stream;
 	Uri filepath;
-	Flags openFlags;
+	u32 openFlags;
 
 };

@@ -2,15 +2,19 @@
 
 #include "types.h"
 #include "arcconfig.h"
+#include "arcintrinsic.h"
 #include "util/concepts.h"
+#include "util/typetraits.h"
 
 #include <cmath>
+#include <limits>
+#include <cstdlib>
 
 
 #if defined(ARC_CMATH_CONSTEXPR_FIX) && ARC_CMATH_CONSTEXPR_FIX
 #define ARC_CMATH_CONSTEXPR constexpr
 #else
-#define ARC_CMATH_CONSTEXPR __forceinline
+#define ARC_CMATH_CONSTEXPR ARC_FORCE_INLINE
 #endif
 
 
@@ -20,8 +24,6 @@ namespace Math {
 	constexpr double e = 2.7182818284590452353602875;
 	constexpr double epsilon = 0.000001;
 	constexpr double minEpsilon = 0.00000001;
-	constexpr double infinity = 1e+300 * 1e+300;
-	constexpr double nan = infinity * 0.0;
 
 
 	template<Arithmetic A> constexpr auto ceil(A value);
@@ -203,8 +205,8 @@ namespace Math {
 	template<Float F>
 	constexpr bool isInfinity(F value) {
 
-		if constexpr (std::is_constant_evaluated()) {
-			return value == infinity || value == -infinity;
+		if constexpr (std::is_constant_evaluated() && std::numeric_limits<F>::has_infinity()) {
+			return value == std::numeric_limits<F>::infinity() || value == -std::numeric_limits<F>::infinity();
 		}
 
 		return std::isinf(value);
@@ -214,8 +216,8 @@ namespace Math {
 	template<Float F>
 	constexpr bool isPositiveInfinity(F value) {
 
-		if constexpr (std::is_constant_evaluated()) {
-			return value == infinity;
+		if constexpr (std::is_constant_evaluated() && std::numeric_limits<F>::has_infinity()) {
+			return value == std::numeric_limits<F>::infinity();
 		}
 
 		return std::isinf(value) && sign(value) == 1;
@@ -225,8 +227,8 @@ namespace Math {
 	template<Float F>
 	constexpr bool isNegativeInfinity(F value) {
 
-		if constexpr (std::is_constant_evaluated()) {
-			return value == -infinity;
+		if constexpr (std::is_constant_evaluated() && std::numeric_limits<F>::has_infinity()) {
+			return value == -std::numeric_limits<F>::infinity();
 		}
 
 		return std::isinf(value) && sign(value) == -1;
@@ -235,13 +237,7 @@ namespace Math {
 
 	template<Float F>
 	constexpr bool isNaN(F value) {
-
-		if constexpr (std::is_constant_evaluated()) {
-			return value == nan;
-		}
-
 		return std::isnan(value);
-
 	}
 
 	template<Arithmetic A>
@@ -332,47 +328,22 @@ namespace Math {
 
 	template<Arithmetic A>
 	constexpr auto ceil(A value) {
-
-		if constexpr (std::is_constant_evaluated()) {
-			return trunc(value) + i32(greater(value, trunc(value)) && greater(value, A(0)));
-		}
-
 		return std::ceil(value);
-
 	}
 
 	template<Arithmetic A>
 	constexpr auto floor(A value) {
-/*
-		if constexpr (std::is_constant_evaluated()) {
-			auto integer = trunc(value);
-			return integer + i32(less(value, integer) && less(value, A(0)));
-		}
-*/
 		return std::floor(value);
-
 	}
 
 	template<Arithmetic A>
 	constexpr auto trunc(A value) {
-
-		if constexpr (std::is_constant_evaluated()) {
-			return isZero(value) ? value : A(::TT::template ToInteger<A>(value));
-		}
-
 		return std::trunc(value);
-
 	}
 
 	template<Arithmetic A>
 	constexpr auto round(A value) {
-
-		if constexpr (std::is_constant_evaluated()) {
-			return copysign(less(abs(value) - trunc(abs(value)), A(0.5)) ? trunc(abs(value)) : trunc(abs(value)) + A(1), value);
-		}
-
 		return std::round(value);
-
 	}
 
 	template<Arithmetic A>
@@ -383,7 +354,7 @@ namespace Math {
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D, Arithmetic E>
 	constexpr auto map(A value, B start1, C end1, D start2, E end2) noexcept {
 
-		using F = std::conditional_t<::TT::template IsAnyOf<double, A, B, C, D, E>, double, float>;
+		using F = std::conditional_t<TT::IsAnyOf<double, A, B, C, D, E>, double, float>;
 
 		auto e = F(end2) - F(start2);
 		auto s = F(end1) - F(start1);
@@ -436,11 +407,7 @@ namespace Math {
 
 
 	enum class ConstantType {
-		Zero,
-		AnyInfinity,
-		PosInfinity,
-		NegInfinity,
-		NaN
+		Zero
 	};
 
 	template<ConstantType Type>
@@ -448,11 +415,10 @@ namespace Math {
 	{
 	public:
 
-		// Zero
-
+		//Zero
 		template<Arithmetic A>
-		constexpr std::strong_ordering operator<=>(A rhs) requires(Type == ConstantType::Zero) {
-			return { i8(Math::isZero(rhs) ? 0 : (Math::greater(0, rhs) ? 1 : -1)) };
+		constexpr auto operator<=>(A rhs) requires(Type == ConstantType::Zero) {
+			return Math::isZero(rhs) ? 0 : (Math::greater(0, rhs) ? 1 : -1);
 		}
 
 		template<Arithmetic A>
@@ -460,48 +426,9 @@ namespace Math {
 			return Math::isZero(rhs);
 		}
 
-	public:
-
-		// Infinity
-
-		template<Float F>
-		constexpr bool operator==(F rhs) requires(Type == ConstantType::AnyInfinity) {
-			return Math::isInfinity(rhs);
-		}
-
-	public:
-
-		// +Infinity
-
-		template<Float F>
-		constexpr bool operator==(F rhs) requires(Type == ConstantType::PosInfinity) {
-			return Math::isPositiveInfinity(rhs);
-		}
-
-		constexpr auto operator-() const requires(Type == ConstantType::PosInfinity) {
-			return ArithmeticConstant<ConstantType::NegInfinity>{};
-		}
-
-	public:
-
-		// -Infinity
-
-		template<Float F>
-		constexpr bool operator==(F rhs) requires(Type == ConstantType::NegInfinity) {
-			return Math::isNegativeInfinity(rhs);
-		}
-
-		constexpr auto operator-() const requires(Type == ConstantType::NegInfinity) {
-			return ArithmeticConstant<ConstantType::PosInfinity>{};
-		}
-
-	public:
-
-		// NaN
-
-		template<Float F>
-		constexpr bool operator==(F rhs) requires(Type == ConstantType::NaN) {
-			return Math::isNaN(rhs);
+		template<ConstantType T>
+		consteval bool operator==(ArithmeticConstant<T> t) requires(Type == ConstantType::Zero) {
+			return T == ConstantType::Zero;
 		}
 
 	};
@@ -509,9 +436,3 @@ namespace Math {
 }
 
 inline Math::ArithmeticConstant<Math::ConstantType::Zero> Zero;
-
-inline Math::ArithmeticConstant<Math::ConstantType::AnyInfinity> AnyInfinity;
-
-inline Math::ArithmeticConstant<Math::ConstantType::PosInfinity> Infinity;
-
-inline Math::ArithmeticConstant<Math::ConstantType::NaN> NaN;

@@ -1,12 +1,36 @@
 #include "file.h"
 #include "util/assert.h"
+#include "util/log.h"
+
+
+
+constexpr static std::ios::openmode convertFlagsToStdFlags(u32 flags) {
+
+	//Safe because mode gets or'ed later
+	std::ios::openmode mode = static_cast<std::ios::openmode>(0);
+
+	if(!flags) {
+		Log::warn("File", "File flags cannot be 0, resorting to File::In");
+		return std::ios::in;
+	}
+
+	if(flags & File::In) { mode |= std::ios::in; }
+	if(flags & File::Out) { mode |= std::ios::out; }
+	if(flags & File::Binary) { mode |= std::ios::binary; }
+	if(flags & File::AtEnd) { mode |= std::ios::ate; }
+	if(flags & File::Append) { mode |= std::ios::app; }
+	if(flags & File::Trunc) { mode |= std::ios::trunc; }
+
+	return mode;
+
+}
+
 
 
 
 File::File() : openFlags(0) {}
 
-
-File::File(const Uri& path, File::Flags flags) : filepath(path), openFlags(flags) {};
+File::File(const Uri& path, u32 flags) : filepath(path), openFlags(flags) {};
 
 
 
@@ -19,14 +43,14 @@ bool File::open() {
 		return false;
 	}
 
-	stream.open(filepath.getPath(), openFlags);
+	stream.open(filepath.getPath(), convertFlagsToStdFlags(openFlags));
 
 	return isOpen();
 
 }
 
 
-bool File::open(const Uri& path, File::Flags flags) {
+bool File::open(const Uri& path, u32 flags) {
 
 	filepath = path;
 	openFlags = flags;
@@ -198,7 +222,7 @@ Uri File::getUri() const {
 
 
 
-File::Flags File::getStreamFlags() const {
+u32 File::getStreamFlags() const {
 	return openFlags;
 }
 
