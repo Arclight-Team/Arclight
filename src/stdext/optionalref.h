@@ -26,10 +26,12 @@ class OptionalRef {
 public:
 
     static_assert(BaseType<T>, "T must be a plain data type");
+    static_assert(Destructible<T>, "T must be nothrow-destructible");
 
     constexpr OptionalRef() noexcept : storage(nullptr), valid(false) {}
     constexpr OptionalRef(T& ref) noexcept : storage(&ref), valid(true) {}
     constexpr OptionalRef(const OptionalRef& other) noexcept : storage(other.storage), valid(other.valid) {}
+    ~OptionalRef() noexcept { reset(); }
     
     constexpr OptionalRef& operator=(const OptionalRef& other) noexcept {
         storage = other.storage;
@@ -92,8 +94,9 @@ public:
 
     }
 
-    constexpr void reset() noexcept {
+    void reset() noexcept {
 
+        storage->~T();
         storage = nullptr;
         valid = false;
 
