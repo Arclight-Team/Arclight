@@ -16,6 +16,7 @@
 #include "stream/byteinputstream.h"
 #include "stream/fileinputstream.h"
 #include "util/bool.h"
+#include "crypto/hash/md5.h"
 
 
 Game::Game(Window& window) : window(window) {}
@@ -32,11 +33,11 @@ bool Game::init() {
 	window.setFramebufferResizeFunction([this](u32 w, u32 h) { 
 		GLE::Framebuffer::setViewport(w, h);
 	});
-
+/*
 	if (!imageRenderer.init()) {
 		return false;
 	}
-	
+*/	
 	window.setSize(720, 720);
 
 	//Connect the input system to the window in order to receive events
@@ -58,7 +59,7 @@ bool Game::init() {
 	rootContext.registerAction(0, 3);
 	rootContext.registerAction(0, 4);
 	rootContext.registerAction(0, 5);
-
+/*
 	//Define input handler callbacks
 	rootInputHandler.setCoActionListener([this](KeyAction action, double scale) {
 		
@@ -140,10 +141,16 @@ bool Game::init() {
 
 	//Link handler to the root context
 	rootContext.linkHandler(rootInputHandler);
-
+*/
 	profiler.stop("Initialization");
 
 	inputTicker.start(120);
+
+	std::string text = "ok";
+	auto arr = MD5::hash({reinterpret_cast<const u8*>(text.data()), text.size()}).toArray();
+
+	ArcDebug() << ArcHex << arr;
+
 
 	return true;
 
@@ -153,7 +160,7 @@ bool Game::init() {
 
 void Game::update() {
 
-	inputSystem.updateContinuous(inputTicker.getTicks());
+	//inputSystem.updateContinuous(inputTicker.getTicks());
 
 }
 
@@ -161,7 +168,7 @@ void Game::update() {
 
 void Game::render() {
 
-	imageRenderer.render();
+	//imageRenderer.render();
 
 }
 
@@ -170,7 +177,7 @@ void Game::render() {
 void Game::destroy() {
 
 	profiler.start();
-	imageRenderer.destroy();
+	//imageRenderer.destroy();
 
 	profiler.stop("Destruction");
 

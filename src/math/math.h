@@ -395,12 +395,12 @@ namespace Math {
 	}
 
 	template<class T>
-	constexpr AddressT address(T* ptr) {
+	constexpr AddressT address(const T* ptr) {
 		return reinterpret_cast<AddressT>(ptr);
 	}
 
 	template<class T>
-	constexpr AddressT address(T& ptr) {
+	constexpr AddressT address(const T& ptr) {
 		return std::addressof(ptr);
 	}
 
