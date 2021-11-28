@@ -144,8 +144,12 @@ namespace MD5 {
         u32 d = 0x10325476;
 
         //Hash blocks
-        for(SizeT i = 0; i < blocks - (1 + hasDualRemainingBlocks); i++) {
-            dispatchBlock(data.subspan(i * 64, 64), a, b, c, d);
+        if(blocks) {
+
+            for(SizeT i = 0; i < blocks - (1 + hasDualRemainingBlocks); i++) {
+                dispatchBlock(data.subspan(i * 64, 64), a, b, c, d);
+            }
+
         }
 
         if(hasDualRemainingBlocks) {

@@ -146,7 +146,7 @@ bool Game::init() {
 
 	inputTicker.start(120);
 
-	std::string text = "ok";
+	std::string text = "";
 	auto arr = MD5::hash({reinterpret_cast<const u8*>(text.data()), text.size()}).toArray();
 
 	ArcDebug() << ArcHex << arr;
