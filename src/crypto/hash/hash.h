@@ -2,12 +2,12 @@
 
 #include "types.h"
 #include "util/bits.h"
+#include "util/string.h"
 #include "util/concepts.h"
 #include "util/typetraits.h"
 
-#include <string>
 #include <array>
-#include <algorithm>
+#include <string>
 
 
 
@@ -62,6 +62,18 @@ public:
         }
 
         return a;
+
+    }
+
+    constexpr std::string toString(bool upper = false) const noexcept {
+
+        std::string s;
+
+        for(SizeT i = 0; i < Segments; i++) {
+            s += String::toHexString(Bits::swap(segments[i]), upper, false);
+        }
+
+        return s;
 
     }
 

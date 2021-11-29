@@ -6,9 +6,7 @@
 
 namespace Crypto {
 
-    MDConstruction mdConstruct(const std::span<const u8>& data, ByteOrder order) noexcept {
-
-        MDConstruction construct;
+    void mdConstruct(MDConstruction& construct, const std::span<const u8>& data, ByteOrder order) noexcept {
 
         //Lengths
         u64 bytes = data.size();
@@ -49,8 +47,6 @@ namespace Crypto {
 
         //Add length
         Bits::disassemble(bits, construct.lastBlock + 56);
-
-        return construct;
 
     }
 

@@ -18,6 +18,6 @@ namespace Crypto {
 
     };
 
-    MDConstruction mdConstruct(const std::span<const u8>& data, ByteOrder order) noexcept;
+    void mdConstruct(MDConstruction& construct, const std::span<const u8>& data, ByteOrder order) noexcept;
 
 }

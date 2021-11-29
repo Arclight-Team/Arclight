@@ -29,6 +29,36 @@ namespace String {
 		return {static_cast<char>(c)...};
 	}
 
+	template<Arithmetic A>
+	constexpr std::string toHexString(A a, bool upper = true, bool prefix = false) {
+
+		constexpr char v[2][16] = {
+			{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' },
+			{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' }
+		};
+
+		constexpr SizeT Size = sizeof(A);
+
+		std::string s;
+		s.reserve(Size * 2 + prefix * 2);
+
+		if(prefix) {
+			s += "0x";
+		}
+
+		for(SizeT i = 0; i < Size; i++) {
+
+			u8 byte = (a >> ((Size - i - 1) * 8)) & 0xFF;
+
+			s += v[upper][byte >> 4];
+			s += v[upper][byte & 0xF];
+
+		}
+
+		return s;
+
+	}
+
 	template<class... Args>
 	std::string format(std::string message, Args&&... args) noexcept {
 
@@ -74,42 +104,3 @@ namespace String {
 	}
 
 }
-
-
-
-class HashString {
-
-public:
-
-	using Hash = SystemT;
-
-	constexpr static u64 seed64 = 0xA842B0C912ED90ACULL;
-
-
-	constexpr HashString() : hashValue(0) {}
-	constexpr HashString(const std::string& s) noexcept {
-		hash(s);
-	}
-
-	constexpr void hash(const std::string& s) noexcept {
-		//TODO
-	}
-
-	constexpr Hash hashed(const std::string& s) noexcept {
-		hash(s);
-		return hashValue;
-	}
-
-	constexpr Hash getHash() const noexcept {
-		return hashValue;
-	}
-
-	constexpr operator Hash() const noexcept {
-		return hashValue;
-	}
-
-private:
-
-	Hash hashValue;
-
-};

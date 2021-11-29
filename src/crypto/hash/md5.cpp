@@ -6,7 +6,7 @@
 
 
 //rol bit counts
-constexpr static u8 rolTable[] = {
+constexpr static u8 rolTable[16] = {
     7, 12, 17, 22,
     5, 9, 14, 20,
     4, 11, 16, 23,
@@ -14,7 +14,7 @@ constexpr static u8 rolTable[] = {
 };
 
 //Constant table
-constexpr static u32 constantTable[] = {
+constexpr static u32 constantTable[64] = {
     0xD76AA478, 0xE8C7B756, 0x242070DB, 0xC1BDCEEE,
     0xF57C0FAF, 0x4787C62A, 0xA8304613, 0xFD469501,
     0x698098D8, 0x8B44F7AF, 0xFFFF5BB1, 0x895CD7BE,
@@ -99,7 +99,8 @@ constexpr static void dispatchBlock(const std::span<const u8>& data, u32& a0, u3
 
 Hash<128> MD5::hash(const std::span<const u8>& data) noexcept {
 
-    Crypto::MDConstruction construct = Crypto::mdConstruct(data, ByteOrder::Little);
+    Crypto::MDConstruction construct;
+    Crypto::mdConstruct(construct, data, ByteOrder::Little);
 
     u32 a = 0x67452301;
     u32 b = 0xEFCDAB89;

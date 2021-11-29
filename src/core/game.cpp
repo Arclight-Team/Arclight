@@ -148,13 +148,13 @@ bool Game::init() {
 	inputTicker.start(120);
 
 	Profiler p;
-	std::string text = "ok";
+	std::string text = "Arclight";
 
 	p.start();
-	auto arr = SHA1::hash({reinterpret_cast<const u8*>(text.data()), text.size()}).toArray();
+	std::string str = SHA2::hash256({reinterpret_cast<const u8*>(text.data()), text.size()}).toString(false);
 	p.stop("Hash");
 
-	ArcDebug() << ArcHex << arr;
+	ArcDebug() << "Hash result:" << str;
 
 
 	return true;
