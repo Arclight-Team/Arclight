@@ -23,12 +23,12 @@ namespace Bits {
 	}
 	
 	template<Integer T>
-	constexpr auto rol(T value, int bits) noexcept {
+	constexpr auto rol(T value, i32 bits) noexcept {
 		return std::rotl(static_cast<std::make_unsigned_t<T>>(value), bits);
 	}
 
 	template<Integer T>
-	constexpr auto ror(T value, int bits) noexcept {
+	constexpr auto ror(T value, i32 bits) noexcept {
 		return std::rotr(static_cast<std::make_unsigned_t<T>>(value), bits);
 	}
 

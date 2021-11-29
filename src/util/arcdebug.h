@@ -161,10 +161,10 @@ private:
         buffer << "Vec" << v.Size << "[";
         
         for(u32 i = 0; i < v.Size - 1; i++) {
-            buffer << v[i] <<  ", ";
+            buffer << +v[i] <<  ", ";
         }
             
-        buffer << v[v.Size - 1] << "]";
+        buffer << +v[v.Size - 1] << "]";
         dispatchToken(Token::ArcSpace);
 
     }
@@ -184,10 +184,10 @@ private:
             }
 
             for(u32 j = 0; j < m.Size - 1; j++) {
-                buffer << m[j][i] <<  ", ";
+                buffer << +m[j][i] <<  ", ";
             }
 
-            buffer << m[m.Size - 1][i];
+            buffer << +m[m.Size - 1][i];
             
             if(i != m.Size - 1) {
 

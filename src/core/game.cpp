@@ -17,6 +17,7 @@
 #include "stream/fileinputstream.h"
 #include "util/bool.h"
 #include "crypto/hash/md5.h"
+#include "crypto/hash/sha.h"
 
 
 Game::Game(Window& window) : window(window) {}
@@ -146,8 +147,12 @@ bool Game::init() {
 
 	inputTicker.start(120);
 
-	std::string text = "";
-	auto arr = MD5::hash({reinterpret_cast<const u8*>(text.data()), text.size()}).toArray();
+	Profiler p;
+	std::string text = "ok";
+
+	p.start();
+	auto arr = SHA1::hash({reinterpret_cast<const u8*>(text.data()), text.size()}).toArray();
+	p.stop("Hash");
 
 	ArcDebug() << ArcHex << arr;
 

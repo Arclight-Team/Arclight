@@ -120,9 +120,9 @@
 */
 
 #if ARC_DEBUG
-#define ARC_CONFIGURATION_NAME "Debug"
+	#define ARC_CONFIGURATION_NAME "Debug"
 #else
-#define ARC_CONFIGURATION_NAME "Release"
+	#define ARC_CONFIGURATION_NAME "Release"
 #endif
 
 
@@ -140,14 +140,6 @@
 	ARC_ASSERT_BUILD: Always asserts, except in final build mode. (default)
 */
 #define ARC_ASSERT_DEBUG
-
-
-/*
-	ACS component storage
-	ARC_ACS_FORCE_STACK: Forces the component storage on stack
-	ARC_ACS_MAX_COMPONENTS: Maximum component count
-*/
-#define ARC_ACS_FORCE_STACK
 
 
 /*
@@ -169,13 +161,6 @@
 	ARC_STD_FLOAT_TYPE: Specifies the underlying standard float type
 */
 #define ARC_STD_FLOAT_TYPE float
-
-
-/*
-	Profiling mode
-	ARC_ENABLE_PROFILER: Enables profilers
-*/
-//#define ARC_ENABLE_PROFILER
 
 
 /*
