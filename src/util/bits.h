@@ -129,6 +129,40 @@ namespace Bits {
 		}
 	}
 
+	template<class T>
+	constexpr T big(T in) noexcept {
+
+		if constexpr (sizeof(T) == 8) {
+			return Bits::cast<T>(big64(Bits::cast<u64>(in)));
+		} else if constexpr (sizeof(T) == 4) {
+			return Bits::cast<T>(big32(Bits::cast<u32>(in)));
+		} else if constexpr (sizeof(T) == 2) {
+			return Bits::cast<T>(big16(Bits::cast<u16>(in)));
+		} else if constexpr (sizeof(T) == 1) {
+			return in;
+		} else {
+			static_assert("Illegal byte swap");
+		}
+
+	}
+
+	template<class T>
+	constexpr T little(T in) noexcept {
+
+		if constexpr (sizeof(T) == 8) {
+			return Bits::cast<T>(little64(Bits::cast<u64>(in)));
+		} else if constexpr (sizeof(T) == 4) {
+			return Bits::cast<T>(little32(Bits::cast<u32>(in)));
+		} else if constexpr (sizeof(T) == 2) {
+			return Bits::cast<T>(little16(Bits::cast<u16>(in)));
+		} else if constexpr (sizeof(T) == 1) {
+			return in;
+		} else {
+			static_assert("Illegal byte swap");
+		}
+
+	}
+
 	constexpr bool requiresEndianConversion(ByteOrder reqOrder) noexcept {
 		return reqOrder != MachineByteOrder;
 	}

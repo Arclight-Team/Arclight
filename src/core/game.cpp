@@ -54,6 +54,8 @@ bool Game::init() {
 	rootContext.addAction(3, KeyTrigger({ KeyCode::D }), true);
 	rootContext.addAction(4, KeyTrigger({ KeyCode::Up }), true);
 	rootContext.addAction(5, KeyTrigger({ KeyCode::Down }), true);
+	rootContext.addAction(10, KeyTrigger({ KeyCode::LeftControl, KeyCode::V }), false);
+	rootContext.addAction(11, KeyTrigger({ KeyCode::RightControl, KeyCode::V }), false);
 	rootContext.registerAction(0, 0);
 	rootContext.registerAction(0, 1);
 	rootContext.registerAction(0, 2);
@@ -61,6 +63,9 @@ bool Game::init() {
 	rootContext.registerAction(0, 4);
 	rootContext.registerAction(0, 5);
 /*
+	rootContext.registerAction(0, 10);
+	rootContext.registerAction(0, 11);
+
 	//Define input handler callbacks
 	rootInputHandler.setCoActionListener([this](KeyAction action, double scale) {
 		
@@ -106,6 +111,24 @@ bool Game::init() {
 
 	inputSystem.enableHeldEvent();
 
+	rootInputHandler.setActionListener([this](KeyAction action) {
+
+		switch(action) {
+
+			case 10:
+			case 11:
+				imageRenderer.dispatchString(window.getClipboardString());
+				break;
+
+			default:
+				return false;
+
+		}
+
+		return true;
+
+	});
+
 	rootInputHandler.setKeyListener([this](Key key, KeyState state) {
 
 		if(state == KeyState::Pressed || state == KeyState::Held) {
@@ -118,6 +141,10 @@ bool Game::init() {
 				
 				case KeyCode::Backspace:
 					imageRenderer.dispatchCodepoint(0x08);
+					break;
+
+				case KeyCode::Tab:
+					imageRenderer.dispatchCodepoint(0x09);
 					break;
 
 				default:
@@ -151,7 +178,7 @@ bool Game::init() {
 	std::string text = "Arclight";
 
 	p.start();
-	std::string str = SHA2::hash256({reinterpret_cast<const u8*>(text.data()), text.size()}).toString(false);
+	std::string str = SHA2::hash384({reinterpret_cast<const u8*>(text.data()), text.size()}).toString(false);
 	p.stop("Hash");
 
 	ArcDebug() << "Hash result:" << str;

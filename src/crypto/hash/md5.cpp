@@ -99,7 +99,7 @@ constexpr static void dispatchBlock(const std::span<const u8>& data, u32& a0, u3
 
 Hash<128> MD5::hash(const std::span<const u8>& data) noexcept {
 
-    Crypto::MDConstruction construct;
+    Crypto::MDConstruction<64> construct;
     Crypto::mdConstruct(construct, data, ByteOrder::Little);
 
     u32 a = 0x67452301;
@@ -108,7 +108,7 @@ Hash<128> MD5::hash(const std::span<const u8>& data) noexcept {
     u32 d = 0x10325476;
 
     SizeT blocks = construct.blocks;
-    u32 specialBlocks = construct.prevBlockUsed + 1;
+    SizeT specialBlocks = construct.prevBlockUsed + 1;
 
     //Hash blocks
     if(blocks >= specialBlocks) {
