@@ -11,10 +11,13 @@
 
 
 
-template<SizeT Size, Integer StorageT = u32> requires (Size % (sizeof(StorageT) * 8) == 0)
+template<SizeT Size>
 class Hash {
 
+    using StorageT = u8;
     constexpr static SizeT Segments = Size / (sizeof(StorageT) * 8);
+
+    static_assert(Size % (sizeof(StorageT) * 8) == 0, "Size must be a multiple of the underlying storage type");
 
 public:
 
@@ -31,13 +34,11 @@ public:
         set(j...);
     }
 
-    template<Integer... J> requires (TT::IsAllSame<J...> && sizeof...(J) * TT::SizeofN<0, J...> * 8 == Size && TT::SizeofN<0, J...> >= sizeof(StorageT))
+    template<Integer... J> requires ((sizeof(J) + ...) * 8 == Size && ((sizeof(J) >= sizeof(StorageT)) && ...))
     constexpr void set(J... j) {
 
-        constexpr SizeT divisor = TT::SizeofN<0, J...> / sizeof(StorageT);
-
         SizeT i = 0;
-        (Bits::disassemble(j, segments + i++ * divisor), ...);
+        ((Bits::disassemble(j, segments + i), i += sizeof(J) / sizeof(StorageT)), ...);
 
     }
 

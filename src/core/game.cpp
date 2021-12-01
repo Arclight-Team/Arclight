@@ -178,7 +178,7 @@ bool Game::init() {
 	std::string text = "Arclight";
 
 	p.start();
-	std::string str = SHA2::hash384({reinterpret_cast<const u8*>(text.data()), text.size()}).toString(false);
+	std::string str = SHA2::hash512t224({reinterpret_cast<const u8*>(text.data()), text.size()}).toString(false);
 	p.stop("Hash");
 
 	ArcDebug() << "Hash result:" << str;

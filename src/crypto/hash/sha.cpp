@@ -17,7 +17,7 @@ enum class SHA2Variant {
 };
 
 consteval static bool is64BitSHA2Variant(SHA2Variant variant) {
-    return Bool::one(variant, SHA2Variant::SHA384, SHA2Variant::SHA512);
+    return Bool::none(variant, SHA2Variant::SHA224, SHA2Variant::SHA256);
 }
 
 constexpr static u32 sha2Constants32[64] = {
@@ -284,6 +284,16 @@ constexpr static auto hashSHA2(const std::span<const u8>& data) noexcept {
         constexpr u64 s[8] = { 0x6A09E667F3BCC908, 0xBB67AE8584CAA73B, 0x3C6EF372FE94F82B, 0xA54FF53A5F1D36F1, 0x510E527FADE682D1, 0x9B05688C2B3E6C1F, 0x1F83D9ABFB41BD6B, 0x5BE0CD19137E2179 };
         std::copy_n(s, 8, h);
         
+    } else if constexpr (Variant == SHA2Variant::SHA512t224) {
+
+        constexpr u64 s[8] = { 0x8C3D37C819544DA2, 0x73E1996689DCD4D6, 0x1DFAB7AE32FF9C82, 0x679DD514582F9FCF, 0x0F6D2B697BD44DA8, 0x77E36F7304C48942, 0x3F9D85A86A1D36C8, 0x1112E6AD91D692A1 };
+        std::copy_n(s, 8, h);
+
+    } else if constexpr (Variant == SHA2Variant::SHA512t256) {
+
+        constexpr u64 s[8] = { 0x22312194FC2BF72C, 0x9F555FA3C84C64C2, 0x2393B86B6F53B151, 0x963877195940EABD, 0x96283EE2A88EFFE3, 0xBE5E1E2553863992, 0x2B0199FC2C85B8AA, 0x0EB72DDC81C52CA2 };
+        std::copy_n(s, 8, h);
+
     }
 
     SizeT blocks = construct.blocks;
@@ -316,9 +326,9 @@ constexpr static auto hashSHA2(const std::span<const u8>& data) noexcept {
     } else if constexpr (Variant == SHA2Variant::SHA512) {
         return Hash<512>(h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
     } else if constexpr (Variant == SHA2Variant::SHA512t224) {
-        return Hash<224>();
+        return Hash<224>(h[0], h[1], h[2], static_cast<u32>(h[3] & ~u32(0)));
     } else if constexpr (Variant == SHA2Variant::SHA512t256) {
-        return Hash<256>();
+        return Hash<256>(h[0], h[1], h[2], h[3]);
     }
 
 }
