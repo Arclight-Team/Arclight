@@ -208,7 +208,7 @@ void EntityTreeModel::setupModelData(const AMDModel& model, u16 nodeID, EntityTr
 		const AMDMesh& mesh = model.meshes[node.meshIDs[i]];
 		const AMDMaterial& material = model.materials[mesh.materialID];
 
-		EntityTreeItem* currentMeshNode = new EntityTreeItem({entityImages[1], "Mesh " + QString::number(node.meshIDs[i])}, currentTreeNode);
+        EntityTreeItem* currentMeshNode = new EntityTreeItem({entityImages[1], QString::fromStdString(mesh.name)}, currentTreeNode);
 		currentTreeNode->appendChild(currentMeshNode);
 
 		EntityTreeItem* currentMaterialNode = new EntityTreeItem({entityImages[2], QString::fromStdString(material.name)}, currentMeshNode);

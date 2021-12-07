@@ -226,6 +226,7 @@ struct AMDMesh {
 	AMDPrimitiveMode primType;
 	bool indexed;
 	u32 materialID;
+    std::string name;
 	std::vector<AMDAttribute> attributes;
 	std::vector<std::vector<u8>> meshData;
 

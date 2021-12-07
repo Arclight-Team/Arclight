@@ -32,14 +32,13 @@ AMDModel Importer::import(const QString& path, const ImportConfiguration &config
 
 	unsigned int flags = aiProcess_ValidateDataStructure
 					| aiProcess_SortByPType
-					| aiProcess_FindInvalidData
-					| aiProcess_OptimizeMeshes
+                    | aiProcess_OptimizeMeshes
 					| aiProcess_Triangulate
 					| aiProcess_ImproveCacheLocality
 					| aiProcess_GenBoundingBoxes
 					| aiProcess_LimitBoneWeights;
 
-	if(config.flipUVs){
+    if(!config.flipUVs){
 		flags |= aiProcess_FlipUVs;
 	}
 
@@ -135,7 +134,7 @@ AMDModel Importer::import(const QString& path, const ImportConfiguration &config
 					AMDTexture texture;
 					texture.name = "texture_" + std::to_string(textureLinks.size());
 					texture.loaded = false;
-					texture.flags = 0;
+                    texture.flags = AMDTextureFlags::GenerateMipmaps;
 					texture.width = 0;
 					texture.height = 0;
 					texture.format = AMDTextureFormat::RGB888;
@@ -232,6 +231,7 @@ AMDModel Importer::import(const QString& path, const ImportConfiguration &config
 		mesh.indexed = false;
 		mesh.primType = getPrimitiveMode(sceneMesh);
 		mesh.vertexCount = sceneMesh->mNumFaces * primitiveSize;
+        mesh.name = sceneMesh->mName.C_Str();
 
 		addAttribute(mesh, sceneMesh, AMDAttributeType::Position);
 
@@ -314,6 +314,11 @@ u32 Importer::processAMDNode(AMDModel& model, const aiNode* sceneNode, u32& node
 void Importer::loadTexture(AMDTexture& texture, const QString& path){
 
 	QImage image;
+
+    QString baseName = QFileInfo(path).fileName();
+    baseName.truncate(baseName.indexOf('.'));
+
+    texture.name = baseName.toStdString();
 
 	if(!image.load(path)){
 		return;

@@ -26,7 +26,7 @@ set(ASSIMP_BUILD_TESTS OFF)
 #    endif()
 #endif()
 
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Qt6 COMPONENTS Widgets OpenGLWidgets REQUIRED)
 
 add_executable(AXRConv
 	main.cpp
@@ -54,7 +54,6 @@ add_executable(AXRConv
 	resources.qrc
 )
 
-add_subdirectory(assimp)
 include_directories(assimp/include)
 
-target_link_libraries(AXRConv PRIVATE Qt5::Widgets assimp)
+target_link_libraries(AXRConv PRIVATE Qt6::Widgets Qt6::OpenGLWidgets ${CMAKE_CURRENT_SOURCE_DIR}/assimp/lib/Release/assimp-vc142-mt.lib)

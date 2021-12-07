@@ -112,8 +112,8 @@ void RenderWidget::paintGL() {
 		return;
 	}
 
-	u32 w = width() * devicePixelRatio();
-	u32 h = height() * devicePixelRatio();
+    u32 w = width() * devicePixelRatio();
+    u32 h = height() * devicePixelRatio();
 
 	viewMatrix.setToIdentity();
 	viewMatrix.lookAt(camera.getPosition(), camera.getCenter(), QVector3D(0, 1, 0));
@@ -121,11 +121,14 @@ void RenderWidget::paintGL() {
 	//Check where we clicked
 	if(lastClickPos != QPointF(-1, -1)){
 
+        u32 x = lastClickPos.x() * devicePixelRatio();
+        u32 y = lastClickPos.y() * devicePixelRatio();
+
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
 		glReadBuffer(GL_COLOR_ATTACHMENT1);
-		glReadPixels(lastClickPos.toPoint().x(), h - lastClickPos.toPoint().y(), 1, 1, GL_RED_INTEGER, GL_UNSIGNED_SHORT, &highlightMeshID);
+        glReadPixels(x, h - y, 1, 1, GL_RED_INTEGER, GL_UNSIGNED_SHORT, &highlightMeshID);
 
-		lastClickPos = QPointF(-1, -1);
+        lastClickPos = QPointF(-1, -1);
 
 	}
 
@@ -238,7 +241,7 @@ void RenderWidget::mouseReleaseEvent(QMouseEvent *event) {
 	switch(event->button()){
 
 		case Qt::LeftButton:
-			lastClickPos = event->localPos();
+            lastClickPos = event->position();
 			event->accept();
 			break;
 
@@ -259,7 +262,7 @@ void RenderWidget::mouseReleaseEvent(QMouseEvent *event) {
 
 void RenderWidget::mouseMoveEvent(QMouseEvent *event) {
 
-	QPointF currentPos = event->localPos();
+    QPointF currentPos = event->position();
 	QPointF moveOffset = prevMousePos - currentPos;
 
 	switch(cameraState) {
