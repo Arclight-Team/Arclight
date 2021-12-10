@@ -234,6 +234,11 @@ namespace Bits {
 
 	}
 
+	template<class T>
+	inline auto toByteArray(T* t) {
+		return reinterpret_cast<std::conditional_t<std::is_const_v<T>, const u8, u8>*>(t);
+	}
+
 }
 
 
