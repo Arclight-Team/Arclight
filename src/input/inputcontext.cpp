@@ -523,7 +523,7 @@ u32 InputContext::getCurrentStateID() const {
 
 
 bool InputContext::propagationDisabled() const {
-	return inputStates.at(currentState).disablePropagation;
+	return currentState == -1 ? false : inputStates.at(currentState).disablePropagation;
 }
 
 

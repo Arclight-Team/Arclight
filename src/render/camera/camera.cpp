@@ -48,7 +48,14 @@ void Camera::setRotation(double angleH, double angleV) {
 	pitch = angleV;
 	clampPitch();
 
-	direction = Vec3f::normalize(Vec3f(Math::cos(yaw) * Math::cos(pitch), Math::sin(pitch), Math::sin(yaw) * Math::cos(pitch)));
+	direction = Vec3f::normalize(
+		Vec3f
+		(
+			Math::cos(yaw) * Math::cos(pitch),
+			Math::sin(pitch), 
+			Math::sin(yaw) * Math::cos(pitch)
+		)
+	);
 
 }
 

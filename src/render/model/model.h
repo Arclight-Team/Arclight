@@ -896,6 +896,7 @@ namespace arc
 
 	};
 
+	static constexpr inline auto MaxBoneCount = 1000;
 
 	/*
 	* @class Mesh
@@ -1029,7 +1030,7 @@ namespace arc
 					}
 
 					for (u32 i = 0; i < BoneWeight::MaxBones; i++) {
-						boneIDs[vertex][i] = weight.getBoneID(i);
+						boneIDs[vertex][i] = Math::min(weight.getBoneID(i), MaxBoneCount);
 						boneWeights[vertex][i] = weight.getBoneWeight(i);
 					}
 				}
@@ -1100,7 +1101,8 @@ namespace arc
 
 			//transforms.resize(boneCount);
 			//transforms.resize(100);
-			transforms.resize(200);
+			transforms.resize(MaxBoneCount);
+			transforms.emplace_back(); // Set identity matrix as transform no.201
 			populateTransformTree(transforms, nodes->getRoot(), false);
 
 		}
@@ -1145,16 +1147,18 @@ namespace arc
 
 			//auto bone = getBone(node.getName());
 			if (node.isBone() && node.containsBoneData(meshID)) {
+
 				BoneData bone = node.getBoneData(meshID);
+				if (bone.getBoneID() < MaxBoneCount) {
+					//Mat4f boneTrans = /*bone->getInverseBaseOffset() **/ bone->getOffset();
+					//Mat4f boneTrans = bone->getInverseBaseOffset();
+					//Mat4f boneTrans = node.getInverseBindTransform();
+					Mat4f boneTrans = bone.getInverseBindTransform();
 
-				//Mat4f boneTrans = /*bone->getInverseBaseOffset() **/ bone->getOffset();
-				//Mat4f boneTrans = bone->getInverseBaseOffset();
-				//Mat4f boneTrans = node.getInverseBindTransform();
-				Mat4f boneTrans = bone.getInverseBindTransform();
-
-				//transforms[node.getBoneID()] = nodes->getGlobalInverseTransform() * baseTrans * boneTrans;
-				transforms[bone.getBoneID()] = nodes->getGlobalInverseTransform() * baseTrans * boneTrans;
-				//transforms[node.getBoneID()] = nodes->getRoot().getBaseTransform().inverse() * baseTrans * boneTrans;
+					//transforms[node.getBoneID()] = nodes->getGlobalInverseTransform() * baseTrans * boneTrans;
+					transforms[bone.getBoneID()] = nodes->getGlobalInverseTransform() * baseTrans * boneTrans;
+					//transforms[node.getBoneID()] = nodes->getRoot().getBaseTransform().inverse() * baseTrans * boneTrans;
+				}
 			}
 
 			for (auto& n : node.getChildren()) {
@@ -1436,12 +1440,6 @@ namespace arc
 		bool textureSRGB;
 
 	};
-
-	inline void test() {
-
-		ModelParser mp;
-
-	}
 
 }
 

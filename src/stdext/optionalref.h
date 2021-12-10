@@ -121,6 +121,18 @@ private:
 };
 
 
+
+template<class O, class I>
+OptionalRef<O> optionalRefCast(const OptionalRef<I>& in) {
+
+    if (!in.has())
+        return {};
+
+    return OptionalRef<O>(static_cast<O&>(in.get()));
+
+}
+
+
 namespace std {
 
     template <class T>

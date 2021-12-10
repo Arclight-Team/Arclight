@@ -20,6 +20,10 @@ public:
 	Vec3f getPosition() const;
 	Vec3f getDirection() const;
 
+	Vec3f getTarget() {
+		return getPosition() + getDirection();
+	}
+
 private:
 
 	void clampPitch();

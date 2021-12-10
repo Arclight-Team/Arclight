@@ -4,7 +4,7 @@
 #include "render/gle/gle.h"
 #include "math/matrix.h"
 
-#include "camera.h"
+#include "render/camera/camera.h"
 #include "light.h"
 #include "scene.h"
 
