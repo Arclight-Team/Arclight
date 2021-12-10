@@ -23,6 +23,7 @@ cmake-build-release-visual-studio/
 imgui.ini
 CMakeFiles/
 dev/
+examples/
 demo/
 !assets/logo.bmp
 !assets/logo.ico

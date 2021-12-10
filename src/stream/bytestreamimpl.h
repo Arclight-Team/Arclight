@@ -4,28 +4,44 @@
 #include "util/assert.h"
 #include "math/math.h"
 #include "types.h"
-
 #include <span>
+#include <vector>
 #include <memory>
-#include <algorithm>
 
 
-template<bool Const>
+template<bool Const, bool Dynamic = false>
 class ByteStreamImpl
-{    
+{
 public:
 
-    using ByteType = std::conditional_t<Const, const Byte, Byte>;
+    static_assert(!(Const && Dynamic));
+
+    using ByteType = std::conditional_t<Const, const u8, u8>;
+    using StorageType = std::conditional_t<Dynamic, std::vector<ByteType>, std::span<ByteType>>;
+
+    ByteStreamImpl() requires(Dynamic) = default;
 
 	template<class T>
-	ByteStreamImpl(const std::span<T>& data) : position(0) {
+	ByteStreamImpl(const std::span<T>& data) : position(0)  {
 
-		//convert T span to byte span
-        if constexpr (Const) {
-            this->data = std::as_bytes(data);
-        } else {
-            this->data = std::as_writable_bytes(data);
+        if constexpr (!Dynamic) {
+
+			//convert T span to byte span
+            if constexpr (Const) {
+                this->data = StorageType{ ptr_cast<ByteType*>(data.data()), data.size_bytes() };
+			}
+			else {
+                this->data = StorageType{ ptr_cast<ByteType*>(data.data()), data.size_bytes() };
+			}
+
         }
+        else {
+
+            this->data.resize(data.size() * sizeof(T));
+            std::memcpy(this->data.data(), data.data(), this->data.size());
+
+        }
+
 
 	}
 
@@ -43,13 +59,31 @@ public:
 
     }
 
-	SizeT write(const void* src, SizeT size) requires (!Const) {
+	SizeT write(const void* src, SizeT size) requires (!Const && !Dynamic) {
 
         arc_assert(src != nullptr, "Source is null");
         arc_assert(position + size <= getSize(), "Cannot write past the end of the stream");
 
         size = Math::min(size, getSize() - position);
         std::copy_n(static_cast<const Byte*>(src), size, data.data() + position);
+
+        position += size;
+
+        return size;
+
+    }
+
+    SizeT write(const void* src, SizeT size) requires (!Const && Dynamic) {
+
+        arc_assert(src != nullptr, "Source is null");
+
+        // Resize if needed
+        if (position + size > getSize()) {
+            data.resize(position + size);
+        }
+
+        size = Math::min(size, getSize() - position);
+        std::memcpy(data.data() + position, src, size);
 
         position += size;
 
@@ -81,6 +115,14 @@ public:
 
     }
 
+    constexpr auto getData() {
+        return data;
+    }
+
+    constexpr auto getData() const {
+        return data;
+    }
+
 	SizeT getPosition() const {
         return position;
     }
@@ -99,10 +141,11 @@ public:
 
 private:
 
-    std::span<ByteType> data;
+    StorageType data;
     SizeT position;
 
 };
 
-using ByteStreamImplRW = ByteStreamImpl<false>;
+template<bool Dynamic>
+using ByteStreamImplRW = ByteStreamImpl<false, Dynamic>;
 using ByteStreamImplR = ByteStreamImpl<true>;
