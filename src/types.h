@@ -14,7 +14,7 @@ typedef int16_t i16;
 typedef int32_t i32;
 typedef int64_t i64;
 
-typedef std::byte	Byte;
+typedef u8 Byte;
 
 #if ARC_MACHINE_BITS == 64
 	typedef u64 SystemT;

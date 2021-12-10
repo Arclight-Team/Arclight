@@ -2,6 +2,7 @@
 
 #include "streambase.h"
 #include "util/assert.h"
+#include "util/bits.h"
 #include "math/math.h"
 #include "types.h"
 #include <span>
@@ -16,7 +17,7 @@ public:
 
     static_assert(!(Const && Dynamic));
 
-    using ByteType = std::conditional_t<Const, const u8, u8>;
+    using ByteType = std::conditional_t<Const, const Byte, Byte>;
     using StorageType = std::conditional_t<Dynamic, std::vector<ByteType>, std::span<ByteType>>;
 
     ByteStreamImpl() requires(Dynamic) = default;
@@ -28,10 +29,10 @@ public:
 
 			//convert T span to byte span
             if constexpr (Const) {
-                this->data = StorageType{ ptr_cast<ByteType*>(data.data()), data.size_bytes() };
+                this->data = StorageType{ Bits::toByteArray(data.data()), data.size_bytes() };
 			}
 			else {
-                this->data = StorageType{ ptr_cast<ByteType*>(data.data()), data.size_bytes() };
+                this->data = StorageType{ Bits::toByteArray(data.data()), data.size_bytes() };
 			}
 
         }

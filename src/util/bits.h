@@ -21,6 +21,11 @@ namespace Bits {
 	constexpr Dest cast(const Src& src) noexcept {
 		return std::bit_cast<Dest>(src);
 	}
+
+	template<class Dest, class Src>
+	inline Dest rcast(Src* src) noexcept {
+		return reinterpret_cast<Dest>(src);
+	}
 	
 	template<Integer T>
 	constexpr auto rol(T value, i32 bits) noexcept {
