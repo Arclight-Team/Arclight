@@ -18,6 +18,7 @@
 #include "util/bool.h"
 #include "crypto/hash/md5.h"
 #include "crypto/hash/sha.h"
+#include "filesystem/path.h"
 
 
 Game::Game(Window& window) : window(window) {}
@@ -174,14 +175,10 @@ bool Game::init() {
 
 	inputTicker.start(120);
 
-	Profiler p;
-	std::string text = "Arclight";
-
-	p.start();
-	std::string str = SHA2::hash512t224({reinterpret_cast<const u8*>(text.data()), text.size()}).toString(false);
-	p.stop("Hash");
-
-	ArcDebug() << "Hash result:" << str;
+	Path p = Path::getApplicationDirectory();
+	Path q = p.parent();
+	Path r = p.parent().parent();
+	ArcDebug() << p.getPath() << ArcEndl << q.getPath() << ArcEndl << r.getPath();
 
 
 	return true;

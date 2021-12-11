@@ -4,11 +4,11 @@ set(PROJECT_NAME arclight)
 project (${PROJECT_NAME})
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-add_compile_definitions(ARC_DEBUG=true)
-add_compile_definitions(ARC_RELEASE=false)
+	add_compile_definitions(ARC_DEBUG=true)
+	add_compile_definitions(ARC_RELEASE=false)
 else()
-add_compile_definitions(ARC_DEBUG=false)
-add_compile_definitions(ARC_RELEASE=true)
+	add_compile_definitions(ARC_DEBUG=false)
+	add_compile_definitions(ARC_RELEASE=true)
 endif()
 
 #Enable C++20
@@ -111,17 +111,17 @@ list(APPEND LIBRARY_TARGETS ${ASSIMP_LIBRARY})
 list(APPEND LIBRARY_TARGETS ${BULLET_LIBRARIES})
 
 if(${ARC_BUILD_IMGUI})
-message("Building ${PROJECT_NAME} with ImGui")
-list(APPEND INCLUDE_TARGETS "lib/imgui/include")
-list(APPEND INCLUDE_TARGETS "lib/imgui/backends")
-list(APPEND SOURCE_TARGETS "lib/imgui/source/*.cpp" "lib/imgui/backends/*.cpp")
+	message("Building ${PROJECT_NAME} with ImGui")
+	list(APPEND INCLUDE_TARGETS "lib/imgui/include")
+	list(APPEND INCLUDE_TARGETS "lib/imgui/backends")
+	list(APPEND SOURCE_TARGETS "lib/imgui/source/*.cpp" "lib/imgui/backends/*.cpp")
 endif()
 
 if(${ARC_BUILD_DISCORD})
-message("Building ${PROJECT_NAME} with Discord Game SDK")
-list(APPEND INCLUDE_TARGETS "lib/DiscordGameSDK/include")
-list(APPEND LIBRARY_TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/lib/DiscordGameSDK/lib/x64/${CMAKE_BUILD_TYPE}/discord_game_sdk_cpp.lib)
-list(APPEND LIBRARY_TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/lib/DiscordGameSDK/lib/x64/${CMAKE_BUILD_TYPE}/discord_game_sdk.dll.lib)
+	message("Building ${PROJECT_NAME} with Discord Game SDK")
+	list(APPEND INCLUDE_TARGETS "lib/DiscordGameSDK/include")
+	list(APPEND LIBRARY_TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/lib/DiscordGameSDK/lib/x64/${CMAKE_BUILD_TYPE}/discord_game_sdk_cpp.lib)
+	list(APPEND LIBRARY_TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/lib/DiscordGameSDK/lib/x64/${CMAKE_BUILD_TYPE}/discord_game_sdk.dll.lib)
 endif()
 
 #Windows specific
@@ -135,11 +135,25 @@ include_directories(${INCLUDE_TARGETS})
 #Automatically collect sources
 file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} ${SOURCE_TARGETS})
 
+#Exclude platform/
+list(FILTER SOURCES EXCLUDE REGEX "src/platform/*")
+
+#Add platform-specific sources
+if(WIN32)
+	message("Building on Windows")
+	file(GLOB_RECURSE PLATFORM_SOURCES RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/platform/win32/*.cpp)
+elseif(UNIX)
+	message("Building on Linux")
+	file(GLOB_RECURSE PLATFORM_SOURCES RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/platform/linux/*.cpp)
+else()
+	message("Building on unknown platform")
+endif()
+
 if(NOT ${ARC_BUILD_IMGUI})
-list(FILTER SOURCES EXCLUDE REGEX "src/render/gui/imgui/*")
+	list(FILTER SOURCES EXCLUDE REGEX "src/render/gui/imgui/*")
 endif()
 
 #Create the executable and link
-add_executable (${PROJECT_NAME} ${SOURCES})
+add_executable (${PROJECT_NAME} ${SOURCES} ${PLATFORM_SOURCES})
 #add_executable (${PROJECT_NAME} WIN32 ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${LIBRARY_TARGETS})

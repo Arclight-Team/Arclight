@@ -1,14 +1,14 @@
 #pragma once
 
 #include "gle/gle.h"
-#include "atr/camera.h"
+#include "camera/camera.h"
 #include "renderer.h"
 #include "math/matrix.h"
 #include "util/profiler.h"
 #include "input/keydefs.h"
 #include "model/model.h"
 #include "input/inputhandler.h"
-#include "atr/simplecamera.h"
+#include "camera/simplecamera.h"
 
 
 class ActorManager;
