@@ -38,6 +38,10 @@ public:
     Path& toAbsolute();
     Path& toCanonical();
     Path& toRelative();
+
+    Path getAbsolute() const;
+    Path getCanonical() const;
+    Path getRelative() const;
     
     std::string relativeAgainst(const Path& base) const;
 

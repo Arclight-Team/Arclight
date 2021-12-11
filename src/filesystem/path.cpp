@@ -121,8 +121,35 @@ bool Path::hasFilename() const {
 
 Path& Path::toAbsolute() {
 
+    path = std::move(getAbsolute().path);
+    return *this;
+
+}
+
+
+
+Path& Path::toCanonical() {
+
+    path = std::move(getCanonical().path);
+    return *this;
+
+}
+
+
+
+Path& Path::toRelative() {
+
+    path = std::move(getRelative().path);
+    return *this;
+
+}
+
+
+
+Path Path::getAbsolute() const {
+
     try {
-        path = std::filesystem::absolute(path);
+        return Path(std::filesystem::absolute(path));
     } catch(std::exception& e) {
         Log::error("Path", "Failed to convert path \"%s\" to absolute form: %s", path.string().c_str(), e.what());
     }
@@ -133,23 +160,28 @@ Path& Path::toAbsolute() {
 
 
 
-Path& Path::toCanonical() {
+Path Path::getCanonical() const {
 
-    path = std::filesystem::weakly_canonical(path);
+    try {
+        return Path(std::filesystem::canonical(path));
+    } catch(std::exception& e) {
+        Log::error("Path", "Failed to convert path \"%s\" to canonical form: %s", path.string().c_str(), e.what());
+    }
+
     return *this;
-
+    
 }
 
 
 
-Path& Path::toRelative() {
+Path Path::getRelative() const {
 
     try {
-        path = std::filesystem::relative(path);
+        return Path(std::filesystem::relative(path));
     } catch(std::exception& e) {
         Log::error("Path", "Failed to convert path \"%s\" to relative form: %s", path.string().c_str(), e.what());
     }
-    
+
     return *this;
 
 }
@@ -279,3 +311,6 @@ void Path::setAnnotatedPathPrefix(char annotation, const std::string& prefix) {
     }
 
 }
+
+
+
