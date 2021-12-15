@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 
+
 class Path {
 
 public:
@@ -11,6 +12,7 @@ public:
     constexpr static auto separator = std::filesystem::path::preferred_separator;
 
     Path();
+    Path(const char* path);
     Path(const std::string& path);
     explicit Path(const std::filesystem::path& path);
 
@@ -24,8 +26,8 @@ public:
     Path& setExtension(const std::string& ext);
     Path& setFilename(const std::string& name);
 
-    std::string getPath() const;
-    std::string getPreferredPath() const;
+    std::string getString() const;
+    std::string getNativeString() const;
 
     std::string getStem() const;
     std::string getExtension() const;
@@ -58,6 +60,8 @@ public:
     Path parent() const;
 
     operator std::string() const;
+
+    const std::filesystem::path& getHandle() const;
 
     static Path getCurrentWorkingDirectory();
     static void setCurrentWorkingDirectory(const Path& path);

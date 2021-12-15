@@ -5,6 +5,8 @@
 
 Path::Path() : path("") {}
 
+Path::Path(const char* path) : Path(std::string(path)) {}
+
 Path::Path(const std::string& path) : path(convertAnnotatedPath(path)) {}
 
 Path::Path(const std::filesystem::path& path) : path(path) {}
@@ -71,13 +73,13 @@ Path& Path::setFilename(const std::string& name) {
 
 
 
-std::string Path::getPath() const {
-    return path.string();
+std::string Path::getString() const {
+    return path.generic_string();
 }
 
 
 
-std::string Path::getPreferredPath() const {
+std::string Path::getNativeString() const {
     return std::filesystem::path(path).make_preferred().string();
 }
 
@@ -147,57 +149,25 @@ Path& Path::toRelative() {
 
 
 Path Path::getAbsolute() const {
-
-    try {
-        return Path(std::filesystem::absolute(path));
-    } catch(std::exception& e) {
-        Log::error("Path", "Failed to convert path \"%s\" to absolute form: %s", path.string().c_str(), e.what());
-    }
-
-    return *this;
-
+    return Path(std::filesystem::absolute(path));
 }
 
 
 
 Path Path::getCanonical() const {
-
-    try {
-        return Path(std::filesystem::canonical(path));
-    } catch(std::exception& e) {
-        Log::error("Path", "Failed to convert path \"%s\" to canonical form: %s", path.string().c_str(), e.what());
-    }
-
-    return *this;
-    
+    return Path(std::filesystem::canonical(path));
 }
 
 
 
 Path Path::getRelative() const {
-
-    try {
-        return Path(std::filesystem::relative(path));
-    } catch(std::exception& e) {
-        Log::error("Path", "Failed to convert path \"%s\" to relative form: %s", path.string().c_str(), e.what());
-    }
-
-    return *this;
-
+    return Path(std::filesystem::relative(path));
 }
 
 
 
 std::string Path::relativeAgainst(const Path& base) const {
-
-    try {
-        return std::filesystem::relative(path, base.path).string();
-    } catch(std::exception& e) {
-        Log::error("Path", "Failed to convert path \"%s\" to relative base form against \"%s\": %s", path.string().c_str(), base.path.string().c_str(), e.what());
-    }
-
-    return "";
-
+    return std::filesystem::relative(path, base.path).string();
 }
 
 
@@ -254,7 +224,13 @@ Path Path::parent() const {
 
 
 Path::operator std::string() const {
-    return getPath();
+    return getString();
+}
+
+
+
+const std::filesystem::path& Path::getHandle() const {
+    return path;
 }
 
 
@@ -311,6 +287,3 @@ void Path::setAnnotatedPathPrefix(char annotation, const std::string& prefix) {
     }
 
 }
-
-
-

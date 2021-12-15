@@ -19,6 +19,7 @@
 #include "crypto/hash/md5.h"
 #include "crypto/hash/sha.h"
 #include "filesystem/path.h"
+#include "filesystem/directory.h"
 
 
 Game::Game(Window& window) : window(window) {}
@@ -178,8 +179,19 @@ bool Game::init() {
 	Path p = Path::getApplicationDirectory();
 	Path q = p.parent();
 	Path r = p.parent().parent();
-	ArcDebug() << p.getPath() << ArcEndl << q.getPath() << ArcEndl << r.getPath();
+	ArcDebug() << p.getString() << ArcEndl << q.getString() << ArcEndl << r.getString();
 
+	profiler.start();
+
+	Directory dir;
+
+	auto v = dir.listEntries(Directory::Sorting::TypeDescending);
+
+	for(const auto& e : v) {
+		ArcDebug() << e.getPath().getNativeString();
+	}
+
+	profiler.stop();
 
 	return true;
 

@@ -72,3 +72,22 @@ concept Integer = Integral<T> && !Equal<std::remove_cv_t<T>, bool>;
 
 template<class T>
 concept Fundamental = std::is_fundamental_v<T>;
+
+
+/* Enumeration type concepts */
+template<class T>
+concept Enum = std::is_enum_v<T>;
+
+template<class T>
+concept ScopedEnum = Enum<T> && !requires(T t, void(*p)(int)) { p(t); };
+
+template<class T>
+concept WeakEnum = Enum<T> && !ScopedEnum<T>;
+
+
+/* Invocable type concepts */
+template<class Func, class... Args>
+concept Invocable = std::invocable<Func, Args...>;
+
+template<class Func, class Ret, class... Args>
+concept Functional = Invocable<Func, Args...> && Equal<Ret, std::invoke_result_t<Func, Args...>>;

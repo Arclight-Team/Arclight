@@ -14,6 +14,9 @@ typedef int16_t i16;
 typedef int32_t i32;
 typedef int64_t i64;
 
+typedef intmax_t	imax;
+typedef uintmax_t	umax;
+
 typedef u8 Byte;
 
 #if ARC_MACHINE_BITS == 64
