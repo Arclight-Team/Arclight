@@ -49,6 +49,15 @@ public:
         return *this;
 
     }
+
+    ArcDebug& operator<<(Char auto value) {
+
+        write(value);
+        dispatchToken(Token::ArcSpace);
+
+        return *this;
+        
+    }
     
     template<class T, class U>
     ArcDebug& operator<<(const std::pair<T, U>& pair){
@@ -86,7 +95,12 @@ public:
         return *this;
     }
 
+
 private:
+
+    void write(Char auto value) {
+        buffer << static_cast<u32>(value);
+    }
 
     void write(const StringStreamable auto& value) {
         buffer << value;

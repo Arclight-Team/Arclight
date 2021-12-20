@@ -18,6 +18,7 @@
 #endif
 
 
+
 namespace Math {
 
 	constexpr double pi = 3.1415926535897932384626434;
@@ -43,7 +44,7 @@ namespace Math {
 	template<Arithmetic A>
 	constexpr auto abs(A value) {
 
-		if constexpr (std::is_constant_evaluated()) {
+		if (std::is_constant_evaluated()) {
 			return value == A(0) ? A(0) : (value < A(0) ? -value : value);
 		}
 
@@ -205,7 +206,7 @@ namespace Math {
 	template<Float F>
 	constexpr bool isInfinity(F value) {
 
-		if constexpr (std::is_constant_evaluated() && std::numeric_limits<F>::has_infinity()) {
+		if (std::is_constant_evaluated() && std::numeric_limits<F>::has_infinity()) {
 			return value == std::numeric_limits<F>::infinity() || value == -std::numeric_limits<F>::infinity();
 		}
 
@@ -216,7 +217,7 @@ namespace Math {
 	template<Float F>
 	constexpr bool isPositiveInfinity(F value) {
 
-		if constexpr (std::is_constant_evaluated() && std::numeric_limits<F>::has_infinity()) {
+		if (std::is_constant_evaluated() && std::numeric_limits<F>::has_infinity()) {
 			return value == std::numeric_limits<F>::infinity();
 		}
 
@@ -227,7 +228,7 @@ namespace Math {
 	template<Float F>
 	constexpr bool isNegativeInfinity(F value) {
 
-		if constexpr (std::is_constant_evaluated() && std::numeric_limits<F>::has_infinity()) {
+		if (std::is_constant_evaluated() && std::numeric_limits<F>::has_infinity()) {
 			return value == -std::numeric_limits<F>::infinity();
 		}
 
@@ -278,7 +279,7 @@ namespace Math {
 	template<Arithmetic A, Arithmetic B>
 	constexpr auto mod(A a, B b) requires (Float<A> || Float<B>) {
 
-		if constexpr (std::is_constant_evaluated()) {
+		if (std::is_constant_evaluated()) {
 			return a - trunc(a / b) * b;
 		}
 

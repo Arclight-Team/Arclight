@@ -2,6 +2,8 @@
 
 #include <stdexcept>
 
+#include "util/concepts.h"
+
 
 /*
     Exception for bad OptionalRef access
@@ -25,17 +27,20 @@ class OptionalRef {
 
 public:
 
-    static_assert(BaseType<T>, "T must be a plain data type");
+    static_assert(BaseType<std::remove_const_t<T>>, "T must be a plain data type");
 
     constexpr OptionalRef() noexcept : storage(nullptr), valid(false) {}
     constexpr OptionalRef(T& ref) noexcept : storage(&ref), valid(true) {}
-    constexpr OptionalRef(const OptionalRef& other) noexcept : storage(other.storage), valid(other.valid) {}
-    
-    constexpr OptionalRef& operator=(const OptionalRef& other) noexcept {
-        storage = other.storage;
-        valid = other.valid;
-        return *this;
-    }
+
+	template<class U> requires(Convertible<U&, T&>)
+	constexpr OptionalRef(const OptionalRef<U>& other) noexcept : storage(other.storage), valid(other.valid) {}
+		
+	template<class U> requires(Convertible<U&, T&>)
+	constexpr OptionalRef& operator=(const OptionalRef<U>& other) noexcept {
+		storage = other.storage;
+		valid = other.valid;
+		return *this;
+	}
 
     constexpr bool has() const noexcept {
         return valid;
@@ -114,6 +119,9 @@ public:
     constexpr bool operator==(const OptionalRef<T>& other) const noexcept = default;
 
 private:
+
+    template<class U>
+    friend class OptionalRef;
 
     T* storage;
     bool valid;

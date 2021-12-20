@@ -73,6 +73,9 @@ concept Integer = Integral<T> && !Equal<std::remove_cv_t<T>, bool>;
 template<class T>
 concept Fundamental = std::is_fundamental_v<T>;
 
+template<class T>
+concept Char = Equal<T, char> || Equal<T, unsigned char> || Equal<T, signed char> || Equal<T, wchar_t> || Equal<T, char8_t> || Equal<T, char16_t> || Equal<T, char32_t>;
+
 
 /* Enumeration type concepts */
 template<class T>
