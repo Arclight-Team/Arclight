@@ -24,8 +24,16 @@ namespace TT {
     constexpr inline bool IsAllSame = _IsAllSame<T, Pack...>::Value;
 
     template<SizeT N, class... Pack> requires (N < sizeof...(Pack))
-    constexpr inline SizeT SizeofN = []() { SizeT i = 0; return ((i++ == N ? sizeof(Pack) : 0) + ...); }();
+    constexpr inline size_t SizeofN = []() { 
 
+        SizeT i = 0;
+        SizeT s = 0;
+        [[maybe_unused]] bool x = ((i++ == N ? (s = sizeof(Pack), true) : false) || ...);
+        
+        return s;
+
+    }();
+    
     template<Float F>
     struct _ToInteger {
         using Type = i32;

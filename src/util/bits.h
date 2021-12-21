@@ -200,8 +200,13 @@ namespace Bits {
 	template<Integer I, Integer... J>
 	constexpr I assemble(J... js) noexcept requires (TT::IsAllSame<J...> && (TT::SizeofN<0, J...> * sizeof...(J)) == sizeof(I)) {
 
-		SizeT n = 0;
-		return ((static_cast<I>(js) << (sizeof(I) / sizeof...(J) * 8 * n++)) | ...);
+		SizeT s = TT::SizeofN<0, J...>;
+		SizeT n = sizeof...(js) * s;
+		I i = 0;
+		
+		(((i |= static_cast<I>(js) << (n - s)), i >>= s), ...);
+
+		return i;
 
 	}
 
