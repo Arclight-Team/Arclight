@@ -40,7 +40,7 @@ namespace Crypto {
         construct.prevBlockUsed = rem >= padOffset;
         
         //Total block count
-        construct.blocks = Math::alignUp(bytes, blockSize) / blockSize + construct.prevBlockUsed;
+        construct.blocks = bytes / blockSize + construct.prevBlockUsed + 1;
 
         //Fill last blocks
         if(construct.prevBlockUsed) {
