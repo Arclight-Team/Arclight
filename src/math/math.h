@@ -257,6 +257,18 @@ namespace Math {
 	}
 
 	template<Arithmetic A>
+	ARC_CMATH_CONSTEXPR auto cot(A radians) {
+
+		auto soc = tan(radians);
+
+		if (isZero(soc))
+			return copysign(radians, HUGE_VAL);
+
+		return A(1) / soc;
+
+	}
+
+	template<Arithmetic A>
 	ARC_CMATH_CONSTEXPR auto asin(A value) {
 		return std::asin(value);
 	}

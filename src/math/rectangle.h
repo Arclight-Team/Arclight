@@ -182,7 +182,7 @@ public:
     }
 
     template<Arithmetic B>
-    constexpr Rectangle<A> intersects(const Rectangle<B>& other) const {
+    constexpr bool intersects(const Rectangle<B>& other) const {
         return !(getEndX() <= other.x || x >= other.getEndX() || getEndY() <= other.y || y >= other.getEndY());
     }
 
