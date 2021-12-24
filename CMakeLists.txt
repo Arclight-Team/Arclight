@@ -9,7 +9,7 @@ project (${PROJECT_NAME})
 ######################
 
 	# Define Debug/Release
-	if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+	if($<CONFIG:Debug>)
 		add_compile_definitions(ARC_DEBUG=true)
 		add_compile_definitions(ARC_RELEASE=false)
 	else()
