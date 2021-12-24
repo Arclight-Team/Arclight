@@ -152,13 +152,6 @@
 
 
 /*
-	Load application icon
-	ARC_APP_ICON_ENABLE: Loads the app icon upon boot
-*/
-//#define ARC_APP_ICON_ENABLE
-
-
-/*
 	Font debugging
 	ARC_FONT_DEBUG: Prints debug output for fonts
 */

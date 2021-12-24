@@ -11,7 +11,13 @@ template<class Base, class Derived>
 concept BaseOf = std::derived_from<Derived, Base>;
 
 template<class From, class To>
+concept ImpConvertible = std::is_convertible_v<From, To>;
+
+template<class From, class To>
 concept Convertible = std::convertible_to<From, To>;
+
+template<class From, class To>
+concept ExpConvertible = Convertible<From, To> && !ImpConvertible<From, To>;
 
 template<class T, class U>
 concept HasCommonReference = std::common_reference_with<T, U>;
