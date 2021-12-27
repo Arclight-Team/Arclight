@@ -33,7 +33,12 @@ void Uri::setPath(const std::string& path, bool skipParsing) {
 	}
 
 	if(!skipParsing && path.size() >= 2 && path[1] == '/') {
-		this->path = getSpecialUriRootPath(path[0]) + path.substr(2);
+		auto root = getSpecialUriRootPath(path[0]);
+
+		if (!root.ends_with('/') && !root.ends_with('\\'))
+			root += std::filesystem::path::preferred_separator;
+
+		this->path = root + path.substr(2);
 	} else {
 		this->path = path;
 	}
@@ -48,20 +53,11 @@ bool Uri::createDirectory() const {
 		return true;
 	}
 
-	bool created = false;
-
 	try {
-
-		created = std::filesystem::create_directories(path);
-
+		std::filesystem::create_directories(path);
 	} catch (std::exception&) {
-	}
-
-	if (!created) {
-
 		Log::error("Uri", "Failed to create directory '%s'", path.string().c_str());
 		return false;
-
 	}
 
 	return true;
