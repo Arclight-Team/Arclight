@@ -38,21 +38,19 @@ project (${PROJECT_NAME})
 ### COMPILER SETUP ###
 ######################
 
-if(MSVC)
+	if(MSVC)
 
-	#Link MSVC runtime statically + parallel build
-	set(CompilerFlags CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE)
+		#Link MSVC runtime statically + parallel build
+		set(CompilerFlags CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE)
 
-	foreach(CompilerFlag ${CompilerFlags})
-		string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-		set(${CompilerFlag} "${${CompilerFlag}} /MP /permissive")
-		#message(${CompilerFlag} ": ${${CompilerFlag}}")
-	endforeach()
+		foreach(CompilerFlag ${CompilerFlags})
+			string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+			set(${CompilerFlag} "${${CompilerFlag}} /MP /permissive /Zi")
+		endforeach()
 
-	set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
 
-endif()
+	endif()
 
 
 ######################
