@@ -78,6 +78,9 @@ project (${PROJECT_NAME})
 
 	file(STRINGS arclight.modules MODULE_LIST)
 
+	# Remove comments
+	list(FILTER MODULE_LIST EXCLUDE REGEX "^#")
+
 	foreach(ModulePath ${MODULE_LIST})
 
 		string(REPLACE "." "/" ModulePath ${ModulePath})
