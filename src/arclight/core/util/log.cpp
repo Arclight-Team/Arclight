@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 log.cpp
+ */
+
 #include "log.hpp"
 #include "assert.hpp"
 #include "filesystem/file.hpp"

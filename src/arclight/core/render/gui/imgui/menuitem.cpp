@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 menuitem.cpp
+ */
+
 #include "menuitem.hpp"
 
 GUI_BEGIN

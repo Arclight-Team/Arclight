@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 unicodestring.hpp
+ */
+
 #pragma once
 
 #include "unicode.hpp"
@@ -272,8 +280,15 @@ public:
     }
 
     constexpr UnicodeString& insert(SizeT index, SizeT count, Codepoint codepoint) {
-
         insertCodepoint(index, codepoint, count);
+        return *this;
+    }
+
+    constexpr UnicodeString& insert(SizeT index, const Codepoint* s, SizeT count) {
+
+        std::span<const Codepoint> span {s, count};
+        insert(iterator(index, getInsertionOffsetOrThrow(index)), span.begin(), span.end());
+
         return *this;
 
     }
@@ -284,15 +299,6 @@ public:
         while(*p++);
 
         return insert(index, s, p - s);
-
-    }
-
-    constexpr UnicodeString& insert(SizeT index, const Codepoint* s, SizeT count) {
-
-        std::span<const Codepoint> span {s, count};
-        insert(iterator(index, getInsertionOffsetOrThrow(index)), span.begin(), span.end());
-
-        return *this;
 
     }
 
@@ -333,8 +339,18 @@ public:
     }
 
     constexpr iterator insert(const const_iterator& pos, SizeT count, Codepoint codepoint) {
-        return insertByIterator(pos, codepoint, count);
-    }
+
+	    SizeT cpIdx = pos.getCodepointIndex();
+
+	    //The container storage might get reallocated so get the distance to the start
+	    SizeT distance = pos.getPointer() - str.data();
+
+	    insertCodepoint(cpIdx, codepoint, count);
+
+	    //Construct a new iterator to cpIdx and return it
+	    return iterator(cpIdx, str.data() + distance);
+
+	}
 
     template<std::input_iterator InputIt>
     constexpr iterator insert(const const_iterator& pos, const InputIt& first, const InputIt& last) {
@@ -359,9 +375,8 @@ public:
 	constexpr UnicodeString& insert(SizeT index, const StringView& sv, SizeT svIndex, SizeT svSize = SizeT(-1)) requires (ImpConvertible<const StringView&, std::basic_string_view<Codepoint>> && !ImpConvertible<const StringView&, const Codepoint*>) {
 
 		std::basic_string_view<Codepoint> view = sv;
-		insert(index, view.data(), view.size());
 
-		if(svIndex > sv.size()) {
+		if(svIndex > view.size()) {
 			throw std::out_of_range("Insertion substring index out of range");
 		}
 
@@ -443,13 +458,121 @@ public:
 	}
 
 	constexpr UnicodeString& append(SizeT count, Codepoint codepoint) {
-		insertCodepoint(size(), codepoint, count);
+		appendCodepoint(codepoint, count);
 		return *this;
 	}
 
 	constexpr UnicodeString& append(const UnicodeString& ustr) {
-		return insert(size(), ustr);
+
+		SizeT oldSize = str.size();
+		str.append(ustr.str);
+
+		restoreDistanceRange(size(), oldSize, size() + ustr.size());
+
+		return *this;
+
 	}
+
+	constexpr UnicodeString& append(const UnicodeString& ustr, SizeT ssIndex, SizeT ssSize = SizeT(-1)) {
+
+		if(ssIndex > ustr.size()) {
+			throw std::out_of_range("Appending substring index out of range");
+		}
+
+		if(ssSize > ustr.size() - ssIndex) {
+			ssSize = ustr.size() - ssIndex;
+		}
+
+		SizeT oldSize = str.size();
+		SizeT ssStart = ustr.getInsertionOffsetDirect(ssIndex);
+		SizeT ssEnd = ustr.getInsertionOffsetDirect(ssIndex + ssSize);
+
+		str.append(ustr.str, ssStart, ssEnd - ssStart);
+		restoreDistanceRange(size(), oldSize, size() + ssSize);
+
+		return *this;
+
+	}
+
+	constexpr UnicodeString& append(const Codepoint* s, SizeT count) {
+
+		std::span<const Codepoint> span {s, count};
+		append(span.begin(), span.end());
+
+		return *this;
+
+	}
+
+	constexpr UnicodeString& append(const Codepoint* s) {
+
+		const Codepoint* p = s;
+		while(*p++);
+
+		return append(s, p - s);
+
+	}
+
+	template<std::input_iterator InputIt>
+	constexpr UnicodeString& append(const InputIt& first, const InputIt& last) {
+		appendByRange(first, last);
+		return *this;
+	}
+
+	constexpr UnicodeString& append(std::initializer_list<Codepoint> list) {
+		return append(list.begin(), list.size());
+	}
+
+	template<class StringView>
+	constexpr UnicodeString& append(const StringView& sv) requires (ImpConvertible<const StringView&, std::basic_string_view<Codepoint>> && !ImpConvertible<const StringView&, const Codepoint*>) {
+
+		std::basic_string_view<Codepoint> view = sv;
+		append(view.data(), view.size());
+
+		return *this;
+
+	}
+
+	template<class StringView>
+	constexpr UnicodeString& append(const StringView& sv, SizeT svIndex, SizeT svSize = SizeT(-1)) requires (ImpConvertible<const StringView&, std::basic_string_view<Codepoint>> && !ImpConvertible<const StringView&, const Codepoint*>) {
+
+		std::basic_string_view<Codepoint> view = sv;
+
+		if(svIndex > view.size()) {
+			throw std::out_of_range("Appending substring index out of range");
+		}
+
+		if(svSize > view.size() - svIndex) {
+			svSize = view.size() - svIndex;
+		}
+
+		append(view.data() + svIndex, svSize);
+
+		return *this;
+
+	}
+
+	constexpr UnicodeString& operator+=(const UnicodeString& ustr) {
+		return append(ustr);
+	}
+
+	constexpr UnicodeString& operator+=(Codepoint codepoint) {
+		return append(codepoint);
+	}
+
+	constexpr UnicodeString& operator+=(const Codepoint* s) {
+		return append(s);
+	}
+
+	constexpr UnicodeString& operator+=(std::initializer_list<Codepoint> list) {
+		return append(list);
+	}
+
+	template<class StringView>
+	constexpr UnicodeString& operator+=(const StringView& sv) requires (ImpConvertible<const StringView&, std::basic_string_view<Codepoint>> && !ImpConvertible<const StringView&, const Codepoint*>) {
+		return append(sv);
+	}
+
+
 
 private:
 
@@ -600,8 +723,6 @@ private:
 
     }
 
-
-
     constexpr void insertCodepoint(SizeT index, Codepoint codepoint, SizeT n) {
 
         if constexpr (!Unicode::isUTF32<E>()) {
@@ -632,21 +753,6 @@ private:
             str.insert(index, n, codepoint);
 
         }
-
-    }
-
-
-    constexpr iterator insertByIterator(const const_iterator& pos, Codepoint codepoint, SizeT n) {
-
-        SizeT cpIdx = pos.getCodepointIndex();
-
-        //The container storage might get reallocated so get the distance to the start
-        SizeT distance = pos.getPointer() - str.data();
-
-        insertCodepoint(cpIdx, codepoint, n);
-
-        //Construct a new iterator to cpIdx and return it
-        return iterator(cpIdx, str.data() + distance);
 
     }
 
@@ -691,6 +797,73 @@ private:
         }
 
     }
+
+
+	template<std::input_iterator InputIt>
+	constexpr void appendCodepoint(Codepoint codepoint, SizeT n) {
+
+		if constexpr (!Unicode::isUTF32<E>()) {
+
+			//Decompose codepoint
+			CharT decomposed[Unicode::UTFEncodingTraits<E>::MaxDecomposed];
+			SizeT count = Unicode::toUTF<E>(codepoint, decomposed);
+
+			//Resize array
+			SizeT prevSize = str.size();
+			str.resize(prevSize + count * n);
+
+			//Now insert the new decomposed codepoint(s)
+			for(SizeT i = 0; i < n; i++) {
+				std::copy_n(decomposed, count, str.begin() + prevSize + i * count);
+			}
+
+			SizeT prevCpCount = size();
+			restoreDistanceRange(prevCpCount, prevSize, prevCpCount + n);
+
+		} else {
+
+			str.append(n, codepoint);
+
+		}
+
+	}
+
+	template<std::input_iterator InputIt>
+	constexpr void appendByRange(InputIt first, const InputIt& last) {
+
+		if constexpr (!Unicode::isUTF32<E>()) {
+
+			//Precalculate the total insertion size
+			SizeT totalSegments = 0;
+
+			for(InputIt cpyIt = first; cpyIt != last; cpyIt++) {
+				totalSegments += Unicode::getEncodedSize<E>(&*cpyIt);
+			}
+
+			//Resize array
+			SizeT prevSize = str.size();
+			str.resize(prevSize + totalSegments);
+
+			//Now insert the new decomposed codepoint(s) over the range
+			const CharT* ptr = str.data() + prevSize;
+			SizeT totalCodepoints = size();
+
+			for(; first != last; first++, totalCodepoints++) {
+				ptr += Unicode::toUTF<E>(*first, ptr);
+			}
+
+			restoreDistanceRange(size(), prevSize, totalCodepoints);
+
+		} else {
+
+			str.append(first, last);
+
+		}
+
+	}
+
+
+
 
     Container str;
 

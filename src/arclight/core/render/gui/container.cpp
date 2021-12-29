@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 container.cpp
+ */
+
 #include "container.hpp"
 
 GUI_BEGIN

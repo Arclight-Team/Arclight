@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 profiler.cpp
+ */
+
 #include "profiler.hpp"
 #include "util/assert.hpp"
 #include "arcconfig.hpp"

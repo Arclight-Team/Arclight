@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 imgui_impl.cpp
+ */
+
 #include "imgui_impl.hpp"
 
 #include "window/window.hpp"

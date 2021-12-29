@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 simplecamera.cpp
+ */
+
 #include "simplecamera.hpp"
 #include "input/inputcontext.hpp"
 #include "input/inputhandler.hpp"

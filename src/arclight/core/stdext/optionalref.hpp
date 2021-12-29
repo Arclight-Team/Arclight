@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 optionalref.hpp
+ */
+
 #pragma once
 
 #include "util/concepts.hpp"
@@ -13,14 +21,14 @@ class BadOptionalRefException : public std::exception {
 public:
 
     virtual const char* what() const noexcept {
-        return "Accessed an OptionalRef that doesn't hold a reference";
+        return "Illegal optional access";
     }
 
 };
 
 
 /*
-    Optional reference that is immutable (i.e. cannot rebind)
+    Optional reference that will rebind upon assignment
 */
 template<class T>
 class OptionalRef {
@@ -143,9 +151,9 @@ OptionalRef<O> optionalRefCast(const OptionalRef<I>& in) {
 
 namespace std {
 
-    template <class T>
-    constexpr void swap(OptionalRef<T>& left, OptionalRef<T>& right) noexcept {
-        left.swap(right);
-    }
+	template<class T>
+	constexpr void swap(OptionalRef<T> &left, OptionalRef<T> &right) noexcept {
+		left.swap(right);
+	}
 
 }

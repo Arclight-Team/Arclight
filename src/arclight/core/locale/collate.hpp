@@ -3,12 +3,9 @@
  *
  *	 This file is part of Arclight. All rights reserved.
  *
- *	 xml.hpp
+ *	 collate.hpp
  */
 
 #pragma once
 
-#include "xmlc.hpp"
-#include "attribute.hpp"
-#include "node.hpp"
-#include "document.hpp"
+

@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 codeconv.hpp
+ */
+
 #pragma once
 
 #include "unicode.hpp"
@@ -19,7 +27,7 @@ namespace CodeConv {
     extern const u32 johabUnicodeTable[0x7C84];
 
 
-    //UTF inter-conversion
+    //UTF interconversion
     template<Encoding From, Encoding To>
     constexpr static std::string convertUnicode(const std::string_view& in) {
 

@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 poolallocator.cpp
+ */
+
 #include "poolallocator.hpp"
 #include "math/math.hpp"
 #include "util/log.hpp"

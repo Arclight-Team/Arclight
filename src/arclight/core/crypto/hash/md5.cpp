@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 md5.cpp
+ */
+
 #include "md5.hpp"
 #include "common.hpp"
 #include "util/bits.hpp"

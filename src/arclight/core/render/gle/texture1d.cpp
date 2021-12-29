@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 texture1d.cpp
+ */
+
 #include "texture1d.hpp"
 
 #include "glecore.hpp"

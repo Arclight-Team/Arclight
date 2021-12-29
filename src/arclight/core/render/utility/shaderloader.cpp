@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 shaderloader.cpp
+ */
+
 #include "shaderloader.hpp"
 #include "filesystem/file.hpp"
 

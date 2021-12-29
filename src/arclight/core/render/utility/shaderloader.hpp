@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 shaderloader.hpp
+ */
+
 #pragma once
 
 #include "render/gle/shaderprogram.hpp"

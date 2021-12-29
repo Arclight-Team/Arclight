@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 chunkallocator.cpp
+ */
+
 #include "chunkallocator.hpp"
 #include "math/math.hpp"
 #include "util/log.hpp"

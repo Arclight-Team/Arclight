@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 dynamicsworld.cpp
+ */
+
 #include "dynamicsworld.hpp"
 #include "bulletconv.hpp"
 #include "btBulletDynamicsCommon.h"

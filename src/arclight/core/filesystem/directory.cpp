@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 directory.cpp
+ */
+
 #include "directory.hpp"
 #include "util/bool.hpp"
 

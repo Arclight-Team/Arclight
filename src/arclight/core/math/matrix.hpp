@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 matrix.hpp
+ */
+
 #pragma once
 
 #include "math/math.hpp"

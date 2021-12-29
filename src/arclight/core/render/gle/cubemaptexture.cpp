@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 cubemaptexture.cpp
+ */
+
 #include "cubemaptexture.hpp"
 
 #include "glecore.hpp"

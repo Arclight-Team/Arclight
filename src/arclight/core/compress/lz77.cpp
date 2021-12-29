@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 lz77.cpp
+ */
+
 #include "lz77.hpp"
 #include "stream/inputstream.hpp"
 #include "stream/binaryreader.hpp"

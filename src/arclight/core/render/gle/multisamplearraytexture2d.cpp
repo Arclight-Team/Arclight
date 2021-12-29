@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 multisamplearraytexture2d.cpp
+ */
+
 #include "multisamplearraytexture2d.hpp"
 
 #include "glecore.hpp"

@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 bits.hpp
+ */
+
 #pragma once
 
 #include "concepts.hpp"

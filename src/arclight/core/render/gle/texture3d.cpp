@@ -1,3 +1,11 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 texture3d.cpp
+ */
+
 #include "texture3d.hpp"
 
 #include "glecore.hpp"
