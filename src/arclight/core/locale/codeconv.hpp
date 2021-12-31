@@ -20,40 +20,12 @@
 namespace CodeConv {
 
     using Unicode::Encoding;
+	using Unicode::Codepoint;
     
-    extern const u32 sjisUnicodeTable[0x3100];
-    extern const u32 big5UnicodeTable[0x5FA1];
-    extern const u32 wansungUnicodeTable[0x5E00];
-    extern const u32 johabUnicodeTable[0x7C84];
-
-
-    //UTF interconversion
-    template<Encoding From, Encoding To>
-    constexpr static std::string convertUnicode(const std::string_view& in) {
-
-        std::string convertedString;
-        convertedString.reserve(in.size());
-
-        u32 i = 0;
-
-        while(i < in.size()) {
-
-            u32 parsedBytes = 0;
-            u32 codepoint = toCodepoint<From>({&in[i], in.size() - i - 1}, parsedBytes);
-
-            if(!parsedBytes) {
-                //In case of error, skip byte and hope for the best
-                parsedBytes++;
-            }
-
-            convertedString += Unicode::toUTF<To>(codepoint);
-            i += parsedBytes;
-
-        }
-
-        return convertedString;
-
-    }
+    extern const Codepoint sjisUnicodeTable[0x3100];
+    extern const Codepoint big5UnicodeTable[0x5FA1];
+    extern const Codepoint wansungUnicodeTable[0x5E00];
+    extern const Codepoint johabUnicodeTable[0x7C84];
 
 
     //Standard Shift-JIS to Unicode

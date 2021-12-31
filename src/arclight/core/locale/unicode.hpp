@@ -69,6 +69,43 @@ namespace Unicode {
         return E == UTF32LE || E == UTF32BE;
     }
 
+	template<Encoding E0, Encoding E1>
+	consteval bool isEquivalentEncoding() noexcept {
+		return (isUTF8<E0>() && isUTF8<E1>()) || (isUTF16<E0>() && isUTF16<E1>()) || (isUTF32<E0>() && isUTF32<E1>());
+	}
+
+	template<Char C, bool FlipEndianess = false>
+	consteval Encoding fromCharType() noexcept {
+
+		if constexpr (Equal<C, char8_t>) {
+
+			return Encoding::UTF8;
+
+		} else if constexpr (Equal<C, char16_t>) {
+
+			if constexpr (FlipEndianess) {
+				return LittleEndian ? Encoding::UTF16BE : Encoding::UTF16LE;
+			} else {
+				return Encoding::UTF16;
+			}
+
+		} else if constexpr (Equal<C, char32_t>) {
+
+			if constexpr (FlipEndianess) {
+				return LittleEndian ? Encoding::UTF32BE : Encoding::UTF32LE;
+			} else {
+				return Encoding::UTF32;
+			}
+
+		} else {
+			static_assert("Illegal character type specified");
+		}
+
+	};
+
+	template<Char C, bool FlipEndianess = false>
+	constexpr Encoding TypeEncoding = fromCharType<C, FlipEndianess>();
+
     template<Unicode::Encoding E> struct UTFEncodingTraits {};
 
     template<> struct UTFEncodingTraits<Unicode::UTF8>    { using Type = char8_t;  constexpr static SizeT MaxDecomposed = 4; };
@@ -76,6 +113,8 @@ namespace Unicode {
     template<> struct UTFEncodingTraits<Unicode::UTF16BE> { using Type = char16_t; constexpr static SizeT MaxDecomposed = 2; };
     template<> struct UTFEncodingTraits<Unicode::UTF32LE> { using Type = char32_t; constexpr static SizeT MaxDecomposed = 1; };
     template<> struct UTFEncodingTraits<Unicode::UTF32BE> { using Type = char32_t; constexpr static SizeT MaxDecomposed = 1; };
+
+
 
     using Codepoint = char32_t;
 
@@ -244,6 +283,37 @@ namespace Unicode {
         return getCodepoint<E>(p, count);
 
     }
+
+	//UTF to UTF
+	template<Encoding From, Encoding To, class SrcT = typename UTFEncodingTraits<From>::Type, class DstT = typename UTFEncodingTraits<To>::Type>
+	constexpr SizeT transcode(const SrcT* s, const DstT* d) noexcept {
+
+		if constexpr (From == To) {
+
+			SizeT count = getEncodedSize<From>(s);
+			std::copy(s, s + count, d);
+
+			return count;
+
+		} else {
+
+			return Unicode::toUTF<To>(Unicode::getCodepoint<From>(s), d);
+
+		}
+
+	}
+
+	//Returns the size of the codepoint encoded in From if converted to To
+	template<Encoding From, Encoding To, class T = typename UTFEncodingTraits<From>::Type>
+	constexpr SizeT getTranscodedSize(const T* p) noexcept {
+
+		if constexpr (isEquivalentEncoding<From, To>) {
+			return getEncodedSize<From>(p);
+		} else {
+			return getEncodedSize<To>(getCodepoint<From>(p));
+		}
+
+	}
 
     //UTF encoded size of next codepoint
     template<Encoding E, class T = typename UTFEncodingTraits<E>::Type>
