@@ -9,13 +9,8 @@ project (${PROJECT_NAME})
 ######################
 
 	# Define Debug/Release
-	if($<CONFIG:Debug>)
-		add_compile_definitions(ARC_DEBUG=true)
-		add_compile_definitions(ARC_RELEASE=false)
-	else()
-		add_compile_definitions(ARC_DEBUG=false)
-		add_compile_definitions(ARC_RELEASE=true)
-	endif()
+	add_compile_definitions(ARC_DEBUG=$<CONFIG:Debug>)
+	add_compile_definitions(ARC_RELEASE=$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>)
 
 	# Enable C++20
 	set(CMAKE_CXX_STANDARD 20)
@@ -31,7 +26,7 @@ project (${PROJECT_NAME})
 	# Set Uri root path
 	add_definitions(-DARC_URI_ROOT="../")
 
-	message("Building '${PROJECT_NAME}' for: ${CMAKE_BUILD_TYPE}")
+	message("Building '${PROJECT_NAME}'")
 
 
 ######################
@@ -45,7 +40,7 @@ project (${PROJECT_NAME})
 
 		foreach(CompilerFlag ${CompilerFlags})
 			string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-			set(${CompilerFlag} "${${CompilerFlag}} /MP /permissive /Zi")
+			set(${CompilerFlag} "${${CompilerFlag}} /MP /permissive /Zi /utf-8")
 		endforeach()
 
 		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
