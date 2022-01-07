@@ -13,7 +13,7 @@
 
 #if defined(ARC_USE_IMGUI) && ARC_USE_IMGUI
 
-#include "render/gui/arcgui.h"
+#include "render/gui/arcgui.hpp"
 
 #endif
 
@@ -82,7 +82,7 @@ void ArcballCamera::setRotation(double angleH, double angleV) {
 void ArcballCamera::update() {
 
 	if (movementZ) {
-		move(movementZ * movementSpeed);
+		move(movementZ * currentSpeed);
 		movementZ = 0;
 	}
 
@@ -90,7 +90,7 @@ void ArcballCamera::update() {
 		return;
 
 	if (rotationX || rotationY) {
-		rotate(rotationY * movementSpeed, rotationX * movementSpeed);
+		rotate(rotationY * currentSpeed, rotationX * currentSpeed);
 		rotationX = rotationY = 0;
 	}
 
@@ -147,11 +147,9 @@ void ArcballCamera::setupInputHandler(InputHandler& handler) {
 
 bool ArcballCamera::actionListener(KeyAction action) {
 
-	// TODO: add them as class members (getters/setters)
-	constexpr float speedMin = 0.02f;
-	constexpr float speedDef = 0.04f;
-	constexpr float speedMax = 0.20f;
-	constexpr float speedInc = 0.02f;
+	float speedMin = defaultSpeed / 8.0f;
+	float speedMax = defaultSpeed * 8.0f;
+	float speedInc = defaultSpeed / 10.0f;
 
 	switch (static_cast<CameraAction>(action - firstActionID)) {
 
@@ -180,21 +178,21 @@ bool ArcballCamera::actionListener(KeyAction action) {
 		break;
 
 	case CameraAction::SpeedModifierOn:
-		movementSpeed = speedMax;
+		currentSpeed = speedMax;
 		break;
 
 	case CameraAction::SpeedModifierOff:
-		movementSpeed = speedDef;
+		currentSpeed = defaultSpeed;
 		break;
 
 	case CameraAction::SpeedUp:
-		movementSpeed += speedInc;
-		movementSpeed = Math::clamp(movementSpeed, speedMin, speedMax);
+		currentSpeed += speedInc;
+		currentSpeed = Math::clamp(currentSpeed, speedMin, speedMax);
 		break;
 
 	case CameraAction::SlowDown:
-		movementSpeed -= speedInc;
-		movementSpeed = Math::clamp(movementSpeed, speedMin, speedMax);
+		currentSpeed -= speedInc;
+		currentSpeed = Math::clamp(currentSpeed, speedMin, speedMax);
 		break;
 
 	case CameraAction::GrabStart:
@@ -213,7 +211,7 @@ bool ArcballCamera::actionListener(KeyAction action) {
 
 		Vec2f dif = mouse - mouseGrab;
 		mouseGrab = mouse;
-		dif *= speedDef * 0.092;
+		dif *= defaultSpeed * 0.092;
 		rotate(dif.x, dif.y);
 		break;
 	}

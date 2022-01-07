@@ -42,7 +42,7 @@ namespace arc
 	public:
 
 		constexpr TextureParser() : data(nullptr), width(0), height(0), channels(0) {}
-		TextureParser(const Uri& path, bool flipY = false) {
+		TextureParser(const Uri& path, bool flipY = false) : TextureParser() {
 			load(path, flipY);
 		}
 		virtual ~TextureParser() { destroy(); }
@@ -73,6 +73,7 @@ namespace arc
 
 			if (isLoaded()) {
 				stbi_image_free(data);
+				data = nullptr;
 			}
 
 		}
@@ -81,7 +82,7 @@ namespace arc
 			return data != nullptr;
 		}
 		constexpr bool valid() const {
-			return isLoaded() && (channels >= 3 && channels <= 4) && width > 0 && height > 0;
+			return isLoaded() && (channels >= 1 && channels <= 4) && width > 0 && height > 0;
 		}
 
 		constexpr const u8* getData() const {
@@ -102,8 +103,57 @@ namespace arc
 		constexpr i32 getChannels() const {
 			return channels;
 		}
+		constexpr bool hasRed() const {
+			return channels >= 1;
+		}
+		constexpr bool hasGreen() const {
+			return channels >= 2;
+		}
+		constexpr bool hasBlue() const {
+			return channels >= 3;
+		}
 		constexpr bool hasAlpha() const {
-			return channels == 4;
+			return channels >= 4;
+		}
+
+		GLE::ImageFormat getImageFormat(bool srgb) const {
+
+			switch (channels) {
+
+			case 1:
+				return GLE::ImageFormat::R8;
+
+			case 2:
+				return GLE::ImageFormat::RG8;
+
+			case 3:
+				return srgb ? GLE::ImageFormat::SRGB8 : GLE::ImageFormat::RGB8;
+
+			case 4:
+				return srgb ? GLE::ImageFormat::SRGBA8 : GLE::ImageFormat::RGBA8;
+
+			}
+
+		}
+
+		GLE::TextureSourceFormat getSourceFormat() const {
+
+			switch (channels) {
+
+			case 1:
+				return GLE::TextureSourceFormat::Red;
+
+			case 2:
+				return GLE::TextureSourceFormat::RG;
+
+			case 3:
+				return GLE::TextureSourceFormat::RGB;
+
+			case 4:
+				return GLE::TextureSourceFormat::RGBA;
+
+			}
+
 		}
 
 	private:
@@ -139,7 +189,7 @@ namespace arc
 						Log::error("arcTexture2D", "Invalid texture height (%d) in %s", parser.getHeight(), path.getPath().c_str());
 					}
 
-					if (parser.getChannels() >= 3 && parser.getChannels() <= 4) {
+					if (parser.getChannels() < 3 || parser.getChannels() > 4) {
 						Log::error("arcTexture2D", "Invalid number of channels (%d) in %s", parser.getChannels(), path.getPath().c_str());
 					}
 				}
@@ -150,14 +200,9 @@ namespace arc
 				return false;
 			}
 
-			auto imageFormat = srgb ? (parser.hasAlpha() ? GLE::ImageFormat::SRGBA8 : GLE::ImageFormat::SRGB8) :
-				(parser.hasAlpha() ? GLE::ImageFormat::RGBA8 : GLE::ImageFormat::RGB8);
-
-			auto srcFormat = parser.hasAlpha() ? GLE::TextureSourceFormat::RGBA : GLE::TextureSourceFormat::RGB;
-
 			create();
 			bind();
-			setData(parser.getWidth(), parser.getHeight(), imageFormat, srcFormat, GLE::TextureSourceType::UByte, parser.getData());
+			setData(parser.getWidth(), parser.getHeight(), parser.getImageFormat(srgb), parser.getSourceFormat(), GLE::TextureSourceType::UByte, parser.getData());
 			generateMipmaps();
 
 			Log::info("arcTexture2D", "Loaded texture %s", path.getPath().c_str());
@@ -211,8 +256,10 @@ namespace arc
 						auto& texture = target.emplace_back();
 
 						Uri resPath(path);
+						//Uri resPath(std::filesystem::absolute(path.getPath()).string());
 						//resPath.move("..");
 						resPath.move(texPath.C_Str());
+						//resPath = std::filesystem::absolute(resPath.getPath()).string();
 
 						if (!texture.load(resPath, textureFlipY, textureSRGB)) {
 							target.pop_back();
@@ -1225,7 +1272,7 @@ namespace arc
 			scene = importer.ReadFile(path.getPath(), processFlags);
 
 			filePath = path;
-			rootPath = std::filesystem::path(path.getPath()).parent_path().string();
+			rootPath = path.parentPath();
 
 			if (!isLoaded()) {
 				return false;
@@ -1347,6 +1394,18 @@ namespace arc
 #endif
 
 			return true;
+
+		}
+
+		void destroy() {
+
+			for (auto& mesh : meshes) {
+				mesh.destroy();
+			}
+
+			for (auto& material : materials) {
+				material.destroy();
+			}
 
 		}
 

@@ -39,6 +39,14 @@ class SimpleCamera : public Camera
 {
 public:
 	
+	static constexpr float DefaultMovementSpeed = 0.08;
+	static constexpr float DefaultRotationSpeed = 0.043;
+
+	constexpr void setSpeed(float movement = DefaultMovementSpeed, float rotation = DefaultRotationSpeed) {
+		currentSpeed = defaultMovementSpeed = movement;
+		defaultRotationSpeed = rotation;
+	}
+
 	void update();
 
 	void setupInputContext(InputContext& context, u32 firstAction, u32 contextState = 0);
@@ -80,7 +88,9 @@ private:
 	Vec3i movement;
 	Vec3i rotation;
 
-	float movementSpeed = 0.08f;
-	float rotationSpeed = 0.06f;
+	float defaultMovementSpeed = DefaultMovementSpeed;
+	float defaultRotationSpeed = DefaultRotationSpeed;
+
+	float currentSpeed = DefaultMovementSpeed;
 
 };

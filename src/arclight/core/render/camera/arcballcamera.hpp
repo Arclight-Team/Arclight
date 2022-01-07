@@ -39,6 +39,8 @@ class ArcballCamera
 {
 public:
 
+	static constexpr float DefaultSpeed = 0.04;
+
 	ArcballCamera();
 	ArcballCamera(double z, double yaw, double pitch);
 
@@ -47,6 +49,10 @@ public:
 
 	void setDistance(double distance);
 	void setRotation(double yaw, double pitch);
+
+	constexpr void setSpeed(float speed = DefaultSpeed) {
+		currentSpeed = defaultSpeed = speed;
+	}
 
 	void update();
 
@@ -105,6 +111,7 @@ private:
 	i32 rotationX{}; // pitch
 	i32 rotationY{}; // yaw
 
-	float movementSpeed = 0.04f;
+	float defaultSpeed = DefaultSpeed;
+	float currentSpeed = DefaultSpeed;
 
 };
