@@ -86,9 +86,6 @@ void ArcballCamera::update() {
 		movementZ = 0;
 	}
 
-	if (inputBusy())
-		return;
-
 	if (rotationX || rotationY) {
 		rotate(rotationY * currentSpeed, rotationX * currentSpeed);
 		rotationX = rotationY = 0;
@@ -154,26 +151,44 @@ bool ArcballCamera::actionListener(KeyAction action) {
 	switch (static_cast<CameraAction>(action - firstActionID)) {
 
 	case CameraAction::MoveLeft:
+		if (inputBusy())
+			return false;
+
 		rotationY -= 1;
 		break;
 
 	case CameraAction::MoveRight:
+		if (inputBusy())
+			return false;
+
 		rotationY += 1;
 		break;
 
 	case CameraAction::MoveUp:
+		if (inputBusy())
+			return false;
+
 		rotationX += 1;
 		break;
 
 	case CameraAction::MoveDown:
+		if (inputBusy())
+			return false;
+
 		rotationX -= 1;
 		break;
 
 	case CameraAction::ZoomIn:
+		if (inputBusy())
+			return false;
+
 		movementZ -= 1;
 		break;
 
 	case CameraAction::ZoomOut:
+		if (inputBusy())
+			return false;
+
 		movementZ += 1;
 		break;
 
@@ -196,13 +211,11 @@ bool ArcballCamera::actionListener(KeyAction action) {
 		break;
 
 	case CameraAction::GrabStart:
-	{
 		if (inputBusy())
 			return false;
 
 		mouseGrab = mouse;
 		break;
-	}
 
 	case CameraAction::GrabMove:
 	{
@@ -226,6 +239,9 @@ bool ArcballCamera::actionListener(KeyAction action) {
 }
 
 bool ArcballCamera::cursorListener(double x, double y) {
+
+	if (inputBusy())
+		return false;
 
 	mouse.x = int(x);
 	mouse.y = int(y);

@@ -46,9 +46,6 @@ void SimpleCamera::update() {
 		movement = Vec3i(0);
 	}
 
-	if (inputBusy())
-		return;
-
 	if (rotation != Vec3i(0, 0, 0)) {
 		rotate(rotation.x * defaultRotationSpeed, rotation.y * defaultRotationSpeed);
 		rotation = Vec3i(0);
@@ -113,26 +110,44 @@ bool SimpleCamera::actionListener(KeyAction action) {
 	switch (static_cast<CameraAction>(action - firstActionID)) {
 
 	case CameraAction::MoveLeft:
+		if (inputBusy())
+			return false;
+
 		movement.x -= 1;
 		break;
 
 	case CameraAction::MoveRight:
+		if (inputBusy())
+			return false;
+
 		movement.x += 1;
 		break;
 
 	case CameraAction::MoveForward:
+		if (inputBusy())
+			return false;
+
 		movement.z += 1;
 		break;
 
 	case CameraAction::MoveBackward:
+		if (inputBusy())
+			return false;
+
 		movement.z -= 1;
 		break;
 
 	case CameraAction::MoveUp:
+		if (inputBusy())
+			return false;
+
 		movement.y += 1;
 		break;
 
 	case CameraAction::MoveDown:
+		if (inputBusy())
+			return false;
+
 		movement.y -= 1;
 		break;
 
@@ -155,18 +170,16 @@ bool SimpleCamera::actionListener(KeyAction action) {
 		break;
 
 	case CameraAction::GrabStart:
-	{
 		if (inputBusy())
-			break;
+			return false;
 
 		mouseGrab = mouse;
 		break;
-	}
 
 	case CameraAction::GrabMove:
 	{
 		if (inputBusy())
-			break;
+			return false;
 
 		Vec2f dif = mouse - mouseGrab;
 		mouseGrab = mouse;
@@ -185,6 +198,9 @@ bool SimpleCamera::actionListener(KeyAction action) {
 }
 
 bool SimpleCamera::cursorListener(double x, double y) {
+
+	if (inputBusy())
+		return false;
 
 	mouse.x = int(x);
 	mouse.y = int(y);

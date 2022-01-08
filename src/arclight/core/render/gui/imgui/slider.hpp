@@ -89,20 +89,22 @@ public:
 	template<Vector V, class T = typename V::Type>
 	void createVector(const std::string& text, V* variable, T min = T(0), T max = T(1), const std::string& format = "") {
 
-		constexpr int num = V::Size;
-		T* var = &variable->x;
+		using U = typename V::Type;
 
-		if constexpr (std::is_same_v<T, bool>)			createVecBool  (text, num, var);
-		else if constexpr (std::is_same_v<T, i8>)		createVecInt8  (text, num, var, min, max);
-		else if constexpr (std::is_same_v<T, i16>)		createVecInt16 (text, num, var, min, max);
-		else if constexpr (std::is_same_v<T, i32>)		createVecInt32 (text, num, var, min, max);
-		else if constexpr (std::is_same_v<T, i64>)		createVecInt64 (text, num, var, min, max);
-		else if constexpr (std::is_same_v<T, u8>)		createVecUInt8 (text, num, var, min, max);
-		else if constexpr (std::is_same_v<T, u16>)		createVecUInt16(text, num, var, min, max);
-		else if constexpr (std::is_same_v<T, u32>)		createVecUInt32(text, num, var, min, max);
-		else if constexpr (std::is_same_v<T, u64>)		createVecUInt64(text, num, var, min, max);
-		else if constexpr (std::is_same_v<T, float>)	createVecFloat (text, num, var, min, max);
-		else if constexpr (std::is_same_v<T, double>)	createVecDouble(text, num, var, min, max);
+		constexpr int num = V::Size;
+		U* var = &variable->x;
+
+		if constexpr (std::is_same_v<U, bool>)			createVecBool  (text, num, var);
+		else if constexpr (std::is_same_v<U, i8>)		createVecInt8  (text, num, var, min, max);
+		else if constexpr (std::is_same_v<U, i16>)		createVecInt16 (text, num, var, min, max);
+		else if constexpr (std::is_same_v<U, i32>)		createVecInt32 (text, num, var, min, max);
+		else if constexpr (std::is_same_v<U, i64>)		createVecInt64 (text, num, var, min, max);
+		else if constexpr (std::is_same_v<U, u8>)		createVecUInt8 (text, num, var, min, max);
+		else if constexpr (std::is_same_v<U, u16>)		createVecUInt16(text, num, var, min, max);
+		else if constexpr (std::is_same_v<U, u32>)		createVecUInt32(text, num, var, min, max);
+		else if constexpr (std::is_same_v<U, u64>)		createVecUInt64(text, num, var, min, max);
+		else if constexpr (std::is_same_v<U, float>)	createVecFloat (text, num, var, min, max);
+		else if constexpr (std::is_same_v<U, double>)	createVecDouble(text, num, var, min, max);
 		else {
 			arc_force_assert("Unknown Vector<Arithmetic> type specified");
 			arc_abort();
