@@ -12,14 +12,17 @@
 
 #ifndef ARC_FINAL_BUILD
 
+#include "math/vector.hpp"
+#include "math/matrix.hpp"
+#include "math/quaternion.hpp"
+#include "locale/unicodestring.hpp"
+#include "memory/memory.hpp"
+#include "types.hpp"
+
 #include <sstream>
 #include <string>
 #include <ranges>
 
-#include "math/vector.hpp"
-#include "math/matrix.hpp"
-#include "math/quaternion.hpp"
-#include "types.hpp"
 
 
 template<class T>
@@ -28,7 +31,12 @@ concept StringStreamable = requires(T&& t, std::stringstream stream) {
 };
 
 template<class T>
-concept Iterable = std::ranges::range<T>;
+concept Iterable = requires(T&& t) {
+	t.begin();
+	t.end();
+	requires std::input_iterator<decltype(t.begin())>;
+	requires Equal<decltype(t.begin()), decltype(t.end())>;
+};
 
 
 
@@ -40,7 +48,9 @@ public:
         ArcEndl,
         ArcSpace,
         ArcDec,
-        ArcHex
+        ArcHex,
+        ArcUpper,
+        ArcNoUpper
     };
 
     constexpr static auto maxLineElements = 20;
@@ -65,6 +75,16 @@ public:
 
         return *this;
         
+    }
+
+	template<class T>
+    ArcDebug& operator<<(const T* p) requires (!StringStreamable<const T*>) {
+
+		write(Memory::address(p));
+		dispatchToken(Token::ArcSpace);
+
+		return *this;
+
     }
     
     template<class T, class U>
@@ -95,6 +115,12 @@ public:
     template<Float F>
     ArcDebug& operator<<(const Quaternion<F>& q) {
         write(q);
+        return *this;
+    }
+
+    template<Unicode::Encoding E>
+    ArcDebug& operator<<(const UnicodeString<E>& us) {
+        write(us);
         return *this;
     }
 
@@ -237,6 +263,24 @@ private:
         buffer << q.z << "]";
             
         dispatchToken(Token::ArcSpace);
+
+    }
+
+
+    template<Unicode::Encoding E>
+    void write(const UnicodeString<E>& us) {
+
+        dispatchToken(Token::ArcUpper);
+
+        for(auto it = us.begin(); it != us.end(); ++it) {
+
+            write("U+");
+            write(it.getCodepoint());
+            dispatchToken(Token::ArcSpace);
+
+        }
+
+        dispatchToken(Token::ArcNoUpper);
 
     }
 

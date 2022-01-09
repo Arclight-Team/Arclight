@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include "types.hpp"
+
+#include <utility>
+
 
 
 namespace Memory {
@@ -17,10 +21,19 @@ namespace Memory {
 		return ::new(object) T(std::forward<Args>(args)...);
 	}
 
-
 	template<class T>
 	void destroy(T* object) noexcept(noexcept(std::declval<T>().~T())) {
 		object->~T();
+	}
+
+	template<class T>
+	constexpr AddressT address(const T* ptr) {
+		return reinterpret_cast<AddressT>(ptr);
+	}
+
+	template<class T>
+	constexpr AddressT address(const T& ptr) {
+		return address(std::addressof(ptr));
 	}
 
 }

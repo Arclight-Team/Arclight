@@ -415,16 +415,6 @@ namespace Math {
 		return x & ~(alignment - 1);
 	}
 
-	template<class T>
-	constexpr AddressT address(const T* ptr) {
-		return reinterpret_cast<AddressT>(ptr);
-	}
-
-	template<class T>
-	constexpr AddressT address(const T& ptr) {
-		return std::addressof(ptr);
-	}
-
 
 
 	enum class ConstantType {

@@ -51,7 +51,7 @@ namespace CodeConv {
                         break;
                     }
 
-                    //unicodeString += Unicode::toUTF<E>(sjisUnicodeTable[0x100 + ((c & 0x1F) << 8) | in[i++]]);
+                    //unicodeString += Unicode::encode<E>(sjisUnicodeTable[0x100 + ((c & 0x1F) << 8) | in[i++]]);
                     break;
 
                 case 0xE:
@@ -60,11 +60,11 @@ namespace CodeConv {
                         break;
                     }
 
-                    //unicodeString += Unicode::toUTF<E>(sjisUnicodeTable[0x2100 + ((c & 0x1F) << 8) | in[i++]]);
+                    //unicodeString += Unicode::encode<E>(sjisUnicodeTable[0x2100 + ((c & 0x1F) << 8) | in[i++]]);
                     break;
 
                 default:
-                    //unicodeString += Unicode::toUTF<E>(sjisUnicodeTable[c]);
+                    //unicodeString += Unicode::encode<E>(sjisUnicodeTable[c]);
                     break;
 
             }
@@ -95,11 +95,11 @@ namespace CodeConv {
                     break;
                 }
 
-                //unicodeString += Unicode::toUTF<E>(big5UnicodeTable[0xA1 + (((c - 0xA1) << 8) | in[i++])]);
+                //unicodeString += Unicode::encode<E>(big5UnicodeTable[0xA1 + (((c - 0xA1) << 8) | in[i++])]);
 
             } else {
 
-                //unicodeString += Unicode::toUTF<E>(big5UnicodeTable[c]);
+                //unicodeString += Unicode::encode<E>(big5UnicodeTable[c]);
 
             }
 
@@ -129,11 +129,11 @@ namespace CodeConv {
                     break;
                 }
 
-                //unicodeString += Unicode::toUTF<E>(wansungUnicodeTable[0x100 + (((c - 0x21) << 8) | in[i++])]);
+                //unicodeString += Unicode::encode<E>(wansungUnicodeTable[0x100 + (((c - 0x21) << 8) | in[i++])]);
 
             } else {
 
-                //unicodeString += Unicode::toUTF<E>(wansungUnicodeTable[c]);
+                //unicodeString += Unicode::encode<E>(wansungUnicodeTable[c]);
 
             }
 
@@ -163,11 +163,11 @@ namespace CodeConv {
                     break;
                 }
 
-                //unicodeString += Unicode::toUTF<E>(johabUnicodeTable[0x84 + (((c - 0x84) << 8) | in[i++])]);
+                //unicodeString += Unicode::encode<E>(johabUnicodeTable[0x84 + (((c - 0x84) << 8) | in[i++])]);
 
             } else {
 
-                //unicodeString += Unicode::toUTF<E>(johabUnicodeTable[c]);
+                //unicodeString += Unicode::encode<E>(johabUnicodeTable[c]);
 
             }
 

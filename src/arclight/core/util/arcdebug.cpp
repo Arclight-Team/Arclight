@@ -40,6 +40,14 @@ void ArcDebug::dispatchToken(Token token) {
             buffer << std::dec;
             break;
 
+        case ArcUpper:
+            buffer << std::uppercase;
+            break;
+
+        case ArcNoUpper:
+            buffer << std::nouppercase;
+            break;
+
         default:
             arc_force_assert("Invalid ArcDebug token");
             break;
@@ -52,8 +60,16 @@ void ArcDebug::dispatchToken(Token token) {
 void ArcDebug::flush() noexcept {
 
     try {
-        Log::info("Debug", buffer.str());
-        buffer.str("");
+
+		std::string str = buffer.str();
+		buffer.str("");
+
+		if(!str.empty() && str.back() == '\n') {
+			str.resize(str.size() - 1);
+		}
+
+        Log::info("Debug", str);
+
     } catch(const std::exception& e) {
         arc_force_assert(std::string("Exception caught while flushing debug buffer: ") + e.what());
     }

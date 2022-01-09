@@ -102,6 +102,20 @@ template<class T>
 concept WeakEnum = Enum<T> && !ScopedEnum<T>;
 
 
+/* Type categories */
+template<class T>
+concept Pointer = std::is_pointer_v<T>;
+
+template<class T>
+concept Reference = std::is_reference_v<T>;
+
+template<class T>
+concept LValueReference = std::is_lvalue_reference_v<T>;
+
+template<class T>
+concept RValueReference = std::is_rvalue_reference_v<T>;
+
+
 /* Invocable type concepts */
 template<class Func, class... Args>
 concept Invocable = std::invocable<Func, Args...>;

@@ -41,10 +41,15 @@ class SparseArray {
 
     public:
     
+    	using iterator_category = std::contiguous_iterator_tag;
         using difference_type   = std::ptrdiff_t;
         using value_type        = std::conditional_t<Const, const T, T>;
         using pointer           = value_type*;
         using reference         = value_type&;
+		using element_type      = value_type;
+
+
+        constexpr IteratorBase() noexcept : ptr(nullptr) {}
 
 #ifdef ARC_SPARSE_PACK
         constexpr IteratorBase(Storage* it) noexcept : ptr(it) {}
@@ -52,8 +57,7 @@ class SparseArray {
         constexpr IteratorBase(pointer it) noexcept : ptr(it) {}
 #endif
 
-        template<class = std::enable_if_t<Const, void>>
-        constexpr IteratorBase(const IteratorBase<false>& it) noexcept : ptr(it.ptr) {}
+		constexpr IteratorBase(const IteratorBase<true>& it) noexcept requires (!Const) = delete;
 
         constexpr reference operator*() const noexcept {return *getPtr();}
         constexpr pointer operator->() const noexcept {return getPtr();}
@@ -68,6 +72,8 @@ class SparseArray {
         constexpr IteratorBase operator-(SizeT n) const noexcept {return IteratorBase(ptr - n);}
         constexpr IteratorBase& operator+=(SizeT n) noexcept {ptr += n; return *this;}
         constexpr IteratorBase& operator-=(SizeT n) noexcept {ptr -= n; return *this;}
+
+		friend constexpr IteratorBase operator+(SizeT n, const IteratorBase& it) noexcept { return it + n; }
 
         template<bool ConstOther>
         constexpr difference_type operator-(const IteratorBase<ConstOther>& other) const noexcept {return ptr - other.ptr;}
