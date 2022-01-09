@@ -211,12 +211,30 @@ project (${PROJECT_NAME})
 	# ImGui for render.gui
 	if("arclight.render" IN_LIST MODULE_LIST OR "arclight.render.gui" IN_LIST MODULE_LIST)
 
-		add_compile_definitions(ARC_USE_IMGUI=${ARC_BUILD_IMGUI})
+		if(${ARC_BUILD_IMGUI})
+			add_compile_definitions(ARC_USE_IMGUI=1)
+		else()
+			add_compile_definitions(ARC_USE_IMGUI=0)
+		endif()
 
 		include_directories("lib/imgui/include")
 		include_directories("lib/imgui/backends")
 
+		file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "lib/imgui/source/*.cpp" "lib/imgui/backends/*.cpp")
+		list(APPEND APPLICATION_SOURCES ${SOURCES})
+		
 		message("\tAdded dependency 'ImGui'")
+
+	endif()
+
+	# FMOD for sound
+	if("arclight.sound" IN_LIST MODULE_LIST)
+	
+		include_directories("lib/FMOD/include")
+		
+		list(APPEND APPLICATION_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/lib/FMOD/fmodL_vc.lib)
+		
+		message("\tAdded dependency 'FMOD'")
 
 	endif()
 

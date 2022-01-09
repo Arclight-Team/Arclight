@@ -32,7 +32,7 @@ namespace Bits {
 	}
 
 	template<class Dest, class Src>
-	inline Dest rcast(Src* src) noexcept {
+	inline Dest rcast(Src& src) noexcept {
 		return reinterpret_cast<Dest>(src);
 	}
 	
