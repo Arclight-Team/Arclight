@@ -46,7 +46,7 @@ namespace TrueType {
         stream.seek(tables[TableType::HorizontalMetrics].offset);
         parseHorizontalMetricsTable(reader, tables[TableType::HorizontalMetrics].length, glyphs, hhead.metricsCount);
 
-        return {charMap, glyphs};
+        return {fontHeader, charMap, glyphs};
 
     }
 

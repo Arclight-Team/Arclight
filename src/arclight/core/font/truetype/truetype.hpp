@@ -597,6 +597,7 @@ namespace TrueType {
     //Font (TEMPORARY STRUCTURE)
     struct Font {
 
+        FontHeader header;
         std::unordered_map<u32, u32> charMap;
         std::vector<Glyph> glyphs;
         
