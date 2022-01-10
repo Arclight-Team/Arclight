@@ -14,7 +14,9 @@
 #include <span>
 
 
-
+/*
+ *  Helper base class to optimize access of UTF-8/UTF-16 encoded data
+ */
 template<Unicode::Encoding E>
 struct UnicodeStringHelper {
 
@@ -22,6 +24,8 @@ struct UnicodeStringHelper {
 	constexpr static SizeT CPDistance = Unicode::isUTF8<E>() ? 16 : 32;
 
 	constexpr UnicodeStringHelper() noexcept : totalCodepoints(0) {}
+	constexpr UnicodeStringHelper(const DistanceContainer& container, SizeT cps) : distances(container), totalCodepoints(cps) {}
+	constexpr UnicodeStringHelper(DistanceContainer&& container, SizeT cps) : distances(std::move(container)), totalCodepoints(cps) {}
 
 	DistanceContainer distances;
 	SizeT totalCodepoints;
@@ -32,6 +36,14 @@ template<>
 struct UnicodeStringHelper<Unicode::UTF32> {};
 
 
+
+/*
+ *  String class capable of holding Unicode codepoints encoded in UTF
+ *
+ *  Possible improvements:
+ *  - C++23 resize_and_overwrite to avoid copy construction of CharT
+ *  - Weaken UTFProxy to decay in template contexts
+ */
 template<Unicode::Encoding E>
 class UnicodeString : private UnicodeStringHelper<E> {
 
@@ -91,28 +103,33 @@ public:
 
 	public:
 
-		using ValueT = typename std::conditional_t<Const, const CharT, CharT>;
+		using IteratorT = typename UnicodeString<E>::const_iterator;
+		using StringT = typename std::conditional_t<Const, const UnicodeString, UnicodeString>;
+		using PointerT = typename IteratorT::pointer;
 
-		constexpr explicit UTFProxyBase(ValueT* ptr) noexcept : p(ptr) {}
+		constexpr explicit UTFProxyBase(StringT& ustr, const IteratorT& it) noexcept : ustr(ustr), it(it) {}
 
 		constexpr UTFProxyBase& operator=(Codepoint codepoint) {
 
-			Unicode::encode<E>(codepoint, p);
+			IteratorT nextIt = it;
+			ustr.replace(it, ++nextIt, codepoint);
+
 			return *this;
 
 		}
 
-		constexpr ValueT* operator&() const noexcept {
-			return p;
+		constexpr PointerT operator&() const noexcept {
+			return it.getPointer();
 		}
 
 		constexpr operator Codepoint() const noexcept {
-			return Unicode::decode<E>(p);
+			return Unicode::decode<E>(it.getPointer());
 		}
 
 	private:
 
-		ValueT* p;
+		StringT& ustr;
+		IteratorT it;
 
 	};
 
@@ -126,18 +143,23 @@ public:
 
 	public:
 
-		using iterator_category 	= std::conditional_t<Unicode::isUTF32<E>(), std::contiguous_iterator_tag, std::bidirectional_iterator_tag>;
-		using difference_type 		= std::ptrdiff_t;
-		using value_type 			= std::conditional_t<!Const, typename UnicodeString<E>::value_type, const typename UnicodeString<E>::value_type>;
-		using pointer 				= value_type*;
-		using reference 			= value_type&;
-		using element_type 			= value_type;
+		using iterator_category = std::conditional_t<Unicode::isUTF32<E>(), std::contiguous_iterator_tag, std::bidirectional_iterator_tag>;
+		using difference_type = std::ptrdiff_t;
+		using value_type = std::conditional_t<!Const, typename UnicodeString<E>::value_type, const typename UnicodeString<E>::value_type>;
+		using pointer = value_type*;
+		using reference = value_type&;
+		using element_type = value_type;
 
 		constexpr Iterator() noexcept : cpIdx(0), sp(nullptr) {}
+
 		constexpr Iterator(SizeT cpIndex, pointer p) noexcept : cpIdx(cpIndex), sp(p) {}
+
+		constexpr Iterator(const Iterator<true>& it) noexcept requires(Const) : Iterator(it.cpIdx, it.sp) {}
+
 		constexpr Iterator(const Iterator<true>& it) noexcept requires (!Const) = delete;
 
 		constexpr reference operator*() const noexcept { return *sp; }
+
 		constexpr pointer operator->() const noexcept { return sp; }
 
 		constexpr Iterator& operator++() noexcept {
@@ -183,9 +205,13 @@ public:
 
 		//Contiguous extension for UTF-32
 		constexpr Iterator operator+(SizeT n) const noexcept requires(Unicode::isUTF32<E>())    { return Iterator(cpIdx + n, sp + n); }
+
 		constexpr Iterator operator-(SizeT n) const noexcept requires(Unicode::isUTF32<E>())    { return Iterator(cpIdx - n, sp - n); }
+
 		constexpr Iterator& operator+=(SizeT n) noexcept requires(Unicode::isUTF32<E>())        { sp += n; cpIdx += n; return *this; }
+
 		constexpr Iterator& operator-=(SizeT n) noexcept requires(Unicode::isUTF32<E>())        { sp -= n; cpIdx -= n; return *this; }
+
 		constexpr reference operator[](SizeT n) const noexcept requires(Unicode::isUTF32<E>())  { return *(*this + n); }
 
 		template<bool ConstOther>
@@ -196,7 +222,8 @@ public:
 	private:
 
 		template<bool ConstOther>
-		friend class Iterator;
+		friend
+		class Iterator;
 
 		constexpr void advance() noexcept {
 			sp += Unicode::getEncodedSize<E>(sp);
@@ -222,37 +249,232 @@ public:
 
 	constexpr UnicodeString() noexcept = default;
 
+	constexpr UnicodeString(SizeT count, Codepoint cp) {
+		assign(count, cp);
+	}
+
+	template<Unicode::Encoding Enc>
+	constexpr UnicodeString(const UnicodeString<Enc>& ustr, SizeT ssIndex) {
+		assign(ustr, ssIndex);
+	}
+
+	template<Unicode::Encoding Enc>
+	constexpr UnicodeString(const UnicodeString<Enc>& ustr, SizeT ssIndex, SizeT ssSize) {
+		assign(ustr, ssIndex, ssSize);
+	}
+
+	template<Char C>
+	constexpr UnicodeString(const C* s, SizeT count) {
+		assign(s, count);
+	}
+
+	template<Char C>
+	constexpr UnicodeString(const C* s) {
+		assign(s);
+	}
+
+	template<std::input_iterator InputIt>
+	constexpr UnicodeString(const InputIt& first, const InputIt& last) {
+		assign(first, last);
+	}
+
+	template<Char C>
+	constexpr UnicodeString(const std::initializer_list<C>& list) {
+		assign(list);
+	}
+
+	template<class StringView>
+	constexpr explicit UnicodeString(const StringView& sv) requires StringViewConvertible<StringView> {
+		assign(sv);
+	}
+
+	template<class StringView>
+	constexpr explicit UnicodeString(const StringView& sv, SizeT sIndex, SizeT sCount = SizeT(-1)) requires StringViewConvertible<StringView> {
+		assign(sv, sIndex, sCount);
+	}
+
+
+	template<Unicode::Encoding Enc>
+	constexpr UnicodeString(const UnicodeString<Enc>& ustr) {
+		assign(ustr);
+	}
+
+	template<Unicode::Encoding Enc>
+	constexpr UnicodeString(UnicodeString<Enc>&& ustr) noexcept requires(E == Enc && Unicode::isUTF32<E>()) : str(std::move(ustr.str)) {}
+
+	template<Unicode::Encoding Enc>
+	constexpr UnicodeString(UnicodeString<Enc>&& ustr) noexcept requires(E == Enc && !Unicode::isUTF32<E>()) : Base(std::move(ustr.distances), ustr.totalCodepoints), str(std::move(ustr.str)) {}
+
+	template<Unicode::Encoding Enc>
+	constexpr UnicodeString(UnicodeString<Enc>&& ustr) requires(E != Enc) {
+		assign(std::move(ustr));
+	}
+
+	constexpr UnicodeString(std::nullptr_t) = delete;
+
+	constexpr ~UnicodeString() noexcept = default;
+
+
+	template<Unicode::Encoding Enc>
+	constexpr UnicodeString& operator=(const UnicodeString<Enc>& ustr) {
+		return assign(ustr);
+	}
+
+	template<Unicode::Encoding Enc>
+	constexpr UnicodeString& operator=(UnicodeString<Enc>&& ustr) noexcept(noexcept(assign(std::move(ustr)))) {
+		return assign(std::move(ustr));
+	}
+
+	template<Char C>
+	constexpr UnicodeString& operator=(const C* s) {
+		return assign(s);
+	}
+
+	constexpr UnicodeString& operator=(Codepoint codepoint) {
+		return assign(codepoint);
+	}
+
+	template<Char C>
+	constexpr UnicodeString& operator=(const std::initializer_list<C>& list) {
+		return assign(list);
+	}
+
+	template<class StringView>
+	constexpr UnicodeString& operator=(const StringView& sv) requires StringViewConvertible<StringView> {
+		return assign(sv);
+	}
+
+	constexpr UnicodeString& operator=(std::nullptr_t) = delete;
+
+
+	constexpr UnicodeString& assign(Codepoint codepoint) {
+		return assign(1, codepoint);
+	}
+
+	constexpr UnicodeString& assign(SizeT count, Codepoint codepoint) {
+
+		assignCodepoint(codepoint, count);
+		return *this;
+
+	}
+
+	template<Unicode::Encoding Enc>
+	constexpr UnicodeString& assign(const UnicodeString<Enc>& ustr) {
+
+		if constexpr (E == Enc) {
+			copyDirect(ustr);
+		} else {
+			assign(ustr.begin(), ustr.end());
+		}
+
+		return *this;
+
+	}
+
+	template<Unicode::Encoding Enc>
+	constexpr UnicodeString& assign(const UnicodeString<Enc>& ustr, SizeT ssIndex, SizeT ssSize = SizeT(-1)) {
+
+		ssSize = clampSubsize(ssIndex, ssSize, ustr.size());
+
+		SizeT startOffset = ustr.getInclusiveOffsetOrThrow(ssIndex);
+		SizeT endOffset = ustr.getInclusiveOffsetOrThrow(ssIndex + ssSize);
+
+		return assign(ustr.str.data() + startOffset, ustr.str.data() + endOffset);
+
+	}
+
+	template<Unicode::Encoding Enc>
+	constexpr UnicodeString& assign(UnicodeString<Enc>&& ustr) noexcept(E == Enc && noexcept(moveDirect(std::move(ustr)))) {
+
+		if constexpr (E == Enc) {
+			moveDirect(std::move(ustr));
+		} else {
+			assign(ustr.begin(), ustr.end());
+		}
+
+		return *this;
+
+	}
+
+	template<Char C>
+	constexpr UnicodeString& assign(const C* s, SizeT count) {
+
+		std::span<const C> span {s, s + count};
+		assignByRange(span.begin(), span.end());
+
+		return *this;
+
+	}
+
+	template<Char C>
+	constexpr UnicodeString& assign(const C* s) {
+		return assign(s, arraySize(s));
+	}
+
+	template<std::input_iterator InputIt>
+	constexpr UnicodeString& assign(const InputIt& first, const InputIt& last) {
+		return assignByRange(first, last);
+	}
+
+	template<Char C>
+	constexpr UnicodeString& assign(const std::initializer_list<C>& list) {
+		return assign(list.begin(), list.end());
+	}
+
+	template<class StringView>
+	constexpr UnicodeString& assign(const StringView& sv) requires StringViewConvertible<StringView> {
+
+		StringViewType<StringView> view = sv;
+		return assign(view.begin(), view.end());
+
+	}
+
+	template<class StringView>
+	constexpr UnicodeString& assign(const StringView& sv, SizeT sIndex, SizeT sCount = SizeT(-1)) requires StringViewConvertible<StringView> {
+
+		StringViewType<StringView> view = sv;
+		view = view.substr(sIndex, sCount);
+
+		return assign(view.begin(), view.end());
+
+	}
+
+
+	constexpr auto getAllocator() const noexcept {
+		return str.get_allocator();
+	}
+
 
 	constexpr UTFProxy at(SizeT index) {
-		return UTFProxy(str.data() + getOffsetOrThrow(index));
+		return UTFProxy(*this, const_iterator(index, str.data() + getOffsetOrThrow(index)));
 	}
 
 	constexpr UTFImmutableProxy at(SizeT index) const {
-		return UTFImmutableProxy(str.data() + getOffsetOrThrow(index));
+		return UTFImmutableProxy(*this, const_iterator(index, str.data() + getOffsetOrThrow(index)));
 	}
 
 	constexpr UTFProxy operator[](SizeT index) noexcept(noexcept(std::declval<Container>().operator[](0))) {
-		return UTFProxy(str.data() + getOffsetDirect(index));
+		return UTFProxy(*this, const_iterator(index, str.data() + getOffsetDirect(index)));
 	}
 
 	constexpr UTFImmutableProxy operator[](SizeT index) const noexcept(noexcept(std::declval<Container>().operator[](0))) {
-		return UTFImmutableProxy(str.data() + getOffsetDirect(index));
+		return UTFImmutableProxy(*this, const_iterator(index, str.data() + getOffsetDirect(index)));
 	}
 
 	constexpr UTFProxy front() noexcept {
-		return UTFProxy(str.data());
+		return UTFProxy(*this, const_iterator(0, str.data()));
 	}
 
 	constexpr UTFImmutableProxy front() const noexcept {
-		return UTFImmutableProxy(str.data());
+		return UTFImmutableProxy(*this, const_iterator(0, str.data()));
 	}
 
 	constexpr UTFProxy back() noexcept {
-		return UTFProxy(const_cast<CharT*>(fastBack()));
+		return UTFProxy(*this, const_iterator(size() - 1, const_cast<CharT*>(fastBack())));
 	}
 
 	constexpr UTFImmutableProxy back() const noexcept {
-		return UTFImmutableProxy(fastBack());
+		return UTFImmutableProxy(*this, const_iterator(size() - 1, fastBack()));
 	}
 
 	constexpr CharT* data() noexcept {
@@ -472,14 +694,9 @@ public:
 	constexpr UnicodeString& insert(SizeT index, const StringView& sv, SizeT svIndex, SizeT svSize = SizeT(-1)) requires StringViewConvertible<StringView> {
 
 		StringViewType<StringView> view = sv;
+		view = view.substr(svIndex, svSize);
 
-		if (svIndex > view.size()) {
-			throw std::out_of_range("Insertion substring index out of range");
-		}
-
-		svSize = clampSubsize(svIndex, svSize, view.size());
-
-		insert(index, view.data() + svIndex, svSize);
+		insert(index, view.begin(), view.end());
 
 		return *this;
 
@@ -615,13 +832,9 @@ public:
 	constexpr UnicodeString& append(const StringView& sv, SizeT svIndex, SizeT svSize = SizeT(-1)) requires StringViewConvertible<StringView> {
 
 		StringViewType<StringView> view = sv;
+		view = view.substr(svIndex, svSize);
 
-		if (svIndex > view.size()) {
-			throw std::out_of_range("Appending substring index out of range");
-		}
-
-		svSize = clampSubsize(svIndex, svSize, view.size());
-		return append(view.data() + svIndex, svSize);
+		return append(view.begin(), view.end());
 
 	}
 
@@ -1046,7 +1259,7 @@ private:
 		if constexpr (std::contiguous_iterator<InputIt>) {
 
 			//Contiguous iterators allow examining the underlying memory effectively
-			while(first < last) {
+			while (first < last) {
 
 				units += Unicode::getTranscodedSize<Enc, E>(&*first);
 				first += Unicode::getEncodedSize<Enc>(&*first);
@@ -1060,7 +1273,7 @@ private:
 			typename Unicode::UTFEncodingTraits<Enc>::Type decomposed[Unicode::UTFEncodingTraits<Enc>::MaxDecomposed];
 			SizeT n = 0;
 
-			while(first != last) {
+			while (first != last) {
 
 				decomposed[0] = *first++;
 				n = Unicode::getEncodedSize<Enc>(decomposed);
@@ -1098,7 +1311,7 @@ private:
 
 		if constexpr (std::contiguous_iterator<InputIt>) {
 
-			while(first != last) {
+			while (first != last) {
 
 				SizeT srcN;
 				SizeT destN = Unicode::transcode<Enc, E>(&*first, dest, srcN);
@@ -1114,7 +1327,7 @@ private:
 			typename Unicode::UTFEncodingTraits<Enc>::Type decomposed[Unicode::UTFEncodingTraits<E>::MaxDecomposed];
 			SizeT n = 0;
 
-			while(first != last) {
+			while (first != last) {
 
 				decomposed[0] = *first++;
 				n = Unicode::getEncodedSize<Enc>(decomposed);
@@ -1149,6 +1362,88 @@ private:
 			SizeT delta = units - replaceUnits;
 			std::copy(str.begin() + endOffset, str.end(), str.begin() + endOffset - delta);
 			str.resize(str.size() - delta);
+
+		}
+
+	}
+
+
+	constexpr void copyDirect(const UnicodeString<E>& ustr) {
+
+		if constexpr (!Unicode::isUTF32<E>()) {
+
+			Base::distances = ustr.distances;
+			Base::totalCodepoints = ustr.totalCodepoints;
+
+		}
+
+		str = ustr.str;
+
+	}
+
+
+	constexpr void moveDirect(UnicodeString<E>&& ustr) noexcept(std::is_nothrow_move_assignable_v<decltype(str)> && std::is_nothrow_move_assignable_v<decltype(Base::distances)>) {
+
+		if constexpr (!Unicode::isUTF32<E>()) {
+
+			Base::distances = std::move(ustr.distances);
+			Base::totalCodepoints = ustr.totalCodepoints;
+
+		}
+
+		str = std::move(ustr.str);
+
+	}
+
+
+	constexpr void assignCodepoint(Codepoint codepoint, SizeT n) {
+
+		if constexpr (!Unicode::isUTF32<E>()) {
+
+			//Decompose codepoint
+			CharT decomposed[Unicode::UTFEncodingTraits<E>::MaxDecomposed];
+			SizeT count = Unicode::encode<E>(codepoint, decomposed);
+
+			//Resize array
+			str.resize(count * n);
+
+			//Assign
+			for(SizeT i = 0; i < n; i++) {
+				std::copy_n(decomposed, count, str.begin() + i * count);
+			}
+
+			restoreDistanceRange(0, 0, n);
+
+		} else {
+
+			str.assign(n, codepoint);
+
+		}
+
+	}
+
+
+	template<std::input_iterator InputIt>
+	constexpr void assignByRange(const InputIt& first, const InputIt& last) {
+
+		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<std::remove_cvref_t<decltype(*first)>>;
+
+		if constexpr (E != Enc || !Unicode::isUTF32<E>()) {
+
+			//Precalculate the total insertion size
+			SizeT totalCodepoints;
+			SizeT totalSegments = calculateRangeUnitCount(first, last, totalCodepoints);
+
+			//Resize array
+			str.resize(totalSegments);
+
+			//Assign transcoded range
+			inplaceTranscode(first, last, str.data());
+			restoreDistanceRange(0, 0, totalCodepoints);
+
+		} else {
+
+			str.assign(first, last);
 
 		}
 
@@ -1332,7 +1627,7 @@ private:
 
 		if constexpr (E != Enc || !Unicode::isUTF32<E>()) {
 
-			SizeT startIndex =  start.getCodepointIndex();
+			SizeT startIndex = start.getCodepointIndex();
 			SizeT startOffset = start.getPointer() - str.data();
 			SizeT endOffset = end.getPointer() - str.data();
 			SizeT units = endOffset - startOffset;
@@ -1363,7 +1658,6 @@ private:
 };
 
 
-
-using U8String  = UnicodeString<Unicode::UTF8>;
+using U8String = UnicodeString<Unicode::UTF8>;
 using U16String = UnicodeString<Unicode::UTF16>;
 using U32String = UnicodeString<Unicode::UTF32>;
