@@ -57,6 +57,7 @@ class SparseArray {
         constexpr IteratorBase(pointer it) noexcept : ptr(it) {}
 #endif
 
+		constexpr IteratorBase(const IteratorBase<true>& it) noexcept requires (Const) : IteratorBase(it.ptr) {}
 		constexpr IteratorBase(const IteratorBase<true>& it) noexcept requires (!Const) = delete;
 
         constexpr reference operator*() const noexcept {return *getPtr();}
