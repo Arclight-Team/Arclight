@@ -10,6 +10,8 @@
 
 #include "unicode.hpp"
 
+#include <stdexcept>
+#include <vector>
 #include <string>
 #include <span>
 

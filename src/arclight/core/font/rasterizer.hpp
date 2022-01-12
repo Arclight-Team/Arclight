@@ -21,7 +21,7 @@ namespace Font {
         bool onTransition;
     };
 
-    void addFillBoundary(std::vector<FillBound>& bounds, double x, bool on) {
+    constexpr void addFillBoundary(std::vector<FillBound>& bounds, double x, bool on) {
 
         auto it = std::find_if(bounds.begin(), bounds.end(), [=](const FillBound& bound) {
             return x < bound.x;
@@ -97,16 +97,28 @@ namespace Font {
                         std::swap(start, end);
                     }
 
-                    LineD line(start, end);
+                    if (Math::equal(start.x, end.x)) {
 
-                    //Iterate over each coverage line
-                    for(i32 y = static_cast<i32>(Math::floor(start.y + 0.4999)); y <= static_cast<i32>(Math::floor(end.y - 0.5)); y++) {
+                        for(i32 y = static_cast<i32>(Math::floor(start.y + 0.4999)); y <= static_cast<i32>(Math::floor(end.y - 0.5)); y++) {
 
-                        //Calculate x intersection
-                        double x = line.evaluateInverse(y + 0.5);
+                            addFillBoundary(glyphFills[y], start.x, onTransition);
 
-                        //Add a boundary
-                        addFillBoundary(glyphFills[y], x, onTransition);
+                        }
+
+                    } else {
+
+                        LineD line(start, end);
+
+                        //Iterate over each coverage line
+                        for(i32 y = static_cast<i32>(Math::floor(start.y + 0.4999)); y <= static_cast<i32>(Math::floor(end.y - 0.5)); y++) {
+
+                            //Calculate x intersection
+                            double x = line.evaluateInverse(y + 0.5);
+
+                            //Add a boundary
+                            addFillBoundary(glyphFills[y], x, onTransition);
+
+                        }
 
                     }
 
