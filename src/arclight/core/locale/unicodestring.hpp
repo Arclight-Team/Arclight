@@ -9,6 +9,7 @@
 #pragma once
 
 #include "unicode.hpp"
+#include "util/concepts.hpp"
 
 #include <stdexcept>
 #include <vector>
@@ -77,7 +78,8 @@ public:
 
 	constexpr static Unicode::Encoding EncodingType = E;
 
-	using CharT = typename Unicode::UTFEncodingTraits<E>::Type;
+	using Traits = typename Unicode::UTFEncodingTraits<E>;
+	using CharT = typename Traits::Type;
 
 	using value_type = CharT;
 	using pointer = value_type*;
@@ -749,11 +751,11 @@ public:
 
 	constexpr void push_back(Codepoint codepoint) {
 
-		CharT decomposed[Unicode::UTFEncodingTraits<E>::MaxDecomposed];
+		CharT decomposed[Traits::MaxDecomposed];
 		SizeT count = Unicode::encode<E>(codepoint, decomposed);
 		SizeT ssize = str.size();
 
-		str.insert(ssize, decomposed, count);
+		str.append(decomposed, count);
 		restoreDistanceRange(size(), ssize, size() + 1);
 
 	}
@@ -1071,6 +1073,51 @@ public:
 
 	}
 
+	constexpr UnicodeString substr(SizeT pos, SizeT count = SizeT(-1)) {
+		return UnicodeString(*this, pos, count);
+	}
+
+	constexpr SizeT copy(CharT* dstArray, SizeT count, SizeT pos = 0) {
+
+		if (pos > size()) {
+			throw std::out_of_range("Starting position out of bounds");
+		}
+
+		count = clampSubsize(pos, count, size());
+
+		SizeT start = getInclusiveOffsetDirect(pos);
+		SizeT end = getInclusiveOffsetDirect(pos + count);
+		SizeT total = end - start;
+
+		std::copy_n(str.data() + start, total, dstArray);
+
+		return total;
+
+	}
+
+	constexpr void resize(SizeT count, SizeT units = Traits::MaxDecomposed) {
+
+		SizeT prevSize = size();
+		SizeT prevStart = str.size();
+
+		str.resize(count * units);
+		//restoreDistanceRange(prevSize, prevStart, prevSize + c)
+
+	}
+
+	constexpr void swap(UnicodeString<E>& other) noexcept(noexcept(str.swap(other.str)) && noexcept(Base::distances.swap(other.distances))) {
+
+		str.swap(other.str);
+
+		if constexpr (!Unicode::isUTF32<E>()) {
+
+			Base::distances.swap(other.distances);
+			std::swap(Base::totalCodepoints, other.totalCodepoints);
+
+		}
+
+	}
+
 private:
 
 	constexpr void checkIndexExclusive(SizeT index) const {
@@ -1326,7 +1373,7 @@ private:
 
 		} else {
 
-			typename Unicode::UTFEncodingTraits<Enc>::Type decomposed[Unicode::UTFEncodingTraits<E>::MaxDecomposed];
+			typename Unicode::UTFEncodingTraits<Enc>::Type decomposed[Unicode::UTFEncodingTraits<Enc>::MaxDecomposed];
 			SizeT n = 0;
 
 			while (first != last) {
@@ -1403,7 +1450,7 @@ private:
 		if constexpr (!Unicode::isUTF32<E>()) {
 
 			//Decompose codepoint
-			CharT decomposed[Unicode::UTFEncodingTraits<E>::MaxDecomposed];
+			CharT decomposed[Traits::MaxDecomposed];
 			SizeT count = Unicode::encode<E>(codepoint, decomposed);
 
 			//Resize array
@@ -1459,7 +1506,7 @@ private:
 			SizeT offset = getInclusiveOffsetOrThrow(index);
 
 			//Decompose codepoint
-			CharT decomposed[Unicode::UTFEncodingTraits<E>::MaxDecomposed];
+			CharT decomposed[Traits::MaxDecomposed];
 			SizeT count = Unicode::encode<E>(codepoint, decomposed);
 
 			//Resize array
@@ -1527,7 +1574,7 @@ private:
 		if constexpr (!Unicode::isUTF32<E>()) {
 
 			//Decompose codepoint
-			CharT decomposed[Unicode::UTFEncodingTraits<E>::MaxDecomposed];
+			CharT decomposed[Traits::MaxDecomposed];
 			SizeT count = Unicode::encode<E>(codepoint, decomposed);
 
 			//Resize array
@@ -1597,7 +1644,7 @@ private:
 			SizeT index = start.getCodepointIndex();
 			SizeT cpDelta = end.getCodepointIndex() - index;
 
-			CharT decomposed[Unicode::UTFEncodingTraits<E>::MaxDecomposed];
+			CharT decomposed[Traits::MaxDecomposed];
 			SizeT encodedSize = Unicode::encode<E>(codepoint, decomposed);
 			SizeT replaceUnits = encodedSize * n;
 
