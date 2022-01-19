@@ -48,6 +48,14 @@ void ArcDebug::dispatchToken(Token token) {
             buffer << std::nouppercase;
             break;
 
+		case ArcForward:
+			reversed = false;
+			break;
+
+		case ArcReversed:
+			reversed = true;
+			break;
+
         default:
             arc_force_assert("Invalid ArcDebug token");
             break;
