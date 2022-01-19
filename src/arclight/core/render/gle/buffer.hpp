@@ -48,25 +48,25 @@ public:
 	virtual void destroy() override;
 
 	//Allocates the buffer's storage. Required for (re-)allocation.
-	void allocate(u32 size, BufferAccess access = BufferAccess::StaticDraw);
-	void allocate(u32 size, const void* data, BufferAccess access = BufferAccess::StaticDraw);
+	void allocate(SizeT size, BufferAccess access = BufferAccess::StaticDraw);
+	void allocate(SizeT size, const void* data, BufferAccess access = BufferAccess::StaticDraw);
 
 	//Updates the buffer's data. Fails if no storage has been allocated first.
-	void update(u32 offset, u32 size, const void* data);
+	void update(SizeT offset, SizeT size, const void* data);
 
 	//Copies this buffer (or a portion of it) to destBuffer
 	void copy(Buffer& destBuffer);
-	void copy(Buffer& destBuffer, u32 srcOffset, u32 destOffset, u32 size);
+	void copy(Buffer& destBuffer, SizeT srcOffset, SizeT destOffset, SizeT size);
 
 	//Checks the given states
 	bool isBound() const;
 	bool isInitialized() const;
 
-	u32 getSize() const;
+	SizeT getSize() const;
 
 protected:
 
-	//Yes, protected.
+	//Protected so that only a specialized type may be created
 	constexpr Buffer(BufferType type) : type(type), size(0) {}
 
 	//Binds the buffer to the given target if not already. Fails if it hasn't been created yet.
@@ -84,7 +84,7 @@ protected:
 	}
 
 	BufferType type;	//Currently bound type
-	u32 size;			//Buffer size or -1 if none has been allocated
+	SizeT size;			//Buffer size or 0 if none has been allocated
 
 private:
 

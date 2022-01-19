@@ -25,7 +25,7 @@ public:
 		Buffer::bind(BufferType::UniformBuffer);
 	}
 
-	bool bindRange(u32 index, u32 offset, u32 size);
+	bool bindRange(u32 index, SizeT offset, SizeT size);
 
 };
 
