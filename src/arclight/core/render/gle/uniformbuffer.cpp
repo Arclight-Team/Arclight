@@ -15,7 +15,7 @@
 GLE_BEGIN
 
 
-bool UniformBuffer::bindRange(u32 index, u32 offset, u32 size) {
+bool UniformBuffer::bindRange(u32 index, SizeT offset, SizeT size) {
 
 	gle_assert(isBound(), "Uniform buffer object %d has not been bound (attempted to set uniform range binding)", id);
 

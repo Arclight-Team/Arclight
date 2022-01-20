@@ -68,13 +68,13 @@ void Buffer::destroy() {
 
 
 
-void Buffer::allocate(u32 size, BufferAccess access) {
+void Buffer::allocate(SizeT size, BufferAccess access) {
 	allocate(size, nullptr, access);
 }
 
 
 
-void Buffer::allocate(u32 size, const void* data, BufferAccess access) {
+void Buffer::allocate(SizeT size, const void* data, BufferAccess access) {
 
 	gle_assert(isBound(), "Buffer object %d has not been bound (attempted to set buffer storage)", id);
 
@@ -86,7 +86,7 @@ void Buffer::allocate(u32 size, const void* data, BufferAccess access) {
 
 
 
-void Buffer::update(u32 offset, u32 size, const void* data) {
+void Buffer::update(SizeT offset, SizeT size, const void* data) {
 
 	gle_assert(isBound(), "Buffer object %d has not been bound (attempted to set buffer data)", id);
 	gle_assert((offset + size) <= this->size, "Attempted to write data out of bounds for buffer object %d", id);
@@ -103,7 +103,7 @@ void Buffer::copy(Buffer& destBuffer) {
 
 
 
-void Buffer::copy(Buffer& destBuffer, u32 srcOffset, u32 destOffset, u32 size) {
+void Buffer::copy(Buffer& destBuffer, SizeT srcOffset, SizeT destOffset, SizeT size) {
 
 	gle_assert(isCreated(), "Buffer object %d hasn't been created yet", id);
 	gle_assert((srcOffset + size) <= this->size, "Attempted to read data out of bounds for buffer object %d", id);
@@ -140,7 +140,7 @@ bool Buffer::isInitialized() const {
 
 
 
-u32 Buffer::getSize() const {
+SizeT Buffer::getSize() const {
 	return size;
 }
 

@@ -254,8 +254,13 @@ namespace Bits {
 	}
 
 	template<class T>
-	inline auto toByteArray(T* t) {
-		return reinterpret_cast<std::conditional_t<std::is_const_v<T>, const u8, u8>*>(t);
+	consteval SizeT bitCount() noexcept {
+		return sizeof(T) * 8;
+	}
+
+	template<class T>
+	inline auto toByteArray(T* t) noexcept {
+		return reinterpret_cast<TT::ConditionalConst<std::is_const_v<T>, u8>*>(t);
 	}
 
 }

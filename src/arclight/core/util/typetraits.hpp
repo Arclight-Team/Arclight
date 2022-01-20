@@ -42,6 +42,9 @@ namespace TT {
 
     }();
 
+	template<bool B, class T>
+	using ConditionalConst = std::conditional_t<B, const T, T>;
+
     template<Float F>
     struct _ToInteger {
         using Type = i32;

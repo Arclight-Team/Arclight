@@ -52,7 +52,7 @@ public:
 	virtual void destroy() override;
 
 	//Sets vertex attribute settings
-	void setAttribute(u32 index, u8 elements, AttributeType type, u32 stride, u32 offset, AttributeClass attrClass = AttributeClass::Float);
+	void setAttribute(u32 index, u8 elements, AttributeType type, SizeT stride, SizeT offset, AttributeClass attrClass = AttributeClass::Float);
 	void setDivisor(u32 index, u32 divisor);
 
 	//Enables/disables attributes

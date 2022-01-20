@@ -50,7 +50,9 @@ public:
         ArcDec,
         ArcHex,
         ArcUpper,
-        ArcNoUpper
+        ArcNoUpper,
+		ArcForward,
+		ArcReversed
     };
 
     constexpr static auto maxLineElements = 20;
@@ -172,33 +174,43 @@ private:
             return;
         }
 
-        for(const auto& e : container) {
+		auto exec = [&](const auto& begin, const auto& end) {
 
-            if(lineStart) {
-                buffer << "[" << elementIdx << "] ";
-                lineStart = false;
-            }
+	        for(auto it = begin; it != end; ++it) {
 
-            write(e);
-            dispatchToken(Token::ArcSpace);
-            elementIdx++;
+	            if(lineStart) {
+	                buffer << "[" << elementIdx << "] ";
+	                lineStart = false;
+	            }
 
-            if(!(elementIdx % maxLineElements)) {
-                dispatchToken(Token::ArcEndl);
-                lineStart = true;
-            }
+	            write(*it);
+	            dispatchToken(Token::ArcSpace);
+	            elementIdx++;
 
-            if(elementIdx >= maxContainerElements) {
-                buffer << "... + " << (container.size() - elementIdx) << " more elements";
-                lineStart = false;
-                break;
-            }
+	            if(!(elementIdx % maxLineElements)) {
+	                dispatchToken(Token::ArcEndl);
+	                lineStart = true;
+	            }
 
-        }
+	            if(elementIdx >= maxContainerElements) {
+	                buffer << "... + " << (container.size() - elementIdx) << " more elements";
+	                lineStart = false;
+	                break;
+	            }
 
-        if(!lineStart) {
-            dispatchToken(Token::ArcEndl);
-        }
+	        }
+
+	        if(!lineStart) {
+	            dispatchToken(Token::ArcEndl);
+	        }
+
+		};
+
+		if (reversed) {
+			exec(container.rbegin(), container.rend());
+		} else {
+			exec(container.begin(), container.end());
+		}
 
     }
 
@@ -289,6 +301,7 @@ private:
     void flush() noexcept;
 
     std::stringstream buffer;
+	bool reversed;
 
 };
 
