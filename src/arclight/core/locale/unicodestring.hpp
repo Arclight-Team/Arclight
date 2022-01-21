@@ -106,12 +106,12 @@ public:
 	public:
 
 		using IteratorT = typename UnicodeString<E>::const_iterator;
-		using StringT = typename std::conditional_t<Const, const UnicodeString, UnicodeString>;
 		using PointerT = typename IteratorT::pointer;
+		using StringT = TT::ConditionalConst<Const, UnicodeString>;
 
 		constexpr explicit UTFProxyBase(StringT& ustr, const IteratorT& it) noexcept : ustr(ustr), it(it) {}
 
-		constexpr UTFProxyBase& operator=(Codepoint codepoint) {
+		constexpr UTFProxyBase& operator=(Codepoint codepoint) requires(!Const) {
 
 			IteratorT nextIt = it;
 			ustr.replace(it, ++nextIt, codepoint);
@@ -147,21 +147,17 @@ public:
 
 		using iterator_category = std::conditional_t<Unicode::isUTF32<E>(), std::contiguous_iterator_tag, std::bidirectional_iterator_tag>;
 		using difference_type = std::ptrdiff_t;
-		using value_type = std::conditional_t<!Const, typename UnicodeString<E>::value_type, const typename UnicodeString<E>::value_type>;
+		using value_type = TT::ConditionalConst<Const, typename UnicodeString<E>::value_type>;
 		using pointer = value_type*;
 		using reference = value_type&;
 		using element_type = value_type;
 
 		constexpr Iterator() noexcept : cpIdx(0), sp(nullptr) {}
-
 		constexpr Iterator(SizeT cpIndex, pointer p) noexcept : cpIdx(cpIndex), sp(p) {}
-
 		constexpr Iterator(const Iterator<true>& it) noexcept requires(Const) : Iterator(it.cpIdx, it.sp) {}
-
 		constexpr Iterator(const Iterator<true>& it) noexcept requires (!Const) = delete;
 
 		constexpr reference operator*() const noexcept { return *sp; }
-
 		constexpr pointer operator->() const noexcept { return sp; }
 
 		constexpr Iterator& operator++() noexcept {
@@ -186,7 +182,8 @@ public:
 			return cpy;
 		}
 
-		constexpr bool operator==(const Iterator& other) const noexcept {
+		template<bool ConstOther>
+		constexpr bool operator==(const Iterator<ConstOther>& other) const noexcept {
 			return sp == other.sp;
 		}
 
@@ -207,13 +204,9 @@ public:
 
 		//Contiguous extension for UTF-32
 		constexpr Iterator operator+(SizeT n) const noexcept requires(Unicode::isUTF32<E>())    { return Iterator(cpIdx + n, sp + n); }
-
 		constexpr Iterator operator-(SizeT n) const noexcept requires(Unicode::isUTF32<E>())    { return Iterator(cpIdx - n, sp - n); }
-
 		constexpr Iterator& operator+=(SizeT n) noexcept requires(Unicode::isUTF32<E>())        { sp += n; cpIdx += n; return *this; }
-
 		constexpr Iterator& operator-=(SizeT n) noexcept requires(Unicode::isUTF32<E>())        { sp -= n; cpIdx -= n; return *this; }
-
 		constexpr reference operator[](SizeT n) const noexcept requires(Unicode::isUTF32<E>())  { return *(*this + n); }
 
 		template<bool ConstOther>
@@ -224,8 +217,7 @@ public:
 	private:
 
 		template<bool ConstOther>
-		friend
-		class Iterator;
+		friend class Iterator;
 
 		constexpr void advance() noexcept {
 			sp += Unicode::getEncodedSize<E>(sp);
@@ -509,15 +501,15 @@ public:
 	}
 
 	constexpr reverse_iterator rbegin() noexcept {
-		return reverse_iterator(begin());
+		return reverse_iterator(end());
 	}
 
 	constexpr const_reverse_iterator rbegin() const noexcept {
-		return const_reverse_iterator(begin());
+		return const_reverse_iterator(end());
 	}
 
 	constexpr const_reverse_iterator crbegin() const noexcept {
-		return const_reverse_iterator(cbegin());
+		return const_reverse_iterator(cend());
 	}
 
 	constexpr iterator end() noexcept {
@@ -533,15 +525,15 @@ public:
 	}
 
 	constexpr reverse_iterator rend() noexcept {
-		return reverse_iterator(end());
+		return reverse_iterator(begin());
 	}
 
 	constexpr const_reverse_iterator rend() const noexcept {
-		return const_reverse_iterator(end());
+		return const_reverse_iterator(begin());
 	}
 
 	constexpr const_reverse_iterator crend() const noexcept {
-		return const_reverse_iterator(cend());
+		return const_reverse_iterator(cbegin());
 	}
 
 
