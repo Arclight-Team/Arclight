@@ -10,6 +10,7 @@
 
 #include "stdext/optionalref.hpp"
 #include "util/assert.hpp"
+#include "util/typetraits.hpp"
 #include "arcconfig.hpp"
 #include "types.hpp"
 
@@ -43,7 +44,7 @@ class SparseArray {
     
     	using iterator_category = std::contiguous_iterator_tag;
         using difference_type   = std::ptrdiff_t;
-        using value_type        = std::conditional_t<Const, const T, T>;
+        using value_type        = TT::Conditional<Const, const T, T>;
         using pointer           = value_type*;
         using reference         = value_type&;
 		using element_type      = value_type;

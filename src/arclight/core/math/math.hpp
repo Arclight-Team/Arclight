@@ -375,7 +375,7 @@ namespace Math {
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D, Arithmetic E>
 	constexpr auto map(A value, B start1, C end1, D start2, E end2) noexcept {
 
-		using F = std::conditional_t<TT::IsAnyOf<double, A, B, C, D, E>, double, float>;
+		using F = TT::Conditional<TT::IsAnyOf<double, A, B, C, D, E>, double, float>;
 
 		auto e = F(end2) - F(start2);
 		auto s = F(end1) - F(start1);

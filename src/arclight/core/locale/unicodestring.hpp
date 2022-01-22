@@ -148,7 +148,7 @@ public:
 
 	public:
 
-		using iterator_category = std::conditional_t<Unicode::isUTF32<E>(), std::contiguous_iterator_tag, std::bidirectional_iterator_tag>;
+		using iterator_category = TT::Conditional<Unicode::isUTF32<E>(), std::contiguous_iterator_tag, std::bidirectional_iterator_tag>;
 		using difference_type = std::ptrdiff_t;
 		using value_type = TT::ConditionalConst<Const, typename UnicodeString<E>::value_type>;
 		using pointer = value_type*;

@@ -26,8 +26,6 @@ typedef int64_t i64;
 typedef intmax_t	imax;
 typedef uintmax_t	umax;
 
-typedef u8 Byte;
-
 #if ARC_MACHINE_BITS == 64
 	typedef u64 SystemT;
 #elif ARC_MACHINE_BITS == 32
@@ -39,9 +37,3 @@ typedef u8 Byte;
 typedef uintptr_t	AddressT;
 typedef size_t		AlignT;
 typedef size_t		SizeT;
-
-constexpr inline SizeT PointerSize = sizeof(void*);
-constexpr inline AlignT PointerAlign = alignof(void*);
-
-template<class T>
-struct TypeTag {};

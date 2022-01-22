@@ -12,6 +12,7 @@
 #include "stream/inputstream.hpp"
 #include "stream/binaryreader.hpp"
 #include "util/bool.hpp"
+#include "util/typetraits.hpp"
 #include "arcconfig.hpp"
 
 
@@ -638,7 +639,7 @@ namespace BMP {
 
                 auto loadData = [&]<u32 N>() {
 
-                    using T = std::conditional_t<N != 16, u32, u16>;
+                    using T = TT::Conditional<N != 16, u32, u16>;
                         
                     for(u32 y = 0; y < image.getHeight(); y++) {
 

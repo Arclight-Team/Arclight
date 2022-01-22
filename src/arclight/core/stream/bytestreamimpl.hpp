@@ -11,6 +11,7 @@
 #include "streambase.hpp"
 #include "util/assert.hpp"
 #include "util/bits.hpp"
+#include "util/typetraits.hpp"
 #include "math/math.hpp"
 #include "types.hpp"
 
@@ -26,10 +27,10 @@ public:
 
     static_assert(!(Const && Dynamic));
 
-    using ByteType = std::conditional_t<Const, const Byte, Byte>;
-    using StorageType = std::conditional_t<Dynamic, std::vector<ByteType>, std::span<ByteType>>;
+    using u8Type = TT::ConditionalConst<Const, u8>;
+    using StorageType = TT::Conditional<Dynamic, std::vector<u8Type>, std::span<u8Type>>;
 
-    ByteStreamImpl() requires(Dynamic) = default;
+	ByteStreamImpl() requires(Dynamic) = default;
 
 	template<class T>
 	ByteStreamImpl(const std::span<T>& data) : position(0)  {
@@ -61,7 +62,7 @@ public:
         arc_assert(position + size <= getSize(), "Cannot read past the end of the stream");
 
         size = Math::min(size, getSize() - position);
-        std::copy_n(data.data() + position, size, static_cast<Byte*>(dest));
+        std::copy_n(data.data() + position, size, static_cast<u8*>(dest));
         
         position += size;
 
@@ -75,7 +76,7 @@ public:
         arc_assert(position + size <= getSize(), "Cannot write past the end of the stream");
 
         size = Math::min(size, getSize() - position);
-        std::copy_n(static_cast<const Byte*>(src), size, data.data() + position);
+        std::copy_n(static_cast<const u8*>(src), size, data.data() + position);
 
         position += size;
 
@@ -157,5 +158,5 @@ private:
 };
 
 template<bool Dynamic>
-using ByteStreamImplRW = ByteStreamImpl<false, Dynamic>;
-using ByteStreamImplR = ByteStreamImpl<true>;
+using ByteStreamImplRW  = ByteStreamImpl<false, Dynamic>;
+using ByteStreamImplR   = ByteStreamImpl<true>;

@@ -42,7 +42,7 @@ public:
     to avoid dynamic allocations for performance-critical situations.
     As long as the type satisfies size/alignment constraints and has a noexcept move constructor, SBO is utilized.
 */
-template<SizeT Size = PointerSize, AlignT Align = PointerAlign>
+template<SizeT Size = 16, AlignT Align = 8>
 class Any {
 
     template<class>
@@ -481,7 +481,7 @@ private:
     NocopyAny is a variant of Any that may also contain non-copyable types.
     Copy semantics have therefore been deleted.
 */
-template<SizeT Size = PointerSize, AlignT Align = PointerAlign>
+template<SizeT Size = 16, AlignT Align = 8>
 class NocopyAny {
 
     template<class>

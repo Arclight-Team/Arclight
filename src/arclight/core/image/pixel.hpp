@@ -19,12 +19,6 @@
 #include <span>
 
 
-//Pixel Storage Helper
-template<SizeT N>
-struct UnsignedType {
-    using Type = std::conditional_t<(N > 1), std::conditional_t<(N > 2), std::conditional_t<(N > 4), u64, u32>, u16>, u8>;              
-};
-
 
 //Pixel Types
 enum class Pixel {
@@ -193,7 +187,7 @@ public:
 
     using Format = PixelFormat<P>;
     constexpr static u32 Size = Format::BytesPerPixel;
-    using PackedT = typename UnsignedType<Size>::Type;
+    using PackedT = TT::UnsignedFromSize<Size>;
     using PixelT = PixelStorage<P, ColorT>;
 
     constexpr PixelStorage() {
@@ -613,7 +607,7 @@ private:
 #ifdef ARC_PIXEL_EXACT
         return inBits ? static_cast<T>(Math::round(value * ((1 << outBits) - 1) / static_cast<float>((1 << inBits) - 1))) : 0;
 #else
-        return static_cast<typename UnsignedType<sizeof(T) + 1>::Type>(value << outBits) >> inBits;
+        return static_cast<TT::UnsignedFromSize<sizeof(T) + 1>>(value << outBits) >> inBits;
 #endif
 
     }
@@ -628,7 +622,7 @@ public:
         using DestPixelType = typename PixelType<DestPixel>::Type;
         using SrcType = typename T::PackedT;
         using DestType = typename DestPixelType::PackedT;
-        using ConvType = std::conditional_t<(sizeof(SrcType) > sizeof(DestType)), SrcType, DestType>;
+        using ConvType = TT::Conditional<(sizeof(SrcType) > sizeof(DestType)), SrcType, DestType>;
 
         SrcType t = pixel.pack();
 
@@ -663,7 +657,7 @@ public:
         using DestFormat = PixelFormat<DestPixel>;
         using DestPixelType = typename PixelType<DestPixel>::Type;
         using DestType = typename DestPixelType::PackedT;
-        using ConvType = std::conditional_t<(sizeof(T) > sizeof(DestType)), T, DestType>;
+        using ConvType = TT::Conditional<(sizeof(T) > sizeof(DestType)), T, DestType>;
 
         u32 RBitsIn = Bits::popcount(redMask);
         u32 GBitsIn = Bits::popcount(greenMask);

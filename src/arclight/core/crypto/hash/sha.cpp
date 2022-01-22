@@ -10,6 +10,7 @@
 #include "common.hpp"
 #include "util/bits.hpp"
 #include "util/bool.hpp"
+#include "util/typetraits.hpp"
 
 #include <algorithm>
 
@@ -147,7 +148,7 @@ constexpr static void dispatchBlockSHA01(const std::span<const u8>& data, u32& a
 
 
 
-template<SHA2Variant Variant, class ValueT = std::conditional_t<is64BitSHA2Variant(Variant), u64, u32>>
+template<SHA2Variant Variant, class ValueT = TT::Conditional<is64BitSHA2Variant(Variant), u64, u32>>
 constexpr static void dispatchBlockSHA2(const std::span<const u8>& data, ValueT h0[8]) {
 
     constexpr bool bits64 = is64BitSHA2Variant(Variant);
@@ -265,7 +266,7 @@ constexpr static auto hashSHA2(const std::span<const u8>& data) noexcept {
     constexpr bool bits64 = is64BitSHA2Variant(Variant);
     constexpr u32 bytes = bits64 ? 128 : 64;
 
-    using ValueT = std::conditional_t<bits64, u64, u32>;
+    using ValueT = TT::Conditional<bits64, u64, u32>;
 
     Crypto::MDConstruction<bytes> construct {};
     Crypto::mdConstruct(construct, data, ByteOrder::Big);

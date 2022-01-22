@@ -9,6 +9,7 @@
 #pragma once
 
 #include "types.hpp"
+#include "concepts.hpp"
 
 #include <type_traits>
 
@@ -88,6 +89,9 @@ namespace TT {
 	template<class T>
 	using TypeIdentity = std::type_identity_t<T>;
 
+	template<bool C, class A, class B>
+	using Conditional = std::conditional_t<C, A, B>;
+
 
 	/* Implementation of new TTs */
 	namespace Detail {
@@ -102,35 +106,36 @@ namespace TT {
 			constexpr static bool Value = (std::is_same_v<T, Pack> && ...);
 		};
 
-		template<Float F>
-		struct ToInteger {
-			using Type = i32;
+		template<Float F> struct ToInteger { using Type = i32; };
+		template<> struct ToInteger<double> { using Type = i64; };
+		template<> struct ToInteger<long double> { using Type = imax; };
+
+		template<Integer I> struct ToFloat { using Type = float; };
+		template<> struct ToFloat<u64> { using Type = double; };
+		template<> struct ToFloat<i64> { using Type = double; };
+
+		template<SizeT Size> struct UnsignedFromSize {
+
+			static_assert(Size <= sizeof(umax), "Cannot supply unsigned type greater than sizeof(umax)");
+
+			using Type =    TT::Conditional<Size == 1, u8,
+							TT::Conditional<Size == 2, u16,
+							TT::Conditional<Size <= 4, u32,
+							TT::Conditional<Size <= 8, u64, umax>>>>;
+
 		};
 
-		template<>
-		struct ToInteger<double> {
-			using Type = i64;
+		template<SizeT Size> struct SignedFromSize {
+
+			static_assert(Size <= sizeof(imax), "Cannot supply signed type greater than sizeof(imax)");
+
+			using Type =    TT::Conditional<Size == 1, i8,
+							TT::Conditional<Size == 2, i16,
+							TT::Conditional<Size <= 4, i32,
+							TT::Conditional<Size <= 8, i64, imax>>>>;
+
 		};
 
-		template<>
-		struct ToInteger<long double> {
-			using Type = imax;
-		};
-
-		template<Integer I>
-		struct ToFloat {
-			using Type = float;
-		};
-
-		template<>
-		struct ToFloat<u64> {
-			using Type = double;
-		};
-
-		template<>
-		struct ToFloat<i64> {
-			using Type = double;
-		};
 
 		template<SizeT N, class... Pack>
 		constexpr inline SizeT SizeofN = []() {
@@ -170,6 +175,14 @@ namespace TT {
 
     template<class T>
     using ToFloat = typename Detail::ToFloat<T>::Type;
+
+
+	/* Defines the corresponding integral type fitting at least the given amount of bytes */
+	template<SizeT Size>
+	using UnsignedFromSize = typename Detail::UnsignedFromSize<Size>::Type;
+
+	template<SizeT Size>
+	using SignedFromSize = typename Detail::SignedFromSize<Size>::Type;
 
 }
 
