@@ -10,6 +10,7 @@
 
 #include "outputstream.hpp"
 #include "util/bits.hpp"
+#include "util/typetraits.hpp"
 #include "arcconfig.hpp"
 
 
@@ -20,9 +21,9 @@ public:
     BinaryWriter(OutputStream& stream, bool convertEndianess = false, ByteOrder order = ByteOrder::Little) : stream(stream), convert(convertEndianess && Bits::requiresEndianConversion(order)) {}
 
     template<Arithmetic T>
-	void write(T value) {
+	void write(T value) noexcept {
 
-		using Type = std::remove_cv_t<T>;
+		using Type = TT::RemoveCV<T>;
 
 		Type in = value;
 
@@ -48,7 +49,7 @@ public:
 	template<Arithmetic T>
 	void write(const std::span<const T>& data) {
 
-		using Type = std::remove_cv_t<T>;
+		using Type = TT::RemoveCV<T>;
         SizeT size = data.size();
         SizeT bytes = sizeof(Type) * size;
 

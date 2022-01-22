@@ -327,7 +327,7 @@ public:
 
     constexpr void subtract(const PixelT& t) {
 
-        using SColor = std::make_signed_t<ColorT>;
+        using SColor = TT::MakeSigned<ColorT>;
 
         SColor r = getRed() - t.getRed();
         SColor g = getGreen() - t.getGreen();

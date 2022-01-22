@@ -11,6 +11,7 @@
 #include "inputstream.hpp"
 #include "util/bits.hpp"
 #include "util/assert.hpp"
+#include "util/typetraits.hpp"
 #include "arcconfig.hpp"
 
 
@@ -23,7 +24,7 @@ public:
     template<Arithmetic T>
 	T read() {
 
-		using Type = std::remove_cv_t<T>;
+		using Type = TT::RemoveCV<T>;
 
 		Type in;
 

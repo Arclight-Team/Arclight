@@ -8,10 +8,10 @@
 
 #pragma once
 
+#include "util/typetraits.hpp"
 #include "util/concepts.hpp"
 #include "types.hpp"
 
-#include <type_traits>
 #include <typeinfo>
 #include <new>
 
@@ -106,9 +106,9 @@ public:
         Copy-constructs the object into the storage
     */
     template<class T>
-    Any(T&& value) requires (!Equal<std::decay_t<T>, Any> && CopyConstructible<std::decay_t<T>> && !TypeTaggedV<T>) {
+    Any(T&& value) requires (!Equal<TT::Decay<T>, Any> && CopyConstructible<TT::Decay<T>> && !TypeTaggedV<T>) {
 
-        using U = std::decay_t<T>;
+        using U = TT::Decay<T>;
 
         Executor<U>::construct(this, std::forward<T>(value));
         executor = &Executor<U>::execute;
@@ -123,7 +123,7 @@ public:
     template<class T, class... Args>
     Any(TypeTag<T>, Args&&... args) requires Constructible<T, Args...> {
         
-        using U = std::decay_t<T>;
+        using U = TT::Decay<T>;
         Executor<U>::construct(this, std::forward<Args>(args)...);
         executor = &Executor<U>::execute;
 
@@ -194,7 +194,7 @@ public:
         Copy-constructs new storage from the object
     */
     template<class T>
-    Any& operator=(T&& value) requires CopyConstructible<std::decay_t<T>> {
+    Any& operator=(T&& value) requires CopyConstructible<TT::Decay<T>> {
 
         *this = Any(std::forward<T>(value));
         return *this;
@@ -228,7 +228,7 @@ public:
     template<class T, class... Args>
     void emplace(Args&&... args) requires Constructible<T, Args...> {
 
-        using U = std::decay_t<T>;
+        using U = TT::Decay<T>;
 
         reset();
 
@@ -302,9 +302,9 @@ public:
         Throws BadAnyAccess if the conversion is illegal.
     */
     template<class T>
-    const T& cast() const requires std::is_same_v<std::remove_cv_t<T>, std::decay_t<T>> {
+    const T& cast() const requires std::is_same_v<TT::RemoveCV<T>, TT::Decay<T>> {
 
-        using U = std::decay_t<T>;
+        using U = TT::Decay<T>;
 
         if (!hasValue() || &Executor<U>::execute != executor) {
             throw BadAnyAccess();
@@ -320,19 +320,19 @@ public:
         If T is not the type of the underlying storage, behaviour is undefined.
     */
     template<class T>
-    const T& unsafeCast() const noexcept requires std::is_same_v<std::remove_cv_t<T>, std::decay_t<T>> {
-        return Executor<std::decay_t<T>>::get(this);
+    const T& unsafeCast() const noexcept requires std::is_same_v<TT::RemoveCV<T>, TT::Decay<T>> {
+        return Executor<TT::Decay<T>>::get(this);
     }
 
     //See the const version of cast()
     template<class T>
-    T& cast() requires std::is_same_v<std::remove_cv_t<T>, std::decay_t<T>> {
+    T& cast() requires std::is_same_v<TT::RemoveCV<T>, TT::Decay<T>> {
         return const_cast<T&>(static_cast<const Any*>(this)->cast<T>());
     }
 
     //See the const version of unsafeCast()
     template<class T>
-    T& unsafeCast() noexcept requires std::is_same_v<std::remove_cv_t<T>, std::decay_t<T>> {
+    T& unsafeCast() noexcept requires std::is_same_v<TT::RemoveCV<T>, TT::Decay<T>> {
         return const_cast<T&>(static_cast<const Any*>(this)->unsafeCast<T>());
     }
 
@@ -534,9 +534,9 @@ public:
         Copy-constructs the object into the storage
     */
     template<class T>
-    NocopyAny(T&& value) requires (!Equal<std::decay_t<T>, NocopyAny> && MoveConstructible<std::decay_t<T>> && !TypeTaggedV<T>) {
+    NocopyAny(T&& value) requires (!Equal<TT::Decay<T>, NocopyAny> && MoveConstructible<TT::Decay<T>> && !TypeTaggedV<T>) {
 
-        using U = std::decay_t<T>;
+        using U = TT::Decay<T>;
 
         Executor<U>::construct(this, std::forward<T>(value));
         executor = &Executor<U>::execute;
@@ -551,7 +551,7 @@ public:
     template<class T, class... Args>
     NocopyAny(TypeTag<T>, Args&&... args) requires Constructible<T, Args...> {
         
-        using U = std::decay_t<T>;
+        using U = TT::Decay<T>;
         Executor<U>::construct(this, std::forward<Args>(args)...);
         executor = &Executor<U>::execute;
 
@@ -600,7 +600,7 @@ public:
         Copy-constructs new storage from the object
     */
     template<class T>
-    NocopyAny& operator=(T&& value) requires MoveConstructible<std::decay_t<T>> {
+    NocopyAny& operator=(T&& value) requires MoveConstructible<TT::Decay<T>> {
 
         *this = NocopyAny(std::forward<T>(value));
         return *this;
@@ -634,7 +634,7 @@ public:
     template<class T, class... Args>
     void emplace(Args&&... args) requires Constructible<T, Args...> {
 
-        using U = std::decay_t<T>;
+        using U = TT::Decay<T>;
 
         reset();
 
@@ -708,9 +708,9 @@ public:
         Throws BadAnyAccess if the conversion is illegal.
     */
     template<class T>
-    const T& cast() const requires std::is_same_v<std::remove_cv_t<T>, std::decay_t<T>> {
+    const T& cast() const requires std::is_same_v<TT::RemoveCV<T>, TT::Decay<T>> {
 
-        using U = std::decay_t<T>;
+        using U = TT::Decay<T>;
 
         if (!hasValue() || &Executor<U>::execute != executor) {
             throw BadAnyAccess();
@@ -726,19 +726,19 @@ public:
         If T is not the type of the underlying storage, behaviour is undefined.
     */
     template<class T>
-    const T& unsafeCast() const noexcept requires std::is_same_v<std::remove_cv_t<T>, std::decay_t<T>> {
-        return Executor<std::decay_t<T>>::get(this);
+    const T& unsafeCast() const noexcept requires std::is_same_v<TT::RemoveCV<T>, TT::Decay<T>> {
+        return Executor<TT::Decay<T>>::get(this);
     }
 
     //See the const version of cast()
     template<class T>
-    T& cast() requires std::is_same_v<std::remove_cv_t<T>, std::decay_t<T>> {
+    T& cast() requires std::is_same_v<TT::RemoveCV<T>, TT::Decay<T>> {
         return const_cast<T&>(static_cast<const NocopyAny*>(this)->cast<T>());
     }
 
     //See the const version of unsafeCast()
     template<class T>
-    T& unsafeCast() noexcept requires std::is_same_v<std::remove_cv_t<T>, std::decay_t<T>> {
+    T& unsafeCast() noexcept requires std::is_same_v<TT::RemoveCV<T>, TT::Decay<T>> {
         return const_cast<T&>(static_cast<const NocopyAny*>(this)->unsafeCast<T>());
     }
 

@@ -38,27 +38,27 @@ namespace Bits {
 	
 	template<Integer T>
 	constexpr auto rol(T value, i32 bits) noexcept {
-		return std::rotl(static_cast<std::make_unsigned_t<T>>(value), bits);
+		return std::rotl(static_cast<TT::MakeUnsigned<T>>(value), bits);
 	}
 
 	template<Integer T>
 	constexpr auto ror(T value, i32 bits) noexcept {
-		return std::rotr(static_cast<std::make_unsigned_t<T>>(value), bits);
+		return std::rotr(static_cast<TT::MakeUnsigned<T>>(value), bits);
 	}
 
 	template<Integer T>
 	constexpr auto clz(T value) noexcept {
-		return std::countl_zero(static_cast<std::make_unsigned_t<T>>(value));
+		return std::countl_zero(static_cast<TT::MakeUnsigned<T>>(value));
 	}
 
 	template<Integer T>
 	constexpr auto ctz(T value) noexcept {
-		return std::countr_zero(static_cast<std::make_unsigned_t<T>>(value));
+		return std::countr_zero(static_cast<TT::MakeUnsigned<T>>(value));
 	}
 
 	template<Integer T>
 	constexpr auto popcount(T value) noexcept {
-		return std::popcount(static_cast<std::make_unsigned_t<T>>(value));
+		return std::popcount(static_cast<TT::MakeUnsigned<T>>(value));
 	}
 
 	constexpr auto swap16(u16 in) noexcept -> decltype(in) {

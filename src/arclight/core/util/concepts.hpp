@@ -125,7 +125,30 @@ template<class T>
 concept ArrayType = std::is_array_v<T>;
 
 template<class T>
+concept BoundedArrayType = std::is_bounded_array_v<T>;
+
+template<class T>
+concept UnboundedArrayType = std::is_unbounded_array_v<T>;
+
+template<class T>
+concept UnionType = std::is_union_v<T>;
+
+template<class T>
+concept FunctionType = std::is_function_v<T>;
+
+
+template<class T>
+concept SignedType = std::is_signed_v<T>;
+
+template<class T>
+concept UnsignedType = std::is_unsigned_v<T>;
+
+
+template<class T>
 concept Void = std::is_void_v<T>;
+
+template<class T>
+concept Nullptr = std::is_null_pointer_v<T>;
 
 
 /* cv-qualified concepts */
@@ -137,14 +160,6 @@ concept VolatileType = std::is_volatile_v<T>;
 
 template<class T>
 concept CVType = ConstType<T> || VolatileType<T>;
-
-
-/* Invocable type concepts */
-template<class Func, class... Args>
-concept Invocable = std::invocable<Func, Args...>;
-
-template<class Func, class Ret, class... Args>
-concept Functional = Invocable<Func, Args...> && Equal<Ret, std::invoke_result_t<Func, Args...>>;
 
 
 /* Misc concepts */

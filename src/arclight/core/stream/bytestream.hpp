@@ -10,6 +10,7 @@
 
 #include "stream.hpp"
 #include "bytestreamimpl.hpp"
+#include "util/typetraits.hpp"
 
 #include <span>
 
@@ -27,7 +28,7 @@ public:
 
 	ByteStreamImplDRW() requires(Dynamic) = default;
 
-    template<class T> requires Equal<T, std::remove_cv_t<T>>
+    template<class T> requires Equal<T, TT::RemoveCV<T>>
     ByteStreamImplDRW(const std::span<T>& data) : MyBase(data) {}
 
 	virtual SizeT read(void* dest, SizeT size) override {
@@ -54,10 +55,11 @@ public:
 		return MyBase::reachedEnd();
 	}
 
-	constexpr auto getData() {
+	inline auto getData() {
 		return MyBase::data;
 	}
-	constexpr auto getData() const {
+
+	inline auto getData() const {
 		return MyBase::data;
 	}
 

@@ -11,6 +11,7 @@
 #include "actor.hpp"
 #include "componentprovider.hpp"
 #include "componentobserver.hpp"
+#include "util/typetraits.hpp"
 
 
 
@@ -24,7 +25,7 @@ public:
     void add(C&& component) {
         
         if(provider.addComponent(actor, std::forward<C>(component))) {
-            observer.record(ComponentEvent::Created, provider.getComponent<std::remove_const_t<std::remove_reference_t<C>>>(actor), actor);
+            observer.record(ComponentEvent::Created, provider.getComponent<TT::RemoveConst<TT::RemoveRef<C>>>(actor), actor);
         }
 
     }
@@ -33,7 +34,7 @@ public:
     void overwrite(C&& component) {
 
         provider.setComponent(actor, std::forward<C>(component));
-        observer.record(ComponentEvent::Created, provider.getComponent<std::remove_const_t<std::remove_reference_t<C>>>(actor), actor);
+        observer.record(ComponentEvent::Created, provider.getComponent<TT::RemoveConst<TT::RemoveRef<C>>>(actor), actor);
 
     }
 

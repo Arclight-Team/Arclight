@@ -10,6 +10,7 @@
 
 #include "outputstream.hpp"
 #include "bytestreamimpl.hpp"
+#include "util/typetraits.hpp"
 
 #include <span>
 
@@ -27,7 +28,7 @@ public:
 
 	ByteOutputStreamImplDRW() requires(Dynamic) = default;
 
-    template<class T> requires Equal<T, std::remove_cv_t<T>>
+    template<class T> requires Equal<T, TT::RemoveCV<T>>
 	ByteOutputStreamImplDRW(const std::span<T>& data) : MyBase(data) {}
 
 	virtual SizeT write(const void* src, SizeT size) override {

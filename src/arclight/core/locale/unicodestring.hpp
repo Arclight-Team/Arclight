@@ -10,6 +10,7 @@
 
 #include "unicode.hpp"
 #include "util/concepts.hpp"
+#include "util/typetraits.hpp"
 
 #include <stdexcept>
 #include <vector>
@@ -1157,7 +1158,7 @@ private:
 			//For UTF-16, bidirectional iteration is equally performant because surrogates are reflected in both code units
 			//Therefore, round the index
 			SizeT dstIdx = (index + Base::CPDistance / 2) / Base::CPDistance;
-			std::make_signed_t<SizeT> offset = index - dstIdx * Base::CPDistance;
+			TT::MakeSigned<SizeT> offset = index - dstIdx * Base::CPDistance;
 
 			//If the distance index is out of bounds (i.e. at the border with negative offsets), switch to forward traversal
 			if (dstIdx >= Base::distances.size()) {
@@ -1293,7 +1294,7 @@ private:
 	template<std::input_iterator InputIt>
 	constexpr SizeT calculateRangeUnitCount(InputIt first, const InputIt& last, SizeT& cps) {
 
-		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<std::remove_cvref_t<decltype(*first)>>;
+		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<TT::RemoveCVRef<decltype(*first)>>;
 		SizeT units = 0;
 		SizeT codepoints = 0;
 
@@ -1347,7 +1348,7 @@ private:
 	template<std::input_iterator InputIt>
 	constexpr SizeT inplaceTranscode(InputIt first, const InputIt& last, CharT* dest) {
 
-		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<std::remove_cvref_t<decltype(*first)>>;
+		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<TT::RemoveCVRef<decltype(*first)>>;
 		SizeT transcodedCodepoints = 0;
 
 		if constexpr (std::contiguous_iterator<InputIt>) {
@@ -1467,7 +1468,7 @@ private:
 	template<std::input_iterator InputIt>
 	constexpr void assignByRange(const InputIt& first, const InputIt& last) {
 
-		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<std::remove_cvref_t<decltype(*first)>>;
+		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<TT::RemoveCVRef<decltype(*first)>>;
 
 		if constexpr (E != Enc || !Unicode::isUTF32<E>()) {
 
@@ -1526,7 +1527,7 @@ private:
 	template<std::input_iterator InputIt>
 	constexpr iterator insertByRange(const const_iterator& pos, const InputIt& first, const InputIt& last) {
 
-		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<std::remove_cvref_t<decltype(*first)>>;
+		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<TT::RemoveCVRef<decltype(*first)>>;
 
 		if constexpr (E != Enc || !Unicode::isUTF32<E>()) {
 
@@ -1592,7 +1593,7 @@ private:
 	template<std::input_iterator InputIt>
 	constexpr void appendByRange(const InputIt& first, const InputIt& last) {
 
-		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<std::remove_cvref_t<decltype(*first)>>;
+		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<TT::RemoveCVRef<decltype(*first)>>;
 
 		if constexpr (E != Enc || !Unicode::isUTF32<E>()) {
 
@@ -1664,7 +1665,7 @@ private:
 	template<std::input_iterator InputIt>
 	constexpr void replaceByRange(const const_iterator& start, const const_iterator& end, const InputIt& first, const InputIt& last) {
 
-		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<std::remove_cvref_t<decltype(*first)>>;
+		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<TT::RemoveCVRef<decltype(*first)>>;
 
 		if constexpr (E != Enc || !Unicode::isUTF32<E>()) {
 
