@@ -33,11 +33,8 @@ concept HasCommonReference = std::common_reference_with<T, U>;
 template<class T, class U>
 concept HasCommonType = std::common_with<T, U>;
 
-template<class T>
-concept BaseType = !std::is_pointer_v<T> && !std::is_reference_v<T> && !std::is_member_pointer_v<T> && !std::is_void_v<T> && !std::is_const_v<T> && !std::is_volatile_v<T> && !std::is_array_v<T>;
 
-
-/* Misc concepts */
+/* Assign/Swap concepts */
 template<class Left, class Right>
 concept AssignableBy = std::assignable_from<Left, Right>;
 
@@ -82,7 +79,7 @@ template<class T>
 concept Float = std::floating_point<T>;
 
 template<class T>
-concept Integer = Integral<T> && !Equal<std::remove_cv_t<T>, bool>;
+concept Integer = Integral<T> && !Equal<T, bool>;
 
 template<class T>
 concept Fundamental = std::is_fundamental_v<T>;
@@ -104,16 +101,42 @@ concept WeakEnum = Enum<T> && !ScopedEnum<T>;
 
 /* Type categories */
 template<class T>
-concept Pointer = std::is_pointer_v<T>;
+concept PointerType = std::is_pointer_v<T>;
 
 template<class T>
-concept Reference = std::is_reference_v<T>;
+concept MemberObjectPointerType = std::is_member_object_pointer_v<T>;
 
 template<class T>
-concept LValueReference = std::is_lvalue_reference_v<T>;
+concept MemberFunctionPointerType = std::is_member_function_pointer_v<T>;
 
 template<class T>
-concept RValueReference = std::is_rvalue_reference_v<T>;
+concept MemberPointerType = std::is_member_pointer_v<T>;
+
+template<class T>
+concept ReferenceType = std::is_reference_v<T>;
+
+template<class T>
+concept LValueRefType = std::is_lvalue_reference_v<T>;
+
+template<class T>
+concept RValueRefType = std::is_rvalue_reference_v<T>;
+
+template<class T>
+concept ArrayType = std::is_array_v<T>;
+
+template<class T>
+concept Void = std::is_void_v<T>;
+
+
+/* cv-qualified concepts */
+template<class T>
+concept ConstType = std::is_const_v<T>;
+
+template<class T>
+concept VolatileType = std::is_volatile_v<T>;
+
+template<class T>
+concept CVType = ConstType<T> || VolatileType<T>;
 
 
 /* Invocable type concepts */
@@ -122,3 +145,8 @@ concept Invocable = std::invocable<Func, Args...>;
 
 template<class Func, class Ret, class... Args>
 concept Functional = Invocable<Func, Args...> && Equal<Ret, std::invoke_result_t<Func, Args...>>;
+
+
+/* Misc concepts */
+template<class T>
+concept BaseType = !PointerType<T> && !ReferenceType<T> && !MemberPointerType<T> && !Void<T> && !CVType<T> && !ArrayType<T>;
