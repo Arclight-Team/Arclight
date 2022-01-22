@@ -5,6 +5,7 @@
  *
  *	 bitspan.hpp
  */
+
 #pragma once
 
 #include "util/typetraits.hpp"

@@ -23,18 +23,16 @@ public:
     template<Arithmetic T>
 	void write(T value) noexcept {
 
-		using Type = TT::RemoveCV<T>;
-
-		Type in = value;
+		T in = value;
 
 		if (convert) {
             in = Bits::swap(in);
 		}
 
-        auto writtenBytes = stream.write(&in, sizeof(Type));
+	    [[maybe_unused]] SizeT writtenBytes = stream.write(&in, sizeof(T));
 
 #ifndef ARC_STREAM_ACCELERATE
-		if (writtenBytes != sizeof(Type)) {
+		if (writtenBytes != sizeof(T)) {
 			arc_force_assert("Failed to write data to stream");
 		}
 #endif
@@ -49,21 +47,20 @@ public:
 	template<Arithmetic T>
 	void write(const std::span<const T>& data) {
 
-		using Type = TT::RemoveCV<T>;
         SizeT size = data.size();
-        SizeT bytes = sizeof(Type) * size;
+        SizeT bytes = sizeof(T) * size;
 
 		if (convert) {
 
             for(SizeT i = 0; i < size; i++) {
 
-                Type in = data[i];
+                T in = data[i];
                 in = Bits::swap(in);
     
-                auto writtenBytes = stream.write(&in, sizeof(Type));
+	            [[maybe_unused]] SizeT writtenBytes = stream.write(&in, sizeof(T));
 
 #ifndef ARC_STREAM_ACCELERATE
-                if (writtenBytes != sizeof(Type)) {
+                if (writtenBytes != sizeof(T)) {
                     arc_force_assert("Failed to write data to stream");
                 }
 #endif
@@ -72,7 +69,7 @@ public:
 
 		} else {
 
-            auto writtenBytes = stream.write(data.data(), bytes);
+			[[maybe_unused]] SizeT writtenBytes = stream.write(data.data(), bytes);
 
 #ifndef ARC_STREAM_ACCELERATE
             if (writtenBytes != bytes) {
@@ -83,6 +80,12 @@ public:
         }
 
 	}
+
+
+	void skip(SizeT n) {
+		stream.seek(n, StreamBase::SeekMode::Current);
+	}
+
 
     OutputStream& getStream() {
         return stream;
