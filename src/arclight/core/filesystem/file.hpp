@@ -48,10 +48,10 @@ public:
 	SizeT read(const std::span<u8>& data);
 	void write(const std::span<const u8>& data);
 
-	u64 tell() const;
-	void seek(u64 pos);
-	void seekRelative(i64 pos);
+	void seek(i64 offset);
+	void seekTo(u64 offset);
 
+	u64 getPosition() const;
 
 	bool isOpen() const;
 	u64 getFileSize() const;

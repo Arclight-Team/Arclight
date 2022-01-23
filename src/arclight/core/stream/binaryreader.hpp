@@ -88,10 +88,14 @@ public:
 	}
 
 
-	void skip(SizeT n) {
-		stream.seek(n, StreamBase::SeekMode::Current);
+	void skip(u64 n) {
+		stream.seek(n);
 	}
 
+
+	u64 getPosition() const {
+		return stream.getPosition();
+	}
 
     InputStream& getStream() {
         return stream;

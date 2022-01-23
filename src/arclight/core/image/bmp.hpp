@@ -285,7 +285,7 @@ namespace BMP {
                         return Image<P>();
                     }
 
-                    stream.seek(header.dataOffset);
+                    stream.seekTo(header.dataOffset);
                     
                     u8 data[4];
 
@@ -305,7 +305,7 @@ namespace BMP {
                             if constexpr (N == 2 || N == 3) {
 
                                 if(rowAlign) {
-                                    stream.seek(rowAlign, StreamBase::SeekMode::Current);
+                                    stream.seek(rowAlign);
                                 }
 
                             }
@@ -367,7 +367,7 @@ namespace BMP {
                         return Image<P>();
                     }
 
-                    stream.seek(header.dataOffset);
+                    stream.seekTo(header.dataOffset);
 
                     auto loadData = [&]<u32 BPP>() {
 
@@ -468,7 +468,7 @@ namespace BMP {
                     palette.push_back(PixelConverter::convert<P>(PixelBGRA8(reader.read<u32>())));
                 }
 
-                stream.seek(header.dataOffset);
+                stream.seekTo(header.dataOffset);
 
                 u8 ctrl[2];
                 u32 x = 0;
@@ -552,7 +552,7 @@ namespace BMP {
                                     reader.read(std::span<u8>{indices, byteCount});
 
                                     if(byteCount & 1) {
-                                        stream.seek(1, StreamBase::SeekMode::Current);
+                                        stream.seekTo(1, StreamBase::SeekMode::Current);
                                     }
 
                                     for(u32 i = 0; i < pixelCount; i++) {
@@ -635,7 +635,7 @@ namespace BMP {
                     return Image<P>();
                 }
 
-                stream.seek(header.dataOffset);
+                stream.seekTo(header.dataOffset);
 
                 auto loadData = [&]<u32 N>() {
 
@@ -656,7 +656,7 @@ namespace BMP {
                         if constexpr (N == 16) {
 
                             if(rowAlign) {
-                                stream.seek(2, StreamBase::SeekMode::Current);
+                                stream.seekTo(2, StreamBase::SeekMode::Current);
                             }
 
                         } 

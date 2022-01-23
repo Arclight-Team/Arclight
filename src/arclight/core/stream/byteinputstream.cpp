@@ -16,8 +16,15 @@ SizeT ByteInputStream::read(void* dest, SizeT size) {
 
 
 
-SizeT ByteInputStream::seek(i64 offset, SeekMode mode) {
-	return ByteStreamImplR::seek(offset, mode);
+void ByteInputStream::seek(i64 offset) {
+	ByteStreamImplR::seek(offset);
+}
+
+
+
+
+void ByteInputStream::seekTo(u64 offset) {
+	ByteStreamImplR::seekTo(offset);
 }
 
 

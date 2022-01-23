@@ -24,8 +24,6 @@ private:
 
 public:
 
-    using StreamBase::SeekMode;
-
 	ByteStreamImplDRW() requires(Dynamic) = default;
 
     template<class T> requires Equal<T, TT::RemoveCV<T>>
@@ -38,9 +36,14 @@ public:
 		return MyBase::write(src, size);
 	}
 
-	virtual SizeT seek(i64 offset, SeekMode mode) override {
-		return MyBase::seek(offset, mode);
+	virtual void seek(i64 offset) override {
+		return MyBase::seek(offset);
 	}
+
+	virtual void seekTo(u64 offset) override {
+		return MyBase::seekTo(offset);
+	}
+
 	virtual SizeT getPosition() const override {
 		return MyBase::getPosition();
 	}

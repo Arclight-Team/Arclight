@@ -32,8 +32,8 @@ public:
 
 	ByteStreamImpl() requires(Dynamic) = default;
 
-	template<class T>
-	ByteStreamImpl(const std::span<T>& data) : position(0)  {
+	template<class T, SizeT Extent> requires (!ConstType<T> || (ConstType<T> && Const))
+	ByteStreamImpl(const std::span<T, Extent>& data) : position(0)  {
 
         if constexpr (!Dynamic) {
 
@@ -102,29 +102,19 @@ public:
 
     }
 
-    SizeT seek(i64 offset, StreamBase::SeekMode mode) {
+    void seek(i64 offset) {
 
-        switch (mode) {
-
-            case StreamBase::SeekMode::Begin:
-                arc_assert(offset >= 0, "Cannot seek before the start of the stream");
-                position = offset;
-                break;
-
-            case StreamBase::SeekMode::Current:
-                position = getPosition() + offset;
-                break;
-
-            case StreamBase::SeekMode::End:
-                arc_assert(offset >= 0, "Cannot seek after the end of the stream");
-                position = getSize() - offset;
-                break;
-
-            }
-
-        return position;
+	    arc_assert(position + offset <= getSize(), "Illegal seek past the end");
+        position += offset;
 
     }
+
+	void seekTo(u64 offset) {
+
+		arc_assert(offset <= getSize(), "Illegal seek past the end");
+		position = offset;
+
+	}
 
     constexpr auto getData() {
         return data;

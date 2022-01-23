@@ -81,7 +81,7 @@ namespace TrueType {
 
         for(u32 i = 0; i < fontCount; i++) {
 
-            reader.getStream().seek(offsets[i]);
+            reader.getStream().seekTo(offsets[i]);
             tableMaps.emplace_back(parseFileHeader(reader));
 
         }

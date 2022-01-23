@@ -8,13 +8,14 @@
 
 #pragma once
 
-#include "stdext/bitspan.hpp"
+#include "math/math.hpp"
 #include "stream/inputstream.hpp"
 #include "util/concepts.hpp"
 #include "util/typetraits.hpp"
+#include "util/bits.hpp"
 #include "arcconfig.hpp"
 
-
+#include "stdext/bitspan.hpp"
 
 class BitReader {
 
@@ -22,8 +23,9 @@ public:
 
 	BitReader(InputStream& stream) : stream(stream), strayByte(0), start(0) {}
 
-	template<Integral I, SizeT Size = Bits::bitCount<I>()> requires (Size <= Bits::bitCount<I>())
-	I read() {
+	template<Arithmetic A, SizeT Size = Bits::bitCount<A>(), class I = TT::UnsignedFromSize<sizeof(A)>>
+	requires (Size <= Bits::bitCount<A>())
+	A read() {
 
 		if constexpr (Size == 0) {
 			return 0;
@@ -33,7 +35,7 @@ public:
 
 		if (start) {
 
-			//We have i stray byte, copy it into the LSB
+			//We have a stray byte, copy it into the LSB
 			i |= strayByte;
 			i >>= start;
 
@@ -49,22 +51,22 @@ public:
 			} else {
 
 				//Stray byte exhausted, read from stream
-				SizeT ReadByteCount = Math::alignUp(Size - readBits, 8) / 8;
+				SizeT readByteCount = Math::alignUp(Size - readBits, 8) / 8;
 
 				I b;
 
-				[[maybe_unused]] SizeT readBytes = stream.read(&b, ReadByteCount);
+				[[maybe_unused]] SizeT readBytes = stream.read(&b, readByteCount);
 
 #ifndef ARC_STREAM_ACCELERATE
-	            if (readBytes != ReadByteCount) {
-	                arc_force_assert("Failed to read data from stream");
-	            }
+				if (readBytes != readByteCount) {
+					arc_force_assert("Failed to read data from stream");
+				}
 #endif
 
 				start = (Size + start) % 8;
 
 				if (start) {
-					strayByte = Bits::toByteArray(&b)[ReadByteCount - 1];
+					strayByte = Bits::toByteArray(&b)[readByteCount - 1];
 				}
 
 				i |= (b & ((1ULL << (Size - readBits)) - 1)) << readBits;
@@ -73,51 +75,85 @@ public:
 
 		} else {
 
-			SizeT ReadByteCount = Math::alignUp(Size, 8) / 8;
+			//No stray byte
+			SizeT readByteCount = Math::alignUp(Size, 8) / 8;
 
-			[[maybe_unused]] SizeT readBytes = stream.read(&i, ReadByteCount);
+			[[maybe_unused]] SizeT readBytes = stream.read(&i, readByteCount);
 
 #ifndef ARC_STREAM_ACCELERATE
-            if (readBytes != ReadByteCount) {
-                arc_force_assert("Failed to read data from stream");
-            }
+			if (readBytes != readByteCount) {
+				arc_force_assert("Failed to read data from stream");
+			}
 #endif
 
 			start = Size % 8;
 
 			if (start) {
-				strayByte = Bits::toByteArray(&i)[ReadByteCount - 1];
+				strayByte = Bits::toByteArray(&i)[readByteCount - 1];
 			}
 
 			i &= (1ULL << Size) - 1;
 
 		}
 
-		return i;
+		return Bits::cast<A>(i);
 
 	}
 
 
-	void skip(SizeT n) {
+	void skip(u64 n) {
 
-		SizeT seekCount = (start + n) / 8;
-		start = (start + n) % 8;
-		seekCount += !!start;
+		if (!n) {
+			return;
+		}
+
+		u64 newPos = start + n;
+		bool fetchStray = true;
+
+		i64 seekCount = static_cast<i64>(newPos) / 8;
 
 		if (seekCount) {
-			stream.seek(seekCount, StreamBase::SeekMode::Current);
+
+			stream.seek(seekCount);
+
+		} else if (start != 0) {
+
+			fetchStray = false;
+
+		}
+
+		start = newPos % 8;
+
+		if (fetchStray) {
+
+			[[maybe_unused]] SizeT readBytes = stream.read(&strayByte, 1);
+
+#ifndef ARC_STREAM_ACCELERATE
+			if (readBytes != 1) {
+				arc_force_assert("Failed to read data from stream");
+			}
+#endif
+
 		}
 
 	}
 
 
-    InputStream& getStream() {
-        return stream;
-    }
+	u64 getBitPosition() const {
+		return stream.getPosition() * 8 + start;
+	}
 
-    const InputStream& getStream() const {
-        return stream;
-    }
+	u64 getPosition() const {
+		return stream.getPosition();
+	}
+
+	InputStream& getStream() {
+		return stream;
+	}
+
+	const InputStream& getStream() const {
+		return stream;
+	}
 
 private:
 
