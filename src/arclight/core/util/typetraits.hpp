@@ -89,9 +89,14 @@ namespace TT {
 	template<class T>
 	using TypeIdentity = std::type_identity_t<T>;
 
+	template<bool C, class T>
+	using EnableIf = std::enable_if_t<C, T>;
+
 	template<bool C, class A, class B>
 	using Conditional = std::conditional_t<C, A, B>;
 
+
+	template<class> struct TypeTag;
 
 	/* Implementation of new TTs */
 	namespace Detail {
@@ -137,16 +142,44 @@ namespace TT {
 		};
 
 
+		template<SizeT N, class T, class... Pack>
+		struct PackHelper {
+			using Type = typename PackHelper<N - 1, Pack...>::Type;
+		};
+
+		template<class T, class... Pack>
+		struct PackHelper<0, T, Pack...> {
+			using Type = T;
+		};
+
+		template<SizeT N, class... Pack> requires (sizeof...(Pack) >= N)
+		struct NthPackType {
+			using Type = typename PackHelper<N, Pack...>::Type;
+		};
+
+
+		template<SizeT, class>
+		struct NthInnerType {};
+
+		template<SizeT N, template<class...> class T, class... U>
+		struct NthInnerType<N, T<U...>> {
+			using Type = typename NthPackType<N, U...>::Type;
+		};
+
+
 		template<SizeT N, class... Pack>
-		constexpr inline SizeT SizeofN = []() {
+		constexpr inline SizeT SizeofN = sizeof(typename NthPackType<N, Pack...>::Type);
 
-			SizeT i = 0;
-			SizeT s = 0;
-			((i++ == N ? (s = sizeof(Pack), true) : false) || ...);
 
-			return s;
+		template<class T>
+		struct TypeTagged {
+			constexpr static bool Value = false;
+		};
 
-		}();
+		template<template<class> class T, class U>
+		struct TypeTagged<T<U>> {
+			constexpr static bool Value = Equal<T<U>, TT::TypeTag<U>>;
+		};
 
 	}
 
@@ -184,5 +217,23 @@ namespace TT {
 	template<SizeT Size>
 	using SignedFromSize = typename Detail::SignedFromSize<Size>::Type;
 
-}
 
+	/* Specialized traits */
+	template<SizeT N, class... Pack>
+	using NthPackType = typename Detail::NthPackType<N, Pack...>::Type;
+
+	template<SizeT N, NestedType T>
+	using NthInnerType = typename Detail::NthInnerType<N, T>::Type;
+
+	template<NestedType T>
+	using InnerType = NthInnerType<0, T>;
+
+
+	/* Type Tag */
+	template<class T>
+	struct TypeTag {};
+
+	template<class T>
+	constexpr static bool TypeTagged = Detail::TypeTagged<T>::Value;
+
+}

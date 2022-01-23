@@ -136,6 +136,9 @@ concept UnionType = std::is_union_v<T>;
 template<class T>
 concept FunctionType = std::is_function_v<T>;
 
+template<class T>
+concept ClassType = std::is_class_v<T>;
+
 
 template<class T>
 concept SignedType = std::is_signed_v<T>;
@@ -162,6 +165,25 @@ template<class T>
 concept CVType = ConstType<T> || VolatileType<T>;
 
 
+namespace __ConceptDetail {
+
+	template<class>
+	struct NestedType {
+		constexpr static bool Value = false;
+	};
+
+	template<template<class> class T, class U>
+	struct NestedType<T<U>> {
+		constexpr static bool Value = true;
+	};
+
+}
+
+
+
 /* Misc concepts */
 template<class T>
 concept BaseType = !PointerType<T> && !ReferenceType<T> && !MemberPointerType<T> && !Void<T> && !CVType<T> && !ArrayType<T>;
+
+template<class T>
+concept NestedType = __ConceptDetail::NestedType<T>::Value;

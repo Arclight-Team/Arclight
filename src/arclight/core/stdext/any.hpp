@@ -42,32 +42,23 @@ public:
     to avoid dynamic allocations for performance-critical situations.
     As long as the type satisfies size/alignment constraints and has a noexcept move constructor, SBO is utilized.
 */
-template<SizeT Size = 16, AlignT Align = 8>
-class Any {
-
-    template<class>
-    struct TypeTagged : public std::false_type {};
-    
-    template<class T>
-    struct TypeTagged<TypeTag<T>> : public std::true_type {};
-
-    template<class T>
-    constexpr static bool TypeTaggedV = TypeTagged<T>::value;
-
+template<bool NonCopyable, SizeT Size = 16, AlignT Align = 8>
+class GenericAny {
+	
 public:
 
     /*
         Default constructor
         Constructs a new Any with no content
     */
-    constexpr Any() noexcept : executor(nullptr) {}
+    constexpr GenericAny() noexcept : executor(nullptr) {}
 
 
     /*
         Copy constructor
         Copies the contents, if any
     */
-    Any(const Any& other) {
+    GenericAny(const GenericAny& other) requires (!NonCopyable) {
 
         if(other.hasValue()) {
 
@@ -86,7 +77,7 @@ public:
         Move constructor
         Moves the contents, if any
     */
-    Any(Any&& other) noexcept {
+    GenericAny(GenericAny&& other) noexcept {
 
         if(other.hasValue()) {
 
@@ -106,7 +97,7 @@ public:
         Copy-constructs the object into the storage
     */
     template<class T>
-    Any(T&& value) requires (!Equal<TT::Decay<T>, Any> && CopyConstructible<TT::Decay<T>> && !TypeTaggedV<T>) {
+    GenericAny(T&& value) requires (!Equal<TT::Decay<T>, GenericAny> && CopyConstructible<TT::Decay<T>> && !TT::TypeTagged<T>) {
 
         using U = TT::Decay<T>;
 
@@ -121,7 +112,7 @@ public:
         In-place constructs the object into the storage
     */
     template<class T, class... Args>
-    Any(TypeTag<T>, Args&&... args) requires Constructible<T, Args...> {
+    explicit GenericAny(TT::TypeTag<T>, Args&&... args) requires Constructible<T, Args...> {
         
         using U = TT::Decay<T>;
         Executor<U>::construct(this, std::forward<Args>(args)...);
@@ -134,7 +125,7 @@ public:
         Destructor
         Destroys the storage
     */
-    ~Any() noexcept {
+    ~GenericAny() noexcept {
         reset();
     }
 
@@ -143,7 +134,7 @@ public:
         Copy-assignment operator
         Copy-constructs from the object's storage
     */
-    Any& operator=(const Any& other) {
+    GenericAny& operator=(const GenericAny& other) requires (!NonCopyable) {
 
         if(!other.hasValue()) {
             
@@ -166,7 +157,7 @@ public:
         Move-assignment operator
         Move-constructs from the object's storage
     */
-    Any& operator=(Any&& other) noexcept {
+    GenericAny& operator=(GenericAny&& other) noexcept {
 
         if(!other.hasValue()) {
 
@@ -194,9 +185,9 @@ public:
         Copy-constructs new storage from the object
     */
     template<class T>
-    Any& operator=(T&& value) requires CopyConstructible<TT::Decay<T>> {
+    GenericAny& operator=(T&& value) requires CopyConstructible<TT::Decay<T>> {
 
-        *this = Any(std::forward<T>(value));
+        *this = GenericAny(std::forward<T>(value));
         return *this;
 
     }
@@ -241,7 +232,7 @@ public:
     /*
         Swaps the object's contents
     */
-    void swap(Any& other) noexcept {
+    void swap(GenericAny& other) noexcept {
 
         if(!hasValue() && !other.hasValue()) {
             return;
@@ -251,7 +242,7 @@ public:
 
             //Swap underlying contents
             Argument argument;
-            Any temp;
+            GenericAny temp;
 
             argument->any = &temp;
             other.executor(&other, Operation::Move, &argument);
@@ -327,13 +318,13 @@ public:
     //See the const version of cast()
     template<class T>
     T& cast() requires std::is_same_v<TT::RemoveCV<T>, TT::Decay<T>> {
-        return const_cast<T&>(static_cast<const Any*>(this)->cast<T>());
+        return const_cast<T&>(static_cast<const GenericAny*>(this)->cast<T>());
     }
 
     //See the const version of unsafeCast()
     template<class T>
     T& unsafeCast() noexcept requires std::is_same_v<TT::RemoveCV<T>, TT::Decay<T>> {
-        return const_cast<T&>(static_cast<const Any*>(this)->unsafeCast<T>());
+        return const_cast<T&>(static_cast<const GenericAny*>(this)->unsafeCast<T>());
     }
 
 private:
@@ -346,11 +337,11 @@ private:
     };
 
     union Argument {
-        Any* any;
+        GenericAny* any;
         const std::type_info* type;
     };
 
-    typedef void(*StateExecutor)(const Any*, Operation, Argument*);
+    typedef void(*StateExecutor)(const GenericAny*, Operation, Argument*);
 
     alignas(Align) union Storage {
 
@@ -374,7 +365,7 @@ private:
         constexpr static bool StaticAllocatable = sizeof(T) <= Size && alignof(T) <= Align && std::is_nothrow_move_constructible_v<T>;
 
         template<class... Args>
-        static void construct(Any* any, Args&&... args) requires Constructible<T, Args...> {
+        static void construct(GenericAny* any, Args&&... args) requires Constructible<T, Args...> {
 
             if constexpr (StaticAllocatable) {
                 ::new(any->storage.buffer) T(std::forward<Args>(args)...);
@@ -384,7 +375,7 @@ private:
 
         }
 
-        static const T& get(const Any* any) noexcept {
+        static const T& get(const GenericAny* any) noexcept {
             
             if constexpr (StaticAllocatable) {
                 return *reinterpret_cast<const T*>(any->storage.buffer);
@@ -394,13 +385,13 @@ private:
 
         }
 
-        static void execute(const Any* any, Operation operation, Argument* arg) {
+        static void execute(const GenericAny* any, Operation operation, Argument* arg) {
 
             switch(operation) {
 
                 case Operation::Destruct:
                     {
-                        Any* a = const_cast<Any*>(any);
+                        GenericAny* a = const_cast<GenericAny*>(any);
 
                         if constexpr (StaticAllocatable) {
                             reinterpret_cast<T*>(a->storage.buffer)->~T();
@@ -416,8 +407,8 @@ private:
 
                     if constexpr (StaticAllocatable) {
 
-                        Any* from = const_cast<Any*>(any);
-                        Any* to = arg->any;
+                        GenericAny* from = const_cast<GenericAny*>(any);
+                        GenericAny* to = arg->any;
                         T* ptr = reinterpret_cast<T*>(from->storage.buffer);
 
                         ::new(to->storage.buffer) T(std::move(*ptr));
@@ -428,8 +419,8 @@ private:
 
                     } else {
 
-                        Any* from = const_cast<Any*>(any);
-                        Any* to = arg->any;
+                        GenericAny* from = const_cast<GenericAny*>(any);
+                        GenericAny* to = arg->any;
 
                         to->storage.ptr = from->storage.ptr;
                         to->executor = from->executor;
@@ -443,8 +434,8 @@ private:
 
                     if constexpr (StaticAllocatable) {
 
-                        const Any* from = any;
-                        Any* to = arg->any;
+                        const GenericAny* from = any;
+                        GenericAny* to = arg->any;
                         const T* ptr = reinterpret_cast<const T*>(from->storage.buffer);
 
                         ::new(to->storage.buffer) T(*ptr);
@@ -452,8 +443,8 @@ private:
 
                     } else {
 
-                        const Any* from = any;
-                        Any* to = arg->any;
+                        const GenericAny* from = any;
+                        GenericAny* to = arg->any;
                         T* ptr = static_cast<T*>(from->storage.ptr);
 
                         to->storage.ptr = new T(*ptr);
@@ -478,391 +469,13 @@ private:
 
 
 /*
-    NocopyAny is a variant of Any that may also contain non-copyable types.
-    Copy semantics have therefore been deleted.
-*/
-template<SizeT Size = 16, AlignT Align = 8>
-class NocopyAny {
-
-    template<class>
-    struct TypeTagged : public std::false_type {};
-    
-    template<class T>
-    struct TypeTagged<TypeTag<T>> : public std::true_type {};
-
-    template<class T>
-    constexpr static bool TypeTaggedV = TypeTagged<T>::value;
-
-public:
-
-    /*
-        Default constructor
-        Constructs a new NocopyAny with no content
-    */
-    constexpr NocopyAny() noexcept : executor(nullptr) {}
-
-
-    /*
-        Copy constructor & copy assignment operator
-        [Deleted]
-    */
-    NocopyAny(NocopyAny& any) noexcept = delete;
-    NocopyAny& operator=(const NocopyAny& any) noexcept = delete;
-
-
-    /*
-        Move constructor
-        Moves the contents, if any
-    */
-    NocopyAny(NocopyAny&& other) noexcept {
-
-        if(other.hasValue()) {
-
-            Argument argument;
-            argument.any = this;
-            other.executor(&other, Operation::Move, &argument);
-
-        } else {
-            executor = nullptr;
-        }
-
-    }
-
-
-    /*
-        Value constructor
-        Copy-constructs the object into the storage
-    */
-    template<class T>
-    NocopyAny(T&& value) requires (!Equal<TT::Decay<T>, NocopyAny> && MoveConstructible<TT::Decay<T>> && !TypeTaggedV<T>) {
-
-        using U = TT::Decay<T>;
-
-        Executor<U>::construct(this, std::forward<T>(value));
-        executor = &Executor<U>::execute;
-
-    }
-
-
-    /*
-        In-place constructor
-        In-place constructs the object into the storage
-    */
-    template<class T, class... Args>
-    NocopyAny(TypeTag<T>, Args&&... args) requires Constructible<T, Args...> {
-        
-        using U = TT::Decay<T>;
-        Executor<U>::construct(this, std::forward<Args>(args)...);
-        executor = &Executor<U>::execute;
-
-    }
-
-
-    /*
-        Destructor
-        Destroys the storage
-    */
-    ~NocopyAny() noexcept {
-        reset();
-    }
-
-
-
-    /*
-        Move-assignment operator
-        Move-constructs from the object's storage
-    */
-    NocopyAny& operator=(NocopyAny&& other) noexcept {
-
-        if(!other.hasValue()) {
-
-            reset();
-
-        } else if (*this != other) {
-
-            //We must destruct the old object first
-            reset();
-
-            //Move it
-            Argument argument;
-            argument.any = this;
-            other.executor(&other, Operation::Move, &argument);
-
-        }
-
-        return *this;
-
-    }
-
-
-    /*
-        Value-assignment operator
-        Copy-constructs new storage from the object
-    */
-    template<class T>
-    NocopyAny& operator=(T&& value) requires MoveConstructible<TT::Decay<T>> {
-
-        *this = NocopyAny(std::forward<T>(value));
-        return *this;
-
-    }
-
-
-    /*
-        Returns true if it contains an object, false otherwise
-    */
-    constexpr bool hasValue() const noexcept {
-        return executor != nullptr;
-    }
-
-
-    /*
-        Resets the storage and destroys the object if it exists
-    */
-    void reset() noexcept {
-
-        if(hasValue()) {
-            executor(this, Operation::Destruct, nullptr);
-        }
-
-    }
-
-
-    /*
-        In-place constructs an object of type T. Previous contents are destroyed.
-    */
-    template<class T, class... Args>
-    void emplace(Args&&... args) requires Constructible<T, Args...> {
-
-        using U = TT::Decay<T>;
-
-        reset();
-
-        Executor<U>::construct(this, std::forward<Args>(args)...);
-        executor = &Executor<U>::execute;
-
-    }
-
-
-    /*
-        Swaps the object's contents
-    */
-    void swap(NocopyAny& other) noexcept {
-
-        if(!hasValue() && !other.hasValue()) {
-            return;
-        }
-
-        if(hasValue() && other.hasValue()) {
-
-            //Swap underlying contents
-            Argument argument;
-            NocopyAny temp;
-
-            argument->any = &temp;
-            other.executor(&other, Operation::Move, &argument);
-
-            argument->any = &other;
-            executor(this, Operation::Move, &argument);
-
-            argument->any = this;
-            temp.executor(&temp, Operation::Move, &argument);
-
-        } else if (hasValue()) {
-
-            //Transfer contents to other
-            Argument argument;
-            argument->any = &other;
-            executor(this, Operation::Move, &argument);
-
-        } else {
-
-            //Receive contents from other
-            Argument argument;
-            argument->any = this;
-            other.executor(&other, Operation::Move, &argument);
-
-        }
-
-    }
-
-
-    /*
-        Returns the std::type_info struct of the underlying object
-    */
-    const std::type_info& getTypeInfo() const noexcept {
-
-        if(!hasValue()) {
-            return typeid(void);
-        }
-
-        Argument argument;
-        executor(this, Operation::TypeInfo, &argument);
-        return *argument.type;
-
-    }
-
-
-    /*
-        Casts the object to T.
-        Throws BadAnyAccess if the conversion is illegal.
-    */
-    template<class T>
-    const T& cast() const requires std::is_same_v<TT::RemoveCV<T>, TT::Decay<T>> {
-
-        using U = TT::Decay<T>;
-
-        if (!hasValue() || &Executor<U>::execute != executor) {
-            throw BadAnyAccess();
-        } else {
-            return Executor<U>::get(this);
-        }
-
-    }
-
-
-    /*
-        Casts the object to T.
-        If T is not the type of the underlying storage, behaviour is undefined.
-    */
-    template<class T>
-    const T& unsafeCast() const noexcept requires std::is_same_v<TT::RemoveCV<T>, TT::Decay<T>> {
-        return Executor<TT::Decay<T>>::get(this);
-    }
-
-    //See the const version of cast()
-    template<class T>
-    T& cast() requires std::is_same_v<TT::RemoveCV<T>, TT::Decay<T>> {
-        return const_cast<T&>(static_cast<const NocopyAny*>(this)->cast<T>());
-    }
-
-    //See the const version of unsafeCast()
-    template<class T>
-    T& unsafeCast() noexcept requires std::is_same_v<TT::RemoveCV<T>, TT::Decay<T>> {
-        return const_cast<T&>(static_cast<const NocopyAny*>(this)->unsafeCast<T>());
-    }
-
-private:
-
-    enum class Operation {
-        Destruct,
-        Move,
-        TypeInfo
-    };
-
-    union Argument {
-        NocopyAny* any;
-        const std::type_info* type;
-    };
-
-    typedef void(*StateExecutor)(const NocopyAny*, Operation, Argument*);
-
-    alignas(Align) union Storage {
-
-        constexpr Storage() : ptr(nullptr) {}
-
-        constexpr Storage(const Storage& other) = delete;
-        constexpr Storage& operator=(const Storage& other) = delete;
-
-        void* ptr;
-        u8 buffer[Size];
-
-    } storage;
-
-    StateExecutor executor;
-
-    
-    template<MoveConstructible T>
-    struct Executor {
-
-        //Condition: a) must fit into the buffer; b) alignment must be no stricter than those of buffer
-        constexpr static bool StaticAllocatable = sizeof(T) <= Size && alignof(T) <= Align && std::is_nothrow_move_constructible_v<T>;
-
-        template<class... Args>
-        static void construct(NocopyAny* any, Args&&... args) requires Constructible<T, Args...> {
-
-            if constexpr (StaticAllocatable) {
-                ::new(any->storage.buffer) T(std::forward<Args>(args)...);
-            } else {
-                any->storage.ptr = new T(std::forward<Args>(args)...);
-            }
-
-        }
-
-        static const T& get(const NocopyAny* any) noexcept {
-            
-            if constexpr (StaticAllocatable) {
-                return *reinterpret_cast<const T*>(any->storage.buffer);
-            } else {
-                return *static_cast<const T*>(any->storage.ptr);
-            }
-
-        }
-
-        static void execute(const NocopyAny* any, Operation operation, Argument* arg) {
-
-            switch(operation) {
-
-                case Operation::Destruct:
-                    {
-                        NocopyAny* a = const_cast<NocopyAny*>(any);
-
-                        if constexpr (StaticAllocatable) {
-                            reinterpret_cast<T*>(a->storage.buffer)->~T();
-                        } else {
-                            delete static_cast<T*>(a->storage.ptr);
-                        }
-
-                        a->executor = nullptr;
-                    }
-                    break;
-
-                case Operation::Move:
-
-                    if constexpr (StaticAllocatable) {
-
-                        NocopyAny* from = const_cast<NocopyAny*>(any);
-                        NocopyAny* to = arg->any;
-                        T* ptr = reinterpret_cast<T*>(from->storage.buffer);
-
-                        ::new(to->storage.buffer) T(std::move(*ptr));
-                        ptr->~T();
-
-                        to->executor = from->executor;
-                        from->executor = nullptr;
-
-                    } else {
-
-                        NocopyAny* from = const_cast<NocopyAny*>(any);
-                        NocopyAny* to = arg->any;
-
-                        to->storage.ptr = from->storage.ptr;
-                        to->executor = from->executor;
-                        from->executor = nullptr;
-
-                    }
-
-                    break;
-
-                case Operation::TypeInfo:
-                    arg->type = &typeid(T);
-                    break;
-
-            }
-
-        }
-
-    };
-
-};
-
-
-
-/*
     Helper template for optimized Any's
 */
-template<class T>
-using FastAny = Any<sizeof(T), alignof(T)>;
+using Any = GenericAny<false>;
+using NoncopyableAny = GenericAny<true>;
 
-template<class T>
-using FastNocopyAny = NocopyAny<sizeof(T), alignof(T)>;
+/*
+	FastAny for optimizing access to Ts
+*/
+template<class T> using FastAny = GenericAny<false, sizeof(T), alignof(T)>;
+template<class T> using FastNoncopyableAny = GenericAny<true, sizeof(T), alignof(T)>;
