@@ -85,14 +85,14 @@ public:
 
 	using Base = BitSpanBase<Dynamic>;
 
-	using U = TT::ConditionalConst<Const, u8>;
+	using P = TT::ConditionalConst<Const, u8>;
 
 
 	class BitProxy {
 
 	public:
 
-		constexpr BitProxy(U* ptr, u8 bit) noexcept : ptr(ptr), bit(bit) {}
+		constexpr BitProxy(P* ptr, u8 bit) noexcept : ptr(ptr), bit(bit) {}
 
 		constexpr BitProxy& operator=(bool b) noexcept requires (!Const) {
 
@@ -107,7 +107,7 @@ public:
 
 	private:
 
-		U* ptr;
+		P* ptr;
 		u8 bit;
 
 	};
@@ -126,36 +126,16 @@ public:
 
 
 		constexpr Iterator() noexcept : ptr(nullptr), bit(0) {}
-
-		constexpr Iterator(U* p, SizeT b) noexcept : ptr(p), bit(b) {}
-
+		constexpr Iterator(P* p, SizeT b) noexcept : ptr(p), bit(b) {}
 		constexpr Iterator(const Iterator& it) noexcept = default;
 
 		constexpr reference operator*() const noexcept { return BitProxy(ptr, bit); }
-
 		constexpr pointer operator->() const noexcept { return BitProxy(ptr, bit); }
 
-		constexpr Iterator& operator++() noexcept {
-			advance();
-			return *this;
-		}
-
-		constexpr Iterator& operator--() noexcept {
-			retreat();
-			return *this;
-		}
-
-		constexpr Iterator operator++(int) noexcept {
-			auto cpy = *this;
-			++(*this);
-			return cpy;
-		}
-
-		constexpr Iterator operator--(int) noexcept {
-			auto cpy = *this;
-			--(*this);
-			return cpy;
-		}
+		constexpr Iterator& operator++() noexcept { advance(); return *this; }
+		constexpr Iterator& operator--() noexcept { retreat(); return *this; }
+		constexpr Iterator operator++(int) noexcept { auto cpy = *this; ++(*this); return cpy; }
+		constexpr Iterator operator--(int) noexcept { auto cpy = *this; --(*this); return cpy; }
 
 		constexpr bool operator==(const Iterator& other) const noexcept {
 			return ptr == other.ptr && bit == other.bit;
@@ -171,32 +151,13 @@ public:
 
 		}
 
-		constexpr Iterator operator+(SizeT n) const noexcept {
-			Iterator it = *this;
-			it.advance(n);
-			return it;
-		}
-
-		constexpr Iterator operator-(SizeT n) const noexcept {
-			Iterator it = *this;
-			it.retreat(n);
-			return it;
-		}
-
-		constexpr Iterator& operator+=(SizeT n) noexcept {
-			advance(n);
-			return *this;
-		}
-
-		constexpr Iterator& operator-=(SizeT n) noexcept {
-			retreat(n);
-			return *this;
-		}
-
+		constexpr Iterator operator+(SizeT n) const noexcept { Iterator it = *this; it.advance(n); return it; }
+		constexpr Iterator operator-(SizeT n) const noexcept { Iterator it = *this; it.retreat(n); return it; }
+		constexpr Iterator& operator+=(SizeT n) noexcept { advance(n); return *this; }
+		constexpr Iterator& operator-=(SizeT n) noexcept { retreat(n); return *this; }
 		constexpr reference operator[](SizeT n) const noexcept { return *(*this + n); }
 
 		constexpr difference_type operator-(const Iterator& other) const noexcept { return (ptr - other.ptr) * 8 + (bit - other.bit); }
-
 		friend constexpr Iterator operator+(SizeT n, const Iterator& it) noexcept { return it + n; }
 
 	private:
@@ -235,7 +196,7 @@ public:
 
 		}
 
-		U* ptr;
+		P* ptr;
 		u8 bit;
 
 	};
@@ -255,21 +216,21 @@ public:
 
 
 	template<class T, class U = TT::RemovePointer<T>>
-	constexpr explicit(!Dynamic) BitSpan(const T& t, SizeT size = Bits::bitCount<U>()) noexcept requires (PointerType<T> && ConstType < U > <= Const) : Base(size), ptr(convertTToPointer(t)), start(0) {}
+	constexpr explicit(!Dynamic) BitSpan(const T& t, SizeT size = Bits::bitCount<U>()) noexcept requires (PointerType<T> && ConstType<U> <= Const) : Base(size), ptr(convertTToPointer(t)), start(0) {}
 
 	template<class T, class U = TT::RemovePointer<T>>
-	constexpr explicit(!Dynamic) BitSpan(const T& t, SizeT start, SizeT size) noexcept requires (PointerType<T> && ConstType < U > <= Const) : Base(size), ptr(convertTToPointer(t)), start(start) { normalize(); }
+	constexpr explicit(!Dynamic) BitSpan(const T& t, SizeT start, SizeT size) noexcept requires (PointerType<T> && ConstType<U> <= Const) : Base(size), ptr(convertTToPointer(t)), start(start) { normalize(); }
 
 
 	template<class T, SizeT N>
-	constexpr explicit(!Dynamic) BitSpan(T(& t)[N], SizeT size = Bits::bitCount<T>() * N) noexcept requires (ConstType < T > <= Const) : Base(size), ptr(convertTToPointer(t)), start(0) {}
+	constexpr explicit(!Dynamic) BitSpan(T(& t)[N], SizeT size = Bits::bitCount<T>() * N) noexcept requires (ConstType<T> <= Const) : Base(size), ptr(convertTToPointer(t)), start(0) {}
 
 	template<class T, SizeT N>
-	constexpr explicit(!Dynamic) BitSpan(T(& t)[N], SizeT start, SizeT size) noexcept requires (ConstType < T > <= Const) : Base(size), ptr(convertTToPointer(t)), start(start) { normalize(); }
+	constexpr explicit(!Dynamic) BitSpan(T(& t)[N], SizeT start, SizeT size) noexcept requires (ConstType<T> <= Const) : Base(size), ptr(convertTToPointer(t)), start(start) { normalize(); }
 
 
 	template<class T>
-	constexpr explicit(!Dynamic) BitSpan(const std::span<T>& span) noexcept requires (ConstType < T > <= Const) : Base(span.size() * sizeof(T)), ptr(convertTToPointer(span.data())), start(0) {}
+	constexpr explicit(!Dynamic) BitSpan(const std::span<T>& span) noexcept requires (ConstType<T> <= Const) : Base(span.size() * sizeof(T)), ptr(convertTToPointer(span.data())), start(0) {}
 
 
 	template<SizeT N, bool ConstOther>
@@ -305,7 +266,7 @@ public:
 
 	constexpr iterator end() const noexcept {
 
-		U* endptr = ptr + (size() + start) / 8;
+		P* endptr = ptr + (size() + start) / 8;
 		u8 bits = (size() + start) % 8;
 
 		return iterator(endptr, bits);
@@ -333,7 +294,7 @@ public:
 		return begin()[idx];
 	}
 
-	constexpr U* data() const noexcept {
+	constexpr P* data() const noexcept {
 		return ptr;
 	}
 
@@ -551,7 +512,7 @@ private:
 	}
 
 
-	U* ptr;
+	P* ptr;
 	SizeT start;
 
 };
