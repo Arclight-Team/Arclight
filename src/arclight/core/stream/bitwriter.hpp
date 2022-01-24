@@ -17,6 +17,10 @@
 
 
 
+/*
+ *  BitWriter allows writing bits to a stream
+ *  Will not take previous memory contents and multiple readers/writers into account.
+ */
 class BitWriter {
 
 public:
@@ -26,89 +30,57 @@ public:
 	template<Arithmetic A, SizeT Size = Bits::bitCount<A>()> requires (Size <= Bits::bitCount<A>())
 	void write(A a) {
 
-		if constexpr (Size == 0) {
+		using I = TT::UnsignedFromSize<sizeof(A)>;
+
+		if constexpr (!Size) {
 			return;
 		}
 
-		using I = TT::UnsignedFromSize<sizeof(A)>;
 		I i = Bits::cast<I>(a);
 
-		u8 newStart = (start + Size) % 8;
-
-		i &= (1ULL << Size) - 1;
+		alignas(I) u8 buffer[sizeof(I) * 2];
+		u32 sidx = sizeof(I);
+		u32 bidx = sizeof(I);
+		SizeT endBits = (start + Size) % 8;
 
 		if (start) {
+			buffer[--sidx] = strayByte;
+		}
 
-			u8 writeBits = 8 - start;
+		u32 startBits = (8 - start) % 8;
+		SizeT alignedWriteBytes = Math::alignUp(Size - startBits, 8) / 8;
+		SizeT writeBytes = alignedWriteBytes + !!start;
 
-			if (Size <= writeBits) {
+		bool hasEndByte = endBits && alignedWriteBytes;
+		u32 endBytePos = bidx + alignedWriteBytes - 1;
 
-				//Stray byte not exhausted
-				u8 byte = strayByte | (i << start);
+		if (hasEndByte) {
+			buffer[endBytePos] = 0;
+		}
 
-				[[maybe_unused]] SizeT writtenBytes = stream.write(&byte, 1);
+		BitSpan<Size, false> span {buffer + sidx, start, Size};
 
-#ifndef ARC_STREAM_ACCELERATE
-				if (writtenBytes != 1) {
-					arc_force_assert("Failed to write data to stream");
-				}
-#endif
+		start = endBits;
 
-				if (writeBits != Size) {
-					strayByte = byte;
-				} else {
-					strayByte = 0;
-				}
+		span.write<Size>(i);
 
-			} else {
+		if (writeBytes) {
 
-				//Stray byte exhausted, write multiple bytes
-				//Double buffer to force misalignment
-				alignas(I) u8 buffer[alignof(I) * 2];
-
-				buffer[alignof(I) - 1] = strayByte | ((i << start) & 0xFF);
-				i >>= writeBits;
-
-				SizeT writeByteCount = Math::alignUp(Size - writeBits, 8) / 8 + 1;
-				std::copy_n(Bits::toByteArray(&i), sizeof(I), &buffer[alignof(I)]);
-
-				[[maybe_unused]] SizeT writtenBytes = stream.write(buffer + alignof(I) - 1, writeByteCount);
+			[[maybe_unused]] SizeT writtenBytes = stream.write(&buffer[sidx], writeBytes);
 
 #ifndef ARC_STREAM_ACCELERATE
-				if (writtenBytes != writeByteCount) {
-					arc_force_assert("Failed to write data to stream");
-				}
-#endif
-
-				if (newStart) {
-					strayByte = buffer[alignof(I) + writeByteCount - 2];
-				}
-
-			}
-
-		} else {
-
-			//No stray byte
-			SizeT writeByteCount = Math::alignUp(Size, 8) / 8;
-
-			[[maybe_unused]] SizeT writtenBytes = stream.write(&i, writeByteCount);
-
-#ifndef ARC_STREAM_ACCELERATE
-			if (writtenBytes != writeByteCount) {
+			if (writtenBytes != writeBytes) {
 				arc_force_assert("Failed to write data to stream");
 			}
 #endif
 
-			if (newStart) {
-				strayByte = Bits::toByteArray(&i)[writeByteCount - 1];
-			}
-
 		}
 
-		start = newStart;
+		if (hasEndByte) {
 
-		if (start != 0) {
+			strayByte = buffer[endBytePos];
 			stream.seek(-1);
+
 		}
 
 	}

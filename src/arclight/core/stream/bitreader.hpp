@@ -9,94 +9,70 @@
 #pragma once
 
 #include "math/math.hpp"
+#include "stdext/bitspan.hpp"
 #include "stream/inputstream.hpp"
 #include "util/concepts.hpp"
 #include "util/typetraits.hpp"
 #include "util/bits.hpp"
 #include "arcconfig.hpp"
 
-#include "stdext/bitspan.hpp"
 
+
+/*
+ *  BitReader allows reading bits from a stream
+ *  Will not take multiple readers/writers into account.
+ */
 class BitReader {
 
 public:
 
 	BitReader(InputStream& stream) : stream(stream), strayByte(0), start(0) {}
 
-	template<Arithmetic A, SizeT Size = Bits::bitCount<A>(), class I = TT::UnsignedFromSize<sizeof(A)>>
-	requires (Size <= Bits::bitCount<A>())
+
+
+	template<Arithmetic A, SizeT Size = Bits::bitCount<A>()> requires (Size <= Bits::bitCount<A>())
 	A read() {
 
-		if constexpr (Size == 0) {
-			return 0;
+		using I = TT::UnsignedFromSize<sizeof(A)>;
+
+		if constexpr (!Size) {
+			return A(I(0));
 		}
 
-		I i = 0;
+		alignas(I) u8 buffer[sizeof(I) * 2];
+		u32 sidx = sizeof(I);
+		u32 bidx = sizeof(I);
 
 		if (start) {
+			buffer[--sidx] = strayByte;
+		}
 
-			//We have a stray byte, copy it into the LSB
-			i |= strayByte;
-			i >>= start;
+		u32 startBits = (8 - start) % 8;
+		SizeT alignedReadBytes = Math::alignUp(Size - startBits, 8) / 8;
 
-			u8 readBits = 8 - start;
+		if (alignedReadBytes) {
 
-			if (Size <= readBits) {
-
-				//Stray byte not exhausted
-				i &= (1ULL << Size) - 1;
-
-				start = (Size + start) % 8;
-
-			} else {
-
-				//Stray byte exhausted, read from stream
-				SizeT readByteCount = Math::alignUp(Size - readBits, 8) / 8;
-
-				I b;
-
-				[[maybe_unused]] SizeT readBytes = stream.read(&b, readByteCount);
+			[[maybe_unused]] SizeT readBytes = stream.read(&buffer[bidx], alignedReadBytes);
 
 #ifndef ARC_STREAM_ACCELERATE
-				if (readBytes != readByteCount) {
-					arc_force_assert("Failed to read data from stream");
-				}
-#endif
-
-				start = (Size + start) % 8;
-
-				if (start) {
-					strayByte = Bits::toByteArray(&b)[readByteCount - 1];
-				}
-
-				i |= (b & ((1ULL << (Size - readBits)) - 1)) << readBits;
-
-			}
-
-		} else {
-
-			//No stray byte
-			SizeT readByteCount = Math::alignUp(Size, 8) / 8;
-
-			[[maybe_unused]] SizeT readBytes = stream.read(&i, readByteCount);
-
-#ifndef ARC_STREAM_ACCELERATE
-			if (readBytes != readByteCount) {
+			if (readBytes != alignedReadBytes) {
 				arc_force_assert("Failed to read data from stream");
 			}
 #endif
 
-			start = Size % 8;
-
-			if (start) {
-				strayByte = Bits::toByteArray(&i)[readByteCount - 1];
-			}
-
-			i &= (1ULL << Size) - 1;
-
 		}
 
-		return Bits::cast<A>(i);
+		SizeT endBits = (start + Size) % 8;
+
+		if (endBits) {
+			strayByte = buffer[bidx + alignedReadBytes - 1];
+		}
+
+		BitSpan<Size, false> span {buffer + sidx, start, Size};
+
+		start = endBits;
+
+		return span.read<A, Size>();
 
 	}
 
