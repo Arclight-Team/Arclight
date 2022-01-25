@@ -552,7 +552,7 @@ namespace BMP {
                                     reader.read(std::span<u8>{indices, byteCount});
 
                                     if(byteCount & 1) {
-                                        stream.seekTo(1, StreamBase::SeekMode::Current);
+                                        stream.seek(1);
                                     }
 
                                     for(u32 i = 0; i < pixelCount; i++) {
@@ -656,7 +656,7 @@ namespace BMP {
                         if constexpr (N == 16) {
 
                             if(rowAlign) {
-                                stream.seekTo(2, StreamBase::SeekMode::Current);
+                                stream.seek(2);
                             }
 
                         } 
