@@ -28,3 +28,4 @@ examples/
 demo/
 !assets/logo.bmp
 !assets/logo.ico
+!assets/cursor.bmp
