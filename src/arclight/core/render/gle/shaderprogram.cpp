@@ -228,6 +228,8 @@ bool ShaderProgram::bindUniformBlock(u32 block, u32 index) {
 
 	glUniformBlockBinding(id, block, index);
 
+	return true;
+
 }
 
 
