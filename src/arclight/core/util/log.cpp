@@ -59,47 +59,43 @@ namespace Log {
 	}
 
 
-	namespace Raw {
+	void print(const std::string& level, const std::string& subsystem, const std::string& message) noexcept {
 
-		void print(const std::string& level, const std::string& subsystem, const std::string& message) noexcept {
+		try {
 
-			try {
+			std::string line = "[" + level + ": " + subsystem + "] " + message;
+			std::cout << line << std::endl;
 
-				std::string line = "[" + level + ": " + subsystem + "] " + message;
-				std::cout << line << std::endl;
-
-				if (logfile.isOpen()) {
-					logfile.writeLine(line);
-				}
-
-			} catch (std::exception&) {
-				//There's literally nothing we can do here
-#if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
-				arc_abort();
-#endif
+			if (logfile.isOpen()) {
+				logfile.writeLine(line);
 			}
 
+		} catch (std::exception&) {
+			//There's literally nothing we can do here
+#if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
+			arc_abort();
+#endif
 		}
 
-		void debug(const std::string& subsystem, const std::string& message) noexcept {
-			print(LOG_DEBUG, subsystem, message);
-		}
+	}
+
+	void debug(const std::string& subsystem, const std::string& message) noexcept {
+		print(LOG_DEBUG, subsystem, message);
+	}
 
 
-		void info(const std::string& subsystem, const std::string& message) noexcept {
-			print(LOG_INFO, subsystem, message);
-		}
+	void info(const std::string& subsystem, const std::string& message) noexcept {
+		print(LOG_INFO, subsystem, message);
+	}
 
 
-		void warn(const std::string& subsystem, const std::string& message) noexcept {
-			print(LOG_WARN, subsystem, message);
-		}
+	void warn(const std::string& subsystem, const std::string& message) noexcept {
+		print(LOG_WARN, subsystem, message);
+	}
 
 
-		void error(const std::string& subsystem, const std::string& message) noexcept {
-			print(LOG_ERROR, subsystem, message);
-		}
-
+	void error(const std::string& subsystem, const std::string& message) noexcept {
+		print(LOG_ERROR, subsystem, message);
 	}
 
 }

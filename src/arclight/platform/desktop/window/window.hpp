@@ -20,6 +20,7 @@
 #include <functional>
 
 
+
 template<Pixel P>
 class Image;
 
@@ -64,6 +65,7 @@ public:
 	using WindowResizeFunction      = std::function<void(u32, u32)>;
 	using WindowStateChangeFunction = std::function<void(WindowState)>;
 	using FramebufferResizeFunction = std::function<void(u32, u32)>;
+	using DropFunction              = std::function<void(const std::vector<std::string>&)>;
 
 	Window();
 	~Window();
@@ -155,6 +157,7 @@ public:
 	void setWindowResizeFunction(WindowResizeFunction function);
 	void setWindowStateChangeFunction(WindowStateChangeFunction function);
 	void setFramebufferResizeFunction(FramebufferResizeFunction function);
+	void setDropFunction(DropFunction function);
 	void resetWindowFunctions();
 
 	std::weak_ptr<WindowHandle> getInternalHandle() const;
@@ -187,5 +190,6 @@ private:
 	WindowResizeFunction resizeFunction;
 	WindowStateChangeFunction stateChangeFunction;
 	FramebufferResizeFunction fbResizeFunction;
+	DropFunction dropFunction;
 
 };

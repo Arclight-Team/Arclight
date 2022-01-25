@@ -10,6 +10,7 @@
 #include "window.hpp"
 #include "image/image.hpp"
 #include "util/bits.hpp"
+#include "util/log.hpp"
 
 #include <GLFW/glfw3.h>
 

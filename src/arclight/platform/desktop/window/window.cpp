@@ -12,6 +12,7 @@
 #include "image/image.hpp"
 #include "render/gle/glecore.hpp"
 #include "util/assert.hpp"
+#include "util/log.hpp"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -24,7 +25,7 @@ u32 Window::monitorCount = 0;
 
 
 Window::Window() : backupWidth(0), backupHeight(0), windowHandle(nullptr),
-	moveFunction(nullptr), resizeFunction(nullptr), stateChangeFunction(nullptr), fbResizeFunction(nullptr), cursor(*this) {
+	moveFunction(nullptr), resizeFunction(nullptr), stateChangeFunction(nullptr), fbResizeFunction(nullptr), dropFunction(nullptr), cursor(*this) {
 
 	initMonitorCallback();
 
@@ -609,12 +610,21 @@ void Window::dismissCloseRequest() {
 }
 
 
+
 std::string Window::getClipboardString() const {
 
 	arc_assert(isOpen(), "Tried to obtain clipboard string for non-existing window");
-	return glfwGetClipboardString(windowHandle->handle);
+
+	const char* str = glfwGetClipboardString(windowHandle->handle);
+
+	if (!str) {
+		return "";
+	} else {
+		return std::string(str);
+	}
 
 }
+
 
 
 void Window::setClipboardString(const std::string& str) {
@@ -892,12 +902,43 @@ void Window::setFramebufferResizeFunction(FramebufferResizeFunction function) {
 
 
 
+void Window::setDropFunction(DropFunction function) {
+
+	arc_assert(isOpen(), "Tried to set drop function for non-existing window");
+	dropFunction = function;
+
+	if (function) {
+
+		glfwSetDropCallback(windowHandle->handle, [](GLFWwindow* window, i32 count, const char** paths) {
+
+			Window* ptr = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->window;
+
+			std::vector<std::string> pathStrings;
+			pathStrings.reserve(count);
+
+			for (i32 i = 0; i < count; i++) {
+				pathStrings.emplace_back(*(paths + i));
+			}
+
+			ptr->dropFunction(std::move(pathStrings));
+
+		});
+
+	} else {
+		glfwSetDropCallback(windowHandle->handle, nullptr);
+	}
+
+}
+
+
+
 void Window::resetWindowFunctions() {
 
 	setWindowMoveFunction(nullptr);
 	setWindowResizeFunction(nullptr);
 	setWindowStateChangeFunction(nullptr);
 	setFramebufferResizeFunction(nullptr);
+	setDropFunction(nullptr);
 
 }
 

@@ -74,6 +74,8 @@ namespace Unicode {
 		return (isUTF8<E0>() && isUTF8<E1>()) || (isUTF16<E0>() && isUTF16<E1>()) || (isUTF32<E0>() && isUTF32<E1>());
 	}
 
+
+
 	template<Char C, bool FlipEndianess = false>
 	consteval Encoding fromCharType() noexcept {
 
@@ -98,7 +100,9 @@ namespace Unicode {
 			}
 
 		} else {
-			static_assert("Illegal character type specified");
+
+			return Encoding::UTF8;
+
 		}
 
 	};
