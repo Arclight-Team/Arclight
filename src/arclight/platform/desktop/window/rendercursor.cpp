@@ -6,7 +6,7 @@
  *	 cursor.cpp
  */
 
-#include "cursor.hpp"
+#include "rendercursor.hpp"
 #include "window.hpp"
 #include "image/image.hpp"
 #include "util/bits.hpp"
@@ -17,23 +17,23 @@
 
 
 
-Cursor::Cursor(const Window& window) noexcept : window(window), currentID(DefaultCursorID) {}
+RenderCursor::RenderCursor(const Window& window) noexcept : window(window), currentID(DefaultCursorID) {}
 
-Cursor::~Cursor() noexcept {
-	destroyAllCursors();
+RenderCursor::~RenderCursor() noexcept {
+	destroyAll();
 }
 
 
 
-void Cursor::restoreDefaultCursor() {
-	setCurrentCursor(DefaultCursorID);
+void RenderCursor::restoreDefaultCursor() {
+	setCurrent(DefaultCursorID);
 }
 
 
 
-void Cursor::setCurrentCursor(CursorID id) {
+void RenderCursor::setCurrent(CursorID id) {
 
-	if (isActiveCursor(id)) {
+	if (isActive(id)) {
 		return;
 	}
 
@@ -57,13 +57,19 @@ void Cursor::setCurrentCursor(CursorID id) {
 
 
 
-bool Cursor::isActiveCursor(CursorID id) const {
+RenderCursor::CursorID RenderCursor::getCurrent() const {
+	return currentID;
+}
+
+
+
+bool RenderCursor::isActive(CursorID id) const {
 	return id == currentID;
 }
 
 
 
-bool Cursor::setCursor(CursorID id, const Image<Pixel::RGBA8>& image, const Vec2i& hotspot) {
+bool RenderCursor::set(CursorID id, const Image<Pixel::RGBA8>& image, const Vec2i& hotspot) {
 
 	if (id == DefaultCursorID) {
 		return false;
@@ -87,7 +93,7 @@ bool Cursor::setCursor(CursorID id, const Image<Pixel::RGBA8>& image, const Vec2
 
 
 
-bool Cursor::setCursor(CursorID id, StandardCursor cursor) {
+bool RenderCursor::set(CursorID id, StandardCursor cursor) {
 
 	if (id == DefaultCursorID) {
 		return false;
@@ -140,7 +146,7 @@ bool Cursor::setCursor(CursorID id, StandardCursor cursor) {
 
 
 
-void Cursor::destroyCursor(CursorID id) noexcept {
+void RenderCursor::destroy(CursorID id) noexcept {
 
 	if (id == DefaultCursorID) {
 		return;
@@ -148,7 +154,7 @@ void Cursor::destroyCursor(CursorID id) noexcept {
 
 	try {
 
-		if (isActiveCursor(id)) {
+		if (isActive(id)) {
 			restoreDefaultCursor();
 		}
 
@@ -167,7 +173,7 @@ void Cursor::destroyCursor(CursorID id) noexcept {
 
 
 
-void Cursor::destroyAllCursors() noexcept {
+void RenderCursor::destroyAll() noexcept {
 
 	try {
 
@@ -183,61 +189,4 @@ void Cursor::destroyAllCursors() noexcept {
 		Log::error("Cursor", "An exception has been thrown during cursor destruction: %s", e.what());
 	}
 
-}
-
-
-
-double Cursor::getX() const noexcept {
-
-	double x;
-	glfwGetCursorPos(window.windowHandle->handle, &x, nullptr);
-
-	return x;
-
-}
-
-
-
-double Cursor::getY() const noexcept {
-
-	double y;
-	glfwGetCursorPos(window.windowHandle->handle, nullptr, &y);
-
-	return y;
-
-}
-
-
-
-Vec2d Cursor::getPosition() const noexcept {
-
-	Vec2d v;
-	glfwGetCursorPos(window.windowHandle->handle, &v.x, &v.y);
-
-	return v;
-
-}
-
-
-
-void Cursor::setX(double x) noexcept {
-	glfwSetCursorPos(window.windowHandle->handle, x, getY());
-}
-
-
-
-void Cursor::setY(double y) noexcept {
-	glfwSetCursorPos(window.windowHandle->handle, getX(), y);
-}
-
-
-
-void Cursor::setPosition(const Vec2d& pos) noexcept {
-	setPosition(pos.x, pos.y);
-}
-
-
-
-void Cursor::setPosition(double x, double y) noexcept {
-	glfwSetCursorPos(window.windowHandle->handle, x, y);
 }

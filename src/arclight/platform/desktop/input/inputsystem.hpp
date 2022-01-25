@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "cursor.hpp"
 #include "inputcontext.hpp"
 
 #include <memory>
@@ -27,7 +28,7 @@ class InputSystem final {
 public:
 
 	InputSystem();
-	InputSystem(const Window& window);
+	explicit InputSystem(const Window& window);
 
 	~InputSystem();
 
@@ -51,21 +52,26 @@ public:
 
 	void updateContinuous(u32 ticks);
 
-	void getCursorPosition(double& x, double& y);
-	void setCursorPosition(double x, double y);
-	void disableCursor();
-	void hideCursor();
-	void showCursor();
+	KeyState getKeyState(Key key) const;
+	Scancode getScancode(Key key) const;
+	std::string getKeyNameFromKey(Key key) const;
+	std::string getKeyNameFromScancode(Scancode code) const;
+
+	Cursor& getCursor();
+	const Cursor& getCursor() const;
 
 	void enableHeldEvent();
 	void disableHeldEvent();
-	bool isHeldEventEnabled();
+	bool isHeldEventEnabled() const;
+
+	std::shared_ptr<WindowHandle> getWindowHandle() const;
 
 private:
 
 	void setupKeyMap(bool activeWindow);
 	void resetEventCounts();
-	std::shared_ptr<WindowHandle> getWindowHandle() const;
+
+	Cursor cursor;
 
 	std::weak_ptr<WindowHandle> windowHandle;
 	std::map<u32, InputContext> inputContexts;

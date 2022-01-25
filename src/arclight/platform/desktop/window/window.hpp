@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "cursor.hpp"
+#include "rendercursor.hpp"
 #include "windowhandle.hpp"
 #include "windowconfig.hpp"
 #include "image/pixel.hpp"
@@ -146,8 +146,8 @@ public:
 	std::string getClipboardString() const;
 	void setClipboardString(const std::string& str);
 	
-	Cursor& getCursor();
-	const Cursor& getCursor() const;
+	RenderCursor& getRenderCursor();
+	const RenderCursor& getRenderCursor() const;
 
 	static u32 getMonitorCount();
 	static Monitor getMonitor(u32 id);
@@ -167,7 +167,7 @@ public:
 
 private:
 
-	friend class Cursor;
+	friend class RenderCursor;
 
 	static void initMonitorCallback();
 	static void queryMonitors();
@@ -184,7 +184,7 @@ private:
 	u32 backupWidth;
 	u32 backupHeight;
 
-	Cursor cursor;
+	RenderCursor cursor;
 
 	WindowMoveFunction moveFunction;
 	WindowResizeFunction resizeFunction;

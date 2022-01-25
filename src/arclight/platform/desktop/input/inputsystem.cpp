@@ -19,11 +19,11 @@
 
 
 
-InputSystem::InputSystem() : propagateHeld(false) {
+InputSystem::InputSystem() : propagateHeld(false), cursor(*this) {
 	setupKeyMap(false);
 }
 
-InputSystem::InputSystem(const Window& window) {
+InputSystem::InputSystem(const Window& window) : propagateHeld(false), cursor(*this) {
 	connect(window);
 }
 
@@ -44,7 +44,7 @@ void InputSystem::connect(const Window& window) {
 
 	windowHandle = window.getInternalHandle();
 	auto handle = getWindowHandle();
-	
+
 	if (handle) {
 		handle->userPtr.input = this;
 	} else {
@@ -71,7 +71,7 @@ void InputSystem::connect(const Window& window) {
 		KeyState state;
 
 		switch(action) {
-		
+
 			case GLFW_PRESS:
 				state = KeyState::Pressed;
 				break;
@@ -297,7 +297,7 @@ void InputSystem::updateContinuous(u32 ticks) {
 	}
 
 	for (auto& [id, context] : inputContexts) {
-		
+
 		if (context.onContinuousEvent(ticks, keyStates, eventCounts)) {
 			break;
 		}
@@ -310,67 +310,95 @@ void InputSystem::updateContinuous(u32 ticks) {
 
 
 
-void InputSystem::getCursorPosition(double& x, double& y) {
-	if (!connected()) {
-		return;
+KeyState InputSystem::getKeyState(Key key) const {
+
+	if (key < keyStates.size()) {
+
+		return keyStates[key];
+
+	} else {
+
+		Log::warn("Input System", "Attempted to query key state for unknown key %d", key);
+		return KeyState::Released;
+
 	}
 
-	auto handle = getWindowHandle();
-	arc_assert(handle != nullptr, "Handle unexpectedly null");
-
-	glfwGetCursorPos(handle->handle, &x, &y);
 }
 
 
 
-void InputSystem::setCursorPosition(double x, double y) {
-	if (!connected()) {
-		return;
+Scancode InputSystem::getScancode(Key key) const {
+
+	if (key < GLFW_KEY_SPACE) {
+		return -1;
 	}
 
-	auto handle = getWindowHandle();
-	arc_assert(handle != nullptr, "Handle unexpectedly null");
+	return glfwGetKeyScancode(static_cast<i32>(key));
 
-	glfwSetCursorPos(handle->handle, x, y);
 }
 
 
 
-void InputSystem::disableCursor() {
-	if (!connected()) {
-		return;
+std::string InputSystem::getKeyNameFromKey(Key key) const {
+
+	if (key <= GLFW_MOUSE_BUTTON_LAST) {
+
+		switch (key) {
+
+			default:                    return "Unknown";
+			case MouseCode::Left:       return "Left Mouse Button";
+			case MouseCode::Right:      return "Right Mouse Button";
+			case MouseCode::Middle:     return "Middle Mouse Button";
+			case MouseCode::Button4:    return "Mouse Button 4";
+			case MouseCode::Button5:    return "Mouse Button 5";
+			case MouseCode::Button6:    return "Mouse Button 6";
+			case MouseCode::Button7:    return "Mouse Button 7";
+			case MouseCode::Button8:    return "Mouse Button 8";
+
+		}
+
+	} else if (key != GLFW_KEY_UNKNOWN) {
+
+		const char* str = glfwGetKeyName(key, 0);
+
+		if (str) {
+			return std::string(str);
+		} else {
+			return "Unknown";
+		}
+
+	} else {
+
+		return "Unknown";
+
 	}
 
-	auto handle = getWindowHandle();
-	arc_assert(handle != nullptr, "Handle unexpectedly null");
-
-	glfwSetInputMode(handle->handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 
 
-void InputSystem::hideCursor() {
-	if (!connected()) {
-		return;
+std::string InputSystem::getKeyNameFromScancode(Scancode code) const {
+
+	const char* str = glfwGetKeyName(GLFW_KEY_UNKNOWN, code);
+
+	if (str) {
+		return std::string(str);
+	} else {
+		return "Unknown";
 	}
 
-	auto handle = getWindowHandle();
-	arc_assert(handle != nullptr, "Handle unexpectedly null");
-
-	glfwSetInputMode(handle->handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 }
 
 
 
-void InputSystem::showCursor() {
-	if (!connected()) {
-		return;
-	}
+Cursor& InputSystem::getCursor() {
+	return cursor;
+}
 
-	auto handle = getWindowHandle();
-	arc_assert(handle != nullptr, "Handle unexpectedly null");
 
-	glfwSetInputMode(handle->handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+const Cursor& InputSystem::getCursor() const {
+	return cursor;
 }
 
 
@@ -387,7 +415,7 @@ void InputSystem::disableHeldEvent() {
 
 
 
-bool InputSystem::isHeldEventEnabled() {
+bool InputSystem::isHeldEventEnabled() const {
 	return propagateHeld;
 }
 
@@ -403,7 +431,7 @@ void InputSystem::setupKeyMap(bool activeWindow) {
 
 	arc_assert(GLFW_KEY_LAST < 512, "GLFW_KEY_LAST exceeds the keycount maximum of 512 keys");
 
-	bool refill = keyStates.size();
+	bool refill = !!keyStates.size();
 	keyStates.resize(GLFW_KEY_LAST + 1, KeyState::Released);
 
 	if (refill) {
@@ -415,11 +443,11 @@ void InputSystem::setupKeyMap(bool activeWindow) {
 		auto handle = getWindowHandle();
 		arc_assert(handle != nullptr, "Handle unexpectedly null");
 
-		for (u32 i = GLFW_MOUSE_BUTTON_1; i <= GLFW_MOUSE_BUTTON_LAST; i++) {
+		for (i32 i = GLFW_MOUSE_BUTTON_1; i <= GLFW_MOUSE_BUTTON_LAST; i++) {
 			keyStates[i] = glfwGetMouseButton(handle->handle, i) == GLFW_PRESS ? KeyState::Pressed : KeyState::Released;
 		}
 
-		for (u32 i = GLFW_KEY_SPACE; i <= GLFW_KEY_LAST; i++) {
+		for (i32 i = GLFW_KEY_SPACE; i <= GLFW_KEY_LAST; i++) {
 			keyStates[i] = glfwGetKey(handle->handle, i) == GLFW_PRESS ? KeyState::Pressed : KeyState::Released;
 		}
 
@@ -434,5 +462,5 @@ void InputSystem::resetEventCounts() {
 	arc_assert(eventCounts.size(), "Event counts not initialized");
 
 	std::fill(eventCounts.begin(), eventCounts.end(), 0);
-	
+
 }

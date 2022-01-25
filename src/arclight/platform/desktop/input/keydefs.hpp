@@ -10,12 +10,19 @@
 
 #include "types.hpp"
 
-typedef u32 Key;
-typedef u32 KeyChar;
-typedef u32 KeyAction;
+
+
+using Key       = u32;
+using KeyChar   = u32;
+using KeyAction = u32;
+using Scancode  = u32;
+
+
 
 struct KeyCode {
+
 	enum : Key {
+
 		/* The unknown key */
 		Unknown               = 0xFFFFFFFF,
 	
@@ -141,12 +148,18 @@ struct KeyCode {
 		RightControl          = 345,
 		RightAlt              = 346,
 		RightSuper            = 347,
-		Menu                  = 348,
+		Menu                  = 348
+
 	};
+
 };
-	
-struct Mouse {
+
+
+
+struct MouseCode {
+
 	enum : Key {
+
 		Button1			= 0,
 		Button2			= 1,
 		Button3			= 2,
@@ -157,9 +170,13 @@ struct Mouse {
 		Button8			= 7,
 		Left			= 0,
 		Right			= 1,
-		Middle			= 2,
+		Middle			= 2
+
 	};
+
 };
+
+
 
 enum class KeyState {
 	Released,

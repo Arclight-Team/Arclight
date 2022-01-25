@@ -198,7 +198,7 @@ void Window::close() {
 		input->disconnect();
 	}
 
-	cursor.destroyAllCursors();
+	cursor.destroyAll();
 
 	glfwDestroyWindow(windowHandle->handle);
 
@@ -635,7 +635,7 @@ void Window::setClipboardString(const std::string& str) {
 }
 
 
-Cursor& Window::getCursor() {
+RenderCursor& Window::getRenderCursor() {
 
 	arc_assert(isOpen(), "Tried to obtain cursor for non-existing window");
 	return cursor;
@@ -644,7 +644,7 @@ Cursor& Window::getCursor() {
 
 
 
-const Cursor& Window::getCursor() const {
+const RenderCursor& Window::getRenderCursor() const {
 
 	arc_assert(isOpen(), "Tried to obtain cursor for non-existing window");
 	return cursor;
