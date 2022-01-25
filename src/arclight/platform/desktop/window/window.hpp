@@ -177,6 +177,9 @@ public:
 	void requestClose();
 	void dismissCloseRequest();
 
+	std::string getClipboardString() const;
+	void setClipboardString(const std::string& str);
+
 	static u32 getMonitorCount();
 	static Monitor getMonitor(u32 id);
 	static bool monitorConfigurationChanged();

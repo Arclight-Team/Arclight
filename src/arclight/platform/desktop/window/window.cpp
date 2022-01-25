@@ -655,6 +655,21 @@ void Window::dismissCloseRequest() {
 }
 
 
+std::string Window::getClipboardString() const {
+
+	arc_assert(isOpen(), "Tried to obtain clipboard string for non-existing window");
+	return glfwGetClipboardString(windowHandle->handle);
+
+}
+
+
+void Window::setClipboardString(const std::string& str) {
+
+	arc_assert(isOpen(), "Tried to set clipboard string for non-existing window");
+	glfwSetClipboardString(windowHandle->handle, str.c_str());
+
+}
+
 
 bool Window::isOpen() const {
 	return windowHandle != nullptr;
