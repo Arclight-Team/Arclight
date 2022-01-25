@@ -163,4 +163,11 @@
 	Font debugging
 	ARC_FONT_DEBUG: Prints debug output for fonts
 */
-#define ARC_FONT_DEBUG
+//#define ARC_FONT_DEBUG
+
+
+/*
+	Font security
+	ARC_FONT_SECURE: Enables safety checks against font instruction attacks
+*/
+#define ARC_FONT_SECURE
