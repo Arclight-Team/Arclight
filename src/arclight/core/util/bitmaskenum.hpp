@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "typetraits.hpp"
 #include "concepts.hpp"
 
 
@@ -17,19 +18,19 @@
     static_assert(ScopedEnum<E>, "E must be a scoped enum type");                                                       \
                                                                                                                         \
     constexpr static E operator&(E a, E b) noexcept {                                                                   \
-        return static_cast<E>(static_cast<std::underlying_type_t<E>>(a) & static_cast<std::underlying_type_t<E>>(b));   \
+        return static_cast<E>(static_cast<TT::Underlying<E>>(a) & static_cast<TT::Underlying<E>>(b));   \
     }                                                                                                                   \
                                                                                                                         \
     constexpr static E operator|(E a, E b) noexcept {                                                                   \
-        return static_cast<E>(static_cast<std::underlying_type_t<E>>(a) | static_cast<std::underlying_type_t<E>>(b));   \
+        return static_cast<E>(static_cast<TT::Underlying<E>>(a) | static_cast<TT::Underlying<E>>(b));   \
     }                                                                                                                   \
                                                                                                                         \
     constexpr static E operator^(E a, E b) noexcept {                                                                   \
-        return static_cast<E>(static_cast<std::underlying_type_t<E>>(a) ^ static_cast<std::underlying_type_t<E>>(b));   \
+        return static_cast<E>(static_cast<TT::Underlying<E>>(a) ^ static_cast<TT::Underlying<E>>(b));   \
     }                                                                                                                   \
                                                                                                                         \
     constexpr static E operator~(E a) noexcept {                                                                        \
-        return static_cast<E>(~static_cast<std::underlying_type_t<E>>(a));                                              \
+        return static_cast<E>(~static_cast<TT::Underlying<E>>(a));                                              \
     }                                                                                                                   \
                                                                                                                         \
     constexpr static E& operator&=(E& a, E b) noexcept {                                                                \

@@ -88,8 +88,8 @@ private:
 	//Chunk link to the next chunk.
 	struct ChunkLink {
 
-		constexpr ChunkLink(Byte* next) noexcept : next(next) {}
-		Byte* next;
+		constexpr ChunkLink(u8* next) noexcept : next(next) {}
+		u8* next;
 
 	};
 
@@ -98,17 +98,17 @@ private:
 		Initializes the chunk given by the pointer.
 		chunkPtr:	Pointer to the chunk's start. Result is undefined if it's null.
 	*/
-	void generateChunk(Byte* chunkPtr);
+	void generateChunk(u8* chunkPtr);
 
 
 	/*
 		Returns a pointer to the chunk's link.
 		chunkPtr:	Pointer to the chunk's link. Result is undefined if it's null.
 	*/
-	ChunkLink* getChunkLink(Byte* chunkPtr) const noexcept;
+	ChunkLink* getChunkLink(u8* chunkPtr) const noexcept;
 
 
-	Byte* heap;
+	u8* heap;
 	Storage* head;
 	AddressT totalSize;
 

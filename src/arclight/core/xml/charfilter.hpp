@@ -80,7 +80,7 @@ namespace Xml
 		constexpr CharFilter(const CharType(&chars)[Count]) : CharFilter() {
 			
 			for (u32 i = 0; i < Count; i++) {
-				table[Byte(chars[i])] = 1;
+				table[u8(chars[i])] = 1;
 			}
 #else
 		constexpr CharFilter(const CharType(&chars)[Count]) {
@@ -161,7 +161,7 @@ namespace Xml
 
 			CharFilter<Invert> filter(*this);
 
-			filter.table[Byte(c)] = 1;
+			filter.table[u8(c)] = 1;
 
 #else
 		constexpr auto operator|(CharType c) const {
@@ -186,7 +186,7 @@ namespace Xml
 		template<Char CharType>
 #endif
 		constexpr bool find(CharType c) const {
-			return table[Byte(c)];
+			return table[u8(c)];
 		}
 #else
 		constexpr bool find(CharType c) const {
@@ -198,7 +198,7 @@ namespace Xml
 		template<bool>
 		friend class CharFilter;
 
-		Byte table[256];
+		u8 table[256];
 #else
 		template<SizeT, bool>
 		friend class CharFilter;

@@ -10,6 +10,7 @@
 
 #include "unicode.hpp"
 #include "util/concepts.hpp"
+#include "util/typetraits.hpp"
 
 #include <stdexcept>
 #include <vector>
@@ -108,12 +109,12 @@ public:
 	public:
 
 		using IteratorT = typename UnicodeString<E>::const_iterator;
-		using StringT = typename std::conditional_t<Const, const UnicodeString, UnicodeString>;
 		using PointerT = typename IteratorT::pointer;
+		using StringT = TT::ConditionalConst<Const, UnicodeString>;
 
 		constexpr explicit UTFProxyBase(StringT& ustr, const IteratorT& it) noexcept : ustr(ustr), it(it) {}
 
-		constexpr UTFProxyBase& operator=(Codepoint codepoint) {
+		constexpr UTFProxyBase& operator=(Codepoint codepoint) requires(!Const) {
 
 			IteratorT nextIt = it;
 			ustr.replace(it, ++nextIt, codepoint);
@@ -147,23 +148,19 @@ public:
 
 	public:
 
-		using iterator_category = std::conditional_t<Unicode::isUTF32<E>(), std::contiguous_iterator_tag, std::bidirectional_iterator_tag>;
+		using iterator_category = TT::Conditional<Unicode::isUTF32<E>(), std::contiguous_iterator_tag, std::bidirectional_iterator_tag>;
 		using difference_type = std::ptrdiff_t;
-		using value_type = std::conditional_t<!Const, typename UnicodeString<E>::value_type, const typename UnicodeString<E>::value_type>;
+		using value_type = TT::ConditionalConst<Const, typename UnicodeString<E>::value_type>;
 		using pointer = value_type*;
 		using reference = value_type&;
 		using element_type = value_type;
 
 		constexpr Iterator() noexcept : cpIdx(0), sp(nullptr) {}
-
 		constexpr Iterator(SizeT cpIndex, pointer p) noexcept : cpIdx(cpIndex), sp(p) {}
-
 		constexpr Iterator(const Iterator<true>& it) noexcept requires(Const) : Iterator(it.cpIdx, it.sp) {}
-
 		constexpr Iterator(const Iterator<true>& it) noexcept requires (!Const) = delete;
 
 		constexpr reference operator*() const noexcept { return *sp; }
-
 		constexpr pointer operator->() const noexcept { return sp; }
 
 		constexpr Iterator& operator++() noexcept {
@@ -188,7 +185,8 @@ public:
 			return cpy;
 		}
 
-		constexpr bool operator==(const Iterator& other) const noexcept {
+		template<bool ConstOther>
+		constexpr bool operator==(const Iterator<ConstOther>& other) const noexcept {
 			return sp == other.sp;
 		}
 
@@ -209,13 +207,9 @@ public:
 
 		//Contiguous extension for UTF-32
 		constexpr Iterator operator+(SizeT n) const noexcept requires(Unicode::isUTF32<E>())    { return Iterator(cpIdx + n, sp + n); }
-
 		constexpr Iterator operator-(SizeT n) const noexcept requires(Unicode::isUTF32<E>())    { return Iterator(cpIdx - n, sp - n); }
-
 		constexpr Iterator& operator+=(SizeT n) noexcept requires(Unicode::isUTF32<E>())        { sp += n; cpIdx += n; return *this; }
-
 		constexpr Iterator& operator-=(SizeT n) noexcept requires(Unicode::isUTF32<E>())        { sp -= n; cpIdx -= n; return *this; }
-
 		constexpr reference operator[](SizeT n) const noexcept requires(Unicode::isUTF32<E>())  { return *(*this + n); }
 
 		template<bool ConstOther>
@@ -226,8 +220,7 @@ public:
 	private:
 
 		template<bool ConstOther>
-		friend
-		class Iterator;
+		friend class Iterator;
 
 		constexpr void advance() noexcept {
 			sp += Unicode::getEncodedSize<E>(sp);
@@ -511,15 +504,15 @@ public:
 	}
 
 	constexpr reverse_iterator rbegin() noexcept {
-		return reverse_iterator(begin());
+		return reverse_iterator(end());
 	}
 
 	constexpr const_reverse_iterator rbegin() const noexcept {
-		return const_reverse_iterator(begin());
+		return const_reverse_iterator(end());
 	}
 
 	constexpr const_reverse_iterator crbegin() const noexcept {
-		return const_reverse_iterator(cbegin());
+		return const_reverse_iterator(cend());
 	}
 
 	constexpr iterator end() noexcept {
@@ -535,15 +528,15 @@ public:
 	}
 
 	constexpr reverse_iterator rend() noexcept {
-		return reverse_iterator(end());
+		return reverse_iterator(begin());
 	}
 
 	constexpr const_reverse_iterator rend() const noexcept {
-		return const_reverse_iterator(end());
+		return const_reverse_iterator(begin());
 	}
 
 	constexpr const_reverse_iterator crend() const noexcept {
-		return const_reverse_iterator(cend());
+		return const_reverse_iterator(cbegin());
 	}
 
 
@@ -1165,7 +1158,7 @@ private:
 			//For UTF-16, bidirectional iteration is equally performant because surrogates are reflected in both code units
 			//Therefore, round the index
 			SizeT dstIdx = (index + Base::CPDistance / 2) / Base::CPDistance;
-			std::make_signed_t<SizeT> offset = index - dstIdx * Base::CPDistance;
+			TT::MakeSigned<SizeT> offset = index - dstIdx * Base::CPDistance;
 
 			//If the distance index is out of bounds (i.e. at the border with negative offsets), switch to forward traversal
 			if (dstIdx >= Base::distances.size()) {
@@ -1301,7 +1294,7 @@ private:
 	template<std::input_iterator InputIt>
 	constexpr SizeT calculateRangeUnitCount(InputIt first, const InputIt& last, SizeT& cps) {
 
-		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<std::remove_cvref_t<decltype(*first)>>;
+		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<TT::RemoveCVRef<decltype(*first)>>;
 		SizeT units = 0;
 		SizeT codepoints = 0;
 
@@ -1355,7 +1348,7 @@ private:
 	template<std::input_iterator InputIt>
 	constexpr SizeT inplaceTranscode(InputIt first, const InputIt& last, CharT* dest) {
 
-		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<std::remove_cvref_t<decltype(*first)>>;
+		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<TT::RemoveCVRef<decltype(*first)>>;
 		SizeT transcodedCodepoints = 0;
 
 		if constexpr (std::contiguous_iterator<InputIt>) {
@@ -1475,7 +1468,7 @@ private:
 	template<std::input_iterator InputIt>
 	constexpr void assignByRange(const InputIt& first, const InputIt& last) {
 
-		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<std::remove_cvref_t<decltype(*first)>>;
+		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<TT::RemoveCVRef<decltype(*first)>>;
 
 		if constexpr (E != Enc || !Unicode::isUTF32<E>()) {
 
@@ -1534,7 +1527,7 @@ private:
 	template<std::input_iterator InputIt>
 	constexpr iterator insertByRange(const const_iterator& pos, const InputIt& first, const InputIt& last) {
 
-		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<std::remove_cvref_t<decltype(*first)>>;
+		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<TT::RemoveCVRef<decltype(*first)>>;
 
 		if constexpr (E != Enc || !Unicode::isUTF32<E>()) {
 
@@ -1600,7 +1593,7 @@ private:
 	template<std::input_iterator InputIt>
 	constexpr void appendByRange(const InputIt& first, const InputIt& last) {
 
-		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<std::remove_cvref_t<decltype(*first)>>;
+		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<TT::RemoveCVRef<decltype(*first)>>;
 
 		if constexpr (E != Enc || !Unicode::isUTF32<E>()) {
 
@@ -1672,7 +1665,7 @@ private:
 	template<std::input_iterator InputIt>
 	constexpr void replaceByRange(const const_iterator& start, const const_iterator& end, const InputIt& first, const InputIt& last) {
 
-		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<std::remove_cvref_t<decltype(*first)>>;
+		constexpr Unicode::Encoding Enc = Unicode::TypeEncoding<TT::RemoveCVRef<decltype(*first)>>;
 
 		if constexpr (E != Enc || !Unicode::isUTF32<E>()) {
 

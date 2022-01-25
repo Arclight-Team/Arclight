@@ -13,35 +13,29 @@
 #include <cstdint>
 #include <cstddef>
 
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
+using u8    = uint8_t;
+using u16   = uint16_t;
+using u32   = uint32_t;
+using u64   = uint64_t;
 
-typedef int8_t i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
+using i8    = int8_t;
+using i16   = int16_t;
+using i32   = int32_t;
+using i64   = int64_t;
 
-typedef intmax_t	imax;
-typedef uintmax_t	umax;
+using imax  = intmax_t;
+using umax  = uintmax_t;
 
-typedef u8 Byte;
+using SizeT     = size_t;
+using AlignT    = SizeT;
+using AddressT  = uintptr_t;
 
 #if ARC_MACHINE_BITS == 64
-	typedef u64 SystemT;
+	using SystemT = u64;
 #elif ARC_MACHINE_BITS == 32
-	typedef u32 SystemT;
+	using SystemT = u32;
+#elif AARC_MACHINE_BITS == 16
+	using SystemT = u16;
 #else
-	typedef u32 SystemT;
+	using SystemT = u32;
 #endif
-
-typedef uintptr_t	AddressT;
-typedef size_t		AlignT;
-typedef size_t		SizeT;
-
-constexpr inline SizeT PointerSize = sizeof(void*);
-constexpr inline AlignT PointerAlign = alignof(void*);
-
-template<class T>
-struct TypeTag {};

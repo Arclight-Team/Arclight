@@ -8,6 +8,7 @@
 
 #include "directory.hpp"
 #include "util/bool.hpp"
+#include "util/typetraits.hpp"
 
 
 
@@ -88,7 +89,7 @@ DirectoryIterator& DirectoryIterator::advance() {
 
             it++;
 
-            if(it == std::remove_reference_t<decltype(it)>{}) {
+            if(it == TT::RemoveRef<decltype(it)>{}) {
                 end = true;
                 break;
             }
@@ -132,7 +133,7 @@ void DirectoryIterator::reset() {
 
     auto exec = [this](auto& it) {
 
-        if(it == std::remove_reference_t<decltype(it)>{}) {
+        if(it == TT::RemoveRef<decltype(it)>{}) {
             end = true;
             return;
         }

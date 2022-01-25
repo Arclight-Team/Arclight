@@ -11,6 +11,7 @@
 #include "inputstream.hpp"
 #include "util/bits.hpp"
 #include "util/assert.hpp"
+#include "util/typetraits.hpp"
 #include "arcconfig.hpp"
 
 
@@ -23,14 +24,12 @@ public:
     template<Arithmetic T>
 	T read() {
 
-		using Type = std::remove_cv_t<T>;
+		T in;
 
-		Type in;
-
-        auto readBytes = stream.read(&in, sizeof(Type));
+	    [[maybe_unused]] SizeT readBytes = stream.read(&in, sizeof(T));
 
 #ifndef ARC_STREAM_ACCELERATE
-		if (readBytes != sizeof(Type)) {
+		if (readBytes != sizeof(T)) {
 			arc_force_assert("Failed to read data from stream");
             return {};
 		}
@@ -60,7 +59,7 @@ public:
             for(SizeT i = 0; i < size; i++) {
 
                 T& in = data[i];
-                auto readBytes = stream.read(&in, sizeof(T));
+	            [[maybe_unused]] SizeT readBytes = stream.read(&in, sizeof(T));
 
 #ifndef ARC_STREAM_ACCELERATE
                 if (readBytes != sizeof(T)) {
@@ -75,7 +74,7 @@ public:
 
 		} else {
 
-            auto readBytes = stream.read(data.data(), bytes);
+			[[maybe_unused]] SizeT readBytes = stream.read(data.data(), bytes);
 
 #ifndef ARC_STREAM_ACCELERATE
             if (readBytes != bytes) {
@@ -86,6 +85,16 @@ public:
 
         }
 
+	}
+
+
+	void skip(u64 n) {
+		stream.seek(n);
+	}
+
+
+	u64 getPosition() const {
+		return stream.getPosition();
 	}
 
     InputStream& getStream() {

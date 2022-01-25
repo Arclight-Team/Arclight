@@ -23,7 +23,8 @@ public:
 	virtual SizeT read(void* dest, SizeT size) override;
 	virtual SizeT write(const void* src, SizeT size) override;
 
-	virtual SizeT seek(i64 offset, SeekMode mode = SeekMode::Begin) override;
+	virtual void seek(i64 offset) override;
+	virtual void seekTo(u64 offset) override;
 	virtual SizeT getPosition() const override;
 
 	virtual SizeT getSize() const override;

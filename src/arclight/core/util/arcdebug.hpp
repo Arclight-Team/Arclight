@@ -61,7 +61,8 @@ public:
     ArcDebug() = default;
     ~ArcDebug();
 
-    ArcDebug& operator<<(const StringStreamable auto& value) {
+	template<StringStreamable S> requires (!Char<S>)
+    ArcDebug& operator<<(const S& value) {
 
         write(value);
         dispatchToken(Token::ArcSpace);

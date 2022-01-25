@@ -63,7 +63,7 @@ public:
 
 private:
 
-	void setupKeyMap();
+	void setupKeyMap(bool activeWindow);
 	void resetEventCounts();
 	std::shared_ptr<WindowHandle> getWindowHandle() const;
 

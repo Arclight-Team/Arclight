@@ -22,7 +22,8 @@ public:
 	SizeT read(void* dest, SizeT size);
 	SizeT write(const void* src, SizeT size);
 
-    SizeT seek(i64 offset, StreamBase::SeekMode mode);
+    void seek(i64 offset);
+    void seekTo(u64 offset);
 	SizeT getPosition() const;
     SizeT getSize() const;
 

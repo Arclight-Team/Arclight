@@ -38,27 +38,27 @@ namespace Bits {
 	
 	template<Integer T>
 	constexpr auto rol(T value, i32 bits) noexcept {
-		return std::rotl(static_cast<std::make_unsigned_t<T>>(value), bits);
+		return std::rotl(static_cast<TT::MakeUnsigned<T>>(value), bits);
 	}
 
 	template<Integer T>
 	constexpr auto ror(T value, i32 bits) noexcept {
-		return std::rotr(static_cast<std::make_unsigned_t<T>>(value), bits);
+		return std::rotr(static_cast<TT::MakeUnsigned<T>>(value), bits);
 	}
 
 	template<Integer T>
 	constexpr auto clz(T value) noexcept {
-		return std::countl_zero(static_cast<std::make_unsigned_t<T>>(value));
+		return std::countl_zero(static_cast<TT::MakeUnsigned<T>>(value));
 	}
 
 	template<Integer T>
 	constexpr auto ctz(T value) noexcept {
-		return std::countr_zero(static_cast<std::make_unsigned_t<T>>(value));
+		return std::countr_zero(static_cast<TT::MakeUnsigned<T>>(value));
 	}
 
 	template<Integer T>
 	constexpr auto popcount(T value) noexcept {
-		return std::popcount(static_cast<std::make_unsigned_t<T>>(value));
+		return std::popcount(static_cast<TT::MakeUnsigned<T>>(value));
 	}
 
 	constexpr auto swap16(u16 in) noexcept -> decltype(in) {
@@ -258,9 +258,19 @@ namespace Bits {
 		return sizeof(T) * 8;
 	}
 
+	template<Integer T>
+	constexpr T mask(T t, u32 start, u32 count) noexcept {
+		return t & (((T(1) << count) - 1) << start);
+	}
+
+	template<Integer T>
+	constexpr T clear(T t, u32 start, u32 count) noexcept {
+		return t & ~(((T(1) << count) - 1) << start);
+	}
+
 	template<class T>
 	inline auto toByteArray(T* t) noexcept {
-		return reinterpret_cast<TT::ConditionalConst<std::is_const_v<T>, u8>*>(t);
+		return reinterpret_cast<TT::ConditionalConst<ConstType<T>, u8>*>(t);
 	}
 
 }

@@ -146,8 +146,8 @@
 
 
 /*
-	Stream I/O acceleration
-	ARC_STREAM_ACCELERATE: Accelerates stream performance by disabling runtime checks
+	Stream reader/writer acceleration
+	ARC_STREAM_ACCELERATE: Accelerates stream reader/writer performance by disabling runtime checks
 */
 #define ARC_STREAM_ACCELERATE
 

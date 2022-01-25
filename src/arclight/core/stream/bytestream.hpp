@@ -10,6 +10,7 @@
 
 #include "stream.hpp"
 #include "bytestreamimpl.hpp"
+#include "util/typetraits.hpp"
 
 #include <span>
 
@@ -23,11 +24,9 @@ private:
 
 public:
 
-    using StreamBase::SeekMode;
-
 	ByteStreamImplDRW() requires(Dynamic) = default;
 
-    template<class T> requires Equal<T, std::remove_cv_t<T>>
+    template<class T> requires Equal<T, TT::RemoveCV<T>>
     ByteStreamImplDRW(const std::span<T>& data) : MyBase(data) {}
 
 	virtual SizeT read(void* dest, SizeT size) override {
@@ -37,9 +36,14 @@ public:
 		return MyBase::write(src, size);
 	}
 
-	virtual SizeT seek(i64 offset, SeekMode mode) override {
-		return MyBase::seek(offset, mode);
+	virtual void seek(i64 offset) override {
+		return MyBase::seek(offset);
 	}
+
+	virtual void seekTo(u64 offset) override {
+		return MyBase::seekTo(offset);
+	}
+
 	virtual SizeT getPosition() const override {
 		return MyBase::getPosition();
 	}
@@ -54,10 +58,11 @@ public:
 		return MyBase::reachedEnd();
 	}
 
-	constexpr auto getData() {
+	inline auto getData() {
 		return MyBase::data;
 	}
-	constexpr auto getData() const {
+
+	inline auto getData() const {
 		return MyBase::data;
 	}
 

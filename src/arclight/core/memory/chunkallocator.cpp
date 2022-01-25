@@ -61,7 +61,7 @@ void ChunkAllocator::create(AddressT blockSize, AlignT blockAlign, AddressT chun
 		this->blockSize = alignedSize;
 		this->blockAlign = baseAlign;
 		this->chunkBlocks = chunkBlocks;
-		this->heap = static_cast<Byte*>(::operator new(chunkSize, std::align_val_t(baseAlign)));
+		this->heap = static_cast<u8*>(::operator new(chunkSize, std::align_val_t(baseAlign)));
 
 		generateChunk(heap);
 
@@ -79,11 +79,11 @@ void ChunkAllocator::create(AddressT blockSize, AlignT blockAlign, AddressT chun
 
 void ChunkAllocator::clear() noexcept {
 
-	Byte* chunk = heap;
+	u8* chunk = heap;
 
 	while (chunk) {
 
-		Byte* nextChunk = getChunkLink(chunk)->next;
+		u8* nextChunk = getChunkLink(chunk)->next;
 		::operator delete(chunk, std::align_val_t(blockAlign));
 
 	#ifdef ARC_ALLOCATOR_DEBUG_LOG
@@ -111,7 +111,7 @@ void ChunkAllocator::clear() noexcept {
 
 		//If all chunks are full, allocate a new one
 		AddressT chunkSize = blockSize * chunkBlocks + sizeof(ChunkLink);
-		Byte* chunk = static_cast<Byte*>(::operator new(chunkSize, std::align_val_t(blockAlign)));
+		u8* chunk = static_cast<u8*>(::operator new(chunkSize, std::align_val_t(blockAlign)));
 
 		//Populate chunk
 		generateChunk(chunk);
@@ -161,12 +161,12 @@ void ChunkAllocator::deallocate(void* ptr) noexcept {
 
 
 
-void ChunkAllocator::generateChunk(Byte* chunkPtr) {
+void ChunkAllocator::generateChunk(u8* chunkPtr) {
 
 	for (AddressT i = 0; i < chunkBlocks; i++) {
 
-		Byte* ptr = chunkPtr + i * blockSize;
-		Byte* next = ptr + blockSize;
+		u8* ptr = chunkPtr + i * blockSize;
+		u8* next = ptr + blockSize;
 
 		if (i == (chunkBlocks - 1)) {
 			next = nullptr;
@@ -182,6 +182,6 @@ void ChunkAllocator::generateChunk(Byte* chunkPtr) {
 
 
 
-ChunkAllocator::ChunkLink* ChunkAllocator::getChunkLink(Byte* chunkPtr) const noexcept {
+ChunkAllocator::ChunkLink* ChunkAllocator::getChunkLink(u8* chunkPtr) const noexcept {
 	return reinterpret_cast<ChunkLink*>(chunkPtr + blockSize * chunkBlocks);
 }

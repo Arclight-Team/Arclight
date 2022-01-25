@@ -12,6 +12,7 @@
 #include "stream/inputstream.hpp"
 #include "stream/binaryreader.hpp"
 #include "util/bool.hpp"
+#include "util/typetraits.hpp"
 #include "arcconfig.hpp"
 
 
@@ -284,7 +285,7 @@ namespace BMP {
                         return Image<P>();
                     }
 
-                    stream.seek(header.dataOffset);
+                    stream.seekTo(header.dataOffset);
                     
                     u8 data[4];
 
@@ -304,7 +305,7 @@ namespace BMP {
                             if constexpr (N == 2 || N == 3) {
 
                                 if(rowAlign) {
-                                    stream.seek(rowAlign, StreamBase::SeekMode::Current);
+                                    stream.seek(rowAlign);
                                 }
 
                             }
@@ -366,7 +367,7 @@ namespace BMP {
                         return Image<P>();
                     }
 
-                    stream.seek(header.dataOffset);
+                    stream.seekTo(header.dataOffset);
 
                     auto loadData = [&]<u32 BPP>() {
 
@@ -467,7 +468,7 @@ namespace BMP {
                     palette.push_back(PixelConverter::convert<P>(PixelBGRA8(reader.read<u32>())));
                 }
 
-                stream.seek(header.dataOffset);
+                stream.seekTo(header.dataOffset);
 
                 u8 ctrl[2];
                 u32 x = 0;
@@ -551,7 +552,7 @@ namespace BMP {
                                     reader.read(std::span<u8>{indices, byteCount});
 
                                     if(byteCount & 1) {
-                                        stream.seek(1, StreamBase::SeekMode::Current);
+                                        stream.seek(1);
                                     }
 
                                     for(u32 i = 0; i < pixelCount; i++) {
@@ -634,11 +635,11 @@ namespace BMP {
                     return Image<P>();
                 }
 
-                stream.seek(header.dataOffset);
+                stream.seekTo(header.dataOffset);
 
                 auto loadData = [&]<u32 N>() {
 
-                    using T = std::conditional_t<N != 16, u32, u16>;
+                    using T = TT::Conditional<N != 16, u32, u16>;
                         
                     for(u32 y = 0; y < image.getHeight(); y++) {
 
@@ -655,7 +656,7 @@ namespace BMP {
                         if constexpr (N == 16) {
 
                             if(rowAlign) {
-                                stream.seek(2, StreamBase::SeekMode::Current);
+                                stream.seek(2);
                             }
 
                         } 

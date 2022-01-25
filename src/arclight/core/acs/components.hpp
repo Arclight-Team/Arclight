@@ -9,6 +9,7 @@
 #pragma once
 
 #include "component/component.hpp"
+#include "util/typetraits.hpp"
 
 #include <tuple>
 
@@ -44,6 +45,6 @@ struct ComponentHelper {
     }
 
     template<Component C>
-    using SharedType = std::decay_t<C>;
+    using SharedType = TT::Decay<C>;
 
 };

@@ -19,8 +19,14 @@ SizeT FileInputStream::read(void* dest, SizeT size) {
 
 
 
-SizeT FileInputStream::seek(i64 offset, SeekMode mode) {
-	return FileStreamImpl::seek(offset, mode);
+void FileInputStream::seek(i64 offset) {
+	FileStreamImpl::seek(offset);
+}
+
+
+
+void FileInputStream::seekTo(u64 offset) {
+	FileStreamImpl::seekTo(offset);
 }
 
 

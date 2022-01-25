@@ -19,7 +19,9 @@
 
 
 
-InputSystem::InputSystem() : propagateHeld(false) {}
+InputSystem::InputSystem() : propagateHeld(false) {
+	setupKeyMap(false);
+}
 
 InputSystem::InputSystem(const Window& window) {
 	connect(window);
@@ -119,7 +121,7 @@ void InputSystem::connect(const Window& window) {
 
 	});
 
-	setupKeyMap();
+	setupKeyMap(true);
 	eventCounts.resize(keyStates.size(), 0);
 
 }
@@ -143,6 +145,8 @@ void InputSystem::disconnect() {
 	handle->userPtr.input = nullptr;
 
 	windowHandle.reset();
+
+	setupKeyMap(false);
 
 }
 
@@ -395,20 +399,30 @@ std::shared_ptr<WindowHandle> InputSystem::getWindowHandle() const {
 
 
 
-void InputSystem::setupKeyMap() {
+void InputSystem::setupKeyMap(bool activeWindow) {
 
-	auto handle = getWindowHandle();
-	arc_assert(handle != nullptr, "Handle unexpectedly null");
 	arc_assert(GLFW_KEY_LAST < 512, "GLFW_KEY_LAST exceeds the keycount maximum of 512 keys");
-	
+
+	bool refill = keyStates.size();
 	keyStates.resize(GLFW_KEY_LAST + 1, KeyState::Released);
 
-	for (u32 i = GLFW_MOUSE_BUTTON_1; i <= GLFW_MOUSE_BUTTON_LAST; i++) {
-		keyStates[i] = glfwGetMouseButton(handle->handle, i) == GLFW_PRESS ? KeyState::Pressed : KeyState::Released;
+	if (refill) {
+		std::fill(keyStates.begin(), keyStates.end(), KeyState::Released);
 	}
 
-	for (u32 i = GLFW_KEY_SPACE; i <= GLFW_KEY_LAST; i++) {
-		keyStates[i] = glfwGetKey(handle->handle, i) == GLFW_PRESS ? KeyState::Pressed : KeyState::Released;
+	if (activeWindow) {
+
+		auto handle = getWindowHandle();
+		arc_assert(handle != nullptr, "Handle unexpectedly null");
+
+		for (u32 i = GLFW_MOUSE_BUTTON_1; i <= GLFW_MOUSE_BUTTON_LAST; i++) {
+			keyStates[i] = glfwGetMouseButton(handle->handle, i) == GLFW_PRESS ? KeyState::Pressed : KeyState::Released;
+		}
+
+		for (u32 i = GLFW_KEY_SPACE; i <= GLFW_KEY_LAST; i++) {
+			keyStates[i] = glfwGetKey(handle->handle, i) == GLFW_PRESS ? KeyState::Pressed : KeyState::Released;
+		}
+
 	}
 
 }

@@ -25,8 +25,14 @@ SizeT FileStream::write(const void* src, SizeT size) {
 
 
 
-SizeT FileStream::seek(i64 offset, SeekMode mode) {
-	return FileStreamImpl::seek(offset, mode);
+void FileStream::seek(i64 offset) {
+	return FileStreamImpl::seek(offset);
+}
+
+
+
+void FileStream::seekTo(u64 offset) {
+	return FileStreamImpl::seekTo(offset);
 }
 
 

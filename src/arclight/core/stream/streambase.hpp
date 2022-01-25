@@ -15,13 +15,8 @@ class StreamBase {
 
 public:
 
-    enum class SeekMode {
-		Begin,
-		Current,
-		End
-	};
-
-	virtual SizeT seek(i64 offset, SeekMode mode = SeekMode::Begin) = 0;
+	virtual void seek(i64 offset) = 0;
+	virtual void seekTo(u64 offset) = 0;
 	virtual SizeT getPosition() const = 0;
 
 	virtual SizeT getSize() const = 0;

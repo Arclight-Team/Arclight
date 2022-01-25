@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "util/typetraits.hpp"
 #include "util/concepts.hpp"
 
 #include <stdexcept>
@@ -35,7 +36,7 @@ class OptionalRef {
 
 public:
 
-    static_assert(BaseType<std::remove_const_t<T>>, "T must be a plain data type");
+    static_assert(BaseType<TT::RemoveCV<T>>, "T must be a plain data type");
 
     constexpr OptionalRef() noexcept : storage(nullptr), valid(false) {}
     constexpr OptionalRef(T& ref) noexcept : storage(&ref), valid(true) {}

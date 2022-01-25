@@ -17,96 +17,6 @@
 #include <GLFW/glfw3.h>
 
 
-
-WindowConfig& WindowConfig::setOpenGLVersion(u32 major, u32 minor) {
-
-	arc_assert((major == 3 || major == 4) && minor <= 6, "OpenGL version %d.%d not supported", major, minor);
-	this->openglMajor = major;
-	this->openglMinor = minor;
-	return *this;
-
-}
-
-
-
-WindowConfig& WindowConfig::setOpenGLProfile(OpenGLProfile profile) {
-
-	this->profile = profile;
-	return *this;
-
-}
-
-
-
-WindowConfig& WindowConfig::setOpenGLContextMode(bool forward, bool debug) {
-
-	this->forwardContext = forward;
-	this->debugContext = debug;
-	return *this;
-
-}
-
-
-
-WindowConfig& WindowConfig::setSRGBMode(bool enable) {
-
-	this->srgbRendering = enable;
-	return *this;
-
-}
-
-
-
-WindowConfig& WindowConfig::setSamples(u8 samples) {
-
-	this->samples = samples;
-	return *this;
-
-}
-
-
-
-WindowConfig& WindowConfig::setFramebuffer(u8 redBits, u8 greenBits, u8 blueBits, u8 alphaBits, u8 depthBits, u8 stencilBits) {
-
-	this->redBits = redBits;
-	this->greenBits = greenBits;
-	this->blueBits = blueBits;
-	this->alphaBits = alphaBits;
-	this->depthBits = depthBits;
-	this->stencilBits = stencilBits;
-	return *this;
-
-}
-
-
-
-WindowConfig& WindowConfig::setResizable(bool enable) {
-
-	this->resizable = enable;
-	return *this;
-
-}
-
-
-
-WindowConfig& WindowConfig::setMaximized(bool enable) {
-
-	this->maximized = enable;
-	return *this;
-
-}
-
-
-
-WindowConfig& WindowConfig::setAlwaysOnTop(bool enable) {
-
-	this->alwaysOnTop = enable;
-	return *this;
-
-}
-
-
-
 GLFWmonitor** Window::connectedMonitors = nullptr;
 bool Window::monitorsChanged = true;
 u32 Window::monitorCount = 0;
@@ -114,7 +24,7 @@ u32 Window::monitorCount = 0;
 
 
 Window::Window() : backupWidth(0), backupHeight(0), windowHandle(nullptr),
-	moveFunction(nullptr), resizeFunction(nullptr), stateChangeFunction(nullptr), fbResizeFunction(nullptr) {
+	moveFunction(nullptr), resizeFunction(nullptr), stateChangeFunction(nullptr), fbResizeFunction(nullptr), cursor(*this) {
 
 	initMonitorCallback();
 
@@ -287,6 +197,8 @@ void Window::close() {
 		input->disconnect();
 	}
 
+	cursor.destroyAllCursors();
+
 	glfwDestroyWindow(windowHandle->handle);
 
 	windowHandle.reset();
@@ -339,15 +251,6 @@ void Window::setFullscreen(u32 monitorID) {
 
 
 
-void Window::setSize(u32 w, u32 h) {
-
-	arc_assert(isOpen(), "Tried to set window size for non-existing window");
-	glfwSetWindowSize(windowHandle->handle, w, h);
-
-}
-
-
-
 void Window::setTitle(const std::string& title) {
 
 	arc_assert(isOpen(), "Tried to set window title for non-existing window");
@@ -375,11 +278,38 @@ void Window::setY(u32 y) {
 
 
 
+void Window::setPosition(const Vec2ui& pos) {
+	setPosition(pos.x, pos.y);
+}
+
+
+
 void Window::setPosition(u32 x, u32 y) {
 
 	arc_assert(isOpen(), "Tried to set window position for non-existing window");
 	glfwSetWindowPos(windowHandle->handle, x, y);
 
+}
+
+
+
+void Window::setSize(const Vec2ui& size) {
+	setSize(size.x, size.y);
+}
+
+
+
+void Window::setSize(u32 w, u32 h) {
+
+	arc_assert(isOpen(), "Tried to set window size for non-existing window");
+	glfwSetWindowSize(windowHandle->handle, w, h);
+
+}
+
+
+
+void Window::setLimits(const Vec2ui& min, const Vec2ui& max) {
+	setLimits(min.x, min.y, max.x, max.y);
 }
 
 
@@ -393,11 +323,23 @@ void Window::setLimits(u32 minW, u32 minH, u32 maxW, u32 maxH) {
 
 
 
+void Window::setMinLimits(const Vec2ui& min) {
+	setMinLimits(min.x, min.y);
+}
+
+
+
 void Window::setMinLimits(u32 minW, u32 minH) {
 
 	arc_assert(isOpen(), "Tried to set window min limits for non-existing window");
 	glfwSetWindowSizeLimits(windowHandle->handle, minW, minH, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
+}
+
+
+
+void Window::setMaxLimits(const Vec2ui& max) {
+	setMinLimits(max.x, max.y);
 }
 
 
@@ -434,7 +376,7 @@ void Window::setIcon(const Image<Pixel::RGBA8>& icon) {
 	arc_assert(isOpen(), "Tried to set window icon for non-existing window");
 	
 	//Ugly, but legal here: img is const so the data will never be modified (and shouldn't anyways)
-	const GLFWimage img {icon.getWidth(), icon.getHeight(), reinterpret_cast<u8*>(const_cast<PixelRGBA8*>(icon.getImageBuffer().data()))};
+	const GLFWimage img { static_cast<i32>(icon.getWidth()), static_cast<i32>(icon.getHeight()), reinterpret_cast<u8*>(const_cast<PixelRGBA8*>(icon.getImageBuffer().data()))};
 	glfwSetWindowIcon(windowHandle->handle, 1, &img);
 
 }
@@ -518,6 +460,18 @@ u32 Window::getY() const {
 	i32 y = 0;
 	glfwGetWindowPos(windowHandle->handle, nullptr, &y);
 	return y;
+
+}
+
+
+
+Vec2ui Window::getPosition() const {
+
+	arc_assert(isOpen(), "Tried to get window position for non-existing window");
+
+	Vec2i v;
+	glfwGetWindowPos(windowHandle->handle, &v.x, &v.y);
+	return v;
 
 }
 
@@ -669,6 +623,24 @@ void Window::setClipboardString(const std::string& str) {
 	glfwSetClipboardString(windowHandle->handle, str.c_str());
 
 }
+
+
+Cursor& Window::getCursor() {
+
+	arc_assert(isOpen(), "Tried to obtain cursor for non-existing window");
+	return cursor;
+
+}
+
+
+
+const Cursor& Window::getCursor() const {
+
+	arc_assert(isOpen(), "Tried to obtain cursor for non-existing window");
+	return cursor;
+
+}
+
 
 
 bool Window::isOpen() const {

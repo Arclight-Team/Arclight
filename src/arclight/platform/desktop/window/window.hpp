@@ -8,8 +8,11 @@
 
 #pragma once
 
+#include "cursor.hpp"
 #include "windowhandle.hpp"
+#include "windowconfig.hpp"
 #include "image/pixel.hpp"
+#include "math/vector.hpp"
 #include "types.hpp"
 
 #include <string>
@@ -17,58 +20,8 @@
 #include <functional>
 
 
-class Window;
-
 template<Pixel P>
 class Image;
-
-class WindowConfig {
-
-public:
-
-	enum class OpenGLProfile {
-		Core,
-		Compatibility,
-		Any
-	};
-
-	constexpr WindowConfig() : 
-		openglMajor(3), openglMinor(3), profile(OpenGLProfile::Core), forwardContext(true), debugContext(false), srgbRendering(true),
-		samples(1), redBits(8), greenBits(8), blueBits(8), alphaBits(8), depthBits(24), stencilBits(8),
-		resizable(false), maximized(false), alwaysOnTop(false) {}
-
-	WindowConfig& setOpenGLVersion(u32 major, u32 minor);
-	WindowConfig& setOpenGLProfile(OpenGLProfile profile);
-	WindowConfig& setOpenGLContextMode(bool forward, bool debug);
-	WindowConfig& setSRGBMode(bool enable);
-	WindowConfig& setSamples(u8 samples);
-	WindowConfig& setFramebuffer(u8 redBits, u8 greenBits, u8 blueBits, u8 alphaBits, u8 depthBits, u8 stencilBits);
-	WindowConfig& setResizable(bool enable);
-	WindowConfig& setMaximized(bool enable);
-	WindowConfig& setAlwaysOnTop(bool enable);
-
-private:
-	friend class Window;
-
-	u32 openglMajor;
-	u32 openglMinor;
-	OpenGLProfile profile;
-	bool forwardContext;
-	bool debugContext;
-	bool srgbRendering;
-	u32 samples;
-	u8 redBits;
-	u8 greenBits;
-	u8 blueBits;
-	u8 alphaBits;
-	u8 depthBits;
-	u8 stencilBits;
-	bool resizable;
-	bool maximized;
-	bool alwaysOnTop;
-
-};
-
 
 
 struct Monitor {
@@ -102,14 +55,15 @@ enum class WindowState {
 struct WindowHandle;
 struct GLFWmonitor;
 
-typedef std::function<void(u32, u32)> WindowMoveFunction;
-typedef std::function<void(u32, u32)> WindowResizeFunction;
-typedef std::function<void(WindowState)> WindowStateChangeFunction;
-typedef std::function<void(u32, u32)> FramebufferResizeFunction;
 
 class Window final {
 
 public:
+
+	using WindowMoveFunction        = std::function<void(u32, u32)>;
+	using WindowResizeFunction      = std::function<void(u32, u32)>;
+	using WindowStateChangeFunction = std::function<void(WindowState)>;
+	using FramebufferResizeFunction = std::function<void(u32, u32)>;
 
 	Window();
 	~Window();
@@ -125,14 +79,23 @@ public:
 	void setWindowed();
 	void setFullscreen(u32 monitorID = 0);
 
-	void setSize(u32 w, u32 h);
 	void setTitle(const std::string& title);
+
 	void setX(u32 x);
 	void setY(u32 y);
+	void setPosition(const Vec2ui& pos);
 	void setPosition(u32 x, u32 y);
+
+	void setSize(const Vec2ui& size);
+	void setSize(u32 w, u32 h);
+
+	void setLimits(const Vec2ui& min, const Vec2ui& max);
 	void setLimits(u32 minW, u32 minH, u32 maxW, u32 maxH);
+	void setMinLimits(const Vec2ui& min);
 	void setMinLimits(u32 minW, u32 minH);
+	void setMaxLimits(const Vec2ui& max);
 	void setMaxLimits(u32 maxW, u32 maxH);
+
 	void setAspectRatio(double aspect);
 	void setOpacity(double opacity);
 	void setIcon(const Image<Pixel::RGBA8>& icon);
@@ -144,6 +107,7 @@ public:
 	u32 getFramebufferHeight() const;
 	u32 getX() const;
 	u32 getY() const;
+	Vec2ui getPosition() const;
 
 	void minimize();
 	void restore();
@@ -179,6 +143,9 @@ public:
 
 	std::string getClipboardString() const;
 	void setClipboardString(const std::string& str);
+	
+	Cursor& getCursor();
+	const Cursor& getCursor() const;
 
 	static u32 getMonitorCount();
 	static Monitor getMonitor(u32 id);
@@ -197,6 +164,8 @@ public:
 
 private:
 
+	friend class Cursor;
+
 	static void initMonitorCallback();
 	static void queryMonitors();
 	static bool setupGLContext();
@@ -211,6 +180,8 @@ private:
 
 	u32 backupWidth;
 	u32 backupHeight;
+
+	Cursor cursor;
 
 	WindowMoveFunction moveFunction;
 	WindowResizeFunction resizeFunction;

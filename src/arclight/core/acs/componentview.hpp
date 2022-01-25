@@ -12,6 +12,7 @@
 #include "componentprovider.hpp"
 #include "component/component.hpp"
 #include "util/concepts.hpp"
+#include "util/typetraits.hpp"
 
 #include <tuple>
 #include <algorithm>
@@ -26,7 +27,7 @@ class ComponentView {
         template<class T, bool Const>
         struct Container {
 
-            using Iterator = std::conditional_t<Const, typename ComponentArray<T>::ConstIterator, typename ComponentArray<T>::Iterator>;
+            using Iterator = TT::Conditional<Const, typename ComponentArray<T>::ConstIterator, typename ComponentArray<T>::Iterator>;
 
             constexpr Container(ComponentArray<T>& array, bool begin) : array(array), iterator([&]() { if constexpr (Const) { return begin ? array.cbegin() : array.cend(); } else { return begin ? array.begin() : array.end(); }}()) {}
 
@@ -60,7 +61,7 @@ class ComponentView {
 
         template<class T, class... Pack>
         struct Exclude {
-            using Tuple = decltype(std::tuple_cat(std::declval<std::conditional_t<std::is_same_v<T, Pack>, std::tuple<>, std::tuple<Pack>>>()...));
+            using Tuple = decltype(std::tuple_cat(std::declval<TT::Conditional<std::is_same_v<T, Pack>, std::tuple<>, std::tuple<Pack>>>()...));
         };
 
         template<class>
@@ -180,7 +181,7 @@ public:
 
     public:
 
-        using Tuple             = std::tuple<std::conditional_t<Const, const Types&, Types&>...>;
+        using Tuple             = std::tuple<TT::Conditional<Const, const Types&, Types&>...>;
 
         using difference_type   = std::ptrdiff_t;
         using value_type        = Tuple;

@@ -21,7 +21,7 @@ namespace TrueType {
             throw LoaderException("Failed to load character map subtable 4: Stream size too small");
         }
 
-        SizeT tableBase = reader.getStream().getPosition();
+        SizeT tableBase = reader.getPosition();
 
         u16 length = reader.read<u16>();
         u16 language = reader.read<u16>();
@@ -103,7 +103,7 @@ namespace TrueType {
                     throw LoaderException("Failed to load character map subtable 4: Stream size too small");
                 }
 
-                reader.getStream().seek(tableBase + glyphIndexBaseOffset);
+                reader.getStream().seekTo(tableBase + glyphIndexBaseOffset);
 
                 for(u32 cp = start; cp <= end; cp++) {
 
@@ -180,7 +180,7 @@ namespace TrueType {
             throw LoaderException("Failed to load character map table: Stream size too small");
         }
 
-        SizeT startStreamPos = reader.getStream().getPosition();
+        SizeT startStreamPos = reader.getPosition();
         u16 version = reader.read<u16>();
         u16 numberSubtables = reader.read<u16>();
 
@@ -365,7 +365,7 @@ namespace TrueType {
             throw LoaderException("Failed to load character map table: Stream size too small");
         }
 
-        reader.getStream().seek(startStreamPos + targetOffset);
+        reader.getStream().seekTo(startStreamPos + targetOffset);
         u16 subtableFormat = reader.read<u16>();
 
 #ifdef ARC_FONT_DEBUG

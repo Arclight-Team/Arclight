@@ -8,6 +8,7 @@
 
 #include "font/truetype/truetype.hpp"
 #include "stream/binaryreader.hpp"
+#include "util/typetraits.hpp"
 
 
 
@@ -30,7 +31,7 @@ namespace TrueType {
 
         auto readOffsets = [&]<bool Long>() {
 
-            using Type = std::conditional_t<Long, u32, u16>;
+            using Type = TT::Conditional<Long, u32, u16>;
             
             offset = reader.read<Type>();
 

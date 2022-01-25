@@ -33,36 +33,20 @@ SizeT FileStreamImpl::write(const void* src, SizeT size) {
 
 
 
-SizeT FileStreamImpl::seek(i64 offset, StreamBase::SeekMode mode) {
-
-	SizeT pos = 0;
-
-	switch (mode) {
-
-	case StreamBase::SeekMode::Begin:
-		arc_assert(offset >= 0, "Cannot seek before the start of the stream");
-		pos = offset;
-		break;
-
-	case StreamBase::SeekMode::Current:
-		pos = getPosition() + offset;
-		break;
-
-	case StreamBase::SeekMode::End:
-		arc_assert(offset >= 0, "Cannot seek after the end of the stream");
-		pos = getSize() - offset;
-		break;
-
-	}
-
-	file.seek(pos);
-
-	return pos;
-
+void FileStreamImpl::seek(i64 offset) {
+	file.seek(offset);
 }
 
+
+
+void FileStreamImpl::seekTo(u64 offset) {
+	file.seekTo(offset);
+}
+
+
+
 SizeT FileStreamImpl::getPosition() const {
-	return file.tell();
+	return file.getPosition();
 }
 
 

@@ -14,7 +14,6 @@
 #include "line.hpp"
 
 #include <array>
-#include <vector>
 #include <span>
 
 
@@ -426,17 +425,9 @@ private:
     }
 
     template<SizeT... Pack>
-    constexpr auto evaluateHelper(double t, std::index_sequence<Pack...>) const {
+    constexpr auto evaluateHelper(double t, std::index_sequence<Pack...>) const requires (Degree <= 32) {
 
-        constexpr static bool useHeap = Degree > 128;
-        constexpr static SizeT Count = sizeof...(Pack);
-        using Container = std::conditional_t<useHeap, std::vector<Vec2<F>>, std::array<Vec2<F>, Count>>;
-
-        Container c;
-
-        if constexpr (useHeap) {
-            c.resize(Count);
-        }
+	    std::array<Vec2<F>, sizeof...(Pack)> c;
 
         for(SizeT i = 0; i < c.size(); i++) {
             c[i] = Math::lerp(controlPoints[i], controlPoints[i + 1], t);

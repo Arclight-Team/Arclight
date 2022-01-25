@@ -173,28 +173,28 @@ void File::write(const std::span<const u8>& data) {
 
 
 
-u64 File::tell() const {
+void File::seek(i64 offset) {
+
+	arc_assert(isOpen(), "Attempted to seek in an unopened file");
+	stream.seekg(offset, std::ios::cur);
+
+}
+
+
+
+void File::seekTo(u64 offset) {
+
+	arc_assert(isOpen(), "Attempted to seek in an unopened file");
+	stream.seekg(offset, std::ios::beg);
+
+}
+
+
+
+u64 File::getPosition() const {
 
 	arc_assert(isOpen(), "Attempted to seek in an unopened file");
 	return stream.tellg();
-
-}
-
-
-
-void File::seek(u64 pos) {
-
-	arc_assert(isOpen(), "Attempted to seek in an unopened file");
-	stream.seekg(pos, std::ios::beg);
-
-}
-
-
-
-void File::seekRelative(i64 pos) {
-
-	arc_assert(isOpen(), "Attempted to seek in an unopened file");
-	stream.seekg(pos, std::ios::cur);
 
 }
 

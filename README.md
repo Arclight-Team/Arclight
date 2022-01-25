@@ -16,7 +16,7 @@ Additionally, all code is written in C++20 by making heavy use of new concepts i
 No code cruft, no old libraries from over 20 years, no license confusion: Arclight unifies all aspects of application development into one toolbox.
 
 The code is not aimed towards a particular audience; Instead, everyone can write applications with it, no matter your level of profession or skill.
-And if you once decide to look how a particular feature is implemented, go ahead! Everything was written to be as clear as possible without requiring too much prior knowledge on the user's side.
+Everything was written to be as clear as possible without requiring too much prior knowledge on the user's side.
 
 ### So, why would you want to use Arclight?
 
@@ -27,26 +27,34 @@ Due to that, most of the code is yet to be documented in the near future. If you
 
 ## Features
 The following features have been fully implemented:
+- Full window support (including Cursor + opt. Animations)
 - OpenGL 3D rendering backend GLE
 - Advanced input management
 - Actor-Component-System (ACS)
 - Image manipulation library (+ BMP loading)
-- Mathematics (Vectors, Matrices, Quaternions)
+- Mathematics (Vectors, Matrices, Quaternions, Beziers, Fading and more)
 - Logging & Debugging
 - Timing utilities
 - Streams
 - Unicode conversion support
-- Additional containers/extensions to std
+- Hash support (MD5, SHAx)
+- Additional containers/extensions to std (BitSpan, OptionalRef, improved Any)
+- XML parser
+- Filesystem library
+- Type traits + Concepts
 - Configuration & Platform macros
 
 Following features are being worked on/are planned:
+- Unified code examples
+- UnicodeString
+- 2D Sprite Engine
 - Command-line argument parser
-- Compression algorithms
+- Compression algorithms (+ DEFLATE)
 - Encryption algorithms
-- Audio engine
+- Arclight Sound System (AS2)
 - Physics engine
 - Advanced imaging formats (GIF/PNG/JPEG)
-- Font render engine with TTF/OTF support
+- Full font render engine with TTF/OTF support
 - Noise library (extension to imaging)
 - Full 3D render engine
 
@@ -57,4 +65,5 @@ If you consider joining our team, contact us through arcayn.arclight@gmail.com.
 ## Credits
 - [Arcayn](https://github.com/Arcaynx) for the project's management
 - [Ed_IT](https://github.com/Ed-1T) for the help as the second head developer
+- [KonPet](https://github.com/KonPet) for the great compression support + PNG management
 - [ItzTacos](https://github.com/ItzTacosOfficial) for the official logo
