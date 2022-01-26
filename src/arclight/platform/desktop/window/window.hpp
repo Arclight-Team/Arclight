@@ -18,6 +18,7 @@
 #include <string>
 #include <memory>
 #include <functional>
+#include <unordered_map>
 
 
 
@@ -66,6 +67,7 @@ public:
 	using WindowStateChangeFunction = std::function<void(WindowState)>;
 	using FramebufferResizeFunction = std::function<void(u32, u32)>;
 	using DropFunction              = std::function<void(const std::vector<std::string>&)>;
+
 
 	Window();
 	~Window();
@@ -167,6 +169,9 @@ public:
 
 private:
 
+	void setupSyncCallback();
+	void destroySyncCallback();
+
 	static void initMonitorCallback();
 	static void queryMonitors();
 	static bool setupGLContext();
@@ -189,5 +194,7 @@ private:
 	WindowStateChangeFunction stateChangeFunction;
 	FramebufferResizeFunction fbResizeFunction;
 	DropFunction dropFunction;
+
+	inline static std::unordered_map<void*, std::function<void()>> syncCallbacks;
 
 };

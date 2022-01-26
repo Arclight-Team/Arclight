@@ -47,6 +47,9 @@ public:
 
 	bool connected() const;
 
+	//Only ever call this function in window-less mode
+	void onFrameStart();
+
 	void onKeyEvent(const KeyEvent& event);
 	void onCharEvent(const CharEvent& event);
 	void onCursorEvent(const CursorEvent& event);

@@ -121,6 +121,8 @@ bool Window::create(u32 w, u32 h, const std::string& title) {
 			return false;
 		}
 
+		setupSyncCallback();
+
 	} else {
 		Log::error("Window", "Failed to create window");
 	}
@@ -175,6 +177,8 @@ bool Window::createFullscreen(const std::string& title, u32 monitorID) {
 			return false;
 		}
 
+		setupSyncCallback();
+
 	} else {
 		Log::error("Window", "Failed to create window");
 	}
@@ -191,6 +195,8 @@ void Window::close() {
 		Log::warn("Window", "Cannot close window that is not open");
 		return;
 	}
+
+	destroySyncCallback();
 
 	InputSystem* input = windowHandle->userPtr.input;
 
@@ -240,7 +246,7 @@ void Window::setFullscreen(u32 monitorID) {
 	backupWidth = getWidth();
 	backupHeight = getHeight();
 
-	
+
 	GLFWmonitor* monitor = connectedMonitors[monitorID];
 	const GLFWvidmode* videoMode = glfwGetVideoMode(monitor);
 
@@ -262,7 +268,7 @@ void Window::setTitle(const std::string& title) {
 
 
 void Window::setX(u32 x) {
-		
+
 	arc_assert(isOpen(), "Tried to set window x-position for non-existing window");
 	glfwSetWindowPos(windowHandle->handle, x, getY());
 
@@ -375,7 +381,7 @@ void Window::setOpacity(double opacity) {
 void Window::setIcon(const Image<Pixel::RGBA8>& icon) {
 
 	arc_assert(isOpen(), "Tried to set window icon for non-existing window");
-	
+
 	//Ugly, but legal here: img is const so the data will never be modified (and shouldn't anyways)
 	const GLFWimage img { static_cast<i32>(icon.getWidth()), static_cast<i32>(icon.getHeight()), reinterpret_cast<u8*>(const_cast<PixelRGBA8*>(icon.getImageBuffer().data()))};
 	glfwSetWindowIcon(windowHandle->handle, 1, &img);
@@ -552,7 +558,13 @@ void Window::disableConstraints() {
 
 
 void Window::pollEvents() {
+
+	for (const auto& [handle, function] : syncCallbacks) {
+		function();
+	}
+
 	glfwPollEvents();
+
 }
 
 
@@ -787,7 +799,7 @@ Monitor Window::getMonitor(u32 id) {
 
 
 bool Window::monitorConfigurationChanged() {
-	
+
 	if (monitorsChanged) {
 
 		monitorsChanged = false;
@@ -972,6 +984,32 @@ bool Window::initialize() {
 
 void Window::shutdown() {
 	glfwTerminate();
+}
+
+
+
+void Window::setupSyncCallback() {
+
+	syncCallbacks[windowHandle->handle] = [this]() {
+
+		auto inputSystem = windowHandle->userPtr.input;
+
+		if (inputSystem) {
+			inputSystem->onFrameStart();
+		}
+
+	};
+
+}
+
+
+
+void Window::destroySyncCallback() {
+
+	if (syncCallbacks.contains(windowHandle->userPtr.input)) {
+		syncCallbacks.erase(windowHandle->userPtr.input);
+	}
+
 }
 
 

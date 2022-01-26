@@ -173,6 +173,12 @@ bool InputSystem::connected() const {
 
 
 
+void InputSystem::onFrameStart() {
+
+}
+
+
+
 InputContext& InputSystem::createContext(u32 id) {
 
 	if (inputContexts.contains(id)) {
