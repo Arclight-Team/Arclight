@@ -617,10 +617,10 @@ std::string Window::getClipboardString() const {
 
 	const char* str = glfwGetClipboardString(windowHandle->handle);
 
-	if (!str) {
-		return "";
+	if (str) {
+		return str;
 	} else {
-		return std::string(str);
+		return "";
 	}
 
 }

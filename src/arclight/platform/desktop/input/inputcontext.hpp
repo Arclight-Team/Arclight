@@ -34,9 +34,7 @@ class InputContext {
 
 public:
 
-	constexpr static u32 invalidState = -1;
-
-	inline InputContext() : enabled(true), handler(nullptr), currentState(invalidState) {}
+	InputContext();
 	~InputContext();
 
 	InputContext(const InputContext& context) = delete;
@@ -54,6 +52,9 @@ public:
 	void removeAction(KeyAction action);
 	void clearActions();
 	bool actionAdded(KeyAction action) const;
+
+	void addRegisteredAction(u32 stateID, KeyAction action, const KeyTrigger& trigger, bool continuous = false);
+	void addRegisteredBoundAction(u32 stateID, KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger, bool continuous = false);
 
 	void setBinding(KeyAction action, const KeyTrigger& binding);
 	void restoreBinding(KeyAction action);

@@ -14,6 +14,11 @@
 
 
 
+
+InputContext::InputContext() : enabled(true), handler(nullptr), currentState(0) {
+	addState(0, false);
+}
+
 InputContext::~InputContext() {
 	unlinkHandler();
 }
@@ -28,10 +33,6 @@ void InputContext::addState(u32 stateID, bool disablePropagation) {
 	}
 
 	inputStates.emplace(stateID, disablePropagation);
-
-	if (currentState == invalidState) {
-		switchState(stateID);
-	}
 
 }
 
@@ -52,9 +53,11 @@ void InputContext::removeState(u32 stateID) {
 
 void InputContext::switchState(u32 stateID) {
 
-	arc_assert(stateAdded(stateID), "State with ID %d doesn't exist", stateID);
-
-	currentState = stateID;
+	if (stateAdded(stateID)) {
+		currentState = stateID;
+	} else {
+		Log::warn("Input Context", "State with ID %d doesn't exist", stateID);
+	}
 
 }
 
@@ -112,6 +115,24 @@ void InputContext::clearActions() {
 
 bool InputContext::actionAdded(KeyAction action) const {
 	return actionBindings.contains(action);
+}
+
+
+
+void InputContext::addRegisteredAction(u32 stateID, KeyAction action, const KeyTrigger& trigger, bool continuous) {
+
+	addAction(action, trigger, continuous);
+	registerAction(stateID, action);
+
+}
+
+
+
+void InputContext::addRegisteredBoundAction(u32 stateID, KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger, bool continuous) {
+
+	addBoundAction(action, boundTrigger, defaultTrigger, continuous);
+	registerAction(stateID, action);
+
 }
 
 

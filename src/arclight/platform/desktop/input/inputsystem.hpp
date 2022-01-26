@@ -39,6 +39,8 @@ public:
 	void disconnect();
 
 	InputContext& createContext(u32 id);
+	InputContext& getContext(u32 id);
+	const InputContext& getContext(u32 id) const;
 	void destroyContext(u32 id);
 	void enableContext(u32 id);
 	void disableContext(u32 id);

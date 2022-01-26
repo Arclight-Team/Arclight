@@ -179,6 +179,24 @@ InputContext& InputSystem::createContext(u32 id) {
 
 
 
+InputContext& InputSystem::getContext(u32 id) {
+
+	arc_assert(inputContexts.contains(id), "Input context with ID %d doesn't exist", id);
+	return inputContexts.at(id);
+
+}
+
+
+
+const InputContext& InputSystem::getContext(u32 id) const {
+
+	arc_assert(inputContexts.contains(id), "Input context with ID %d doesn't exist", id);
+	return inputContexts.at(id);
+
+}
+
+
+
 void InputSystem::destroyContext(u32 id) {
 
 	if (!inputContexts.contains(id)) {
@@ -382,7 +400,7 @@ std::string InputSystem::getKeyNameFromScancode(Scancode code) const {
 	const char* str = glfwGetKeyName(GLFW_KEY_UNKNOWN, code);
 
 	if (str) {
-		return std::string(str);
+		return str;
 	} else {
 		return "Unknown";
 	}
