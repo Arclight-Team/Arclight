@@ -51,6 +51,7 @@ public:
 	void onCharEvent(const CharEvent& event);
 	void onCursorEvent(const CursorEvent& event);
 	void onScrollEvent(const ScrollEvent& event);
+	void onCursorAreaEvent(const CursorAreaEvent& event);
 
 	void updateContinuous(u32 ticks);
 

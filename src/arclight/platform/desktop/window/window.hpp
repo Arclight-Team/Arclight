@@ -167,8 +167,6 @@ public:
 
 private:
 
-	friend class RenderCursor;
-
 	static void initMonitorCallback();
 	static void queryMonitors();
 	static bool setupGLContext();

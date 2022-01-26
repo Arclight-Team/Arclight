@@ -121,6 +121,13 @@ void InputSystem::connect(const Window& window) {
 
 	});
 
+	glfwSetCursorEnterCallback(handle->handle, [](GLFWwindow* window, int entered) {
+
+		InputSystem* input = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->input;
+		input->onCursorAreaEvent(CursorAreaEvent(!!entered));
+
+	});
+
 	setupKeyMap(true);
 	eventCounts.resize(keyStates.size(), 0);
 
@@ -141,6 +148,7 @@ void InputSystem::disconnect() {
 	glfwSetCharCallback(handle->handle, nullptr);
 	glfwSetCursorPosCallback(handle->handle, nullptr);
 	glfwSetScrollCallback(handle->handle, nullptr);
+	glfwSetCursorEnterCallback(handle->handle, nullptr);
 
 	handle->userPtr.input = nullptr;
 
@@ -292,6 +300,21 @@ void InputSystem::onScrollEvent(const ScrollEvent& event) {
 	}
 
 }
+
+
+
+void InputSystem::onCursorAreaEvent(const CursorAreaEvent& event) {
+
+	for (auto& [id, context] : inputContexts) {
+
+		if (context.onCursorAreaEvent(event)) {
+			break;
+		}
+
+	}
+
+}
+
 
 
 

@@ -37,15 +37,21 @@ void RenderCursor::setCurrent(CursorID id) {
 		return;
 	}
 
-	if (id == DefaultCursorID) {
+	if (cursors.contains(id) || id == DefaultCursorID) {
 
-		glfwSetCursor(window.windowHandle->handle, nullptr);
-		currentID = id;
+		auto ptr = window.getInternalHandle().lock();
 
-	} else if (cursors.contains(id)) {
+		if (ptr) {
 
-		glfwSetCursor(window.windowHandle->handle, cursors[id]);
-		currentID = id;
+			glfwSetCursor(window.getInternalHandle().lock()->handle, cursors.contains(id) ? cursors[id] : nullptr);
+			currentID = id;
+
+		} else {
+
+			Log::warn("Cursor", "Failed to activate cursor with ID = %d", id);
+
+		}
+
 
 	} else {
 

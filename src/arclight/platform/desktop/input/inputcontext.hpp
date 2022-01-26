@@ -53,8 +53,8 @@ public:
 	void clearActions();
 	bool actionAdded(KeyAction action) const;
 
-	void addRegisteredAction(u32 stateID, KeyAction action, const KeyTrigger& trigger, bool continuous = false);
-	void addRegisteredBoundAction(u32 stateID, KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger, bool continuous = false);
+	void addStateAction(u32 stateID, KeyAction action, const KeyTrigger& trigger, bool continuous = false);
+	void addBoundStateAction(u32 stateID, KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger, bool continuous = false);
 
 	void setBinding(KeyAction action, const KeyTrigger& binding);
 	void restoreBinding(KeyAction action);
@@ -77,6 +77,7 @@ public:
 	bool onCharEvent(const CharEvent& event);
 	bool onCursorEvent(const CursorEvent& event);
 	bool onScrollEvent(const ScrollEvent& event);
+	bool onCursorAreaEvent(const CursorAreaEvent& event);
 	bool onContinuousEvent(u32 ticks, const std::vector<KeyState>& keyStates, std::vector<u32>& eventCounts);
 
 	void linkHandler(InputHandler& handler);

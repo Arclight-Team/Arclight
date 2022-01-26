@@ -945,7 +945,7 @@ void Window::resetWindowFunctions() {
 
 
 std::weak_ptr<WindowHandle> Window::getInternalHandle() const {
-	return std::weak_ptr<WindowHandle>(windowHandle);
+	return windowHandle;
 }
 
 

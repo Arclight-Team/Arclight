@@ -41,6 +41,7 @@ public:
 	}
 
 private:
+
 	Key key;
 	KeyState state;
 
@@ -61,6 +62,7 @@ public:
 	}
 
 private:
+
 	KeyChar character;
 
 };
@@ -84,6 +86,7 @@ public:
 	}
 
 private:
+
 	double x;
 	double y;
 
@@ -108,7 +111,30 @@ public:
 	}
 
 private:
+
 	double x;
 	double y;
+
+};
+
+
+
+class CursorAreaEvent {
+
+public:
+
+	constexpr CursorAreaEvent(bool entered) : entered(entered) {}
+
+	constexpr bool areaEntered() const {
+		return entered;
+	}
+
+	constexpr bool areaLeft() const {
+		return !entered;
+	}
+
+private:
+
+	bool entered;
 
 };

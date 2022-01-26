@@ -20,14 +20,15 @@ class InputHandler {
 
 public:
 
-	typedef std::function<bool(KeyAction, double)> CoActionListener;
-	typedef std::function<bool(KeyAction)> ActionListener;
-	typedef std::function<bool(Key, KeyState)> KeyListener;
-	typedef std::function<bool(KeyChar)> CharListener;
-	typedef std::function<bool(double, double)> CursorListener;
-	typedef std::function<bool(double, double)> ScrollListener;
+	using CoActionListener      = std::function<bool(KeyAction, double)>;
+	using ActionListener        = std::function<bool(KeyAction)>;
+	using KeyListener           = std::function<bool(Key, KeyState)>;
+	using CharListener          = std::function<bool(KeyChar)>;
+	using CursorListener        = std::function<bool(double, double)>;
+	using ScrollListener        = std::function<bool(double, double)>;
+	using CursorAreaListener    = std::function<bool(bool)>;
 
-	inline InputHandler() noexcept : context(nullptr), actionListener(nullptr), coActionListener(nullptr), keyListener(nullptr), charListener(nullptr), cursorListener(nullptr), scrollListener(nullptr) {};
+	inline InputHandler() noexcept : context(nullptr), actionListener(nullptr), coActionListener(nullptr), keyListener(nullptr), charListener(nullptr), cursorListener(nullptr), scrollListener(nullptr), cursorAreaListener(nullptr) {};
 
 	virtual ~InputHandler();
 
@@ -36,28 +37,32 @@ public:
 	InputHandler(InputHandler&& handler) noexcept = default;
 	InputHandler& operator=(InputHandler&& handler) noexcept = default;
 
-	inline void setActionListener(ActionListener listener) {
+	inline void setActionListener(const ActionListener& listener) {
 		actionListener = listener;
 	}
 
-	inline void setCoActionListener(CoActionListener listener) {
+	inline void setCoActionListener(const CoActionListener& listener) {
 		coActionListener = listener;
 	}
 
-	inline void setKeyListener(KeyListener listener) {
+	inline void setKeyListener(const KeyListener& listener) {
 		keyListener = listener;
 	}
 
-	inline void setCharListener(CharListener listener) {
+	inline void setCharListener(const CharListener& listener) {
 		charListener = listener;
 	}
 
-	inline void setCursorListener(CursorListener listener) {
+	inline void setCursorListener(const CursorListener& listener) {
 		cursorListener = listener;
 	}
 
-	inline void setScrollListener(ScrollListener listener) {
+	inline void setScrollListener(const ScrollListener& listener) {
 		scrollListener = listener;
+	}
+
+	inline void setCursorAreaListener(const CursorAreaListener& listener) {
+		cursorAreaListener = listener;
 	}
 
 private:
@@ -71,5 +76,6 @@ private:
 	CharListener charListener;
 	CursorListener cursorListener;
 	ScrollListener scrollListener;
+	CursorAreaListener cursorAreaListener;
 
 };

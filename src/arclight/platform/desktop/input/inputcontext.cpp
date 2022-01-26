@@ -119,7 +119,7 @@ bool InputContext::actionAdded(KeyAction action) const {
 
 
 
-void InputContext::addRegisteredAction(u32 stateID, KeyAction action, const KeyTrigger& trigger, bool continuous) {
+void InputContext::addStateAction(u32 stateID, KeyAction action, const KeyTrigger& trigger, bool continuous) {
 
 	addAction(action, trigger, continuous);
 	registerAction(stateID, action);
@@ -128,7 +128,7 @@ void InputContext::addRegisteredAction(u32 stateID, KeyAction action, const KeyT
 
 
 
-void InputContext::addRegisteredBoundAction(u32 stateID, KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger, bool continuous) {
+void InputContext::addBoundStateAction(u32 stateID, KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger, bool continuous) {
 
 	addBoundAction(action, boundTrigger, defaultTrigger, continuous);
 	registerAction(stateID, action);
@@ -473,6 +473,19 @@ bool InputContext::onScrollEvent(const ScrollEvent& event) {
 	return handler->scrollListener(event.scrollX(), event.scrollY()) || propagationDisabled();
 
 }
+
+
+
+bool InputContext::onCursorAreaEvent(const CursorAreaEvent& event) {
+
+	if (!enabled || !handler || !handler->cursorAreaListener) {
+		return propagationDisabled();
+	}
+
+	return handler->cursorAreaListener(event.areaEntered()) || propagationDisabled();
+
+}
+
 
 
 
