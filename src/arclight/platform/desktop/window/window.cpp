@@ -962,32 +962,6 @@ std::weak_ptr<WindowHandle> Window::getInternalHandle() const {
 
 
 
-bool Window::initialize() {
-
-	static bool initialized = false;
-
-	if (initialized) {
-		return true;
-	}
-
-	if (!glfwInit()) {
-		Log::error("Core", "Failed to initialize GLFW");
-		return false;
-	}
-
-	initialized = true;
-	return true;
-
-}
-
-
-
-void Window::shutdown() {
-	glfwTerminate();
-}
-
-
-
 void Window::setupSyncCallback() {
 
 	syncCallbacks[windowHandle->handle] = [this]() {

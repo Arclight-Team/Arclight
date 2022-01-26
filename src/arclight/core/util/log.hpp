@@ -16,9 +16,9 @@
 namespace Log {
 
 
-	void init();
-	void openLogFile(Uri path);
-	void closeLogFile();
+	void init() noexcept;
+	void openLogFile(Uri path) noexcept;
+	void closeLogFile() noexcept;
 
 
 	//Direct logging

@@ -28,34 +28,60 @@ namespace Log {
 	File logfile;
 
 
-	void init() {
+	void init() noexcept {
+
 #ifdef ARC_LOG_STDIO_UNSYNC
-		std::ios_base::sync_with_stdio(false);
+
+		try {
+			std::ios_base::sync_with_stdio(false);
+		} catch (const std::exception&) {
+	#if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
+			arc_abort();
+	#endif
+		}
+
 #endif
-	}
-
-
-	void openLogFile(Uri path) {
-
-		bool dirCreated = path.createDirectory();
-
-		if (!dirCreated) {
-			Log::error("Log", "Failed to create log file directory '%s'", path.getPath().c_str());
-			return;
-		}
-
-		path.move("log_" + Time::getTimestamp() + ".txt");
-		logfile.open(path, File::Out);
-
-		if (!logfile.isOpen()) {
-			Log::error("Log", "Failed to open log file '%s'", path.getPath().c_str());
-		}
 
 	}
 
 
-	void closeLogFile() {
-		logfile.close();
+	void openLogFile(Uri path) noexcept {
+
+		try {
+
+			bool dirCreated = path.createDirectory();
+
+			if (!dirCreated) {
+				Log::error("Log", "Failed to create log file directory '%s'", path.getPath().c_str());
+				return;
+			}
+
+			path.move("log_" + Time::getTimestamp() + ".txt");
+			logfile.open(path, File::Out);
+
+			if (!logfile.isOpen()) {
+				Log::error("Log", "Failed to open log file '%s'", path.getPath().c_str());
+			}
+
+		} catch (const std::exception&) {
+#if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
+			arc_abort();
+#endif
+		}
+
+	}
+
+
+	void closeLogFile() noexcept {
+
+		try {
+			logfile.close();
+		} catch (const std::exception&) {
+#if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
+			arc_abort();
+#endif
+		}
+
 	}
 
 
@@ -70,7 +96,7 @@ namespace Log {
 				logfile.writeLine(line);
 			}
 
-		} catch (std::exception&) {
+		} catch (const std::exception&) {
 			//There's literally nothing we can do here
 #if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
 			arc_abort();

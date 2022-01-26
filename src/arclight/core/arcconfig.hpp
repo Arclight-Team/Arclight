@@ -81,6 +81,19 @@
 
 
 /*
+	Custom ArcRT
+	ARC_USE_ARCRT: Uses the custom arclight runtime
+*/
+#define ARC_USE_ARCRT
+
+
+/*
+	Log directory path
+*/
+#define ARC_LOG_DIRECTORY "log"
+
+
+/*
 	Final release build
 	ARC_FINAL_BUILD: Builds the program ready for release. Disables debugging functionality and optimizes certain functions.
 */

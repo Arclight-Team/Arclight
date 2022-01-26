@@ -24,7 +24,7 @@ project (${PROJECT_NAME})
 
 	### URI TRANSITION
 	# Set Uri root path
-	add_definitions(-DARC_URI_ROOT="../")
+	add_compile_definitions(ARC_URI_ROOT="../")
 
 	message("Building '${PROJECT_NAME}'")
 
@@ -147,6 +147,8 @@ project (${PROJECT_NAME})
 
 		include_directories("lib/GLFW/include")
 		list(APPEND APPLICATION_LIBS glfw)
+
+		add_compile_definitions(ARC_WINDOW_MODULE)
 
 		message("\tAdded dependency 'GLFW'")
 

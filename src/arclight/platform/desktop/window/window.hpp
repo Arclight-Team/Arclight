@@ -164,9 +164,6 @@ public:
 
 	std::weak_ptr<WindowHandle> getInternalHandle() const;
 
-	static bool initialize();
-	static void shutdown();
-
 private:
 
 	void setupSyncCallback();
