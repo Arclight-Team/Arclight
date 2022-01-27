@@ -74,7 +74,7 @@ public:
 
     }
 
-    inline std::string toString(bool upper = false) const noexcept {
+    std::string toString(bool upper = false) const noexcept {
 
         std::string s;
 
