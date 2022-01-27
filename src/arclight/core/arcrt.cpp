@@ -35,6 +35,11 @@
 		constexpr u32 initReturnBase = 0x7000;
 		[[maybe_unused]] ArcRTShutdownGuard guard;
 
+		std::set_terminate([]() {
+			Log::error("Runtime", "An unhandled exception has been thrown, terminating.");
+			ArcRTShutdownGuard();
+		});
+
 		if (!ArcRuntime::initialize()) {
 			return initReturnBase;
 		}
@@ -58,7 +63,7 @@
 
 		try {
 
-			i32 ret = Bits::cast<i32>(arcMain(std::move(args)));
+			i32 ret = Bits::cast<i32>(arcMain(args));
 
 			if (ret) {
 
