@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "util/bits.hpp"
 #include "util/string.hpp"
 #include "types.hpp"
 

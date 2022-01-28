@@ -144,7 +144,6 @@ namespace __SHA01Detail {
 
 namespace SHA0 {
 
-
 	constexpr Hash<160> hash(const std::span<const u8>& data) noexcept {
 		return __SHA01Detail::hashSHA01<false>(data);
 	}

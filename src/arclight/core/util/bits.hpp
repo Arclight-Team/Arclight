@@ -15,6 +15,7 @@
 #include <bit>
 
 
+
 enum class ByteOrder {
 	Little,
 	Big
@@ -220,12 +221,12 @@ namespace Bits {
 	}
 
 	template<Integer I, Integer J>
-	constexpr I assemble(J* js) noexcept requires (sizeof(I) / sizeof(J) * sizeof(J) == sizeof(I)) {
+	constexpr I assemble(J* js, SizeT max = -1) noexcept requires (sizeof(I) / sizeof(J) * sizeof(J) == sizeof(I)) {
 
 		I i = 0;
 		SizeT shift = 0;
 
-		for(SizeT n = 0; n < sizeof(I) / sizeof(J); n++) {
+		for (SizeT n = 0; n < sizeof(I) / sizeof(J) && n < max; n++) {
 
 			i |= static_cast<I>(js[n]) << shift;
 			shift += sizeof(J) * 8;
@@ -242,9 +243,9 @@ namespace Bits {
 	}
 
 	template<Integer I, Integer J>
-	constexpr void disassemble(I i, J* js) noexcept requires (sizeof(I) / sizeof(J) * sizeof(J) == sizeof(I)) {
+	constexpr void disassemble(I i, J* js, SizeT max = -1) noexcept requires (sizeof(I) / sizeof(J) * sizeof(J) == sizeof(I)) {
 
-		for(SizeT n = 0; n < sizeof(I) / sizeof(J); n++) {
+		for(SizeT n = 0; n < sizeof(I) / sizeof(J) && n < max; n++) {
 
 			js[n] = i & ~static_cast<J>(0);
 			i >>= sizeof(J) * 8;
