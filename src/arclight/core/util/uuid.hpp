@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "bits.hpp"
 #include "concepts.hpp"
 #include "crypto/hash/sha2.hpp"
 
@@ -26,17 +27,21 @@ public:
 	constexpr UUID(u64 id) noexcept : uuid(id) {}
 
 	template<SizeT N>
-	constexpr UUID(char(&arr)[N]) noexcept : UUID(std::string(arr)) {}
+	consteval UUID(char(&name)[N]) noexcept {
+		assign(name);
+	}
 
 	template<class T> requires Equal<T, const char*>
-	constexpr UUID(T name) noexcept : UUID(std::string(name)) {}
+	consteval UUID(T name) noexcept {
+		assign(name);
+	}
 
-	constexpr UUID(const std::string& name) noexcept {
+	consteval UUID(const std::string& name) noexcept {
 		assign(name);
 	}
 
 
-	constexpr UUID& operator=(const std::string& name) noexcept {
+	consteval UUID& operator=(const std::string& name) noexcept {
 
 		assign(name);
 		return *this;
@@ -60,23 +65,15 @@ public:
 
 private:
 
-	constexpr void assign(const std::string& name) noexcept {
+	consteval void assign(const std::string& name) noexcept {
 
-		if (std::is_constant_evaluated()) {
+		std::vector<u8> storage(name.size());
 
-			std::vector<u8> storage(name.size());
-
-			for (SizeT i = 0; i < name.size(); i++) {
-				storage[i] = Bits::cast<u8>(name[i]);
-			}
-
-			uuid = SHA2::hash512t256(storage).toInteger<u64>();
-
-		} else {
-
-			uuid = SHA2::hash512t256({Bits::toByteArray(name.data()), name.size()}).toInteger<u64>();
-
+		for (SizeT i = 0; i < name.size(); i++) {
+			storage[i] = Bits::cast<u8>(name[i]);
 		}
+
+		uuid = SHA2::hash512t256(storage).toInteger<u64>();
 
 	}
 
