@@ -20,7 +20,7 @@ Random::Random() {
 	int* x = new int;
 	delete x;
 
-	std::seed_seq seed{ std::chrono::high_resolution_clock::now().time_since_epoch().count(), reinterpret_cast<long long>(&kekw), reinterpret_cast<long long>(&x) };
+	std::seed_seq seed{ static_cast<AddressT>(std::chrono::high_resolution_clock::now().time_since_epoch().count()), reinterpret_cast<AddressT>(&kekw), reinterpret_cast<AddressT>(&x) };
 	rng.seed(seed);
 
 }

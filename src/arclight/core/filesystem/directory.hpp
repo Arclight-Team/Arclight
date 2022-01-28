@@ -10,6 +10,7 @@
 
 #include "fsentry.hpp"
 
+#include <vector>
 #include <variant>
 
 
