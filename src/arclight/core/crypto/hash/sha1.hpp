@@ -19,7 +19,7 @@
 namespace __SHA01Detail {
 
 	template<bool SHA1>
-	constexpr void dispatchBlockSHA01(const std::span<const u8>& data, u32& a0, u32& b0, u32& c0, u32& d0, u32& e0) {
+	constexpr void dispatchBlockSHA01(const std::span<const u8>& data, u32& a0, u32& b0, u32& c0, u32& d0, u32& e0) noexcept {
 
 		u32 w[80];
 
@@ -105,7 +105,7 @@ namespace __SHA01Detail {
 
 
 	template<bool SHA1>
-	constexpr Hash<160> hashSHA01(const std::span<const u8>& data) noexcept {
+	constexpr Hash<160> hashSHA01(const std::span<const u8>& data) {
 
 		Crypto::MDConstruction<64> construct;
 		Crypto::mdConstruct(construct, data, ByteOrder::Big);
@@ -144,7 +144,7 @@ namespace __SHA01Detail {
 
 namespace SHA0 {
 
-	constexpr Hash<160> hash(const std::span<const u8>& data) noexcept {
+	constexpr Hash<160> hash(const std::span<const u8>& data) {
 		return __SHA01Detail::hashSHA01<false>(data);
 	}
 
@@ -152,7 +152,7 @@ namespace SHA0 {
 
 namespace SHA1 {
 
-	constexpr Hash<160> hash(const std::span<const u8>& data) noexcept {
+	constexpr Hash<160> hash(const std::span<const u8>& data) {
 	    return __SHA01Detail::hashSHA01<true>(data);
 	}
 

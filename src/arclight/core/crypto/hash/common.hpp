@@ -29,7 +29,7 @@ namespace Crypto {
     };
 
     template<SizeT Size>
-    constexpr void mdConstruct(MDConstruction<Size>& construct, const std::span<const u8>& data, ByteOrder order) noexcept {
+    constexpr void mdConstruct(MDConstruction<Size>& construct, const std::span<const u8>& data, ByteOrder order) {
 
         constexpr bool bits64 = Size == 128;
         SizeT blockSize = (bits64 ? 1024 : 512) / 8;

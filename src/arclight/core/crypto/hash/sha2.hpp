@@ -32,7 +32,7 @@ namespace SHA2 {
 			SHA512t256
 		};
 
-		consteval static bool is64BitSHA2Variant(SHA2Variant variant) {
+		consteval static bool is64BitSHA2Variant(SHA2Variant variant) noexcept {
 			return Bool::none(variant, SHA2Variant::SHA224, SHA2Variant::SHA256);
 		}
 
@@ -143,7 +143,7 @@ namespace SHA2 {
 
 
 		template<SHA2Variant Variant>
-		constexpr static auto hashSHA2(const std::span<const u8>& data) noexcept {
+		constexpr static auto hashSHA2(const std::span<const u8>& data) {
 
 			constexpr bool bits64 = is64BitSHA2Variant(Variant);
 			constexpr u32 bytes = bits64 ? 128 : 64;
@@ -228,27 +228,27 @@ namespace SHA2 {
 
 
 
-	constexpr Hash<224> hash224(const std::span<const u8>& data) noexcept {
+	constexpr Hash<224> hash224(const std::span<const u8>& data) {
 		return __Detail::hashSHA2<__Detail::SHA2Variant::SHA224>(data);
 	}
 
-	constexpr Hash<256> hash256(const std::span<const u8>& data) noexcept {
+	constexpr Hash<256> hash256(const std::span<const u8>& data) {
 		return __Detail::hashSHA2<__Detail::SHA2Variant::SHA256>(data);
 	}
 
-	constexpr Hash<384> hash384(const std::span<const u8>& data) noexcept {
+	constexpr Hash<384> hash384(const std::span<const u8>& data) {
 		return __Detail::hashSHA2<__Detail::SHA2Variant::SHA384>(data);
 	}
 
-	constexpr Hash<512> hash512(const std::span<const u8>& data) noexcept {
+	constexpr Hash<512> hash512(const std::span<const u8>& data) {
 		return __Detail::hashSHA2<__Detail::SHA2Variant::SHA512>(data);
 	}
 
-	constexpr Hash<224> hash512t224(const std::span<const u8>& data) noexcept {
+	constexpr Hash<224> hash512t224(const std::span<const u8>& data) {
 		return __Detail::hashSHA2<__Detail::SHA2Variant::SHA512t224>(data);
 	}
 
-	constexpr Hash<256> hash512t256(const std::span<const u8>& data) noexcept {
+	constexpr Hash<256> hash512t256(const std::span<const u8>& data) {
 		return __Detail::hashSHA2<__Detail::SHA2Variant::SHA512t256>(data);
 	}
 

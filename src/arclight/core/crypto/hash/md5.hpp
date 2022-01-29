@@ -50,7 +50,7 @@ namespace MD5 {
 		};
 
 
-		constexpr void dispatchBlock(const std::span<const u8>& data, u32& a0, u32& b0, u32& c0, u32& d0) noexcept {
+		constexpr void dispatchBlock(const std::span<const u8>& data, u32& a0, u32& b0, u32& c0, u32& d0) {
 
 			arc_assert(data.size() == 64, "MD5 block must be of size 64");
 
@@ -114,7 +114,7 @@ namespace MD5 {
 
 	}
 
-	constexpr Hash<128> hash(const std::span<const u8>& data) noexcept {
+	constexpr Hash<128> hash(const std::span<const u8>& data) {
 
 		Crypto::MDConstruction<64> construct;
 		Crypto::mdConstruct(construct, data, ByteOrder::Little);
