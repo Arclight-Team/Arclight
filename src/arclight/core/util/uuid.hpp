@@ -62,6 +62,9 @@ public:
 	constexpr operator u64() const noexcept {
 		return uuid;
 	}
+	
+	constexpr bool operator==(const UUID& other) const noexcept = default;
+	constexpr auto operator<=>(const UUID& other) const noexcept = default;
 
 private:
 

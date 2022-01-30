@@ -65,6 +65,10 @@ public:
 
     }
 
+	constexpr T& getDirect() const noexcept {
+	     return *storage;
+	}
+
     template<class U>
     constexpr T& getOr(U& defaultValue) const noexcept {
 
