@@ -14,7 +14,13 @@ project (${PROJECT_NAME})
 
 	# Enable C++20
 	set(CMAKE_CXX_STANDARD 20)
+	set(CMAKE_CXX_EXTENSIONS off)
 	set(CMAKE_CXX_STANDARD_REQUIRED true)
+
+	# Enable C99
+	set(CMAKE_C_STANDARD 99)
+	set(CMAKE_C_EXTENSIONS off)
+	set(CMAKE_C_STANDARD_REQUIRED true)
 
 	# Set output directories
 	set(BINARY_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
@@ -163,8 +169,15 @@ project (${PROJECT_NAME})
 
 		include_directories(${GLEW_INCLUDE_DIR})
 
-		list(APPEND APPLICATION_LIBS opengl32)
+		if (WIN32)
+			list(APPEND APPLICATION_LIBS opengl32)
+		elseif(UNIX)
+			list(APPEND APPLICATION_LIBS GL)
+		endif()
+
 		list(APPEND APPLICATION_LIBS GLEW::GLEW)
+
+		add_compile_definitions(GLEW_NO_GLU)
 
 		message("\tAdded dependency 'GLEW'")
 

@@ -18,6 +18,7 @@
 #include <span>
 #include <vector>
 #include <memory>
+#include <cstring>
 
 
 template<bool Const, bool Dynamic = false>

@@ -9,7 +9,7 @@
 #pragma once
 
 
-#define GLE_HEADER	<GL/GLEW.h>
+#define GLE_HEADER	<GL/glew.h>
 #define GLE_BEGIN	namespace GLE {
 #define GLE_END		}
 

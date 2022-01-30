@@ -9,6 +9,7 @@
 #include "spritearray.hpp"
 
 #include <new>
+#include <utility>
 
 
 

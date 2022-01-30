@@ -939,6 +939,7 @@ public:
 	template<Char C>
 	constexpr bool startsWith(std::basic_string_view<C> sv) const noexcept {
 		//TODO
+		return true;
 	}
 
 	//TODO
