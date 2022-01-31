@@ -113,7 +113,7 @@ private:
 	};
 
 
-	Byte* heap;
+	u8* heap;
 	Storage* head;
 	AddressT totalSize;
 

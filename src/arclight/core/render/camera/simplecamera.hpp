@@ -77,7 +77,7 @@ private:
 		KeyTrigger({ KeyCode::X }),
 		KeyTrigger({ KeyCode::Z }),
 
-		KeyTrigger({ Mouse::Left }),
+		KeyTrigger({ MouseCode::Left }),
 	};
 
 	CameraInputConfig config = defaultConfig;
