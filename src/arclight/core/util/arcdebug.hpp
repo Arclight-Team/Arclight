@@ -58,7 +58,7 @@ public:
     constexpr static auto maxLineElements = 20;
     constexpr static auto maxContainerElements = 500;
 
-    ArcDebug() = default;
+    ArcDebug() : reversed(false) {}
     ~ArcDebug();
 
 	template<StringStreamable S> requires (!Char<S>)
