@@ -20,7 +20,7 @@ struct SpriteType {
 	constexpr SpriteType() noexcept : textureID(-1), outlineType(SpriteOutline::Square), outlineData(SpriteSquareOutline()) {}
 
 	u32 textureID;
-	Vec2d origin;
+	Vec2f origin;
 	SpriteOutline outlineType;
 	SpriteOutlineData outlineData;
 
@@ -33,7 +33,7 @@ class SpriteFactory {
 public:
 
 	template<SpriteOutlineType OutlineType>
-	void create(u64 id, u32 textureID, const Vec2d& relOrigin, const OutlineType& outline) {
+	void create(u64 id, u32 textureID, const Vec2f& relOrigin, const OutlineType& outline) {
 
 		SpriteType type;
 		type.textureID = textureID;

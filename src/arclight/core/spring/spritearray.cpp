@@ -13,7 +13,7 @@
 
 
 
-SpriteArray::SpriteArray() :  firstFree(invalidStorage), firstActive(invalidStorage) {}
+SpriteArray::SpriteArray() :  firstFree(invalidStorage), firstActive(invalidStorage), spriteCount(0) {}
 
 
 
@@ -32,7 +32,9 @@ Sprite& SpriteArray::create(u64 id) {
 		u32 baseID = sprites.size() * spriteDomainSize;
 
 		auto& spriteContainer = sprites.emplace_back();
-		spriteContainer.reserve(spriteDomainSize);
+
+		//Subject to C++23 resize_and_overwrite (TODO)
+		spriteContainer.resize(spriteDomainSize);
 
 		for (SizeT i = 0; i < spriteDomainSize - 1; i++) {
 			spriteContainer[i].next = baseID + i + 1;
@@ -68,6 +70,7 @@ Sprite& SpriteArray::create(u64 id) {
 
 	//Add storage to mapping
 	spriteIDMapping[id] = current;
+	spriteCount++;
 
 	//Construct and return the new sprite
 	return *new (&storage->sprite) Sprite;
@@ -188,6 +191,7 @@ void SpriteArray::destroy(u64 id) {
 
 	//Delete the entry
 	spriteIDMapping.erase(id);
+	spriteCount--;
 
 }
 
@@ -200,6 +204,7 @@ void SpriteArray::clear() {
 
 	firstActive = invalidStorage;
 	firstFree = invalidStorage;
+	spriteCount = 0;
 
 }
 
@@ -253,6 +258,18 @@ OptionalRef<const Sprite> SpriteArray::getOrNull(u64 id) const noexcept {
 		return {};
 	}
 
+}
+
+
+
+bool SpriteArray::empty() const noexcept {
+	return !size();
+}
+
+
+
+u32 SpriteArray::size() const noexcept {
+	return spriteCount;
 }
 
 

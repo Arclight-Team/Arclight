@@ -25,6 +25,6 @@ private:
 	friend class SpriteRenderer;
 
 	u32 spriteID;
-	Mat3d transform;
+	Mat3f transform;
 
 };

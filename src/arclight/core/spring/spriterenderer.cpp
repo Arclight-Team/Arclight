@@ -14,7 +14,7 @@ SpriteRenderer::SpriteRenderer() {}
 
 
 
-Sprite& SpriteRenderer::createSprite(UUID id, UUID typeID, const Mat3d& transform) {
+Sprite& SpriteRenderer::createSprite(UUID id, UUID typeID, const Mat3f& transform) {
 
 	Sprite& sprite = sprites.create(id);
 	sprite.spriteID = typeID;
@@ -60,9 +60,9 @@ OptionalRef<const SpriteType> SpriteRenderer::getType(UUID id) const {
 
 	if (factory.contains(id)) {
 		factory.get(id);
-	} else {
-		return {};
 	}
+
+	return {};
 
 }
 
@@ -70,4 +70,10 @@ OptionalRef<const SpriteType> SpriteRenderer::getType(UUID id) const {
 
 void SpriteRenderer::destroyType(UUID id) {
 	factory.destroy(id);
+}
+
+
+
+u32 SpriteRenderer::activeSpriteCount() const noexcept {
+	return sprites.size();
 }

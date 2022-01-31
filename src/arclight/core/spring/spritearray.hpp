@@ -12,6 +12,8 @@
 #include "stdext/optionalref.hpp"
 #include "util/uuid.hpp"
 
+#include <unordered_map>
+
 
 
 class SpriteArray {
@@ -33,9 +35,12 @@ public:
 	const Sprite& getOrThrow(u64 id) const;
 	OptionalRef<const Sprite> getOrNull(u64 id) const noexcept;
 
+	bool empty() const noexcept;
+	u32 size() const noexcept;
+
 private:
 
-	constexpr static u32 spriteDomainSize = 512;
+	constexpr static u32 spriteDomainSize = 4096;
 	constexpr static u32 invalidStorage = -1;
 
 	struct Storage {
@@ -60,5 +65,6 @@ private:
 
 	u32 firstActive;
 	u32 firstFree;
+	u32 spriteCount;
 
 };
