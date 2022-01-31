@@ -257,7 +257,7 @@ namespace Font {
 
                 //Now render the fill
                 for(i32 x = Math::max(origin.x + startX, 0); x <= Math::min(origin.x + endX, static_cast<i32>(image.getWidth() - 1)); x++) {
-                    image.setPixel(x, py, PixelRGB5(31, 31, 31));
+                    image.setPixel(x, py, Colors<P>::White);
                 }
 
             }

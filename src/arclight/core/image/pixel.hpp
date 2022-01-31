@@ -577,6 +577,41 @@ struct PixelType<Pixel::ARGB8> {
 };
 
 
+template<Pixel P>
+class Colors
+{
+
+	using PixelT = PixelType<P>::Type;
+	using ColorT = PixelT::ColorType;
+	using Format = PixelT::Format;
+	
+	constexpr static PixelT construct(float r, float g, float b, float a) {
+
+		PixelT pixel;
+		
+		pixel.setRed	(r * PixelT::getMaxRed  ());
+		pixel.setGreen	(g * PixelT::getMaxGreen());
+		pixel.setBlue	(b * PixelT::getMaxBlue ());
+		pixel.setAlpha	(a * PixelT::getMaxAlpha());
+
+		return pixel;
+
+	}
+
+public:
+
+	constexpr static PixelT Transparent	= construct(0.0, 0.0, 0.0, 0.0);
+	constexpr static PixelT Black		= construct(0.0, 0.0, 0.0, 1.0);
+	constexpr static PixelT White		= construct(1.0, 1.0, 1.0, 1.0);
+	constexpr static PixelT Red			= construct(1.0, 0.0, 0.0, 1.0);
+	constexpr static PixelT Green		= construct(0.0, 1.0, 0.0, 1.0);
+	constexpr static PixelT Blue		= construct(0.0, 0.0, 1.0, 1.0);
+	constexpr static PixelT Cyan		= construct(0.0, 1.0, 1.0, 1.0);
+	constexpr static PixelT Yellow		= construct(1.0, 1.0, 0.0, 1.0);
+	constexpr static PixelT Magenta		= construct(1.0, 0.0, 1.0, 1.0);
+
+};
+
 
 struct PixelConverter  {
 
