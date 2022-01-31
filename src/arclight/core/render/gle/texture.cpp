@@ -85,7 +85,7 @@ void Texture::activate(u32 unit) {
 
 void Texture::activateUnit(u32 unit) {
 
-	gle_assert(unit < Limits::getMaxTextureUnits(), "Texture unit %d exceeds the maximum of %d", unit, Limits::getMaxTextureUnits());
+	gle_assert(unit < Limits::getMaxCombinedTextureUnits(), "Texture unit %d exceeds the maximum of %d", unit, Limits::getMaxCombinedTextureUnits());
 
 	if (activeTextureUnit != unit) {
 		activeTextureUnit = unit;

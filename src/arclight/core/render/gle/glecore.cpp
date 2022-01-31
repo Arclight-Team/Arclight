@@ -13,7 +13,7 @@
 
 GLE_BEGIN
 
-namespace {
+namespace __Detail {
 
 	u32 openglContextVersion = 0;
 	bool openglDebugContext = false;
@@ -23,7 +23,14 @@ namespace {
 	u32 maxArrayTextureLayers = 0;
 	u32 maxMipmapLevels = 0;
 	float maxAnisotropy = 1.0;
-	u32 maxTextureUnits = 0;
+
+	u32 maxVertexTextureUnits = 0;
+	u32 maxFragmentTextureUnits = 0;
+	u32 maxGeometryTextureUnits = 0;
+	u32 maxTessCtrlTextureUnits = 0;
+	u32 maxTessEvalTextureUnits = 0;
+	u32 maxComputeTextureUnits = 0;
+	u32 maxCombinedTextureUnits = 0;
 
 	u32 maxDepthSamples = 0;
 	u32 maxColorSamples = 0;
@@ -57,49 +64,61 @@ namespace Core {
 		glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
 		glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
 
-		openglContextVersion = majorVersion << 8 | minorVersion;
-		openglDebugContext = flags & GL_CONTEXT_FLAG_DEBUG_BIT;
+		__Detail::openglContextVersion = majorVersion << 8 | minorVersion;
+		__Detail::openglDebugContext = flags & GL_CONTEXT_FLAG_DEBUG_BIT;
 
 		GLE::info("OpenGL %d.%d context set up", majorVersion, minorVersion);
-		GLE::info("Debug context %s", (openglDebugContext ? "enabled" : "disabled"));
+		GLE::info("Debug context %s", (__Detail::openglDebugContext ? "enabled" : "disabled"));
 
 		i32 tmp = 0;
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &tmp);
-		maxTextureSize = tmp;
+		__Detail::maxTextureSize = tmp;
 		glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &tmp);
-		max3DTextureSize = tmp;
+		__Detail::max3DTextureSize = tmp;
 		glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &tmp);
-		maxArrayTextureLayers = tmp;
+		__Detail::maxArrayTextureLayers = tmp;
 
-		u32 texSize = maxTextureSize;
-		maxMipmapLevels = 0;
+		u32 texSize = __Detail::maxTextureSize;
+		__Detail::maxMipmapLevels = 0;
 
 		while (texSize != 1) {
 			texSize /= 2;
-			maxMipmapLevels++;
+			__Detail::maxMipmapLevels++;
 		}
 
 		if (GLE_EXT_SUPPORTED(ARB_texture_filter_anisotropic)) {
-			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAnisotropy);
+			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &__Detail::maxAnisotropy);
 		}
 
+		glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &tmp);
+		__Detail::maxVertexTextureUnits = tmp;
+		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &tmp);
+		__Detail::maxFragmentTextureUnits = tmp;
+		glGetIntegerv(GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS, &tmp);
+		__Detail::maxGeometryTextureUnits = tmp;
+		glGetIntegerv(GL_MAX_TESS_CONTROL_TEXTURE_IMAGE_UNITS, &tmp);
+		__Detail::maxTessCtrlTextureUnits = tmp;
+		glGetIntegerv(GL_MAX_TESS_EVALUATION_TEXTURE_IMAGE_UNITS, &tmp);
+		__Detail::maxTessEvalTextureUnits = tmp;
+		glGetIntegerv(GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS, &tmp);
+		__Detail::maxComputeTextureUnits = tmp;
 		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &tmp);
-		maxTextureUnits = tmp;
+		__Detail::maxCombinedTextureUnits = tmp;
 
 		glGetIntegerv(GL_MAX_DEPTH_TEXTURE_SAMPLES, &tmp);
-		maxDepthSamples = tmp;
+		__Detail::maxDepthSamples = tmp;
 		glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &tmp);
-		maxColorSamples = tmp;
+		__Detail::maxColorSamples = tmp;
 		glGetIntegerv(GL_MAX_INTEGER_SAMPLES, &tmp);
-		maxIntegerSamples = tmp;
+		__Detail::maxIntegerSamples = tmp;
 
 		glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &tmp);
-		maxColorAttachments = tmp;
+		__Detail::maxColorAttachments = tmp;
 		glGetIntegerv(GL_MAX_DRAW_BUFFERS, &tmp);
-		maxDrawBuffers = tmp;
+		__Detail::maxDrawBuffers = tmp;
 
 		glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &tmp);
-		maxUniformBlockBindings = tmp;
+		__Detail::maxUniformBlockBindings = tmp;
 
 		return true;
 
@@ -165,51 +184,75 @@ namespace Core {
 namespace Limits {
 
 	u32 getMaxTextureSize() {
-		return maxTextureSize;
+		return __Detail::maxTextureSize;
 	}
 
 	u32 getMax3DTextureSize() {
-		return max3DTextureSize;
+		return __Detail::max3DTextureSize;
 	}
 
 	u32 getMaxArrayTextureLayers() {
-		return maxArrayTextureLayers;
+		return __Detail::maxArrayTextureLayers;
 	}
 
 	u32 getMaxMipmapLevels() {
-		return maxMipmapLevels;
+		return __Detail::maxMipmapLevels;
 	}
 
 	float getMaxTextureAnisotropy() {
-		return maxAnisotropy;
+		return __Detail::maxAnisotropy;
 	}
 
-	u32 getMaxTextureUnits() {
-		return maxTextureUnits;
+	u32 getMaxVertexTextureUnits() {
+		return __Detail::maxVertexTextureUnits;
+	}
+
+	u32 getMaxFragmentTextureUnits() {
+		return __Detail::maxFragmentTextureUnits;
+	}
+
+	u32 getMaxGeometryTextureUnits() {
+		return __Detail::maxGeometryTextureUnits;
+	}
+
+	u32 getMaxTessControlTextureUnits() {
+		return __Detail::maxTessCtrlTextureUnits;
+	}
+
+	u32 getMaxTessEvaluationTextureUnits() {
+		return __Detail::maxTessEvalTextureUnits;
+	}
+
+	u32 getMaxComputeTextureUnits() {
+		return __Detail::maxComputeTextureUnits;
+	}
+
+	u32 getMaxCombinedTextureUnits() {
+		return __Detail::maxCombinedTextureUnits;
 	}
 
 	u32 getMaxDepthSamples() {
-		return maxDepthSamples;
+		return __Detail::maxDepthSamples;
 	}
 
 	u32 getMaxColorSamples() {
-		return maxColorSamples;
+		return __Detail::maxColorSamples;
 	}
 
 	u32 getMaxIntegerSamples() {
-		return maxIntegerSamples;
+		return __Detail::maxIntegerSamples;
 	}
 
 	u32 getMaxColorAttachments() {
-		return maxColorAttachments;
+		return __Detail::maxColorAttachments;
 	}
 
 	u32 getMaxDrawBuffers() {
-		return maxDrawBuffers;
+		return __Detail::maxDrawBuffers;
 	}
 
 	u32 getMaxUniformBlockBindings() {
-		return maxUniformBlockBindings;
+		return __Detail::maxUniformBlockBindings;
 	}
 
 }

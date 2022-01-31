@@ -32,7 +32,14 @@ namespace Limits {
 	u32 getMaxArrayTextureLayers();
 	u32 getMaxMipmapLevels();
 	float getMaxTextureAnisotropy();
-	u32 getMaxTextureUnits();
+
+	u32 getMaxVertexTextureUnits();
+	u32 getMaxFragmentTextureUnits();
+	u32 getMaxGeometryTextureUnits();
+	u32 getMaxTessControlTextureUnits();
+	u32 getMaxTessEvaluationTextureUnits();
+	u32 getMaxComputeTextureUnits();
+	u32 getMaxCombinedTextureUnits();
 
 	u32 getMaxDepthSamples();
 	u32 getMaxColorSamples();
