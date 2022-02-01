@@ -12,7 +12,6 @@
 #include "math/vector.hpp"
 
 
-
 template<Float T>
 class Mat2 {
 
@@ -28,13 +27,14 @@ public:
 	}
 
 	template<Float A>
-	constexpr Mat2(const Mat2<A>& m) : v{ m[0], m[1] } {}
+	constexpr Mat2(const Mat2<A>& m) : v {m[0], m[1]} {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
-	constexpr Mat2(A a, B b, C c, D d) : v{ {a, c}, {b, d} } {}
+	constexpr Mat2(A a, B b, C c, D d) : v {{a, c},
+	                                        {b, d}} {}
 
 	template<Arithmetic A, Arithmetic B>
-	constexpr Mat2(const Vec2<A>& a, const Vec2<B>& b) : v{ a, b } {}
+	constexpr Mat2(const Vec2<A>& a, const Vec2<B>& b) : v {a, b} {}
 
 
 	template<Float A>
@@ -114,8 +114,8 @@ public:
 	}
 
 	constexpr void setIdentity() {
-		v[0] = { 1, 0 };
-		v[1] = { 0, 1 };
+		v[0] = {1, 0};
+		v[1] = {0, 1};
 	}
 
 	constexpr T trace() const {
@@ -154,11 +154,6 @@ public:
 		return v[0] == m[0] && v[1] == m[1];
 	}
 
-	template<Float A>
-	constexpr bool operator!=(const Mat2<A>& m) const {
-		return !(*this == m);
-	}
-
 	constexpr Vec2<T>& operator[](u32 index) {
 		arc_assert(index < 2, "Mat2 access out of bounds (index=%d)", index);
 		return v[index];
@@ -173,7 +168,6 @@ public:
 	Vec2<T> v[2];
 
 };
-
 
 
 template<Float T>
@@ -191,15 +185,23 @@ public:
 	}
 
 	template<Float A>
-	constexpr Mat3(const Mat3<A>& m) : v{ m[0], m[1], m[2] } {}
+	constexpr Mat3(const Mat3<A>& m) : v {m[0], m[1], m[2]} {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C,
-		Arithmetic D, Arithmetic E, Arithmetic F,
-		Arithmetic G, Arithmetic H, Arithmetic I>
-		constexpr Mat3(A a, B b, C c, D d, E e, F f, G g, H h, I i) : v{ {a, d, g}, {b, e, h}, {c, f, i} } {}
+			Arithmetic D, Arithmetic E, Arithmetic F,
+			Arithmetic G, Arithmetic H, Arithmetic I>
+	constexpr Mat3(A a, B b, C c, D d, E e, F f, G g, H h, I i) : v {{a, d, g},
+	                                                                 {b, e, h},
+	                                                                 {c, f, i}} {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
-	constexpr Mat3(const Vec3<A>& a, const Vec3<B>& b, const Vec3<C>& c) : v{ a, b, c } {}
+	constexpr Mat3(const Vec3<A>& a, const Vec3<B>& b, const Vec3<C>& c) : v {a, b, c} {}
+
+	template<Arithmetic A>
+	constexpr Mat3(const Mat2<A>& m) : v {{m[0][0], m[0][1], 0},
+                                          {m[1][0], m[1][1], 0},
+                                          {0, 0, 1}} {}
+
 
 	Mat2<T> toMat2() const {
 		return Mat2<T>(v[0][0], v[1][0], v[0][1], v[1][1]);
@@ -274,7 +276,7 @@ public:
 
 	constexpr T determinant() const {
 		return v[0][0] * v[1][1] * v[2][2] + v[1][0] * v[2][1] * v[0][2] + v[2][0] * v[0][1] * v[1][2]
-			- v[0][2] * v[1][1] * v[2][0] - v[1][2] * v[2][1] * v[0][0] - v[2][2] * v[0][1] * v[1][0];
+		       - v[0][2] * v[1][1] * v[2][0] - v[1][2] * v[2][1] * v[0][0] - v[2][2] * v[0][1] * v[1][0];
 	}
 
 	constexpr void invert() {
@@ -316,9 +318,9 @@ public:
 	}
 
 	constexpr void setIdentity() {
-		v[0] = { 1, 0, 0 };
-		v[1] = { 0, 1, 0 };
-		v[2] = { 0, 0, 1 };
+		v[0] = {1, 0, 0};
+		v[1] = {0, 1, 0};
+		v[2] = {0, 0, 1};
 	}
 
 	constexpr T trace() const {
@@ -358,11 +360,6 @@ public:
 		return v[0] == m[0] && v[1] == m[1] && v[2] == m[2];
 	}
 
-	template<Float A>
-	constexpr bool operator!=(const Mat3<A>& m) const {
-		return !(*this == m);
-	}
-
 	constexpr Vec3<T>& operator[](u32 index) {
 		arc_assert(index < 3, "Mat3 access out of bounds (index=%d)", index);
 		return v[index];
@@ -374,10 +371,101 @@ public:
 	}
 
 
+	template<Arithmetic A, Arithmetic B>
+	constexpr Mat3& translate(A x, B y) {
+		v[2] += v[0] * x;
+		v[2] += v[1] * y;
+		return *this;
+	}
+
+	template<Arithmetic A>
+	constexpr Mat3& translate(const Vec2<A>& vec) {
+		return translate(vec.x, vec.y);
+	}
+
+	template<Arithmetic A>
+	constexpr Mat3& rotate(A angle) {
+
+		T sinTheta = Math::sin(angle);
+		T cosTheta = Math::cos(angle);
+
+		Vec3<T> x = v[0] * cosTheta + v[1] * sinTheta;
+		Vec3<T> y = v[0] * -sinTheta + v[1] * cosTheta;
+		v[0] = x;
+		v[1] = y;
+
+		return *this;
+
+	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr Mat3& scale(A x, B y) {
+		v[0] *= x;
+		v[1] *= y;
+		return *this;
+	}
+
+	template<Arithmetic A>
+	constexpr Mat3& scale(A v) {
+		return scale(v, v);
+	}
+
+	template<Arithmetic A>
+	constexpr Mat3& shearX(A angle) {
+		v[1] += v[0] * Math::tan(angle);
+		return *this;
+	}
+
+	template<Arithmetic A>
+	constexpr Mat3& shearY(A angle) {
+		v[0] += v[1] * Math::tan(angle);
+		return *this;
+	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr static Mat3 fromTranslation(A x, B y) {
+		return Mat3(1, 0, x, 0, 1, y, 0, 0, 1);
+	}
+
+	template<Arithmetic A>
+	constexpr static Mat3 fromTranslation(const Vec2<A>& vec) {
+		return fromTranslation(vec.x, vec.y);
+	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr static Mat3 fromRotation(A angle) {
+
+		T sinTheta = Math::sin(angle);
+		T cosTheta = Math::cos(angle);
+
+		return Mat3(cosTheta, -sinTheta, 0, sinTheta, cosTheta, 0, 0, 0, 1);
+
+	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr static Mat3 fromScale(A x, B y) {
+		return Mat3(x, 0, 0, 0, y, 0, 0, 0, 1);
+	}
+
+	template<Arithmetic A>
+	constexpr static Mat3 fromScale(A v) {
+		return fromScale(v, v);
+	}
+
+	template<Arithmetic A>
+	constexpr static Mat3 fromShearX(A angle) {
+		return Mat3(1, Math::tan(angle), 0, 0, 1, 0, 0, 0, 1);
+	}
+
+	template<Arithmetic A>
+	constexpr static Mat3 fromShearY(A angle) {
+		return Mat3(1, 0, 0, Math::tan(angle), 1, 0, 0, 0, 1);
+	}
+
+
 	Vec3<T> v[3];
 
 };
-
 
 
 template<Float T>
@@ -386,7 +474,7 @@ class Mat4 {
 public:
 
 	using Type = T;
-	
+
 	constexpr static u32 Size = 4;
 
 
@@ -395,17 +483,33 @@ public:
 	}
 
 	template<Float A>
-	constexpr Mat4(const Mat4<A>& m) : v{ m[0], m[1], m[2], m[3] } {}
+	constexpr Mat4(const Mat4<A>& m) : v {m[0], m[1], m[2], m[3]} {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D,
-		Arithmetic E, Arithmetic F, Arithmetic G, Arithmetic H,
-		Arithmetic I, Arithmetic J, Arithmetic K, Arithmetic L,
-		Arithmetic M, Arithmetic N, Arithmetic O, Arithmetic P>
-		constexpr Mat4(A a, B b, C c, D d, E e, F f, G g, H h,
-			I i, J j, K k, L l, M m, N n, O o, P p) : v{ {a, e, i, m}, {b, f, j, n}, {c, g, k, o}, {d, h, l, p} } {}
+			Arithmetic E, Arithmetic F, Arithmetic G, Arithmetic H,
+			Arithmetic I, Arithmetic J, Arithmetic K, Arithmetic L,
+			Arithmetic M, Arithmetic N, Arithmetic O, Arithmetic P>
+	constexpr Mat4(A a, B b, C c, D d, E e, F f, G g, H h,
+	               I i, J j, K k, L l, M m, N n, O o, P p) : v {{a, e, i, m},
+	                                                            {b, f, j, n},
+	                                                            {c, g, k, o},
+	                                                            {d, h, l, p}} {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
-	constexpr Mat4(const Vec4<A>& a, const Vec4<B>& b, const Vec4<C>& c, const Vec4<D>& d) : v{ a, b, c, d } {}
+	constexpr Mat4(const Vec4<A>& a, const Vec4<B>& b, const Vec4<C>& c, const Vec4<D>& d) : v {a, b, c, d} {}
+
+	template<Arithmetic A>
+	constexpr Mat4(const Mat2<A>& m) : v {{m[0][0], m[0][1], 0, 0},
+                                          {m[1][0], m[1][1], 0, 0},
+                                          {0, 0, 1, 0},
+                                          {0, 0, 0, 1}} {}
+
+	template<Arithmetic A>
+	constexpr Mat4(const Mat3<A>& m) : v {{m[0][0], m[0][1], m[0][2], 0},
+                                          {m[1][0], m[1][1], m[1][2], 0},
+                                          {m[2][0], m[2][1], m[2][2], 0},
+                                          {0, 0, 0, 1}} {}
+
 
 	Mat2<T> toMat2() const {
 		return Mat2<T>(v[0][0], v[1][0], v[0][1], v[1][1]);
@@ -414,8 +518,8 @@ public:
 	Mat3<T> toMat3() const {
 
 		return Mat3<T>(v[0][0], v[1][0], v[2][0],
-			v[0][1], v[1][1], v[2][1],
-			v[0][2], v[1][2], v[2][2]);
+		               v[0][1], v[1][1], v[2][1],
+		               v[0][2], v[1][2], v[2][2]);
 
 	}
 
@@ -507,19 +611,19 @@ public:
 
 	constexpr Mat4 transposed() const {
 		return Mat4(v[0][0], v[0][1], v[0][2], v[0][3], v[1][0], v[1][1], v[1][2], v[1][3],
-			v[2][0], v[2][1], v[2][2], v[2][3], v[3][0], v[3][1], v[3][2], v[3][3]);
+		            v[2][0], v[2][1], v[2][2], v[2][3], v[3][0], v[3][1], v[3][2], v[3][3]);
 	}
 
 	constexpr T determinant() const {
 
 		T a = v[0][0] * (v[1][1] * v[2][2] * v[3][3] + v[2][1] * v[3][2] * v[1][3] + v[3][1] * v[1][2] * v[2][3]
-			- v[1][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[1][1] - v[3][3] * v[1][2] * v[2][1]);
+		                 - v[1][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[1][1] - v[3][3] * v[1][2] * v[2][1]);
 		T b = v[1][0] * (v[0][1] * v[2][2] * v[3][3] + v[2][1] * v[3][2] * v[0][3] + v[3][1] * v[0][2] * v[2][3]
-			- v[0][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[2][1]);
+		                 - v[0][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[2][1]);
 		T c = v[2][0] * (v[0][1] * v[1][2] * v[3][3] + v[1][1] * v[3][2] * v[0][3] + v[3][1] * v[0][2] * v[1][3]
-			- v[0][3] * v[1][2] * v[3][1] - v[1][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[1][1]);
+		                 - v[0][3] * v[1][2] * v[3][1] - v[1][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[1][1]);
 		T d = v[3][0] * (v[0][1] * v[1][2] * v[2][3] + v[1][1] * v[2][2] * v[0][3] + v[2][1] * v[0][2] * v[1][3]
-			- v[0][3] * v[1][2] * v[2][1] - v[1][3] * v[2][2] * v[0][1] - v[2][3] * v[0][2] * v[1][1]);
+		                 - v[0][3] * v[1][2] * v[2][1] - v[1][3] * v[2][2] * v[0][1] - v[2][3] * v[0][2] * v[1][1]);
 
 		return a - b + c - d;
 
@@ -578,10 +682,10 @@ public:
 	}
 
 	constexpr void setIdentity() {
-		v[0] = { 1, 0, 0, 0 };
-		v[1] = { 0, 1, 0, 0 };
-		v[2] = { 0, 0, 1, 0 };
-		v[3] = { 0, 0, 0, 1 };
+		v[0] = {1, 0, 0, 0};
+		v[1] = {0, 1, 0, 0};
+		v[2] = {0, 0, 1, 0};
+		v[3] = {0, 0, 0, 1};
 	}
 
 	constexpr T trace() const {
@@ -622,11 +726,6 @@ public:
 		return v[0] == m[0] && v[1] == m[1] && v[2] == m[2] && v[3] == m[3];
 	}
 
-	template<Float A>
-	constexpr bool operator!=(const Mat4<A>& m) const {
-		return !(*this == m);
-	}
-
 	constexpr Vec4<T>& operator[](u32 index) {
 		arc_assert(index < 4, "Mat4 access out of bounds (index=%d)", index);
 		return v[index];
@@ -660,8 +759,8 @@ public:
 		auto mcosTheta = 1.0 - cosTheta;
 
 		Mat3<T> n(u.x * u.x * mcosTheta + cosTheta, u.x * u.y * mcosTheta - u.z * sinTheta, u.x * u.z * mcosTheta + u.y * sinTheta,
-			u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta,
-			u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta);
+		          u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta,
+		          u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta);
 
 		Vec4 x = v[0] * n[0][0] + v[1] * n[0][1] + v[2] * n[0][2];
 		Vec4 y = v[0] * n[1][0] + v[1] * n[1][1] + v[2] * n[1][2];
@@ -700,7 +799,7 @@ public:
 
 	template<Arithmetic A>
 	constexpr static Mat4 fromTranslation(const Vec3<A>& vec) {
-		return Mat4(1, 0, 0, vec.x, 0, 1, 0, vec.y, 0, 0, 1, vec.z, 0, 0, 0, 1);
+		return fromTranslation(vec.x, vec.y, vec.z);
 	}
 
 	template<Float A, Arithmetic B>
@@ -712,14 +811,14 @@ public:
 		auto mcosTheta = 1.0 - cosTheta;
 
 		return Mat4(u.x * u.x * mcosTheta + cosTheta, u.x * u.y * mcosTheta - u.z * sinTheta, u.x * u.z * mcosTheta + u.y * sinTheta, 0,
-					u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta, 0,
-					u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta, 0,
-					0, 0, 0, 1);
+		            u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta, 0,
+		            u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta, 0,
+		            0, 0, 0, 1);
 
 	}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
-	constexpr static Mat4 fromRotationXYZ(A yaw, B pitch, C roll) {
+	constexpr static Mat4 fromRotation(A yaw, B pitch, C roll) {
 
 		auto sinA = Math::sin(yaw);
 		auto cosA = Math::cos(yaw);
@@ -729,9 +828,9 @@ public:
 		auto cosC = Math::cos(roll);
 
 		return Mat4(cosA * cosB, cosA * sinB * sinC - sinA * cosC, cosA * sinB * cosC + sinA * sinC, 0,
-					sinA * cosB, sinA * sinB * sinC + cosA * cosC, sinA * sinB * cosC - cosA * sinC, 0,
-					-sinB, cosB * sinC, cosB * cosC, 0,
-					0, 0, 0, 1);
+		            sinA * cosB, sinA * sinB * sinC + cosA * cosC, sinA * sinB * cosC - cosA * sinC, 0,
+		            -sinB, cosB * sinC, cosB * cosC, 0,
+		            0, 0, 0, 1);
 
 	}
 
@@ -758,9 +857,9 @@ public:
 		Vec3<T> u = f.cross(r);
 
 		return Mat4(r.x, r.y, r.z, -r.dot(pos),
-			u.x, u.y, u.z, -u.dot(pos),
-			f.x, f.y, f.z, -f.dot(pos),
-			0, 0, 0, 1);
+		            u.x, u.y, u.z, -u.dot(pos),
+		            f.x, f.y, f.z, -f.dot(pos),
+		            0, 0, 0, 1);
 
 	}
 
@@ -775,9 +874,9 @@ public:
 		T f = far;
 
 		return Mat4(2 * n / (r - l), 0, (r + l) / (r - l), 0,
-			0, 2 * n / (t - b), (t + b) / (t - b), 0,
-			0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
-			0, 0, -1, 0);
+		            0, 2 * n / (t - b), (t + b) / (t - b), 0,
+		            0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
+		            0, 0, -1, 0);
 
 	}
 
@@ -790,9 +889,9 @@ public:
 		T f = far;
 
 		return Mat4(1 / (a * t), 0, 0, 0,
-			0, 1 / t, 0, 0,
-			0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
-			0, 0, -1, 0);
+		            0, 1 / t, 0, 0,
+		            0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
+		            0, 0, -1, 0);
 
 	}
 
@@ -807,9 +906,9 @@ public:
 		T f = far;
 
 		return Mat4(2 / (r - l), 0, 0, -(r + l) / (r - l),
-			0, 2 / (t - b), 0, -(t + b) / (t - b),
-			0, 0, -2 / (f - n), -(f + n) / (f - n),
-			0, 0, 0, 1);
+		            0, 2 / (t - b), 0, -(t + b) / (t - b),
+		            0, 0, -2 / (f - n), -(f + n) / (f - n),
+		            0, 0, 0, 1);
 
 	}
 
@@ -817,7 +916,6 @@ public:
 	Vec4<T> v[4];
 
 };
-
 
 
 template<class T>
@@ -877,24 +975,22 @@ constexpr auto operator*(const Mat4<A>& m, const Vec4<B>& v) {
 }
 
 
-
-
 #define MATRIX_DEFINE_NDTS(name, dim, type, suffix) typedef Mat##dim<type> name##dim##suffix;
 
 #define MATRIX_DEFINE_ND(name, dim) \
-	MATRIX_DEFINE_NDTS(name, dim, float, f) \
-	MATRIX_DEFINE_NDTS(name, dim, double, d) \
-	MATRIX_DEFINE_NDTS(name, dim, long double, ld) \
-	MATRIX_DEFINE_NDTS(name, dim, ARC_STD_FLOAT_TYPE, x)
+    MATRIX_DEFINE_NDTS(name, dim, float, f) \
+    MATRIX_DEFINE_NDTS(name, dim, double, d) \
+    MATRIX_DEFINE_NDTS(name, dim, long double, ld) \
+    MATRIX_DEFINE_NDTS(name, dim, ARC_STD_FLOAT_TYPE, x)
 
 #define MATRIX_DEFINE_N(name) \
-	MATRIX_DEFINE_ND(name, 2) \
-	MATRIX_DEFINE_ND(name, 3) \
-	MATRIX_DEFINE_ND(name, 4)
+    MATRIX_DEFINE_ND(name, 2) \
+    MATRIX_DEFINE_ND(name, 3) \
+    MATRIX_DEFINE_ND(name, 4)
 
 #define MATRIX_DEFINE \
-	MATRIX_DEFINE_N(Mat) \
-	MATRIX_DEFINE_N(Matrix)
+    MATRIX_DEFINE_N(Mat) \
+    MATRIX_DEFINE_N(Matrix)
 
 MATRIX_DEFINE
 

@@ -130,11 +130,6 @@ public:
 		return Math::equal(x, v.x) && Math::equal(y, v.y);
 	}
 
-	template<Arithmetic A>
-	constexpr bool operator!=(const Vec2<A>& v) const {
-		return !(*this == v);
-	}
-
 	constexpr Vec2 operator-() const {
 		return Vec2(-x, -y);
 	}
@@ -344,11 +339,6 @@ public:
 	constexpr bool operator==(const Vec3<A>& v) const {
 		return Math::equal(x, v.x) && Math::equal(y, v.y) && Math::equal(z, v.z);
 
-	}
-
-	template<Arithmetic A>
-	constexpr bool operator!=(const Vec3<A>& v) const {
-		return !(*this == v);
 	}
 
 	constexpr Vec3 operator-() const {
@@ -576,11 +566,6 @@ public:
 	template<Arithmetic A>
 	constexpr bool operator==(const Vec4<A>& v) const {
 		return Math::equal(x, v.x) && Math::equal(y, v.y) && Math::equal(z, v.z) && Math::equal(w, v.w);
-	}
-
-	template<Arithmetic A>
-	constexpr bool operator!=(const Vec4<A>& v) const {
-		return !(*this == v);
 	}
 
 	constexpr Vec4 operator-() const {
