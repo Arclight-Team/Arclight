@@ -63,5 +63,18 @@ enum class Alignment {
 void setRowUnpackAlignment(Alignment a);
 void setRowPackAlignment(Alignment a);
 
+enum class DepthCompare {
+	Never,
+	Less,
+	LessEqual,
+	Equal,
+	GreaterEqual,
+	Greater,
+	NotEqual,
+	Always
+};
+
+void setDepthFunction(DepthCompare function);
+
 
 GLE_END

@@ -269,4 +269,27 @@ void setRowPackAlignment(Alignment a) {
 }
 
 
+
+void setDepthFunction(DepthCompare function) {
+
+	switch (function) {
+
+		case DepthCompare::Never:           glDepthFunc(GL_NEVER);      break;
+		case DepthCompare::Less:            glDepthFunc(GL_LESS);       break;
+		case DepthCompare::LessEqual:       glDepthFunc(GL_LEQUAL);     break;
+		case DepthCompare::Equal:           glDepthFunc(GL_EQUAL);      break;
+		case DepthCompare::GreaterEqual:    glDepthFunc(GL_GEQUAL);     break;
+		case DepthCompare::Greater:         glDepthFunc(GL_GREATER);    break;
+		case DepthCompare::NotEqual:        glDepthFunc(GL_NOTEQUAL);   break;
+		case DepthCompare::Always:          glDepthFunc(GL_ALWAYS);     break;
+
+		default:
+			arc_force_assert("Illegal depth function %d", function);
+			break;
+
+	}
+
+}
+
+
 GLE_END
