@@ -26,8 +26,8 @@ public:
 
 	ByteStreamImplDRW() requires(Dynamic) = default;
 
-    template<class T> requires Equal<T, TT::RemoveCV<T>>
-    ByteStreamImplDRW(const std::span<T>& data) : MyBase(data) {}
+	template<class T> requires Equal<T, TT::RemoveCV<T>>
+	ByteStreamImplDRW(const std::span<T>& data) : MyBase(data) {}
 
 	virtual SizeT read(void* dest, SizeT size) override {
 		return MyBase::read(dest, size);

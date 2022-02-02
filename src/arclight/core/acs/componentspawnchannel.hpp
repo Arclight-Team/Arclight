@@ -19,38 +19,38 @@ class ComponentSpawnChannel {
 
 public:
 
-    constexpr ComponentSpawnChannel(ComponentProvider& provider, ActorID actor, ComponentObserver& observer) noexcept : provider(provider), observer(observer), actor(actor) {}
+	constexpr ComponentSpawnChannel(ComponentProvider& provider, ActorID actor, ComponentObserver& observer) noexcept : provider(provider), observer(observer), actor(actor) {}
 
-    template<Component C>
-    void add(C&& component) {
-        
-        if(provider.addComponent(actor, std::forward<C>(component))) {
-            observer.record(ComponentEvent::Created, provider.getComponent<TT::RemoveConst<TT::RemoveRef<C>>>(actor), actor);
-        }
+	template<Component C>
+	void add(C&& component) {
+		
+		if(provider.addComponent(actor, std::forward<C>(component))) {
+			observer.record(ComponentEvent::Created, provider.getComponent<TT::RemoveConst<TT::RemoveRef<C>>>(actor), actor);
+		}
 
-    }
+	}
 
-    template<Component C>
-    void overwrite(C&& component) {
+	template<Component C>
+	void overwrite(C&& component) {
 
-        provider.setComponent(actor, std::forward<C>(component));
-        observer.record(ComponentEvent::Created, provider.getComponent<TT::RemoveConst<TT::RemoveRef<C>>>(actor), actor);
+		provider.setComponent(actor, std::forward<C>(component));
+		observer.record(ComponentEvent::Created, provider.getComponent<TT::RemoveConst<TT::RemoveRef<C>>>(actor), actor);
 
-    }
+	}
 
-    template<Component C>
-    bool contains() const {
-        return provider.hasComponent<C>(actor);
-    }
+	template<Component C>
+	bool contains() const {
+		return provider.hasComponent<C>(actor);
+	}
 
-    constexpr ActorID getActor() const noexcept {
-        return actor;
-    }
+	constexpr ActorID getActor() const noexcept {
+		return actor;
+	}
 
 private:
 
-    ComponentProvider& provider;
-    ComponentObserver& observer;
-    ActorID actor;
+	ComponentProvider& provider;
+	ComponentObserver& observer;
+	ActorID actor;
 
 };

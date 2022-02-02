@@ -23,42 +23,42 @@
 template<SizeT Size>
 class Hash {
 
-    constexpr static SizeT Segments = Size / 8;
+	constexpr static SizeT Segments = Size / 8;
 
 public:
 
-    constexpr Hash() noexcept {
+	constexpr Hash() noexcept {
 
-        for(SizeT i = 0; i < Segments; i++) {
-            segments[i] = 0;
-        }
+		for(SizeT i = 0; i < Segments; i++) {
+			segments[i] = 0;
+		}
 
-    }
+	}
 
-    template<Integer... J>
-    constexpr Hash(J... j) noexcept {
-        set(j...);
-    }
+	template<Integer... J>
+	constexpr Hash(J... j) noexcept {
+		set(j...);
+	}
 
-    template<Integer... J> requires ((sizeof(J) + ...) * 8 == Size)
-    constexpr void set(J... j) {
+	template<Integer... J> requires ((sizeof(J) + ...) * 8 == Size)
+	constexpr void set(J... j) {
 
-        SizeT i = 0;
-        ((Bits::disassemble(j, segments + i), i += sizeof(J)), ...);
+		SizeT i = 0;
+		((Bits::disassemble(j, segments + i), i += sizeof(J)), ...);
 
-    }
+	}
 
-    constexpr bool operator==(const Hash<Size>& other) noexcept {
+	constexpr bool operator==(const Hash<Size>& other) noexcept {
 
-        bool equal = true;
+		bool equal = true;
 
-        for(SizeT i = 0; i < Segments; i++) {
-            equal &= segments[i] == other.segments[i];
-        }
+		for(SizeT i = 0; i < Segments; i++) {
+			equal &= segments[i] == other.segments[i];
+		}
 
-        return equal;
+		return equal;
 
-    }
+	}
 
 	template<UnsignedType U>
 	constexpr U toInteger(SizeT start = 0) const noexcept {
@@ -71,32 +71,32 @@ public:
 
 	}
 
-    constexpr std::array<u8, Size / 8> toArray() const noexcept {
+	constexpr std::array<u8, Size / 8> toArray() const noexcept {
 
-        std::array<u8, Size / 8> a;
+		std::array<u8, Size / 8> a;
 
-        for(SizeT i = 0; i < Segments; i++) {
-            Bits::disassemble(segments[i], a.data() + i);
-        }
+		for(SizeT i = 0; i < Segments; i++) {
+			Bits::disassemble(segments[i], a.data() + i);
+		}
 
-        return a;
+		return a;
 
-    }
+	}
 
-    std::string toString(bool upper = false) const noexcept {
+	std::string toString(bool upper = false) const noexcept {
 
-        std::string s;
+		std::string s;
 
-        for(SizeT i = 0; i < Segments; i++) {
-            s += String::toHexString(Bits::swap(segments[i]), upper, false);
-        }
+		for(SizeT i = 0; i < Segments; i++) {
+			s += String::toHexString(Bits::swap(segments[i]), upper, false);
+		}
 
-        return s;
+		return s;
 
-    }
+	}
 
 private:
 
-    u8 segments[Segments];
+	u8 segments[Segments];
 
 };

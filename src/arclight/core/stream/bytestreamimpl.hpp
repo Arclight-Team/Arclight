@@ -26,89 +26,89 @@ class ByteStreamImpl
 {
 public:
 
-    static_assert(!(Const && Dynamic));
+	static_assert(!(Const && Dynamic));
 
-    using u8Type = TT::ConditionalConst<Const, u8>;
-    using StorageType = TT::Conditional<Dynamic, std::vector<u8Type>, std::span<u8Type>>;
+	using u8Type = TT::ConditionalConst<Const, u8>;
+	using StorageType = TT::Conditional<Dynamic, std::vector<u8Type>, std::span<u8Type>>;
 
 	ByteStreamImpl() requires(Dynamic) = default;
 
 	template<class T, SizeT Extent> requires (!ConstType<T> || (ConstType<T> && Const))
 	ByteStreamImpl(const std::span<T, Extent>& data) : position(0)  {
 
-        if constexpr (!Dynamic) {
+		if constexpr (!Dynamic) {
 
 			//convert T span to byte span
-            if constexpr (Const) {
-                this->data = StorageType{ Bits::toByteArray(data.data()), data.size_bytes() };
+			if constexpr (Const) {
+				this->data = StorageType{ Bits::toByteArray(data.data()), data.size_bytes() };
 			}
 			else {
-                this->data = StorageType{ Bits::toByteArray(data.data()), data.size_bytes() };
+				this->data = StorageType{ Bits::toByteArray(data.data()), data.size_bytes() };
 			}
 
-        }
-        else {
+		}
+		else {
 
-            this->data.resize(data.size() * sizeof(T));
-            std::memcpy(this->data.data(), data.data(), this->data.size());
+			this->data.resize(data.size() * sizeof(T));
+			std::memcpy(this->data.data(), data.data(), this->data.size());
 
-        }
+		}
 
 
 	}
 
 	SizeT read(void* dest, SizeT size) {
 
-        arc_assert(dest != nullptr, "Destination is null");
-        arc_assert(position + size <= getSize(), "Cannot read past the end of the stream");
+		arc_assert(dest != nullptr, "Destination is null");
+		arc_assert(position + size <= getSize(), "Cannot read past the end of the stream");
 
-        size = Math::min(size, getSize() - position);
-        std::copy_n(data.data() + position, size, static_cast<u8*>(dest));
-        
-        position += size;
+		size = Math::min(size, getSize() - position);
+		std::copy_n(data.data() + position, size, static_cast<u8*>(dest));
+		
+		position += size;
 
-        return size;
+		return size;
 
-    }
+	}
 
 	SizeT write(const void* src, SizeT size) requires (!Const && !Dynamic) {
 
-        arc_assert(src != nullptr, "Source is null");
-        arc_assert(position + size <= getSize(), "Cannot write past the end of the stream");
+		arc_assert(src != nullptr, "Source is null");
+		arc_assert(position + size <= getSize(), "Cannot write past the end of the stream");
 
-        size = Math::min(size, getSize() - position);
-        std::copy_n(static_cast<const u8*>(src), size, data.data() + position);
+		size = Math::min(size, getSize() - position);
+		std::copy_n(static_cast<const u8*>(src), size, data.data() + position);
 
-        position += size;
+		position += size;
 
-        return size;
+		return size;
 
-    }
+	}
 
-    SizeT write(const void* src, SizeT size) requires (!Const && Dynamic) {
+	SizeT write(const void* src, SizeT size) requires (!Const && Dynamic) {
 
-        arc_assert(src != nullptr, "Source is null");
+		arc_assert(src != nullptr, "Source is null");
 
-        // Resize if needed
-        if (position + size > getSize()) {
-            data.resize(position + size);
-        }
+		// Resize if needed
+		if (position + size > getSize()) {
+			data.resize(position + size);
+		}
 
-        size = Math::min(size, getSize() - position);
-        std::memcpy(data.data() + position, src, size);
+		size = Math::min(size, getSize() - position);
+		std::memcpy(data.data() + position, src, size);
 
-        position += size;
+		position += size;
 
-        return size;
+		return size;
 
-    }
+	}
 
-    void seek(i64 offset) {
+	void seek(i64 offset) {
 
-	    arc_assert(position + offset <= getSize(), "Illegal seek past the end");
-        position += offset;
+		arc_assert(position + offset <= getSize(), "Illegal seek past the end");
+		position += offset;
 
-    }
+	}
 
 	void seekTo(u64 offset) {
 
@@ -117,34 +117,34 @@ public:
 
 	}
 
-    constexpr auto getData() {
-        return data;
-    }
+	constexpr auto getData() {
+		return data;
+	}
 
-    constexpr auto getData() const {
-        return data;
-    }
+	constexpr auto getData() const {
+		return data;
+	}
 
 	SizeT getPosition() const {
-        return position;
-    }
+		return position;
+	}
 
-    SizeT getSize() const {
-        return data.size();
-    }
+	SizeT getSize() const {
+		return data.size();
+	}
 
 	bool isOpen() const {
-        return data.size();
-    }
+		return data.size();
+	}
 
-    bool reachedEnd() const {
-        return position == data.size();
-    }
+	bool reachedEnd() const {
+		return position == data.size();
+	}
 
 private:
 
-    StorageType data;
-    SizeT position;
+	StorageType data;
+	SizeT position;
 
 };
 

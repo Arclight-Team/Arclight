@@ -153,7 +153,7 @@ namespace SHA0 {
 namespace SHA1 {
 
 	constexpr Hash<160> hash(const std::span<const u8>& data) {
-	    return __SHA01Detail::hashSHA01<true>(data);
+		return __SHA01Detail::hashSHA01<true>(data);
 	}
 
 }

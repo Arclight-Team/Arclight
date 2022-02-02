@@ -185,16 +185,16 @@ namespace TT {
 
 
 	/* True if any type in Pack matches T */
-    template<class T, class... Pack>
-    constexpr inline bool IsAnyOf = Detail::IsAnyOf<T, Pack...>::Value;
+	template<class T, class... Pack>
+	constexpr inline bool IsAnyOf = Detail::IsAnyOf<T, Pack...>::Value;
 
 	/* True if all types in Pack equal T */
-    template<class T, class... Pack>
-    constexpr inline bool IsAllSame = Detail::IsAllSame<T, Pack...>::Value;
+	template<class T, class... Pack>
+	constexpr inline bool IsAllSame = Detail::IsAllSame<T, Pack...>::Value;
 
 	/* Returns the size of the nth type in Pack */
-    template<SizeT N, class... Pack> requires (N < sizeof...(Pack))
-    constexpr inline SizeT SizeofN = Detail::SizeofN<N, Pack...>;
+	template<SizeT N, class... Pack> requires (N < sizeof...(Pack))
+	constexpr inline SizeT SizeofN = Detail::SizeofN<N, Pack...>;
 
 
 	/* Conditionally adds the const qualifier to T */
@@ -203,11 +203,11 @@ namespace TT {
 
 
 	/* Converts an Integer type to a roughly equivalent Float type */
-    template<class T>
-    using ToInteger = typename Detail::ToInteger<T>::Type;
+	template<class T>
+	using ToInteger = typename Detail::ToInteger<T>::Type;
 
-    template<class T>
-    using ToFloat = typename Detail::ToFloat<T>::Type;
+	template<class T>
+	using ToFloat = typename Detail::ToFloat<T>::Type;
 
 
 	/* Defines the corresponding integral type fitting at least the given amount of bytes */

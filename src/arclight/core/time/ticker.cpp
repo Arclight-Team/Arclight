@@ -14,9 +14,9 @@ Ticker::Ticker() : usPerTick(1), accumulator(0) {}
 
 void Ticker::start(u32 tps) {
 
-    timer.start();
+	timer.start();
 	accumulator = 0;
-    usPerTick = 1000000ULL / tps;
+	usPerTick = 1000000ULL / tps;
 
 }
 
@@ -25,7 +25,7 @@ void Ticker::start(u32 tps) {
 u32 Ticker::getTicks() {
 
 	u64 delta = static_cast<u64>(timer.getElapsedTime(Time::Unit::Microseconds));
-    timer.start();
+	timer.start();
 
 	accumulator += delta;
 	u32 ticks = 0;
@@ -37,6 +37,6 @@ u32 Ticker::getTicks() {
 
 	}
 
-    return ticks;
+	return ticks;
 
 }

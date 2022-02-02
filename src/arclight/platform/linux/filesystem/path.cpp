@@ -20,53 +20,53 @@
 
 Path Path::getApplicationDirectory() {
 
-    constexpr const char* symlinkName = "/proc/self/exe";
-    SizeT length = 0x200;
+	constexpr const char* symlinkName = "/proc/self/exe";
+	SizeT length = 0x200;
 
-    std::vector<char> filename(length);
+	std::vector<char> filename(length);
 
-    try {
+	try {
 
-        while(true) {
+		while(true) {
 
-            ssize_t readLength = readlink(symlinkName, filename.data(), filename.size());
+			ssize_t readLength = readlink(symlinkName, filename.data(), filename.size());
 
-            if(readLength == length) {
+			if(readLength == length) {
 
-                //If length exceeds 0x10000 bytes, cancel
-                if(length >= 0x10000) {
+				//If length exceeds 0x10000 bytes, cancel
+				if(length >= 0x10000) {
 
-                    Log::error("Path", "Failed to query application directory path: Path name exceeds 0x10000 bytes");
-                    return Path();
+					Log::error("Path", "Failed to query application directory path: Path name exceeds 0x10000 bytes");
+					return Path();
 
-                }
+				}
 
-                //Double buffer and retry
-                length *= 2;
-                filename.resize(length);
+				//Double buffer and retry
+				length *= 2;
+				filename.resize(length);
 
-            } else if (readLength == -1) {
+			} else if (readLength == -1) {
 
-                //Error occured while reading the symlink
-                Log::error("Path", "Failed to query application directory path: Cannot read symbolic link");
-                return Path();
+				//Error occured while reading the symlink
+				Log::error("Path", "Failed to query application directory path: Cannot read symbolic link");
+				return Path();
 
-            } else {
+			} else {
 
-                //Read was successful, return filename
-                std::string str(filename.data(), readLength);
+				//Read was successful, return filename
+				std::string str(filename.data(), readLength);
 
-                return Path(std::filesystem::path(str)).parent();
+				return Path(std::filesystem::path(str)).parent();
 
-            }
-            
-        }
+			}
+			
+		}
 
-    } catch (std::exception& e) {
+	} catch (std::exception& e) {
 
-        Log::error("Path", "Failed to query application directory path: %s", e.what());
-        return Path();
+		Log::error("Path", "Failed to query application directory path: %s", e.what());
+		return Path();
 
-    }
+	}
 
 }

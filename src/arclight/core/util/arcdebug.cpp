@@ -15,38 +15,38 @@
 
 
 ArcDebug::~ArcDebug() {
-    flush();
+	flush();
 }
 
 
 
 void ArcDebug::dispatchToken(Token token) {
 
-    switch(token) {
+	switch(token) {
 
-        case ArcSpace:
-            buffer << ' ';
-            break;
-        
-        case ArcEndl:
-            flush();
-            break;
+		case ArcSpace:
+			buffer << ' ';
+			break;
+		
+		case ArcEndl:
+			flush();
+			break;
 
-        case ArcHex:
-            buffer << std::hex;
-            break;
+		case ArcHex:
+			buffer << std::hex;
+			break;
 
-        case ArcDec:
-            buffer << std::dec;
-            break;
+		case ArcDec:
+			buffer << std::dec;
+			break;
 
-        case ArcUpper:
-            buffer << std::uppercase;
-            break;
+		case ArcUpper:
+			buffer << std::uppercase;
+			break;
 
-        case ArcNoUpper:
-            buffer << std::nouppercase;
-            break;
+		case ArcNoUpper:
+			buffer << std::nouppercase;
+			break;
 
 		case ArcForward:
 			reversed = false;
@@ -56,18 +56,18 @@ void ArcDebug::dispatchToken(Token token) {
 			reversed = true;
 			break;
 
-        default:
-            arc_force_assert("Invalid ArcDebug token");
-            break;
+		default:
+			arc_force_assert("Invalid ArcDebug token");
+			break;
 
-    }
+	}
 
 }
 
 
 void ArcDebug::flush() noexcept {
 
-    try {
+	try {
 
 		std::string str = buffer.str();
 		buffer.str("");
@@ -76,11 +76,11 @@ void ArcDebug::flush() noexcept {
 			str.resize(str.size() - 1);
 		}
 
-        Log::info("Debug", str);
+		Log::info("Debug", str);
 
-    } catch(const std::exception& e) {
-        arc_force_assert(std::string("Exception caught while flushing debug buffer: ") + e.what());
-    }
+	} catch(const std::exception& e) {
+		arc_force_assert(std::string("Exception caught while flushing debug buffer: ") + e.what());
+	}
 
 }
 

@@ -14,108 +14,108 @@
 namespace TrueType {
 
 
-    bool verifyPlatformID(u16 platformID, u16 specificID, bool cmapExt) {
+	bool verifyPlatformID(u16 platformID, u16 specificID, bool cmapExt) {
 
-        if(platformID > 3) {
-            return false;
-        }
+		if(platformID > 3) {
+			return false;
+		}
 
-        PlatformID id = static_cast<PlatformID>(platformID);
+		PlatformID id = static_cast<PlatformID>(platformID);
 
-        switch(id) {
+		switch(id) {
 
-            case PlatformID::Unicode:
+			case PlatformID::Unicode:
 
-                if((cmapExt && specificID > 6) || (!cmapExt && specificID > 4)) {
-                    return false;
-                }
+				if((cmapExt && specificID > 6) || (!cmapExt && specificID > 4)) {
+					return false;
+				}
 
-                break;
+				break;
 
-            default:
-            case PlatformID::Reserved:
-                return false;
+			default:
+			case PlatformID::Reserved:
+				return false;
 
-            case PlatformID::Macintosh:
+			case PlatformID::Macintosh:
 
-                if(specificID > 32) {
-                    return false;
-                }
+				if(specificID > 32) {
+					return false;
+				}
 
-                break;
+				break;
 
-            case PlatformID::Microsoft:
-                            
-                if(specificID > 6 && specificID != 10) {
-                    return false;
-                }
+			case PlatformID::Microsoft:
+							
+				if(specificID > 6 && specificID != 10) {
+					return false;
+				}
 
-                break;
+				break;
 
-        }
+		}
 
-        return true;
+		return true;
 
-    }
+	}
 
 
-    std::string decodeText(PlatformID platformID, u16 specificID, const std::string& in) {
+	std::string decodeText(PlatformID platformID, u16 specificID, const std::string& in) {
 
-        switch(platformID) {
+		switch(platformID) {
 
-            case PlatformID::Unicode:
-                //Unicode doesn't have to be re-converted
-                break;
+			case PlatformID::Unicode:
+				//Unicode doesn't have to be re-converted
+				break;
 
-            case PlatformID::Macintosh:
-                //Macintosh will not be supported
-                break;
+			case PlatformID::Macintosh:
+				//Macintosh will not be supported
+				break;
 
-            case PlatformID::Microsoft:
-            {
-                MicrosoftEncoding encoding = static_cast<MicrosoftEncoding>(specificID);
+			case PlatformID::Microsoft:
+			{
+				MicrosoftEncoding encoding = static_cast<MicrosoftEncoding>(specificID);
 
-                switch(encoding) {
+				switch(encoding) {
 
-                    case MicrosoftEncoding::ShiftJIS:
-                        return CodeConv::fromShiftJIS<Unicode::Encoding::UTF8>(in);
+					case MicrosoftEncoding::ShiftJIS:
+						return CodeConv::fromShiftJIS<Unicode::Encoding::UTF8>(in);
 
-                    case MicrosoftEncoding::Big5:
-                        return CodeConv::fromBig5<Unicode::Encoding::UTF8>(in);
-                        
-                    case MicrosoftEncoding::Wansung:
-                        return CodeConv::fromWansung<Unicode::Encoding::UTF8>(in);
-                        
-                    case MicrosoftEncoding::Johab:
-                        return CodeConv::fromJohab<Unicode::Encoding::UTF8>(in);
+					case MicrosoftEncoding::Big5:
+						return CodeConv::fromBig5<Unicode::Encoding::UTF8>(in);
+						
+					case MicrosoftEncoding::Wansung:
+						return CodeConv::fromWansung<Unicode::Encoding::UTF8>(in);
+						
+					case MicrosoftEncoding::Johab:
+						return CodeConv::fromJohab<Unicode::Encoding::UTF8>(in);
 
-                    case MicrosoftEncoding::PRC:
-                        //PRC is not supported as of now
-                        break;
+					case MicrosoftEncoding::PRC:
+						//PRC is not supported as of now
+						break;
 
-                    case MicrosoftEncoding::Symbol:
-                        //No conversion necessary
-                        break;
+					case MicrosoftEncoding::Symbol:
+						//No conversion necessary
+						break;
 
-                    default:
-                    case MicrosoftEncoding::UnicodeBMP:
-                    case MicrosoftEncoding::UnicodeFull:
-                        break;
+					default:
+					case MicrosoftEncoding::UnicodeBMP:
+					case MicrosoftEncoding::UnicodeFull:
+						break;
 
-                }
+				}
 
-            }
-            break;
+			}
+			break;
 
-            default:
-            case PlatformID::Reserved:
-                break;
+			default:
+			case PlatformID::Reserved:
+				break;
 
-        }
+		}
 
-        return in;
+		return in;
 
-    }
+	}
 
 
 }

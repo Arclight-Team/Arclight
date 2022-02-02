@@ -19,21 +19,21 @@ typedef u32 ActorTypeID;
 class ComponentSpawnChannel;
 
 /*
-    Actor interface for all blueprints
+	Actor interface for all blueprints
 */
 class IActor {
 
 public:
 
-    virtual void onCreate(ComponentSpawnChannel& channel) {
-        __pure_construct(channel);
-    }
+	virtual void onCreate(ComponentSpawnChannel& channel) {
+		__pure_construct(channel);
+	}
 
 private:
 
-    static void __pure_construct(ComponentSpawnChannel&) {
-        arc_force_assert("Illegal invokation of actor constructor");
-    }
+	static void __pure_construct(ComponentSpawnChannel&) {
+		arc_force_assert("Illegal invokation of actor constructor");
+	}
 
 };
 

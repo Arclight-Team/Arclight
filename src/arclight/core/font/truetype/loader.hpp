@@ -15,7 +15,7 @@ class InputStream;
 
 namespace TrueType {
 
-    Font loadFont(InputStream& stream);
-    std::vector<Font> loadFontCollection(InputStream& stream);
+	Font loadFont(InputStream& stream);
+	std::vector<Font> loadFontCollection(InputStream& stream);
 
 }

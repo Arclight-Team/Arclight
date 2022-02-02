@@ -31,7 +31,7 @@ public:
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
 	constexpr Mat2(A a, B b, C c, D d) : v {{a, c},
-	                                        {b, d}} {}
+											{b, d}} {}
 
 	template<Arithmetic A, Arithmetic B>
 	constexpr Mat2(const Vec2<A>& a, const Vec2<B>& b) : v {a, b} {}
@@ -191,16 +191,16 @@ public:
 			Arithmetic D, Arithmetic E, Arithmetic F,
 			Arithmetic G, Arithmetic H, Arithmetic I>
 	constexpr Mat3(A a, B b, C c, D d, E e, F f, G g, H h, I i) : v {{a, d, g},
-	                                                                 {b, e, h},
-	                                                                 {c, f, i}} {}
+																	 {b, e, h},
+																	 {c, f, i}} {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
 	constexpr Mat3(const Vec3<A>& a, const Vec3<B>& b, const Vec3<C>& c) : v {a, b, c} {}
 
 	template<Float F>
 	constexpr explicit Mat3(const Mat2<F>& m) : v {{m[0][0], m[0][1], 0},
-		                                          {m[1][0], m[1][1], 0},
-		                                          {0, 0, 1}} {}
+												  {m[1][0], m[1][1], 0},
+												  {0, 0, 1}} {}
 
 
 	Mat2<T> toMat2() const {
@@ -276,7 +276,7 @@ public:
 
 	constexpr T determinant() const {
 		return v[0][0] * v[1][1] * v[2][2] + v[1][0] * v[2][1] * v[0][2] + v[2][0] * v[0][1] * v[1][2]
-		       - v[0][2] * v[1][1] * v[2][0] - v[1][2] * v[2][1] * v[0][0] - v[2][2] * v[0][1] * v[1][0];
+			   - v[0][2] * v[1][1] * v[2][0] - v[1][2] * v[2][1] * v[0][0] - v[2][2] * v[0][1] * v[1][0];
 	}
 
 	constexpr void invert() {
@@ -526,25 +526,25 @@ public:
 			Arithmetic I, Arithmetic J, Arithmetic K, Arithmetic L,
 			Arithmetic M, Arithmetic N, Arithmetic O, Arithmetic P>
 	constexpr Mat4(A a, B b, C c, D d, E e, F f, G g, H h,
-	               I i, J j, K k, L l, M m, N n, O o, P p) : v {{a, e, i, m},
-	                                                            {b, f, j, n},
-	                                                            {c, g, k, o},
-	                                                            {d, h, l, p}} {}
+				   I i, J j, K k, L l, M m, N n, O o, P p) : v {{a, e, i, m},
+																{b, f, j, n},
+																{c, g, k, o},
+																{d, h, l, p}} {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
 	constexpr Mat4(const Vec4<A>& a, const Vec4<B>& b, const Vec4<C>& c, const Vec4<D>& d) : v {a, b, c, d} {}
 
 	template<Float F>
 	constexpr explicit Mat4(const Mat2<F>& m) : v {{m[0][0], m[0][1], 0, 0},
-		                                          {m[1][0], m[1][1], 0, 0},
-		                                          {0, 0, 1, 0},
-		                                          {0, 0, 0, 1}} {}
+												  {m[1][0], m[1][1], 0, 0},
+												  {0, 0, 1, 0},
+												  {0, 0, 0, 1}} {}
 
 	template<Float F>
 	constexpr explicit Mat4(const Mat3<F>& m) : v {{m[0][0], m[0][1], m[0][2], 0},
-		                                          {m[1][0], m[1][1], m[1][2], 0},
-		                                          {m[2][0], m[2][1], m[2][2], 0},
-		                                          {0, 0, 0, 1}} {}
+												  {m[1][0], m[1][1], m[1][2], 0},
+												  {m[2][0], m[2][1], m[2][2], 0},
+												  {0, 0, 0, 1}} {}
 
 
 	Mat2<T> toMat2() const {
@@ -554,8 +554,8 @@ public:
 	Mat3<T> toMat3() const {
 
 		return Mat3<T>(v[0][0], v[1][0], v[2][0],
-		               v[0][1], v[1][1], v[2][1],
-		               v[0][2], v[1][2], v[2][2]);
+					   v[0][1], v[1][1], v[2][1],
+					   v[0][2], v[1][2], v[2][2]);
 
 	}
 
@@ -647,19 +647,19 @@ public:
 
 	constexpr Mat4 transposed() const {
 		return Mat4(v[0][0], v[0][1], v[0][2], v[0][3], v[1][0], v[1][1], v[1][2], v[1][3],
-		            v[2][0], v[2][1], v[2][2], v[2][3], v[3][0], v[3][1], v[3][2], v[3][3]);
+					v[2][0], v[2][1], v[2][2], v[2][3], v[3][0], v[3][1], v[3][2], v[3][3]);
 	}
 
 	constexpr T determinant() const {
 
 		T a = v[0][0] * (v[1][1] * v[2][2] * v[3][3] + v[2][1] * v[3][2] * v[1][3] + v[3][1] * v[1][2] * v[2][3]
-		                 - v[1][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[1][1] - v[3][3] * v[1][2] * v[2][1]);
+						 - v[1][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[1][1] - v[3][3] * v[1][2] * v[2][1]);
 		T b = v[1][0] * (v[0][1] * v[2][2] * v[3][3] + v[2][1] * v[3][2] * v[0][3] + v[3][1] * v[0][2] * v[2][3]
-		                 - v[0][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[2][1]);
+						 - v[0][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[2][1]);
 		T c = v[2][0] * (v[0][1] * v[1][2] * v[3][3] + v[1][1] * v[3][2] * v[0][3] + v[3][1] * v[0][2] * v[1][3]
-		                 - v[0][3] * v[1][2] * v[3][1] - v[1][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[1][1]);
+						 - v[0][3] * v[1][2] * v[3][1] - v[1][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[1][1]);
 		T d = v[3][0] * (v[0][1] * v[1][2] * v[2][3] + v[1][1] * v[2][2] * v[0][3] + v[2][1] * v[0][2] * v[1][3]
-		                 - v[0][3] * v[1][2] * v[2][1] - v[1][3] * v[2][2] * v[0][1] - v[2][3] * v[0][2] * v[1][1]);
+						 - v[0][3] * v[1][2] * v[2][1] - v[1][3] * v[2][2] * v[0][1] - v[2][3] * v[0][2] * v[1][1]);
 
 		return a - b + c - d;
 
@@ -795,8 +795,8 @@ public:
 		auto mcosTheta = 1.0 - cosTheta;
 
 		Mat3<T> n(u.x * u.x * mcosTheta + cosTheta, u.x * u.y * mcosTheta - u.z * sinTheta, u.x * u.z * mcosTheta + u.y * sinTheta,
-		          u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta,
-		          u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta);
+				  u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta,
+				  u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta);
 
 		Vec4 x = v[0] * n[0][0] + v[1] * n[0][1] + v[2] * n[0][2];
 		Vec4 y = v[0] * n[1][0] + v[1] * n[1][1] + v[2] * n[1][2];
@@ -847,9 +847,9 @@ public:
 		auto mcosTheta = 1.0 - cosTheta;
 
 		return Mat4(u.x * u.x * mcosTheta + cosTheta, u.x * u.y * mcosTheta - u.z * sinTheta, u.x * u.z * mcosTheta + u.y * sinTheta, 0,
-		            u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta, 0,
-		            u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta, 0,
-		            0, 0, 0, 1);
+					u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta, 0,
+					u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta, 0,
+					0, 0, 0, 1);
 
 	}
 
@@ -864,9 +864,9 @@ public:
 		auto cosC = Math::cos(roll);
 
 		return Mat4(cosA * cosB, cosA * sinB * sinC - sinA * cosC, cosA * sinB * cosC + sinA * sinC, 0,
-		            sinA * cosB, sinA * sinB * sinC + cosA * cosC, sinA * sinB * cosC - cosA * sinC, 0,
-		            -sinB, cosB * sinC, cosB * cosC, 0,
-		            0, 0, 0, 1);
+					sinA * cosB, sinA * sinB * sinC + cosA * cosC, sinA * sinB * cosC - cosA * sinC, 0,
+					-sinB, cosB * sinC, cosB * cosC, 0,
+					0, 0, 0, 1);
 
 	}
 
@@ -893,9 +893,9 @@ public:
 		Vec3<T> u = f.cross(r);
 
 		return Mat4(r.x, r.y, r.z, -r.dot(pos),
-		            u.x, u.y, u.z, -u.dot(pos),
-		            f.x, f.y, f.z, -f.dot(pos),
-		            0, 0, 0, 1);
+					u.x, u.y, u.z, -u.dot(pos),
+					f.x, f.y, f.z, -f.dot(pos),
+					0, 0, 0, 1);
 
 	}
 
@@ -910,9 +910,9 @@ public:
 		T f = far;
 
 		return Mat4(2 * n / (r - l), 0, (r + l) / (r - l), 0,
-		            0, 2 * n / (t - b), (t + b) / (t - b), 0,
-		            0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
-		            0, 0, -1, 0);
+					0, 2 * n / (t - b), (t + b) / (t - b), 0,
+					0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
+					0, 0, -1, 0);
 
 	}
 
@@ -925,9 +925,9 @@ public:
 		T f = far;
 
 		return Mat4(1 / (a * t), 0, 0, 0,
-		            0, 1 / t, 0, 0,
-		            0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
-		            0, 0, -1, 0);
+					0, 1 / t, 0, 0,
+					0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
+					0, 0, -1, 0);
 
 	}
 
@@ -942,9 +942,9 @@ public:
 		T f = far;
 
 		return Mat4(2 / (r - l), 0, 0, -(r + l) / (r - l),
-		            0, 2 / (t - b), 0, -(t + b) / (t - b),
-		            0, 0, -2 / (f - n), -(f + n) / (f - n),
-		            0, 0, 0, 1);
+					0, 2 / (t - b), 0, -(t + b) / (t - b),
+					0, 0, -2 / (f - n), -(f + n) / (f - n),
+					0, 0, 0, 1);
 
 	}
 
@@ -1019,19 +1019,19 @@ constexpr auto operator*(const Mat4<A>& m, const Vec4<B>& v) {
 #define MATRIX_DEFINE_NDTS(name, dim, type, suffix) typedef Mat##dim<type> name##dim##suffix;
 
 #define MATRIX_DEFINE_ND(name, dim) \
-    MATRIX_DEFINE_NDTS(name, dim, float, f) \
-    MATRIX_DEFINE_NDTS(name, dim, double, d) \
-    MATRIX_DEFINE_NDTS(name, dim, long double, ld) \
-    MATRIX_DEFINE_NDTS(name, dim, ARC_STD_FLOAT_TYPE, x)
+	MATRIX_DEFINE_NDTS(name, dim, float, f) \
+	MATRIX_DEFINE_NDTS(name, dim, double, d) \
+	MATRIX_DEFINE_NDTS(name, dim, long double, ld) \
+	MATRIX_DEFINE_NDTS(name, dim, ARC_STD_FLOAT_TYPE, x)
 
 #define MATRIX_DEFINE_N(name) \
-    MATRIX_DEFINE_ND(name, 2) \
-    MATRIX_DEFINE_ND(name, 3) \
-    MATRIX_DEFINE_ND(name, 4)
+	MATRIX_DEFINE_ND(name, 2) \
+	MATRIX_DEFINE_ND(name, 3) \
+	MATRIX_DEFINE_ND(name, 4)
 
 #define MATRIX_DEFINE \
-    MATRIX_DEFINE_N(Mat) \
-    MATRIX_DEFINE_N(Matrix)
+	MATRIX_DEFINE_N(Mat) \
+	MATRIX_DEFINE_N(Matrix)
 
 MATRIX_DEFINE
 

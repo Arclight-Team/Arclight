@@ -27,7 +27,7 @@
 
 template<class T>
 concept StringStreamable = requires(T&& t, std::stringstream stream) {
-    stream << t;
+	stream << t;
 };
 
 template<class T>
@@ -44,166 +44,166 @@ class ArcDebug {
 
 public:
 
-    enum class Token {
-        ArcEndl,
-        ArcSpace,
-        ArcDec,
-        ArcHex,
-        ArcUpper,
-        ArcNoUpper,
+	enum class Token {
+		ArcEndl,
+		ArcSpace,
+		ArcDec,
+		ArcHex,
+		ArcUpper,
+		ArcNoUpper,
 		ArcForward,
 		ArcReversed
-    };
+	};
 
-    constexpr static auto maxLineElements = 20;
-    constexpr static auto maxContainerElements = 500;
+	constexpr static auto maxLineElements = 20;
+	constexpr static auto maxContainerElements = 500;
 
-    ArcDebug() : reversed(false) {}
-    ~ArcDebug();
+	ArcDebug() : reversed(false) {}
+	~ArcDebug();
 
 	template<StringStreamable S> requires (!Char<S>)
-    ArcDebug& operator<<(const S& value) {
+	ArcDebug& operator<<(const S& value) {
 
-        write(value);
-        dispatchToken(Token::ArcSpace);
+		write(value);
+		dispatchToken(Token::ArcSpace);
 
-        return *this;
+		return *this;
 
-    }
+	}
 
-    ArcDebug& operator<<(Char auto value) {
+	ArcDebug& operator<<(Char auto value) {
 
-        write(value);
-        dispatchToken(Token::ArcSpace);
+		write(value);
+		dispatchToken(Token::ArcSpace);
 
-        return *this;
-        
-    }
+		return *this;
+		
+	}
 
 	template<class T>
-    ArcDebug& operator<<(const T* p) requires (!StringStreamable<const T*>) {
+	ArcDebug& operator<<(const T* p) requires (!StringStreamable<const T*>) {
 
 		write(Memory::address(p));
 		dispatchToken(Token::ArcSpace);
 
 		return *this;
 
-    }
-    
-    template<class T, class U>
-    ArcDebug& operator<<(const std::pair<T, U>& pair){
-        write(pair);
-        return *this;
-    }
+	}
+	
+	template<class T, class U>
+	ArcDebug& operator<<(const std::pair<T, U>& pair){
+		write(pair);
+		return *this;
+	}
 
-    template<class T> 
-    requires (Iterable<T> && !StringStreamable<T>)
-    ArcDebug& operator<<(const T& container){
-        write(container);
-        return *this;
-    }
+	template<class T> 
+	requires (Iterable<T> && !StringStreamable<T>)
+	ArcDebug& operator<<(const T& container){
+		write(container);
+		return *this;
+	}
 
-    template<Vector V>
-    ArcDebug& operator<<(const V& v) {
-        write(v);
-        return *this;
-    }
+	template<Vector V>
+	ArcDebug& operator<<(const V& v) {
+		write(v);
+		return *this;
+	}
 
-    template<Matrix M>
-    ArcDebug& operator<<(const M& m) {
-        write(m);
-        return *this;
-    }
+	template<Matrix M>
+	ArcDebug& operator<<(const M& m) {
+		write(m);
+		return *this;
+	}
 
-    template<Float F>
-    ArcDebug& operator<<(const Quaternion<F>& q) {
-        write(q);
-        return *this;
-    }
+	template<Float F>
+	ArcDebug& operator<<(const Quaternion<F>& q) {
+		write(q);
+		return *this;
+	}
 
-    template<Unicode::Encoding E>
-    ArcDebug& operator<<(const UnicodeString<E>& us) {
-        write(us);
-        return *this;
-    }
+	template<Unicode::Encoding E>
+	ArcDebug& operator<<(const UnicodeString<E>& us) {
+		write(us);
+		return *this;
+	}
 
-    ArcDebug& operator<<(Token token) {
-        dispatchToken(token);
-        return *this;
-    }
+	ArcDebug& operator<<(Token token) {
+		dispatchToken(token);
+		return *this;
+	}
 
 
 private:
 
-    void write(Char auto value) {
-        buffer << static_cast<u32>(value);
-    }
+	void write(Char auto value) {
+		buffer << static_cast<u32>(value);
+	}
 
-    void write(const StringStreamable auto& value) {
-        buffer << value;
-    }
+	void write(const StringStreamable auto& value) {
+		buffer << value;
+	}
 
-    void write(u8 value) {
-        buffer << +value;
-    }
+	void write(u8 value) {
+		buffer << +value;
+	}
 
-    void write(i8 value) {
-        buffer << +value;
-    }
+	void write(i8 value) {
+		buffer << +value;
+	}
 
-    template<class T, class U>
-    void write(const std::pair<T, U>& pair){
+	template<class T, class U>
+	void write(const std::pair<T, U>& pair){
 
-        buffer << "[";
-        write(pair.first);
-        dispatchToken(Token::ArcSpace);
-        write(pair.second);
-        buffer << "]";
+		buffer << "[";
+		write(pair.first);
+		dispatchToken(Token::ArcSpace);
+		write(pair.second);
+		buffer << "]";
 
-    }
+	}
 
 
-    template<class T> 
-    requires (Iterable<T> && !StringStreamable<T>)
-    void write(const T& container) {
+	template<class T> 
+	requires (Iterable<T> && !StringStreamable<T>)
+	void write(const T& container) {
 
-        bool lineStart = true;
-        u32 elementIdx = 0;
+		bool lineStart = true;
+		u32 elementIdx = 0;
 
-        if(!container.size()) {
-            buffer << "[Container empty]";
-            return;
-        }
+		if(!container.size()) {
+			buffer << "[Container empty]";
+			return;
+		}
 
 		auto exec = [&](const auto& begin, const auto& end) {
 
-	        for(auto it = begin; it != end; ++it) {
+			for(auto it = begin; it != end; ++it) {
 
-	            if(lineStart) {
-	                buffer << "[" << elementIdx << "] ";
-	                lineStart = false;
-	            }
+				if(lineStart) {
+					buffer << "[" << elementIdx << "] ";
+					lineStart = false;
+				}
 
-	            write(*it);
-	            dispatchToken(Token::ArcSpace);
-	            elementIdx++;
+				write(*it);
+				dispatchToken(Token::ArcSpace);
+				elementIdx++;
 
-	            if(!(elementIdx % maxLineElements)) {
-	                dispatchToken(Token::ArcEndl);
-	                lineStart = true;
-	            }
+				if(!(elementIdx % maxLineElements)) {
+					dispatchToken(Token::ArcEndl);
+					lineStart = true;
+				}
 
-	            if(elementIdx >= maxContainerElements) {
-	                buffer << "... + " << (container.size() - elementIdx) << " more elements";
-	                lineStart = false;
-	                break;
-	            }
+				if(elementIdx >= maxContainerElements) {
+					buffer << "... + " << (container.size() - elementIdx) << " more elements";
+					lineStart = false;
+					break;
+				}
 
-	        }
+			}
 
-	        if(!lineStart) {
-	            dispatchToken(Token::ArcEndl);
-	        }
+			if(!lineStart) {
+				dispatchToken(Token::ArcEndl);
+			}
 
 		};
 
@@ -213,95 +213,95 @@ private:
 			exec(container.begin(), container.end());
 		}
 
-    }
+	}
 
 
-    template<Vector V>
-    void write(const V& v) {
+	template<Vector V>
+	void write(const V& v) {
 
-        buffer << "Vec" << v.Size << "[";
-        
-        for(u32 i = 0; i < v.Size - 1; i++) {
-            buffer << +v[i] <<  ", ";
-        }
-            
-        buffer << +v[v.Size - 1] << "]";
-        dispatchToken(Token::ArcSpace);
+		buffer << "Vec" << v.Size << "[";
+		
+		for(u32 i = 0; i < v.Size - 1; i++) {
+			buffer << +v[i] <<  ", ";
+		}
+			
+		buffer << +v[v.Size - 1] << "]";
+		dispatchToken(Token::ArcSpace);
 
-    }
-
-
-    template<Matrix M>
-    void write(const M& m) {
-
-        buffer << "Mat" << m.Size << "[";
-        
-        for(u32 i = 0; i < m.Size; i++) {
-
-            if(i) {
-                buffer << "     [";
-            } else {
-                buffer << "[";
-            }
-
-            for(u32 j = 0; j < m.Size - 1; j++) {
-                buffer << +m[j][i] <<  ", ";
-            }
-
-            buffer << +m[m.Size - 1][i];
-            
-            if(i != m.Size - 1) {
-
-                buffer << "]";
-                dispatchToken(Token::ArcEndl);
-
-            } else {
-
-                buffer << "]]";
-
-            }
-
-        }
-
-    }
-
-    
-    template<Float F>
-    void write(const Quaternion<F>& q) {
-
-        buffer << "Quat" << "[";
-        buffer << q.w << ", ";
-        buffer << q.x << ", ";
-        buffer << q.y << ", ";
-        buffer << q.z << "]";
-            
-        dispatchToken(Token::ArcSpace);
-
-    }
+	}
 
 
-    template<Unicode::Encoding E>
-    void write(const UnicodeString<E>& us) {
+	template<Matrix M>
+	void write(const M& m) {
 
-        dispatchToken(Token::ArcUpper);
+		buffer << "Mat" << m.Size << "[";
+		
+		for(u32 i = 0; i < m.Size; i++) {
 
-        for(auto it = us.begin(); it != us.end(); ++it) {
+			if(i) {
+				buffer << "     [";
+			} else {
+				buffer << "[";
+			}
 
-            write("U+");
-            write(it.getCodepoint());
-            dispatchToken(Token::ArcSpace);
+			for(u32 j = 0; j < m.Size - 1; j++) {
+				buffer << +m[j][i] <<  ", ";
+			}
 
-        }
+			buffer << +m[m.Size - 1][i];
+			
+			if(i != m.Size - 1) {
 
-        dispatchToken(Token::ArcNoUpper);
+				buffer << "]";
+				dispatchToken(Token::ArcEndl);
 
-    }
+			} else {
+
+				buffer << "]]";
+
+			}
+
+		}
+
+	}
+
+	
+	template<Float F>
+	void write(const Quaternion<F>& q) {
+
+		buffer << "Quat" << "[";
+		buffer << q.w << ", ";
+		buffer << q.x << ", ";
+		buffer << q.y << ", ";
+		buffer << q.z << "]";
+			
+		dispatchToken(Token::ArcSpace);
+
+	}
 
 
-    void dispatchToken(Token token);
-    void flush() noexcept;
+	template<Unicode::Encoding E>
+	void write(const UnicodeString<E>& us) {
 
-    std::stringstream buffer;
+		dispatchToken(Token::ArcUpper);
+
+		for(auto it = us.begin(); it != us.end(); ++it) {
+
+			write("U+");
+			write(it.getCodepoint());
+			dispatchToken(Token::ArcSpace);
+
+		}
+
+		dispatchToken(Token::ArcNoUpper);
+
+	}
+
+
+	void dispatchToken(Token token);
+	void flush() noexcept;
+
+	std::stringstream buffer;
 	bool reversed;
 
 };

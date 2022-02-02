@@ -55,8 +55,8 @@ class UnicodeString : private UnicodeStringHelper<E> {
 	consteval static bool IsStringViewConvertible() noexcept {
 
 		return (ImpConvertible<const StringView&, std::basic_string_view<char8_t>> && !ImpConvertible<const StringView&, const char8_t*>)
-		       || (ImpConvertible<const StringView&, std::basic_string_view<char16_t>> && !ImpConvertible<const StringView&, const char16_t*>)
-		       || (ImpConvertible<const StringView&, std::basic_string_view<char32_t>> && !ImpConvertible<const StringView&, const char32_t*>);
+			   || (ImpConvertible<const StringView&, std::basic_string_view<char16_t>> && !ImpConvertible<const StringView&, const char16_t*>)
+			   || (ImpConvertible<const StringView&, std::basic_string_view<char32_t>> && !ImpConvertible<const StringView&, const char32_t*>);
 
 	}
 
