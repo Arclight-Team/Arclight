@@ -423,6 +423,23 @@ public:
 	}
 
 	template<Arithmetic A, Arithmetic B>
+	constexpr Mat3& shear(A sx, B sy) {
+
+		T tx = Math::tan(sx);
+		T ty = Math::tan(sy);
+		T tn = tx * ty + 1;
+
+		Vec3<T> x = v[0] * tn + v[1] * ty;
+		Vec3<T> y = v[0] * tx + v[1];
+
+		v[0] = x;
+		v[1] = y;
+
+		return *this;
+
+	}
+
+	template<Arithmetic A, Arithmetic B>
 	constexpr static Mat3 fromTranslation(A x, B y) {
 		return Mat3(1, 0, x, 0, 1, y, 0, 0, 1);
 	}
@@ -461,6 +478,25 @@ public:
 	constexpr static Mat3 fromShearY(A angle) {
 		return Mat3(1, 0, 0, Math::tan(angle), 1, 0, 0, 0, 1);
 	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr static Mat3 fromShear(A sx, B sy) {
+
+		T tx = Math::tan(sx);
+		T ty = Math::tan(sy);
+
+		return Mat3(tx * ty + 1, tx, 0, ty, 1, 0, 0, 0, 1);
+
+	}
+
+
+	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
+	constexpr static Mat3 composeAffine(const Vec2<A>& translation, B rotation, const Vec2<C>& scale, const Vec2<D>& shear) {
+
+
+
+	}
+
 
 
 	Vec3<T> v[3];
