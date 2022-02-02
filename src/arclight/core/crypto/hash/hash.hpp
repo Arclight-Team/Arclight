@@ -9,6 +9,7 @@
 #pragma once
 
 #include "math/math.hpp"
+#include "stdext/bitspan.hpp"
 #include "util/bits.hpp"
 #include "util/string.hpp"
 #include "util/concepts.hpp"
@@ -81,6 +82,10 @@ public:
 
 		return a;
 
+	}
+
+	constexpr BitSpan<Size> toBitSpan() const& noexcept {
+		return segments;
 	}
 
 	std::string toString(bool upper = false) const noexcept {

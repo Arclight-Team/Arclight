@@ -209,25 +209,25 @@ public:
 
 
 	template<PointerType T, class U = TT::RemovePointer<T>>
-	constexpr explicit(!Dynamic) BitSpan(const T& t, SizeT size = Bits::bitCount<U>()) noexcept requires (ConstType<U> <= Const) : Base(size), ptr(convertTToPointer(t)), start(0) {}
+	constexpr BitSpan(const T& t, SizeT size = Bits::bitCount<U>()) noexcept requires (ConstType<U> <= Const) : Base(size), ptr(convertTToPointer(t)), start(0) {}
 
 	template<PointerType T, class U = TT::RemovePointer<T>>
-	constexpr explicit(!Dynamic) BitSpan(const T& t, SizeT start, SizeT size) noexcept requires (ConstType<U> <= Const) : Base(size), ptr(convertTToPointer(t)), start(start) { normalize(); }
+	constexpr BitSpan(const T& t, SizeT start, SizeT size) noexcept requires (ConstType<U> <= Const) : Base(size), ptr(convertTToPointer(t)), start(start) { normalize(); }
 
 
 	template<class T, SizeT N>
-	constexpr explicit(!Dynamic) BitSpan(T(& t)[N], SizeT size = Bits::bitCount<T>() * N) noexcept requires (ConstType<T> <= Const) : Base(size), ptr(convertTToPointer(t)), start(0) {}
+	constexpr BitSpan(T(& t)[N], SizeT size = Bits::bitCount<T>() * N) noexcept requires (ConstType<T> <= Const) : Base(size), ptr(convertTToPointer(t)), start(0) {}
 
 	template<class T, SizeT N>
-	constexpr explicit(!Dynamic) BitSpan(T(& t)[N], SizeT start, SizeT size) noexcept requires (ConstType<T> <= Const) : Base(size), ptr(convertTToPointer(t)), start(start) { normalize(); }
+	constexpr BitSpan(T(& t)[N], SizeT start, SizeT size) noexcept requires (ConstType<T> <= Const) : Base(size), ptr(convertTToPointer(t)), start(start) { normalize(); }
 
 
-	template<class T>
-	constexpr explicit(!Dynamic) BitSpan(const std::span<T>& span) noexcept requires (ConstType<T> <= Const) : Base(span.size() * sizeof(T)), ptr(convertTToPointer(span.data())), start(0) {}
+	template<class T, SizeT N>
+	constexpr explicit(!Dynamic && N == std::dynamic_extent) BitSpan(const std::span<T, N>& span) noexcept requires (ConstType<T> <= Const) : Base(span.size() * sizeof(T)), ptr(convertTToPointer(span.data())), start(0) {}
 
 
 	template<SizeT N, bool ConstOther>
-	constexpr BitSpan(const BitSpan<N, ConstOther>& other) noexcept requires ((Dynamic || N == Extent) && ConstOther <= Const) : Base(other.size()), ptr(other.ptr), start(other.start) {}
+	constexpr explicit(!Dynamic && N == std::dynamic_extent) BitSpan(const BitSpan<N, ConstOther>& other) noexcept requires ((Dynamic || N == Extent) && ConstOther <= Const) : Base(other.size()), ptr(other.ptr), start(other.start) {}
 
 	constexpr BitSpan(const BitSpan& other) noexcept = default;
 
