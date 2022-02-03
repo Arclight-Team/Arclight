@@ -58,7 +58,7 @@ void PoolAllocator::create(AddressT blockCount, AddressT blockSize, AlignT block
 		this->totalSize = heapSize;
 		this->blockSize = alignedSize;
 		this->blockAlign = baseAlign;
-		this->heap = static_cast<Byte*>(::operator new(heapSize, std::align_val_t(baseAlign)));
+		this->heap = static_cast<u8*>(::operator new(heapSize, std::align_val_t(baseAlign)));
 
 		generatePool();
 
@@ -144,8 +144,8 @@ void PoolAllocator::generatePool() {
 
 	for (AddressT i = 0; i < elements; i++) {
 
-		Byte* ptr = heap + i * blockSize;
-		Byte* next = ptr + blockSize;
+		u8* ptr = heap + i * blockSize;
+		u8* next = ptr + blockSize;
 
 		if (i == (elements - 1)) {
 			next = nullptr;

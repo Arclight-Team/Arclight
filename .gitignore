@@ -2,14 +2,14 @@
 
 .vs/
 .vscode/
-[Oo]ut/
-[Bb]in/
-[Bb]uild/
-[Ll]og/
-[Ll]ib/
-profiling/
-assets/
-screenshots/
+/[Oo]ut/
+/[Bb]in/
+/[Bb]uild/
+/[Ll]og/
+/[Ll]ib/
+/profiling/
+/assets/
+/screenshots/
 .idea/
 pack/
 src/*
@@ -23,9 +23,9 @@ tools/axrconv/AXRConv/*/*
 .editorconfig
 imgui.ini
 CMakeFiles/
-dev/
-examples/
-demo/
+/dev/
+/examples/
+/demo/
 !assets/logo.bmp
 !assets/logo.ico
 !assets/cursor.bmp
