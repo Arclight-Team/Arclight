@@ -37,7 +37,7 @@ The following features have been fully implemented:
 - Timing utilities
 - Streams
 - Unicode conversion support
-- Hash support (MD5, SHAx)
+- Compile-time encryption/hashing (DES, TripleDES, MD5, SHAx)
 - Additional containers/extensions to std (BitSpan, OptionalRef, improved Any)
 - XML parser
 - Filesystem library
