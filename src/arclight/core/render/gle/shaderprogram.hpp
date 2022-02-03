@@ -66,6 +66,9 @@ public:
 	u32 getUniformBlockIndex(const char* name) const;
 	bool bindUniformBlock(u32 block, u32 index);
 
+	u32 getStorageBlockIndex(const char* name) const;
+	bool bindStorageBlock(u32 block, u32 index);
+
 	//Checks the given states
 	bool isActive() const;
 	bool isLinked() const;
@@ -73,6 +76,7 @@ public:
 	static bool shaderBinariesSupported();
 	static bool tesselationShadersSupported();
 	static bool computeShadersSupported();
+	static bool shaderStorageBufferSupported();
 
 private:
 

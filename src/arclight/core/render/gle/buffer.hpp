@@ -20,7 +20,8 @@ enum class BufferType {
 	TransformFeedbackBuffer,
 	UniformBuffer,
 	CopyReadBuffer,
-	CopyWriteBuffer
+	CopyWriteBuffer,
+	ShaderStorageBuffer
 };
 
 

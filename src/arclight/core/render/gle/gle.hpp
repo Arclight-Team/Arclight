@@ -12,6 +12,7 @@
 #include "vertexbuffer.hpp"
 #include "indexbuffer.hpp"
 #include "uniformbuffer.hpp"
+#include "shaderstoragebuffer.hpp"
 #include "shaderprogram.hpp"
 #include "texture1d.hpp"
 #include "texture2d.hpp"

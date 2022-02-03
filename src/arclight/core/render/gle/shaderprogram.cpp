@@ -234,6 +234,58 @@ bool ShaderProgram::bindUniformBlock(u32 block, u32 index) {
 
 
 
+u32 ShaderProgram::getStorageBlockIndex(const char* name) const {
+
+#if !GLE_PASS_UNLINKED_SHADERS
+		gle_assert(isLinked(), "Cannot query uniform block from non-linked shader with ID %d", id);
+#endif
+
+	if (!shaderStorageBufferSupported()) {
+		GLE::warn("Shader storage buffers are not supported");
+		return -1;
+	}
+
+	u32 uniformID = glGetProgramResourceIndex(id, GL_SHADER_STORAGE_BLOCK, name);
+
+	if (uniformID == invalidID) {
+		GLE::warn("Failed to fetch uniform block index for uniform block %s (shader program ID=%d)", name, id);
+	}
+
+	return uniformID;
+
+}
+
+
+
+bool ShaderProgram::bindStorageBlock(u32 block, u32 index) {
+
+#if !GLE_PASS_UNLINKED_SHADERS
+		gle_assert(isLinked(), "Cannot bind uniform block from non-linked shader with ID %d", id);
+#endif
+
+	if (!shaderStorageBufferSupported()) {
+		GLE::warn("Shader storage buffers are not supported");
+		return false;
+	}
+
+	if (block == invalidID) {
+		GLE::warn("Attempted to bind invalid storage block (shader program ID=%d)", id);
+		return false;
+	}
+
+	if (index >= Limits::getMaxUniformBlockBindings()) {
+		GLE::warn("Given storage block binding index %d exceeds the maximum of %d (shader program ID=%d)", index, Limits::getMaxStorageBlockBindings(), id);
+		return false;
+	}
+
+	glShaderStorageBlockBinding(id, block, index);
+
+	return true;
+
+}
+
+
+
 bool ShaderProgram::isActive() const {
 	return activeProgramID == id;
 }
@@ -260,6 +312,12 @@ bool ShaderProgram::tesselationShadersSupported() {
 
 bool ShaderProgram::computeShadersSupported() {
 	return GLE_EXT_SUPPORTED(ARB_compute_shader);
+}
+
+
+
+bool ShaderProgram::shaderStorageBufferSupported() {
+	return GLE_EXT_SUPPORTED(ARB_shader_storage_buffer_object);
 }
 
 

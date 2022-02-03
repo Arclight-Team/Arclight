@@ -50,6 +50,17 @@ namespace Limits {
 
 	u32 getMaxUniformBlockBindings();
 
+	u32 getMaxVertexStorageBlocks();
+	u32 getMaxFragmentStorageBlocks();
+	u32 getMaxGeometryStorageBlocks();
+	u32 getMaxTessControlStorageBlocks();
+	u32 getMaxTessEvaluationStorageBlocks();
+	u32 getMaxComputeStorageBlocks();
+	u32 getMaxCombinedStorageBlocks();
+
+	u32 getMaxStorageBlockBindings();
+	u32 getMaxStorageBlockSize();
+
 }
 
 

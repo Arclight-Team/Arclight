@@ -41,6 +41,17 @@ namespace __Detail {
 
 	u32 maxUniformBlockBindings = 0;
 
+	u32 maxVertexStorageBlocks = 0;
+	u32 maxFragmentStorageBlocks = 0;
+	u32 maxGeometryStorageBlocks = 0;
+	u32 maxTessCtrlStorageBlocks = 0;
+	u32 maxTessEvalStorageBlocks = 0;
+	u32 maxComputeStorageBlocks = 0;
+	u32 maxCombinedStorageBlocks = 0;
+
+	u32 maxStorageBlockBindings = 0;
+	u32 maxStorageBlockSize = 0;
+
 }
 
 
@@ -119,6 +130,26 @@ namespace Core {
 
 		glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &tmp);
 		__Detail::maxUniformBlockBindings = tmp;
+
+		glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &tmp);
+		__Detail::maxVertexStorageBlocks = tmp;
+		glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &tmp);
+		__Detail::maxFragmentTextureUnits = tmp;
+		glGetIntegerv(GL_MAX_GEOMETRY_SHADER_STORAGE_BLOCKS, &tmp);
+		__Detail::maxGeometryTextureUnits = tmp;
+		glGetIntegerv(GL_MAX_TESS_CONTROL_SHADER_STORAGE_BLOCKS, &tmp);
+		__Detail::maxTessCtrlStorageBlocks = tmp;
+		glGetIntegerv(GL_MAX_TESS_EVALUATION_SHADER_STORAGE_BLOCKS, &tmp);
+		__Detail::maxTessEvalStorageBlocks = tmp;
+		glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &tmp);
+		__Detail::maxComputeStorageBlocks = tmp;
+		glGetIntegerv(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS, &tmp);
+		__Detail::maxCombinedStorageBlocks = tmp;
+
+		glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &tmp);
+		__Detail::maxStorageBlockBindings = tmp;
+		glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &tmp);
+		__Detail::maxStorageBlockSize = tmp;
 
 		return true;
 
@@ -253,6 +284,42 @@ namespace Limits {
 
 	u32 getMaxUniformBlockBindings() {
 		return __Detail::maxUniformBlockBindings;
+	}
+
+	u32 getMaxVertexStorageBlocks() {
+		return __Detail::maxVertexStorageBlocks;
+	}
+
+	u32 getMaxFragmentStorageBlocks() {
+		return __Detail::maxFragmentStorageBlocks;
+	}
+
+	u32 getMaxGeometryStorageBlocks() {
+		return __Detail::maxGeometryStorageBlocks;
+	}
+
+	u32 getMaxTessControlStorageBlocks() {
+		return __Detail::maxTessCtrlStorageBlocks;
+	}
+
+	u32 getMaxTessEvaluationStorageBlocks() {
+		return __Detail::maxTessEvalStorageBlocks;
+	}
+
+	u32 getMaxComputeStorageBlocks() {
+		return __Detail::maxComputeStorageBlocks;
+	}
+
+	u32 getMaxCombinedStorageBlocks() {
+		return __Detail::maxCombinedStorageBlocks;
+	}
+
+	u32 getMaxStorageBlockBindings() {
+		return __Detail::maxStorageBlockBindings;
+	}
+
+	u32 getMaxStorageBlockSize() {
+		return __Detail::maxStorageBlockSize;
 	}
 
 }
