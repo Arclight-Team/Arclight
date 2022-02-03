@@ -260,7 +260,7 @@ namespace Bits {
 	}
 
 	template<class T>
-	consteval SizeT bitCount() noexcept {
+	constexpr SizeT bitCount() noexcept {
 		return sizeof(T) * 8;
 	}
 

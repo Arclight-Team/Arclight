@@ -2,6 +2,7 @@
 
 .vs/
 .vscode/
+enc_temp_folder/
 /[Oo]ut/
 /[Bb]in/
 /[Bb]uild/
@@ -19,7 +20,10 @@ tools/axrconv/b*
 tools/axrconv/AXRConv/*/*
 !tools/axrconv/AXRConv/shaders/*
 !tools/axrconv/AXRConv/*
+cmake-build-debug-visual-studio/
+cmake-build-release-visual-studio/
 *.user
+*.bak
 .editorconfig
 imgui.ini
 CMakeFiles/

@@ -200,11 +200,6 @@ private:
 				}
 
 			}
-
-			if(!lineStart) {
-				dispatchToken(Token::ArcEndl);
-			}
-
 		};
 
 		if (reversed) {

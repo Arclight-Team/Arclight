@@ -9,7 +9,7 @@
 #pragma once
 
 
-namespace Char {
+namespace Character {
 
 
 	constexpr bool isLower(char c) noexcept {
