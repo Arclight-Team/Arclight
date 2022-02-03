@@ -23,6 +23,8 @@ private:
 	using MyBase = ByteStreamImplRW<Dynamic>;
 
 public:
+	
+	ByteOutputStreamImplDRW() requires(Dynamic) = default;
 
 	template<class T, SizeT Extent>
 	ByteOutputStreamImplDRW(const std::span<T, Extent>& data) : MyBase(data) {}

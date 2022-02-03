@@ -117,11 +117,11 @@ public:
 
 	}
 
-	constexpr auto getData() {
+	constexpr auto& getData() {
 		return data;
 	}
 
-	constexpr auto getData() const {
+	constexpr auto& getData() const {
 		return data;
 	}
 
