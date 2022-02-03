@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include "arcbuild.hpp"
+
+
 
 /**************************************************/
 /*			   Arclight Configuration			  */
@@ -39,6 +42,13 @@
 */
 
 #define ARC_CMATH_CONSTEXPR_FIX 0
+
+
+/*
+	Vectorized code
+	ARC_VECTORIZE_X86: Vectorize for x86 if targeted
+*/
+#define ARC_VECTORIZE_X86
 
 
 /*

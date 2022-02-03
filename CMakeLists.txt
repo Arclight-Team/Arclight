@@ -36,6 +36,47 @@ project (${PROJECT_NAME})
 
 
 ######################
+#### VECTOR SETUP ####
+######################
+
+	set(BUILDSYS_FILENAME ${CMAKE_CURRENT_SOURCE_DIR}/buildsys.txt)
+
+	if(EXISTS ${BUILDSYS_FILENAME})
+
+		file(STRINGS buildsys.txt BUILDSYS_STRINGS)
+		list(GET BUILDSYS_STRINGS 0 SUPPORTED_CPU_EXTENSION_STRING)
+		string(REPLACE "," ";" SUPPORTED_CPU_EXTENSIONS ${SUPPORTED_CPU_EXTENSION_STRING})
+
+		set(ARC_SUPPORTED_CPU_EXTENSIONS "sse" "sse2" "sse3" "ssse3" "sse4_1" "sse4_2" "avx" "avx2")
+		set(ARC_CPU_EXTENSION_DEFINITIONS ARC_TARGET_HAS_SSE ARC_TARGET_HAS_SSE2 ARC_TARGET_HAS_SSE3 ARC_TARGET_HAS_SSSE3 ARC_TARGET_HAS_SSE4_1 ARC_TARGET_HAS_SSE4_2 ARC_TARGET_HAS_AVX ARC_TARGET_HAS_AVX2)
+
+		list(LENGTH ARC_SUPPORTED_CPU_EXTENSIONS ARC_SUPPORTED_CPU_EXTENSION_COUNT)
+		math(EXPR ARC_SUPPORTED_CPU_EXTENSION_COUNT "${ARC_SUPPORTED_CPU_EXTENSION_COUNT} - 1")
+
+		foreach(i RANGE ${ARC_SUPPORTED_CPU_EXTENSION_COUNT})
+
+			list(GET ARC_SUPPORTED_CPU_EXTENSIONS ${i} EXTENSION)
+
+			if(EXTENSION IN_LIST SUPPORTED_CPU_EXTENSIONS)
+
+				list(GET ARC_CPU_EXTENSION_DEFINITIONS ${i} EXTENSION_DEFINITION)
+				add_compile_definitions(${EXTENSION_DEFINITION})
+				list(APPEND BUILD_CPU_EXTENSIONS ${EXTENSION})
+
+			endif()
+
+		endforeach()
+
+	endif()
+
+	if(BUILD_CPU_EXTENSIONS)
+		message("Enabled CPU extensions: ${BUILD_CPU_EXTENSIONS}")
+	else()
+		message("Enabled CPU extensions: none")
+	endif()
+	
+
+######################
 ### COMPILER SETUP ###
 ######################
 
@@ -77,28 +118,38 @@ project (${PROJECT_NAME})
 ### MODULE PARSING ###
 ######################
 
-	file(STRINGS arclight.modules MODULE_LIST)
+	set(MODULE_FILENAME ${CMAKE_CURRENT_SOURCE_DIR}/arclight.modules)
 
-	# Remove comments
-	list(FILTER MODULE_LIST EXCLUDE REGEX "^#")
+	if(EXISTS ${MODULE_FILENAME})
 
-	foreach(ModulePath ${MODULE_LIST})
+		file(STRINGS arclight.modules MODULE_LIST)
 
-		string(REPLACE "." "/" ModulePath ${ModulePath})
+		# Remove comments
+		list(FILTER MODULE_LIST EXCLUDE REGEX "^#")
 
-		if(ModulePath MATCHES "^arclight")
-			string(SUBSTRING ${ModulePath} 8 -1 ModulePath)
-		endif()
+		foreach(ModulePath ${MODULE_LIST})
 
-		list(APPEND MODULE_PATHS ${ModulePath})
+			string(REPLACE "." "/" ModulePath ${ModulePath})
 
-	endforeach()
+			if(ModulePath MATCHES "^arclight")
+				string(SUBSTRING ${ModulePath} 8 -1 ModulePath)
+			endif()
 
-	message("Following modules will be activated:")
+			list(APPEND MODULE_PATHS ${ModulePath})
 
-	foreach(Module ${MODULE_LIST})
-		message("\t ${Module}")
-	endforeach()
+		endforeach()
+
+		message("Following modules will be activated:")
+
+		foreach(Module ${MODULE_LIST})
+			message("\t ${Module}")
+		endforeach()
+
+	else()
+
+		message(FATAL_ERROR "Failed to find module file ${MODULE_FILENAME}")
+
+	endif()
 
 
 ######################
