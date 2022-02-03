@@ -3,13 +3,12 @@
  *
  *	 This file is part of Arclight. All rights reserved.
  *
- *	 hash.hpp
+ *	 key.hpp
  */
 
 #pragma once
 
 #include "math/math.hpp"
-#include "stdext/bitspan.hpp"
 #include "util/bits.hpp"
 #include "util/string.hpp"
 #include "util/concepts.hpp"
@@ -22,13 +21,13 @@
 
 
 template<SizeT Size>
-class Hash {
+class Key {
 
-	constexpr static SizeT Segments = Size / 8;
+	constexpr static SizeT Segments = (Size + 7) / 8;
 
 public:
 
-	constexpr Hash() noexcept {
+	constexpr Key() noexcept {
 
 		for(SizeT i = 0; i < Segments; i++) {
 			segments[i] = 0;
@@ -37,7 +36,7 @@ public:
 	}
 
 	template<Integer... J>
-	constexpr Hash(J... j) noexcept {
+	constexpr Key(J... j) noexcept {
 		set(j...);
 	}
 
@@ -49,7 +48,7 @@ public:
 
 	}
 
-	constexpr bool operator==(const Hash<Size>& other) noexcept {
+	constexpr bool operator==(const Key<Size>& other) noexcept {
 
 		bool equal = true;
 
@@ -65,7 +64,7 @@ public:
 	constexpr U toInteger(SizeT start = 0) const noexcept {
 
 		if (start < Segments) {
-			return Bits::assemble<U>(segments + start, Segments - start);
+			return Bits::assemble<U>(segments, Segments - start);
 		} else {
 			return 0;
 		}
@@ -86,6 +85,37 @@ public:
 
 	constexpr BitSpan<Size> bits() const noexcept {
 		return segments;
+	}
+
+	constexpr BitSpan<Size, false> bits() noexcept {
+		return segments;
+	}
+
+	constexpr auto operator[](SizeT bit) const noexcept {
+		return bits()[bit];
+	}
+
+	constexpr auto operator[](SizeT bit) noexcept {
+		return bits()[bit];
+	}
+
+	template<SizeT Offset, SizeT Count = Size> requires((Offset + Count) <= Size)
+	constexpr auto subKey() const noexcept {
+
+		Key<Count> key;
+
+		auto myBits = bits();
+		auto outBits = key.bits();
+
+
+		for (u32 i = 0; i < Count; i++) {
+			outBits[i] = myBits[i + Offset];
+		}
+		
+		//key[i] = (*this)[i + Offset];
+
+		return key;
+
 	}
 
 	std::string toString(bool upper = false) const noexcept {
