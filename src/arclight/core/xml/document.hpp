@@ -179,26 +179,53 @@ namespace Xml
 				// Insert attributes
 				writeAttributes(os, node, indentLevel);
 
+				bool closed = !child && !node->value;
+				bool newLine = false;
+				
 				// Insert a self-closing element
-				if (node->type == Xml::NodeType::Element && !child) {
+				if (node->type == Xml::NodeType::Element && closed) {
 					os << CharType('/');
 					os << CharType('>');
 					os << CharType('\n');
 				}
 				else {
 					NodeT::writeClosingSequence(os, node->type);
-					os << CharType('\n');
-				}
 
+					// Write node data
+					if (!node->value.empty()) {
+
+						// If the node has at least one child, write the data on a new line
+						if (child) {
+							os << CharType('\n');
+
+							writeIndent(os, indentLevel + 1, indentWidth, indentChar);
+
+							os << node->value;
+
+							os << CharType('\n');
+						}
+						else {
+							os << node->value;
+						}
+					}
+					else {
+						os << CharType('\n');
+						newLine = true;
+					}
+				}
+				
 				// Write children nodes
 				writeNodes(os, child, indentWidth, indentChar, indentLevel + 1);
 
 				// Close the element
-				if (node->type == Xml::NodeType::Element && child) {
+				if (node->type == Xml::NodeType::Element && !closed) {
 
-					writeIndent(os, indentLevel, indentWidth, indentChar);
+					if (newLine) {
+						writeIndent(os, indentLevel, indentWidth, indentChar);
+					}
 
 					os << CharType('<');
+					os << CharType('/');
 					os << body;
 					os << CharType('>');
 					os << CharType('\n');
