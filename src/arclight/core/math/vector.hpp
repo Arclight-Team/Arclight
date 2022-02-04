@@ -440,7 +440,7 @@ public:
 
 
 template<Arithmetic T>
-class Vec4 {
+class alignas(16) Vec4 {
 
 public:
 

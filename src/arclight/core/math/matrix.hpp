@@ -10,6 +10,7 @@
 
 #include "math/math.hpp"
 #include "math/vector.hpp"
+#include "arcintrinsic.hpp"
 
 
 template<Float T>
@@ -490,22 +491,13 @@ public:
 	}
 
 
-	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
-	constexpr static Mat3 composeAffine(const Vec2<A>& translation, B rotation, const Vec2<C>& scale, const Vec2<D>& shear) {
-
-
-
-	}
-
-
-
 	Vec3<T> v[3];
 
 };
 
 
 template<Float T>
-class Mat4 {
+class alignas(16) Mat4 {
 
 public:
 
@@ -579,6 +571,95 @@ public:
 
 	template<Float F>
 	constexpr Mat4& multiply(const Mat4<F>& t) {
+
+#ifdef ARC_VECTORIZE_X86_SSE
+
+		if (!std::is_constant_evaluated()) {
+
+			using U = decltype(v[0][0] * t[0][0]);
+
+			if constexpr (Equal<U, float>) {
+
+				__m128 l0 = _mm_set_ps(v[0][3], v[0][2], v[0][1], v[0][0]);
+				__m128 l1 = _mm_set_ps(v[1][3], v[1][2], v[1][1], v[1][0]);
+				__m128 l2 = _mm_set_ps(v[2][3], v[2][2], v[2][1], v[2][0]);
+				__m128 l3 = _mm_set_ps(v[3][3], v[3][2], v[3][1], v[3][0]);
+
+				__m128 r0 = _mm_set_ps(t[0][3], t[0][2], t[0][1], t[0][0]);
+
+				__m128 x00 = _mm_mul_ps(l0, _mm_shuffle_ps(r0, r0, 0x00));
+				__m128 x01 = _mm_mul_ps(l1, _mm_shuffle_ps(r0, r0, 0x55));
+				__m128 x02 = _mm_mul_ps(l2, _mm_shuffle_ps(r0, r0, 0xAA));
+				__m128 x03 = _mm_mul_ps(l3, _mm_shuffle_ps(r0, r0, 0xFF));
+
+				__m128 c0 = _mm_add_ps(_mm_add_ps(x00, x01), _mm_add_ps(x02, x03));
+
+				__m128 r1 = _mm_set_ps(t[1][3], t[1][2], t[1][1], t[1][0]);
+
+				__m128 x10 = _mm_mul_ps(l0, _mm_shuffle_ps(r1, r1, 0x00));
+				__m128 x11 = _mm_mul_ps(l1, _mm_shuffle_ps(r1, r1, 0x55));
+				__m128 x12 = _mm_mul_ps(l2, _mm_shuffle_ps(r1, r1, 0xAA));
+				__m128 x13 = _mm_mul_ps(l3, _mm_shuffle_ps(r1, r1, 0xFF));
+
+				__m128 c1 = _mm_add_ps(_mm_add_ps(x10, x11), _mm_add_ps(x12, x13));
+
+				__m128 r2 = _mm_set_ps(t[2][3], t[2][2], t[2][1], t[2][0]);
+
+				__m128 x20 = _mm_mul_ps(l0, _mm_shuffle_ps(r2, r2, 0x00));
+				__m128 x21 = _mm_mul_ps(l1, _mm_shuffle_ps(r2, r2, 0x55));
+				__m128 x22 = _mm_mul_ps(l2, _mm_shuffle_ps(r2, r2, 0xAA));
+				__m128 x23 = _mm_mul_ps(l3, _mm_shuffle_ps(r2, r2, 0xFF));
+
+				__m128 c2 = _mm_add_ps(_mm_add_ps(x20, x21), _mm_add_ps(x22, x23));
+
+				__m128 r3 = _mm_set_ps(t[3][3], t[3][2], t[3][1], t[3][0]);
+
+				__m128 x30 = _mm_mul_ps(l0, _mm_shuffle_ps(r3, r3, 0x00));
+				__m128 x31 = _mm_mul_ps(l1, _mm_shuffle_ps(r3, r3, 0x55));
+				__m128 x32 = _mm_mul_ps(l2, _mm_shuffle_ps(r3, r3, 0xAA));
+				__m128 x33 = _mm_mul_ps(l3, _mm_shuffle_ps(r3, r3, 0xFF));
+
+				__m128 c3 = _mm_add_ps(_mm_add_ps(x30, x31), _mm_add_ps(x32, x33));
+
+
+				alignas(16) float f[4];
+
+				_mm_store_ps(f, c0);
+
+				v[0].x = f[0];
+				v[0].y = f[1];
+				v[0].z = f[2];
+				v[0].w = f[3];
+
+				_mm_store_ps(f, c1);
+
+				v[1].x = f[0];
+				v[1].y = f[1];
+				v[1].z = f[2];
+				v[1].w = f[3];
+
+				_mm_store_ps(f, c2);
+
+				v[2].x = f[0];
+				v[2].y = f[1];
+				v[2].z = f[2];
+				v[2].w = f[3];
+
+				_mm_store_ps(f, c3);
+
+				v[3].x = f[0];
+				v[3].y = f[1];
+				v[3].z = f[2];
+				v[3].w = f[3];
+
+				return *this;
+
+			}
+
+		}
+
+#endif
+
 		T a = v[0][0] * t[0][0] + v[1][0] * t[0][1] + v[2][0] * t[0][2] + v[3][0] * t[0][3];
 		T b = v[0][1] * t[0][0] + v[1][1] * t[0][1] + v[2][1] * t[0][2] + v[3][1] * t[0][3];
 		T c = v[0][2] * t[0][0] + v[1][2] * t[0][1] + v[2][2] * t[0][2] + v[3][2] * t[0][3];
@@ -595,8 +676,11 @@ public:
 		T n = v[0][1] * t[3][0] + v[1][1] * t[3][1] + v[2][1] * t[3][2] + v[3][1] * t[3][3];
 		T o = v[0][2] * t[3][0] + v[1][2] * t[3][1] + v[2][2] * t[3][2] + v[3][2] * t[3][3];
 		T p = v[0][3] * t[3][0] + v[1][3] * t[3][1] + v[2][3] * t[3][2] + v[3][3] * t[3][3];
+
 		*this = Mat4(a, e, i, m, b, f, j, n, c, g, k, o, d, h, l, p);
+
 		return *this;
+
 	}
 
 	template<Arithmetic A>

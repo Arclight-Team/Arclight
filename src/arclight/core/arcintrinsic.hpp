@@ -11,13 +11,6 @@
 #include "arcbuild.hpp"
 #include "arcconfig.hpp"
 
-/*
-	Vectorization includes
-*/
-#if defined(ARC_PLATFORM_X86)
-	#include <immintrin.h>
-#endif
-
 
 
 /*
@@ -57,6 +50,8 @@
 		x86 code vectorization: SSE and AVX support (except AVX512)
 	*/
 	#ifdef ARC_VECTORIZE_X86
+
+		#include <immintrin.h>
 
 		#ifdef ARC_TARGET_HAS_SSE
 			#define ARC_VECTORIZE_X86_SSE
