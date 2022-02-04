@@ -80,16 +80,6 @@ public:
 		
 	}
 
-	template<class T>
-	ArcDebug& operator<<(const T* p) requires (!StringStreamable<const T*>) {
-
-		write(Memory::address(p));
-		dispatchToken(Token::ArcSpace);
-
-		return *this;
-
-	}
-	
 	template<class T, class U>
 	ArcDebug& operator<<(const std::pair<T, U>& pair){
 		write(pair);
@@ -140,7 +130,15 @@ private:
 	}
 
 	void write(const StringStreamable auto& value) {
-		buffer << value;
+
+		using S = TT::RemoveCVRef<decltype(value)>;
+
+		if constexpr (PointerType<S> && !Equal<S, const char*>) {
+			buffer << Memory::pointerAddress(value);
+		} else {
+			buffer << value;
+		}
+
 	}
 
 	void write(u8 value) {

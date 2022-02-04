@@ -68,13 +68,13 @@ namespace Bits {
 	}
 
 	template<UnsignedType T>
-	constexpr bool ceilPowerOf2(T value) noexcept {
+	constexpr T ceilPowerOf2(T value) noexcept {
 		return std::bit_ceil(value);
 	}
 
 	template<UnsignedType T>
-	constexpr bool floorPowerOf2(T value) noexcept {
-		return std::bit_ceil(value);
+	constexpr T floorPowerOf2(T value) noexcept {
+		return std::bit_floor(value);
 	}
 
 	template<Integer T>

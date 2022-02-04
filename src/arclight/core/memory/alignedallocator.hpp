@@ -12,6 +12,7 @@
 #include "math/math.hpp"
 #include "types.hpp"
 
+#include <new>
 #include <limits>
 #include <memory>
 #include <stdexcept>
@@ -57,9 +58,9 @@ public:
 	}
 
 
-	template<class T>
+	template<class U>
 	struct rebind {
-		using other = AlignedAllocator<T, ReqAlignment>;
+		using other = AlignedAllocator<U, ReqAlignment>;
 	};
 
 };
