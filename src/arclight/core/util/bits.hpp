@@ -62,6 +62,21 @@ namespace Bits {
 		return std::countr_zero(static_cast<TT::MakeUnsigned<T>>(value));
 	}
 
+	template<UnsignedType T>
+	constexpr bool isPowerOf2(T value) noexcept {
+		return std::has_single_bit(value);
+	}
+
+	template<UnsignedType T>
+	constexpr bool ceilPowerOf2(T value) noexcept {
+		return std::bit_ceil(value);
+	}
+
+	template<UnsignedType T>
+	constexpr bool floorPowerOf2(T value) noexcept {
+		return std::bit_ceil(value);
+	}
+
 	template<Integer T>
 	constexpr auto popcount(T value) noexcept {
 		return std::popcount(static_cast<TT::MakeUnsigned<T>>(value));
