@@ -10,12 +10,18 @@
 
 
 
-void SpringObject::markUpdated() {
+bool SpringObject::isDirty() const noexcept {
+	return flags & 0x1;
+}
+
+
+
+void SpringObject::setDirty() noexcept {
 	flags |= 0x1;
 }
 
 
 
-void SpringObject::clearUpdated() {
+void SpringObject::clearDirty() noexcept {
 	flags &= 0xFE;
 }

@@ -44,7 +44,7 @@ class SparseArray {
 	
 		using iterator_category = std::contiguous_iterator_tag;
 		using difference_type   = std::ptrdiff_t;
-		using value_type        = TT::Conditional<Const, const T, T>;
+		using value_type        = TT::ConditionalConst<Const, T>;
 		using pointer           = value_type*;
 		using reference         = value_type&;
 		using element_type      = value_type;
@@ -55,11 +55,11 @@ class SparseArray {
 #ifdef ARC_SPARSE_PACK
 		constexpr IteratorBase(Storage* it) noexcept : ptr(it) {}
 #else
-		constexpr IteratorBase(pointer it) noexcept : ptr(it) {}
+		constexpr explicit IteratorBase(pointer it) noexcept : ptr(it) {}
 #endif
 
-		constexpr IteratorBase(const IteratorBase<true>& it) noexcept requires (Const) : IteratorBase(it.ptr) {}
-		constexpr IteratorBase(const IteratorBase<true>& it) noexcept requires (!Const) = delete;
+		template<bool ConstOther> requires (Const >= ConstOther)
+		constexpr explicit IteratorBase(const IteratorBase<ConstOther>& it) noexcept : Iterator(it.ptr) {}
 
 		constexpr reference operator*() const noexcept {return *getPtr();}
 		constexpr pointer operator->() const noexcept {return getPtr();}

@@ -18,8 +18,9 @@ public:
 
 	constexpr SpringObject() noexcept = default;
 
-	void markUpdated();
-	void clearUpdated();
+	bool isDirty() const noexcept;
+	void setDirty() noexcept;
+	void clearDirty() noexcept;
 
 private:
 

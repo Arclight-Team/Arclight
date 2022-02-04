@@ -262,6 +262,56 @@ OptionalRef<const Sprite> SpriteArray::getOrNull(u64 id) const noexcept {
 
 
 
+SpriteArray::iterator SpriteArray::begin() noexcept {
+	return iterator(*this, &storageByIndex(firstActive), firstActive);
+}
+
+SpriteArray::const_iterator SpriteArray::begin() const noexcept {
+	return const_iterator(*this, &storageByIndex(firstActive), firstActive);
+}
+
+SpriteArray::const_iterator SpriteArray::cbegin() const noexcept {
+	return begin();
+}
+
+SpriteArray::iterator SpriteArray::end() noexcept {
+	return iterator(*this, nullptr, -1);
+}
+
+SpriteArray::const_iterator SpriteArray::end() const noexcept {
+	return const_iterator(*this, nullptr, -1);
+}
+
+SpriteArray::const_iterator SpriteArray::cend() const noexcept {
+	return end();
+}
+
+SpriteArray::reverse_iterator SpriteArray::rbegin() noexcept {
+	return reverse_iterator(end());
+}
+
+SpriteArray::const_reverse_iterator SpriteArray::rbegin() const noexcept {
+	return const_reverse_iterator(end());
+}
+
+SpriteArray::const_reverse_iterator SpriteArray::crbegin() const noexcept {
+	return rbegin();
+}
+
+SpriteArray::reverse_iterator SpriteArray::rend() noexcept {
+	return reverse_iterator(begin());
+}
+
+SpriteArray::const_reverse_iterator SpriteArray::rend() const noexcept {
+	return const_reverse_iterator(begin());
+}
+
+SpriteArray::const_reverse_iterator SpriteArray::crend() const noexcept {
+	return rend();
+}
+
+
+
 bool SpriteArray::empty() const noexcept {
 	return !size();
 }
@@ -270,6 +320,12 @@ bool SpriteArray::empty() const noexcept {
 
 u32 SpriteArray::size() const noexcept {
 	return spriteCount;
+}
+
+
+
+Sprite& SpriteArray::spriteByIndex(u32 idx) noexcept {
+	return storageByIndex(idx).sprite;
 }
 
 

@@ -7,6 +7,12 @@
  */
 
 #include "spriterenderer.hpp"
+#include "render/gle/gle.hpp"
+#include "render/utility/shaderloader.hpp"
+#include "render/utility/vertexhelper.hpp"
+#include "debug.hpp"
+#include "time/timer.hpp"
+#include "time/profiler.hpp"
 
 
 
@@ -14,11 +20,48 @@ SpriteRenderer::SpriteRenderer() {}
 
 
 
-Sprite& SpriteRenderer::createSprite(UUID id, UUID typeID, const Mat3f& transform) {
+
+void SpriteRenderer::render() {
+
+	Profiler p;
+	p.start();
+
+	p.start();
+
+	Vec2f pos;
+
+	for (Sprite& sprite : sprites) {
+
+		if (sprite.isDirty()) {
+
+			sprite.clearDirty();
+
+			u64 key = SpriteBatch::generateKey(0, false, false);
+			//batches[key] =
+
+		}
+
+	}
+
+	p.stop("Sprite B");
+
+}
+
+
+
+void SpriteRenderer::setViewport(const Vec2d& lowerLeft, const Vec2d& topRight) {
+
+	viewport = RectD::fromPoints(lowerLeft, topRight);
+	recalculateProjection();
+
+}
+
+
+
+Sprite& SpriteRenderer::createSprite(UUID id, UUID typeID) {
 
 	Sprite& sprite = sprites.create(id);
 	sprite.spriteID = typeID;
-	sprite.transform = transform;
 
 	return sprite;
 
@@ -76,4 +119,10 @@ void SpriteRenderer::destroyType(UUID id) {
 
 u32 SpriteRenderer::activeSpriteCount() const noexcept {
 	return sprites.size();
+}
+
+
+
+void SpriteRenderer::recalculateProjection() {
+	projection = Mat4f::ortho(viewport.getX(), viewport.getEndX(), viewport.getY(), viewport.getEndY(), 1, -1);
 }
