@@ -23,14 +23,14 @@ project (${PROJECT_NAME})
 	set(CMAKE_C_STANDARD_REQUIRED true)
 
 	# Set output directories
-	set(BINARY_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+	set(BINARY_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin/$<CONFIG>)
 	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 
 	### URI TRANSITION
 	# Set Uri root path
-	add_compile_definitions(ARC_URI_ROOT="../")
+	add_compile_definitions(ARC_URI_ROOT="../../")
 
 	message("Building '${PROJECT_NAME}'")
 
