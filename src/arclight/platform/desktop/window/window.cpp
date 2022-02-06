@@ -62,6 +62,7 @@ void Window::setWindowConfig(const WindowConfig& config) {
 	glfwWindowHint(GLFW_STENCIL_BITS, config.stencilBits);
 	glfwWindowHint(GLFW_SAMPLES, config.samples);
 	glfwWindowHint(GLFW_SRGB_CAPABLE, config.srgbRendering);
+	glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, config.transparent);
 
 #ifdef GLE_DISABLE_DEBUG
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, false);

@@ -51,6 +51,15 @@ WindowConfig& WindowConfig::setSRGBMode(bool enable) {
 
 
 
+WindowConfig& WindowConfig::setTransparent(bool enable) {
+
+	this->transparent = enable;
+	return *this;
+
+}
+
+
+
 WindowConfig& WindowConfig::setSamples(u8 samples) {
 
 	this->samples = samples;
