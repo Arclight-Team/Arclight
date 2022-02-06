@@ -67,7 +67,7 @@ bool ShaderProgram::addShader(const char* source, u32 size, ShaderType type) {
 		return false;
 	}
 
-	if (type == ShaderType::ComputeShader && computeShadersSupported()) {
+	if (type == ShaderType::ComputeShader && !computeShadersSupported()) {
 		GLE::warn("Compute shaders are not supported");
 		return false;
 	}

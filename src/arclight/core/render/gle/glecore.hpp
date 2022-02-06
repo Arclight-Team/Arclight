@@ -61,6 +61,15 @@ namespace Limits {
 	u32 getMaxStorageBlockBindings();
 	u32 getMaxStorageBlockSize();
 
+	u32 getMaxComputeGroupCountX();
+	u32 getMaxComputeGroupCountY();
+	u32 getMaxComputeGroupCountZ();
+	u32 getMaxComputeGroupSizeX();
+	u32 getMaxComputeGroupSizeY();
+	u32 getMaxComputeGroupSizeZ();
+	u32 getMaxComputeGroupInvocations();
+	u32 getMaxComputeSharedMemorySize();
+
 }
 
 

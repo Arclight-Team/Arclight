@@ -52,6 +52,15 @@ namespace __Detail {
 	u32 maxStorageBlockBindings = 0;
 	u32 maxStorageBlockSize = 0;
 
+	u32 maxComputeGroupCountX = 0;
+	u32 maxComputeGroupCountY = 0;
+	u32 maxComputeGroupCountZ = 0;
+	u32 maxComputeGroupSizeX = 0;
+	u32 maxComputeGroupSizeY = 0;
+	u32 maxComputeGroupSizeZ = 0;
+	u32 maxComputeGroupInvocations = 0;
+	u32 maxComputeSharedMemorySize = 0;
+
 }
 
 
@@ -150,6 +159,25 @@ namespace Core {
 		__Detail::maxStorageBlockBindings = tmp;
 		glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &tmp);
 		__Detail::maxStorageBlockSize = tmp;
+
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &tmp);
+		__Detail::maxComputeGroupCountX = tmp;
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &tmp);
+		__Detail::maxComputeGroupCountY = tmp;
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &tmp);
+		__Detail::maxComputeGroupCountZ = tmp;
+
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &tmp);
+		__Detail::maxComputeGroupSizeX = tmp;
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &tmp);
+		__Detail::maxComputeGroupSizeY = tmp;
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &tmp);
+		__Detail::maxComputeGroupSizeZ = tmp;
+
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, 2, &tmp);
+		__Detail::maxComputeGroupInvocations = tmp;
+		glGetIntegeri_v(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE, 2, &tmp);
+		__Detail::maxComputeSharedMemorySize = tmp;
 
 		return true;
 
@@ -320,6 +348,38 @@ namespace Limits {
 
 	u32 getMaxStorageBlockSize() {
 		return __Detail::maxStorageBlockSize;
+	}
+
+	u32 getMaxComputeGroupCountX() {
+		return __Detail::maxComputeGroupCountX;
+	}
+
+	u32 getMaxComputeGroupCountY() {
+		return __Detail::maxComputeGroupCountY;
+	}
+
+	u32 getMaxComputeGroupCountZ() {
+		return __Detail::maxComputeGroupCountZ;
+	}
+
+	u32 getMaxComputeGroupSizeX() {
+		return __Detail::maxComputeGroupSizeX;
+	}
+
+	u32 getMaxComputeGroupSizeY() {
+		return __Detail::maxComputeGroupSizeY;
+	}
+
+	u32 getMaxComputeGroupSizeZ() {
+		return __Detail::maxComputeGroupSizeZ;
+	}
+
+	u32 getMaxComputeGroupInvocations() {
+		return __Detail::maxComputeGroupInvocations;
+	}
+
+	u32 getMaxComputeSharedMemorySize() {
+		return __Detail::maxComputeSharedMemorySize;
 	}
 
 }
