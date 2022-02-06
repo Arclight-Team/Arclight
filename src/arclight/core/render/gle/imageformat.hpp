@@ -114,6 +114,9 @@ namespace Image {
 	//Returns the maximum number of samples of the given format
 	u32 getMaxSamples(ImageFormat format);
 
+	//Returns true if the format can be used for image load store operations
+	bool isImageUnitCompatible(ImageFormat format);
+
 }
 
 
