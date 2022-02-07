@@ -238,6 +238,8 @@ void Slider::setFormat(const std::string& format) {
 
 void Slider::update() {
 
+	IImGuiControl::applyRenderModifiers();
+
 	bool bfloat = m_DataType == DataType_Float || m_DataType == DataType_Double;
 	bool changed = false;
 

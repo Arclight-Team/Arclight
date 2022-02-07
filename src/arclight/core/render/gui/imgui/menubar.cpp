@@ -15,7 +15,11 @@ MenuBar::MenuBar() {}
 
 
 bool MenuBar::begin() {
+
+	IImGuiControl::applyRenderModifiers();
+
 	return ImGui::BeginMenuBar();
+
 }
 
 void MenuBar::end() {

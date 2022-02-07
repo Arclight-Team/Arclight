@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "imgui_impl.hpp"
 #include "../common.hpp"
 #include "../control.hpp"
 #include "../container.hpp"
@@ -16,7 +17,7 @@ GUI_BEGIN
 
 class MenuBar;
 
-class Window : public IContainer
+class Window : public IContainer, public IImGuiControl
 {
 public:
 

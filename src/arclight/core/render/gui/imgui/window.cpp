@@ -85,6 +85,8 @@ HandleT Window::addWindow(Window& window) {
 
 void Window::update() {
 
+	IImGuiControl::applyRenderModifiers();
+
 	IContainer::update();
 
 	// Always update children windows

@@ -46,9 +46,13 @@ void CheckBox::setText(const std::string& text) {
 
 
 void CheckBox::update() {
+
+	IImGuiControl::applyRenderModifiers();
+
 	if (ImGui::Checkbox(m_Text.c_str(), &m_Checked)) {
 		m_OnClicked();
 	}
+
 }
 
 GUI_END

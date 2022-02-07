@@ -8,13 +8,14 @@
 
 #pragma once
 
+#include "imgui_impl.hpp"
 #include "../common.hpp"
 #include "../control.hpp"
 #include "../container.hpp"
 
 GUI_BEGIN
 
-class Menu : public IContainer
+class Menu : public IContainer, public IImGuiControl
 {
 public:
 
