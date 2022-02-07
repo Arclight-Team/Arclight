@@ -86,7 +86,20 @@ namespace ASX
 		float dry		= 0.0f;
 	};
 
-	struct DSPDescription : private FMOD_DSP_DESCRIPTION
+	struct DSPDescription : FMOD_DSP_DESCRIPTION
+	{
+
+		void setName(const std::string& name) {
+			std::strncpy(this->name, name.c_str(), 32);
+		}
+
+		std::string getName() {
+			return name;
+		}
+
+	};
+
+	struct DSPParameterDescription : FMOD_DSP_PARAMETER_DESC
 	{
 
 		void setName(const std::string& name) {
@@ -101,11 +114,14 @@ namespace ASX
 
 #define DEF_DSP_PARAMS(name, ...) struct name { enum : u32 { __VA_ARGS__ }; }
 
-	// FMOD_DSP_CONVOLUTION_REVERB
-	DEF_DSP_PARAMS(DSPConvolutionReverb, IR, Wet, Dry, Linked);
-
 	// FMOD_DSP_ECHO
 	DEF_DSP_PARAMS(DSPEcho, Delay, Feedback, Dry, Wet);
+
+	// FMOD_DSP_SFXREVERB
+	DEF_DSP_PARAMS(DSPSFXReverb, DecayTime, EarlyDelay, LateDelay, HFReference, HFDecayRatio, Diffusion, Density, LowShelfFrequency, LowShelfGain, HighCut, EarlyLateMix, Wet, Dry);
+
+	// FMOD_DSP_CONVOLUTION_REVERB
+	DEF_DSP_PARAMS(DSPConvolutionReverb, IR, Wet, Dry, Linked);
 
 #undef DEF_DSP_PARAMS
 
@@ -114,7 +130,7 @@ namespace ASX
 		template<DSPType Type>
 		struct SelectDSPParameter
 		{
-			using ParamType = TT::NthPackType < SizeT(Type),
+			using ParamType = TT::NthPackType<SizeT(Type),
 				void,					// Unknown
 				void,					// Mixer
 				void,					// Oscillator
@@ -134,7 +150,7 @@ namespace ASX
 				void,					// WinampPlugin
 				void,					// ITEcho
 				void,					// Compressor
-				void,					// SFXReverb
+				DSPSFXReverb,			// SFXReverb
 				void,					// LowpassSimple
 				void,					// Delay
 				void,					// Tremolo
@@ -152,7 +168,7 @@ namespace ASX
 				void,					// Transceiver
 				void,					// ObjectPan
 				void					// MultibandEQ
-			> ;
+			>;
 		};
 
 	}
@@ -226,6 +242,20 @@ namespace ASX
 		void setParameterData(u32 index, std::span<T> buffer) {
 			ASX_TRY() = handle->setParameterData(index, buffer.data(), buffer.size_bytes());
 		}
+
+		float getParameterFloat(u32 index, std::string& string) const;
+		int getParameterInt(u32 index, std::string& string) const;
+		bool getParameterBool(u32 index, std::string& string) const;
+		std::span<const u8> getParameterData(u32 index, std::string& string) const;
+
+		float getParameterFloat(u32 index) const;
+		int getParameterInt(u32 index) const;
+		bool getParameterBool(u32 index) const;
+		std::span<const u8> getParameterData(u32 index) const;
+
+		u32 getParameterCount() const;
+
+		const DSPParameterDescription& getParameterInfo(u32 index) const;
 
 		void showConfigDialog(void* hwnd, bool show);
 

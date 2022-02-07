@@ -104,6 +104,8 @@ namespace ASX
 		*/
 
 		u32 loadPlugin(const Uri& path);
+
+		u32 registerCodec(CodecDescription& description, u32 priority = 0);
 		
 		/*
 		*	General functions
