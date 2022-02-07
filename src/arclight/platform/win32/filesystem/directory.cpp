@@ -12,47 +12,47 @@
 
 
 enum class KnownFolder {
-    Desktop,
-    Documents,
-    Downloads,
-    Pictures,
-    Videos
+	Desktop,
+	Documents,
+	Downloads,
+	Pictures,
+	Videos
 };
 
 
 static Directory getKnownFolder(KnownFolder dir) {
 /*
-    GUID kfid;
+	GUID kfid;
 
-    switch(dir) {
+	switch(dir) {
 
-        case KnownFolder::Desktop:
-            kfid = FOLDERID_Desktop;
-            break;
+		case KnownFolder::Desktop:
+			kfid = FOLDERID_Desktop;
+			break;
 
-        case KnownFolder::Documents:
-            kfid = FOLDERID_Documents;
-            break;
+		case KnownFolder::Documents:
+			kfid = FOLDERID_Documents;
+			break;
 
-        case KnownFolder::Downloads:
-            kfid = FOLDERID_Downloads;
-            break;
+		case KnownFolder::Downloads:
+			kfid = FOLDERID_Downloads;
+			break;
 
-        case KnownFolder::Pictures:
-            kfid = FOLDERID_Pictures;
-            break;
-        
-        case KnownFolder::Videos:
-            kfid = FOLDERID_Videos;
-            break;
+		case KnownFolder::Pictures:
+			kfid = FOLDERID_Pictures;
+			break;
+		
+		case KnownFolder::Videos:
+			kfid = FOLDERID_Videos;
+			break;
 
-        default:
-            arc_force_assert("Illegal known folder type");
+		default:
+			arc_force_assert("Illegal known folder type");
 
-    }
+	}
 */
-    //wchar_t* pathCharArray;
-    //SHGetKnownFolderPath(kfid, 0, nullptr, pathCharArray);
+	//wchar_t* pathCharArray;
+	//SHGetKnownFolderPath(kfid, 0, nullptr, pathCharArray);
 
 return Directory();
 }
@@ -60,29 +60,29 @@ return Directory();
 
 
 Directory Directory::getDesktopFolder() {
-    return getKnownFolder(KnownFolder::Desktop);
+	return getKnownFolder(KnownFolder::Desktop);
 }
 
 
 
 Directory Directory::getDocumentFolder() {
-    return getKnownFolder(KnownFolder::Documents);
+	return getKnownFolder(KnownFolder::Documents);
 }
 
 
 
 Directory Directory::getDownloadFolder() {
-    return getKnownFolder(KnownFolder::Downloads);
+	return getKnownFolder(KnownFolder::Downloads);
 }
 
 
 
 Directory Directory::getPictureFolder() {
-    return getKnownFolder(KnownFolder::Pictures);
+	return getKnownFolder(KnownFolder::Pictures);
 }
 
 
 
 Directory Directory::getVideoFolder() {
-    return getKnownFolder(KnownFolder::Videos);
+	return getKnownFolder(KnownFolder::Videos);
 }

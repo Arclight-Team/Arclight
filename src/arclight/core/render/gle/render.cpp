@@ -174,4 +174,14 @@ void renderInstancedIndexed(PrimType type, IndexType idxType, u32 instances, u32
 
 
 
+void dispatchCompute(u32 sizeX, u32 sizeY, u32 sizeZ) {
+
+	gle_assert(sizeX && sizeY && sizeZ, "Compute work group size cannot be 0");
+
+	glDispatchCompute(sizeX, sizeY, sizeZ);
+
+}
+
+
+
 GLE_END

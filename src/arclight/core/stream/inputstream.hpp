@@ -17,7 +17,7 @@ class InputStream : virtual public StreamBase {
 
 public:
 
-    template<class T>
+	template<class T>
 	SizeT read(const std::span<T>& dest) {
 		return read(dest.data(), dest.size());
 	}

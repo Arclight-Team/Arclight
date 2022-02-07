@@ -37,7 +37,7 @@ The following features have been fully implemented:
 - Timing utilities
 - Streams
 - Unicode conversion support
-- Hash support (MD5, SHAx)
+- Compile-time encryption/hashing (DES, TripleDES, MD5, SHAx)
 - Additional containers/extensions to std (BitSpan, OptionalRef, improved Any)
 - XML parser
 - Filesystem library
@@ -66,4 +66,4 @@ If you consider joining our team, contact us through arcayn.arclight@gmail.com.
 - [Arcayn](https://github.com/Arcaynx) for the project's management
 - [Ed_IT](https://github.com/Ed-1T) for the help as the second head developer
 - [KonPet](https://github.com/KonPet) for the great compression support + PNG management
-- [ItzTacos](https://github.com/ItzTacosOfficial) for the official logo
+- [ItzTacos](https://github.com/ItzTacosOfficial) for testing the code and the official logo

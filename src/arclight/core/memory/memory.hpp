@@ -27,12 +27,12 @@ namespace Memory {
 	}
 
 	template<class T>
-	constexpr AddressT address(const T* ptr) {
+	constexpr AddressT pointerAddress(const T* ptr) {
 		return reinterpret_cast<AddressT>(ptr);
 	}
 
 	template<class T>
-	constexpr AddressT address(const T& ptr) {
+	constexpr AddressT referenceAddress(const T& ptr) {
 		return address(std::addressof(ptr));
 	}
 

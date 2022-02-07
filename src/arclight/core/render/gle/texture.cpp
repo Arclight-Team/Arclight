@@ -357,6 +357,22 @@ void Texture::generateMipmaps() {
 
 
 
+void Texture::bindImageUnit(u32 unit, bool layered, u32 layer, ImageUnitAccess access, u32 level) {
+
+	gle_assert(imageLoadStoreSupported(), "Cannot bind image unit, image load store not supported");
+	gle_assert(Image::isImageUnitCompatible(texFormat), "Texture %d has an image unit incompatible format (attempted to bind image unit)", id);
+
+	if (level > getMipmapCount()) {
+		error("Specified mipmap level %d which exceeds the total mipmap count of %d", level, getMipmapCount());
+		return;
+	}
+
+	glBindImageTexture(unit, id, level, layered ? GL_TRUE : GL_FALSE, layer, getImageUnitAccessEnum(access), Image::getImageFormatEnum(texFormat));
+
+}
+
+
+
 TextureType Texture::getTextureType() const {
 	return type;
 }
@@ -612,6 +628,18 @@ u32 Texture::getTextureOperatorEnum(TextureOperator op) {
 
 	}
 
+}
+
+
+
+u32 Texture::getImageUnitAccessEnum(ImageUnitAccess access) {
+	return GL_READ_ONLY + static_cast<u32>(access);
+}
+
+
+
+bool Texture::imageLoadStoreSupported() {
+	return GLE_EXT_SUPPORTED(ARB_shader_image_load_store);
 }
 
 

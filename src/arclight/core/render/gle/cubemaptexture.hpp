@@ -32,6 +32,20 @@ public:
 		update(getCubemapFace(face), x, y, w, h, srcFormat, srcType, data, level);
 	}
 
+	inline void bindImageUnit(u32 unit, ImageUnitAccess access, u32 level = 0) {
+		Texture::bindImageUnit(unit, false, 0, access, level);
+	}
+
+	inline void bindImageUnit(u32 unit, u32 layer, ImageUnitAccess access, u32 level = 0) {
+
+		if (layer > depth) {
+			error("Texture layer %d exceeds the amount of %d layers", layer, depth);
+			return;
+		}
+
+		Texture::bindImageUnit(unit, true, layer, access, level);
+	}
+
 	void setData(CubemapFace face, u32 s, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data);
 	void setMipmapData(CubemapFace face, u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data);
 	void update(CubemapFace face, u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data, u32 level = 0);

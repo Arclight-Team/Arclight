@@ -20,43 +20,43 @@
 
 Path Path::getApplicationDirectory() {
 
-    u32 length = 0x200;
-    std::vector<wchar_t> filename;
+	u32 length = 0x200;
+	std::vector<wchar_t> filename;
 
-    try {
+	try {
 
-        filename.resize(length);
+		filename.resize(length);
 
-        while(GetModuleFileNameW(nullptr, filename.data(), length) == length) {
+		while(GetModuleFileNameW(nullptr, filename.data(), length) == length) {
 
-            if(length < 0x8000) {
+			if(length < 0x8000) {
 
-                length *= 2;
-                filename.resize(length);
+				length *= 2;
+				filename.resize(length);
 
-            } else {
+			} else {
 
-                /*
-                    Ideally, this cannot happen because the windows path limit is specified to be 0x7FFF (excl. null terminator byte)
-                    If this changes in future windows versions, long path names could fail since it would require to allocate fairly large buffers
-                    This is why we stop here with an error.
-                */
-                Log::error("Path", "Failed to query application directory path: Path too long");
-                return Path();
+				/*
+					Ideally, this cannot happen because the windows path limit is specified to be 0x7FFF (excl. null terminator byte)
+					If this changes in future windows versions, long path names could fail since it would require to allocate fairly large buffers
+					This is why we stop here with an error.
+				*/
+				Log::error("Path", "Failed to query application directory path: Path too long");
+				return Path();
 
-            }
+			}
 
-        }
-        
-        std::wstring str(filename.data());
+		}
+		
+		std::wstring str(filename.data());
 
-        return Path(std::filesystem::path(str)).parent();
+		return Path(std::filesystem::path(str)).parent();
 
-    } catch (std::exception& e) {
+	} catch (std::exception& e) {
 
-        Log::error("Path", "Failed to query application directory path: %s", e.what());
-        return Path();
+		Log::error("Path", "Failed to query application directory path: %s", e.what());
+		return Path();
 
-    }
+	}
 
 }

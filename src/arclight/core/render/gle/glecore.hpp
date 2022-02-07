@@ -50,6 +50,26 @@ namespace Limits {
 
 	u32 getMaxUniformBlockBindings();
 
+	u32 getMaxVertexStorageBlocks();
+	u32 getMaxFragmentStorageBlocks();
+	u32 getMaxGeometryStorageBlocks();
+	u32 getMaxTessControlStorageBlocks();
+	u32 getMaxTessEvaluationStorageBlocks();
+	u32 getMaxComputeStorageBlocks();
+	u32 getMaxCombinedStorageBlocks();
+
+	u32 getMaxStorageBlockBindings();
+	u32 getMaxStorageBlockSize();
+
+	u32 getMaxComputeGroupCountX();
+	u32 getMaxComputeGroupCountY();
+	u32 getMaxComputeGroupCountZ();
+	u32 getMaxComputeGroupSizeX();
+	u32 getMaxComputeGroupSizeY();
+	u32 getMaxComputeGroupSizeZ();
+	u32 getMaxComputeGroupInvocations();
+	u32 getMaxComputeSharedMemorySize();
+
 }
 
 
@@ -62,6 +82,19 @@ enum class Alignment {
 
 void setRowUnpackAlignment(Alignment a);
 void setRowPackAlignment(Alignment a);
+
+enum class DepthCompare {
+	Never,
+	Less,
+	LessEqual,
+	Equal,
+	GreaterEqual,
+	Greater,
+	NotEqual,
+	Always
+};
+
+void setDepthFunction(DepthCompare function);
 
 
 GLE_END

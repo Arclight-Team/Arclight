@@ -347,4 +347,57 @@ u32 Image::getMaxSamples(ImageFormat format) {
 }
 
 
+
+bool Image::isImageUnitCompatible(ImageFormat format) {
+
+	switch (format) {
+
+		case ImageFormat::R8:
+		case ImageFormat::R8sn:
+		case ImageFormat::R16:
+		case ImageFormat::R16sn:
+		case ImageFormat::RG8:
+		case ImageFormat::RG8sn:
+		case ImageFormat::RG16:
+		case ImageFormat::RG16sn:
+		case ImageFormat::RGBA8:
+		case ImageFormat::RGBA8sn:
+		case ImageFormat::RGB10A2:
+		case ImageFormat::RGB10A2ui:
+		case ImageFormat::RGBA16:
+		case ImageFormat::R16f:
+		case ImageFormat::RG16f:
+		case ImageFormat::RGBA16f:
+		case ImageFormat::R32f:
+		case ImageFormat::RG32f:
+		case ImageFormat::RGBA32f:
+		case ImageFormat::R11fG11fB10f:
+		case ImageFormat::R8i:
+		case ImageFormat::R8ui:
+		case ImageFormat::R16i:
+		case ImageFormat::R16ui:
+		case ImageFormat::R32i:
+		case ImageFormat::R32ui:
+		case ImageFormat::RG8i:
+		case ImageFormat::RG8ui:
+		case ImageFormat::RG16i:
+		case ImageFormat::RG16ui:
+		case ImageFormat::RG32i:
+		case ImageFormat::RG32ui:
+		case ImageFormat::RGBA8i:
+		case ImageFormat::RGBA8ui:
+		case ImageFormat::RGBA16i:
+		case ImageFormat::RGBA16ui:
+		case ImageFormat::RGBA32i:
+		case ImageFormat::RGBA32ui:
+			return true;
+
+		default:
+			return false;
+
+	}
+
+}
+
+
 GLE_END

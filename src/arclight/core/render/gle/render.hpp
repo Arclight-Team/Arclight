@@ -67,4 +67,7 @@ void renderIndexed(PrimType type, IndexType idxType, u32 idxCount, u32 start = 0
 void renderInstanced(PrimType type, u32 instances, u32 count, u32 start = 0);
 void renderInstancedIndexed(PrimType type, IndexType idxType, u32 instances, u32 idxCount, u32 start = 0);
 
+//Computing
+void dispatchCompute(u32 sizeX, u32 sizeY, u32 sizeZ);
+
 GLE_END

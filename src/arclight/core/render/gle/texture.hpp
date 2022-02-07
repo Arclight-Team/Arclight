@@ -111,6 +111,13 @@ enum class TextureOperator {
 };
 
 
+enum class ImageUnitAccess {
+	Read,
+	Write,
+	ReadWrite
+};
+
+
 
 class Texture : public GLObject {
 
@@ -150,6 +157,8 @@ public:
 	static u32 getMipmapSize(u32 level, u32 d);
 	static CubemapFace getCubemapFace(u32 index);
 
+	static bool imageLoadStoreSupported();
+
 protected:
 
 	friend class Framebuffer;
@@ -178,12 +187,15 @@ protected:
 
 	void generateMipmaps();
 
+	void bindImageUnit(u32 unit, bool layered, u32 layer, ImageUnitAccess access, u32 level);
+
 	static u32 getTextureTypeEnum(TextureType type);
 	static u32 getTextureWrapEnum(TextureWrap wrap);
 	static u32 getTextureSourceFormatEnum(TextureSourceFormat format);
 	static u32 getTextureSourceTypeEnum(TextureSourceType type);
 	static u32 getCubemapFaceEnum(CubemapFace face);
 	static u32 getTextureOperatorEnum(TextureOperator op);
+	static u32 getImageUnitAccessEnum(ImageUnitAccess access);
 
 	u32 width;
 	u32 height;

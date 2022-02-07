@@ -9,8 +9,10 @@
 #pragma once
 
 #include "spritearray.hpp"
+#include "spritebatch.hpp"
 #include "spritefactory.hpp"
 #include "textureholder.hpp"
+#include "math/rectangle.hpp"
 
 
 
@@ -23,8 +25,10 @@ public:
 	void preload();
 	void render();
 
+	void setViewport(const Vec2d& lowerLeft, const Vec2d& topRight);
+
 	//Sprite functions
-	Sprite& createSprite(UUID id, UUID typeID, const Mat3f& transform = Mat3f());
+	Sprite& createSprite(UUID id, UUID typeID);
 	Sprite& getSprite(UUID id);
 	const Sprite& getSprite(UUID id) const;
 	bool containsSprite(UUID id) const;
@@ -44,8 +48,14 @@ public:
 
 private:
 
+	void recalculateProjection();
+
 	TextureHolder textureHolder;
 	SpriteFactory factory;
 	SpriteArray sprites;
+	std::unordered_map<u64, SpriteBatch> batches;
+
+	RectD viewport;          //The scene's viewport rect
+	Mat4f projection;
 
 };

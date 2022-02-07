@@ -19,162 +19,162 @@
 
 namespace CodeConv {
 
-    using Unicode::Encoding;
+	using Unicode::Encoding;
 	using Unicode::Codepoint;
-    
-    extern const Codepoint sjisUnicodeTable[0x3100];
-    extern const Codepoint big5UnicodeTable[0x5FA1];
-    extern const Codepoint wansungUnicodeTable[0x5E00];
-    extern const Codepoint johabUnicodeTable[0x7C84];
+	
+	extern const Codepoint sjisUnicodeTable[0x3100];
+	extern const Codepoint big5UnicodeTable[0x5FA1];
+	extern const Codepoint wansungUnicodeTable[0x5E00];
+	extern const Codepoint johabUnicodeTable[0x7C84];
 
 
-    //Standard Shift-JIS to Unicode
-    template<Encoding E>
-    std::string fromShiftJIS(const std::string_view& in) {
+	//Standard Shift-JIS to Unicode
+	template<Encoding E>
+	std::string fromShiftJIS(const std::string_view& in) {
 
-        std::string unicodeString;
-        unicodeString.reserve(in.size() * 2);
+		std::string unicodeString;
+		unicodeString.reserve(in.size() * 2);
 
-        u32 i = 0;
+		u32 i = 0;
 
-        while(i < in.size()) {
+		while(i < in.size()) {
 
-            u8 c = in[i++];
-            u32 high = c >> 4;
+			u8 c = in[i++];
+			u32 high = c >> 4;
 
-            switch(high) {
+			switch(high) {
 
-                case 0x8:
-                case 0x9:
+				case 0x8:
+				case 0x9:
 
-                    if(i == in.size()) {
-                        break;
-                    }
+					if(i == in.size()) {
+						break;
+					}
 
-                    //unicodeString += Unicode::encode<E>(sjisUnicodeTable[0x100 + ((c & 0x1F) << 8) | in[i++]]);
-                    break;
+					//unicodeString += Unicode::encode<E>(sjisUnicodeTable[0x100 + ((c & 0x1F) << 8) | in[i++]]);
+					break;
 
-                case 0xE:
+				case 0xE:
 
-                    if(i == in.size()) {
-                        break;
-                    }
+					if(i == in.size()) {
+						break;
+					}
 
-                    //unicodeString += Unicode::encode<E>(sjisUnicodeTable[0x2100 + ((c & 0x1F) << 8) | in[i++]]);
-                    break;
+					//unicodeString += Unicode::encode<E>(sjisUnicodeTable[0x2100 + ((c & 0x1F) << 8) | in[i++]]);
+					break;
 
-                default:
-                    //unicodeString += Unicode::encode<E>(sjisUnicodeTable[c]);
-                    break;
+				default:
+					//unicodeString += Unicode::encode<E>(sjisUnicodeTable[c]);
+					break;
 
-            }
+			}
 
-        }
+		}
 
-        return unicodeString;
+		return unicodeString;
 
-    }
-
-
-    //Standard Big5 to Unicode
-    template<Encoding E>
-    std::string fromBig5(const std::string_view& in) {
-
-        std::string unicodeString;
-        unicodeString.reserve(in.size() * 2);
-
-        u32 i = 0;
-
-        while(i < in.size()) {
-
-            u8 c = in[i++];
-
-            if(c >= 0xA1) {
-
-                if(i == in.size()) {
-                    break;
-                }
-
-                //unicodeString += Unicode::encode<E>(big5UnicodeTable[0xA1 + (((c - 0xA1) << 8) | in[i++])]);
-
-            } else {
-
-                //unicodeString += Unicode::encode<E>(big5UnicodeTable[c]);
-
-            }
-
-        }
-
-        return unicodeString;
-
-    }
+	}
 
 
-    //Wansung with UHC extensions to Unicode
-    template<Encoding E>
-    std::string fromWansung(const std::string_view& in) {
+	//Standard Big5 to Unicode
+	template<Encoding E>
+	std::string fromBig5(const std::string_view& in) {
 
-        std::string unicodeString;
-        unicodeString.reserve(in.size() * 2);
+		std::string unicodeString;
+		unicodeString.reserve(in.size() * 2);
 
-        u32 i = 0;
+		u32 i = 0;
 
-        while(i < in.size()) {
+		while(i < in.size()) {
 
-            u8 c = in[i++];
+			u8 c = in[i++];
 
-            if(c >= 0x21 || c < 0x7E) {
+			if(c >= 0xA1) {
 
-                if(i == in.size()) {
-                    break;
-                }
+				if(i == in.size()) {
+					break;
+				}
 
-                //unicodeString += Unicode::encode<E>(wansungUnicodeTable[0x100 + (((c - 0x21) << 8) | in[i++])]);
+				//unicodeString += Unicode::encode<E>(big5UnicodeTable[0xA1 + (((c - 0xA1) << 8) | in[i++])]);
 
-            } else {
+			} else {
 
-                //unicodeString += Unicode::encode<E>(wansungUnicodeTable[c]);
+				//unicodeString += Unicode::encode<E>(big5UnicodeTable[c]);
 
-            }
+			}
 
-        }
+		}
 
-        return unicodeString;
+		return unicodeString;
 
-    }
+	}
 
 
-    //Johab to Unicode
-    template<Encoding E>
-    std::string fromJohab(const std::string_view& in) {
+	//Wansung with UHC extensions to Unicode
+	template<Encoding E>
+	std::string fromWansung(const std::string_view& in) {
 
-        std::string unicodeString;
-        unicodeString.reserve(in.size() * 2);
+		std::string unicodeString;
+		unicodeString.reserve(in.size() * 2);
 
-        u32 i = 0;
+		u32 i = 0;
 
-        while(i < in.size()) {
+		while(i < in.size()) {
 
-            u8 c = in[i++];
+			u8 c = in[i++];
 
-            if(c >= 0x84) {
+			if(c >= 0x21 || c < 0x7E) {
 
-                if(i == in.size()) {
-                    break;
-                }
+				if(i == in.size()) {
+					break;
+				}
 
-                //unicodeString += Unicode::encode<E>(johabUnicodeTable[0x84 + (((c - 0x84) << 8) | in[i++])]);
+				//unicodeString += Unicode::encode<E>(wansungUnicodeTable[0x100 + (((c - 0x21) << 8) | in[i++])]);
 
-            } else {
+			} else {
 
-                //unicodeString += Unicode::encode<E>(johabUnicodeTable[c]);
+				//unicodeString += Unicode::encode<E>(wansungUnicodeTable[c]);
 
-            }
+			}
 
-        }
+		}
 
-        return unicodeString;
+		return unicodeString;
 
-    }
+	}
+
+
+	//Johab to Unicode
+	template<Encoding E>
+	std::string fromJohab(const std::string_view& in) {
+
+		std::string unicodeString;
+		unicodeString.reserve(in.size() * 2);
+
+		u32 i = 0;
+
+		while(i < in.size()) {
+
+			u8 c = in[i++];
+
+			if(c >= 0x84) {
+
+				if(i == in.size()) {
+					break;
+				}
+
+				//unicodeString += Unicode::encode<E>(johabUnicodeTable[0x84 + (((c - 0x84) << 8) | in[i++])]);
+
+			} else {
+
+				//unicodeString += Unicode::encode<E>(johabUnicodeTable[c]);
+
+			}
+
+		}
+
+		return unicodeString;
+
+	}
 
 }

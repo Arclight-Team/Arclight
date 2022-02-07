@@ -19,21 +19,21 @@ class DynamicsWorld {
 
 public:
 
-    constexpr DynamicsWorld() = default;
+	constexpr DynamicsWorld() = default;
 
-    void create();
+	void create();
 
-    void setWorldGravity(const Vec3x& gravity);
+	void setWorldGravity(const Vec3x& gravity);
 
 	//RIGIDBODY TRANSITION
 /*
-    void addRigidBody(RigidBody& body);
-    void deleteRigidBody(RigidBody& body);
+	void addRigidBody(RigidBody& body);
+	void deleteRigidBody(RigidBody& body);
 */
-    void simulate(double dt, u32 tps);
+	void simulate(double dt, u32 tps);
 
 private:
 
-    std::shared_ptr<struct DynamicsWorldConfiguration> config;
+	std::shared_ptr<struct DynamicsWorldConfiguration> config;
 
 };

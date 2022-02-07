@@ -10,7 +10,7 @@
 
 #include "math/math.hpp"
 #include "math/vector.hpp"
-
+#include "arcintrinsic.hpp"
 
 
 template<Float T>
@@ -27,32 +27,33 @@ public:
 		setIdentity();
 	}
 
-	template<Float A>
-	constexpr Mat2(const Mat2<A>& m) : v{ m[0], m[1] } {}
+	template<Float F>
+	constexpr explicit Mat2(const Mat2<F>& m) : v {m[0], m[1]} {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
-	constexpr Mat2(A a, B b, C c, D d) : v{ {a, c}, {b, d} } {}
+	constexpr Mat2(A a, B b, C c, D d) : v {{a, c},
+											{b, d}} {}
 
 	template<Arithmetic A, Arithmetic B>
-	constexpr Mat2(const Vec2<A>& a, const Vec2<B>& b) : v{ a, b } {}
+	constexpr Mat2(const Vec2<A>& a, const Vec2<B>& b) : v {a, b} {}
 
 
-	template<Float A>
-	constexpr Mat2& add(const Mat2<A>& m) {
+	template<Float F>
+	constexpr Mat2& add(const Mat2<F>& m) {
 		v[0] += m[0];
 		v[1] += m[1];
 		return *this;
 	}
 
-	template<Float A>
-	constexpr Mat2& subtract(const Mat2<A>& m) {
+	template<Float F>
+	constexpr Mat2& subtract(const Mat2<F>& m) {
 		v[0] -= m[0];
 		v[1] -= m[1];
 		return *this;
 	}
 
-	template<Float A>
-	constexpr Mat2& multiply(const Mat2<A>& m) {
+	template<Float F>
+	constexpr Mat2& multiply(const Mat2<F>& m) {
 		T a = v[0][0] * m[0][0] + v[1][0] * m[0][1];
 		T b = v[0][1] * m[0][0] + v[1][1] * m[0][1];
 		T c = v[0][0] * m[1][0] + v[1][0] * m[1][1];
@@ -68,8 +69,8 @@ public:
 		return *this;
 	}
 
-	template<Float A>
-	constexpr Mat2& compMultiply(const Mat2<A>& m) {
+	template<Float F>
+	constexpr Mat2& compMultiply(const Mat2<F>& m) {
 		v[0].compMultiply(m[0]);
 		v[1].compMultiply(m[1]);
 		return *this;
@@ -114,33 +115,33 @@ public:
 	}
 
 	constexpr void setIdentity() {
-		v[0] = { 1, 0 };
-		v[1] = { 0, 1 };
+		v[0] = {1, 0};
+		v[1] = {0, 1};
 	}
 
 	constexpr T trace() const {
 		return v[0][0] + v[1][1];
 	}
 
-	template<Float A>
-	constexpr Mat2& operator=(const Mat2<A>& m) {
+	template<Float F>
+	constexpr Mat2& operator=(const Mat2<F>& m) {
 		v[0] = m[0];
 		v[1] = m[1];
 		return *this;
 	}
 
-	template<Float A>
-	constexpr Mat2& operator+=(const Mat2<A>& m) {
+	template<Float F>
+	constexpr Mat2& operator+=(const Mat2<F>& m) {
 		return add(m);
 	}
 
-	template<Float A>
-	constexpr Mat2& operator-=(const Mat2<A>& m) {
+	template<Float F>
+	constexpr Mat2& operator-=(const Mat2<F>& m) {
 		return subtract(m);
 	}
 
-	template<Float A>
-	constexpr Mat2& operator*=(const Mat2<A>& m) {
+	template<Float F>
+	constexpr Mat2& operator*=(const Mat2<F>& m) {
 		return multiply(m);
 	}
 
@@ -149,14 +150,9 @@ public:
 		return multiply(a);
 	}
 
-	template<Float A>
-	constexpr bool operator==(const Mat2<A>& m) const {
+	template<Float F>
+	constexpr bool operator==(const Mat2<F>& m) const {
 		return v[0] == m[0] && v[1] == m[1];
-	}
-
-	template<Float A>
-	constexpr bool operator!=(const Mat2<A>& m) const {
-		return !(*this == m);
 	}
 
 	constexpr Vec2<T>& operator[](u32 index) {
@@ -175,7 +171,6 @@ public:
 };
 
 
-
 template<Float T>
 class Mat3 {
 
@@ -190,39 +185,47 @@ public:
 		setIdentity();
 	}
 
-	template<Float A>
-	constexpr Mat3(const Mat3<A>& m) : v{ m[0], m[1], m[2] } {}
+	template<Float F>
+	constexpr explicit Mat3(const Mat3<F>& m) : v {m[0], m[1], m[2]} {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C,
-		Arithmetic D, Arithmetic E, Arithmetic F,
-		Arithmetic G, Arithmetic H, Arithmetic I>
-		constexpr Mat3(A a, B b, C c, D d, E e, F f, G g, H h, I i) : v{ {a, d, g}, {b, e, h}, {c, f, i} } {}
+			Arithmetic D, Arithmetic E, Arithmetic F,
+			Arithmetic G, Arithmetic H, Arithmetic I>
+	constexpr Mat3(A a, B b, C c, D d, E e, F f, G g, H h, I i) : v {{a, d, g},
+																	 {b, e, h},
+																	 {c, f, i}} {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
-	constexpr Mat3(const Vec3<A>& a, const Vec3<B>& b, const Vec3<C>& c) : v{ a, b, c } {}
+	constexpr Mat3(const Vec3<A>& a, const Vec3<B>& b, const Vec3<C>& c) : v {a, b, c} {}
+
+	template<Float F>
+	constexpr explicit Mat3(const Mat2<F>& m) : v {{m[0][0], m[0][1], 0},
+												  {m[1][0], m[1][1], 0},
+												  {0, 0, 1}} {}
+
 
 	Mat2<T> toMat2() const {
 		return Mat2<T>(v[0][0], v[1][0], v[0][1], v[1][1]);
 	}
 
-	template<Float A>
-	constexpr Mat3& add(const Mat3<A>& m) {
+	template<Float F>
+	constexpr Mat3& add(const Mat3<F>& m) {
 		v[0] += m[0];
 		v[1] += m[1];
 		v[2] += m[2];
 		return *this;
 	}
 
-	template<Float A>
-	constexpr Mat3& subtract(const Mat3<A>& m) {
+	template<Float F>
+	constexpr Mat3& subtract(const Mat3<F>& m) {
 		v[0] -= m[0];
 		v[1] -= m[1];
 		v[2] -= m[2];
 		return *this;
 	}
 
-	template<Float A>
-	constexpr Mat3& multiply(const Mat3<A>& m) {
+	template<Float F>
+	constexpr Mat3& multiply(const Mat3<F>& m) {
 		T a = v[0][0] * m[0][0] + v[1][0] * m[0][1] + v[2][0] * m[0][2];
 		T b = v[0][1] * m[0][0] + v[1][1] * m[0][1] + v[2][1] * m[0][2];
 		T c = v[0][2] * m[0][0] + v[1][2] * m[0][1] + v[2][2] * m[0][2];
@@ -244,8 +247,8 @@ public:
 		return *this;
 	}
 
-	template<Float A>
-	constexpr Mat3& compMultiply(const Mat3<A>& m) {
+	template<Float F>
+	constexpr Mat3& compMultiply(const Mat3<F>& m) {
 		v[0].compMultiply(m[0]);
 		v[1].compMultiply(m[1]);
 		v[2].compMultiply(m[2]);
@@ -274,7 +277,7 @@ public:
 
 	constexpr T determinant() const {
 		return v[0][0] * v[1][1] * v[2][2] + v[1][0] * v[2][1] * v[0][2] + v[2][0] * v[0][1] * v[1][2]
-			- v[0][2] * v[1][1] * v[2][0] - v[1][2] * v[2][1] * v[0][0] - v[2][2] * v[0][1] * v[1][0];
+			   - v[0][2] * v[1][1] * v[2][0] - v[1][2] * v[2][1] * v[0][0] - v[2][2] * v[0][1] * v[1][0];
 	}
 
 	constexpr void invert() {
@@ -316,35 +319,35 @@ public:
 	}
 
 	constexpr void setIdentity() {
-		v[0] = { 1, 0, 0 };
-		v[1] = { 0, 1, 0 };
-		v[2] = { 0, 0, 1 };
+		v[0] = {1, 0, 0};
+		v[1] = {0, 1, 0};
+		v[2] = {0, 0, 1};
 	}
 
 	constexpr T trace() const {
 		return v[0][0] + v[1][1] + v[2][2];
 	}
 
-	template<Float A>
-	constexpr Mat3& operator=(const Mat3<A>& m) {
+	template<Float F>
+	constexpr Mat3& operator=(const Mat3<F>& m) {
 		v[0] = m[0];
 		v[1] = m[1];
 		v[2] = m[2];
 		return *this;
 	}
 
-	template<Float A>
-	constexpr Mat3& operator+=(const Mat3<A>& m) {
+	template<Float F>
+	constexpr Mat3& operator+=(const Mat3<F>& m) {
 		return add(m);
 	}
 
-	template<Float A>
-	constexpr Mat3& operator-=(const Mat3<A>& m) {
+	template<Float F>
+	constexpr Mat3& operator-=(const Mat3<F>& m) {
 		return subtract(m);
 	}
 
-	template<Float A>
-	constexpr Mat3& operator*=(const Mat3<A>& m) {
+	template<Float F>
+	constexpr Mat3& operator*=(const Mat3<F>& m) {
 		return multiply(m);
 	}
 
@@ -353,14 +356,9 @@ public:
 		return multiply(a);
 	}
 
-	template<Float A>
-	constexpr bool operator==(const Mat3<A>& m) const {
+	template<Float F>
+	constexpr bool operator==(const Mat3<F>& m) const {
 		return v[0] == m[0] && v[1] == m[1] && v[2] == m[2];
-	}
-
-	template<Float A>
-	constexpr bool operator!=(const Mat3<A>& m) const {
-		return !(*this == m);
 	}
 
 	constexpr Vec3<T>& operator[](u32 index) {
@@ -374,19 +372,137 @@ public:
 	}
 
 
+	template<Arithmetic A, Arithmetic B>
+	constexpr Mat3& translate(A x, B y) {
+		v[2] += v[0] * x;
+		v[2] += v[1] * y;
+		return *this;
+	}
+
+	template<Arithmetic A>
+	constexpr Mat3& translate(const Vec2<A>& vec) {
+		return translate(vec.x, vec.y);
+	}
+
+	template<Arithmetic A>
+	constexpr Mat3& rotate(A angle) {
+
+		T sinTheta = Math::sin(angle);
+		T cosTheta = Math::cos(angle);
+
+		Vec3<T> x = v[0] * cosTheta + v[1] * sinTheta;
+		Vec3<T> y = v[0] * -sinTheta + v[1] * cosTheta;
+		v[0] = x;
+		v[1] = y;
+
+		return *this;
+
+	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr Mat3& scale(A x, B y) {
+		v[0] *= x;
+		v[1] *= y;
+		return *this;
+	}
+
+	template<Arithmetic A>
+	constexpr Mat3& scale(A v) {
+		return scale(v, v);
+	}
+
+	template<Arithmetic A>
+	constexpr Mat3& shearX(A angle) {
+		v[1] += v[0] * Math::tan(angle);
+		return *this;
+	}
+
+	template<Arithmetic A>
+	constexpr Mat3& shearY(A angle) {
+		v[0] += v[1] * Math::tan(angle);
+		return *this;
+	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr Mat3& shear(A sx, B sy) {
+
+		T tx = Math::tan(sx);
+		T ty = Math::tan(sy);
+		T tn = tx * ty + 1;
+
+		Vec3<T> x = v[0] * tn + v[1] * ty;
+		Vec3<T> y = v[0] * tx + v[1];
+
+		v[0] = x;
+		v[1] = y;
+
+		return *this;
+
+	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr static Mat3 fromTranslation(A x, B y) {
+		return Mat3(1, 0, x, 0, 1, y, 0, 0, 1);
+	}
+
+	template<Arithmetic A>
+	constexpr static Mat3 fromTranslation(const Vec2<A>& vec) {
+		return fromTranslation(vec.x, vec.y);
+	}
+
+	template<Arithmetic A>
+	constexpr static Mat3 fromRotation(A angle) {
+
+		T sinTheta = Math::sin(angle);
+		T cosTheta = Math::cos(angle);
+
+		return Mat3(cosTheta, -sinTheta, 0, sinTheta, cosTheta, 0, 0, 0, 1);
+
+	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr static Mat3 fromScale(A x, B y) {
+		return Mat3(x, 0, 0, 0, y, 0, 0, 0, 1);
+	}
+
+	template<Arithmetic A>
+	constexpr static Mat3 fromScale(A v) {
+		return fromScale(v, v);
+	}
+
+	template<Arithmetic A>
+	constexpr static Mat3 fromShearX(A angle) {
+		return Mat3(1, Math::tan(angle), 0, 0, 1, 0, 0, 0, 1);
+	}
+
+	template<Arithmetic A>
+	constexpr static Mat3 fromShearY(A angle) {
+		return Mat3(1, 0, 0, Math::tan(angle), 1, 0, 0, 0, 1);
+	}
+
+	template<Arithmetic A, Arithmetic B>
+	constexpr static Mat3 fromShear(A sx, B sy) {
+
+		T tx = Math::tan(sx);
+		T ty = Math::tan(sy);
+
+		return Mat3(tx * ty + 1, tx, 0, ty, 1, 0, 0, 0, 1);
+
+	}
+
+
 	Vec3<T> v[3];
 
 };
 
 
-
 template<Float T>
-class Mat4 {
+class alignas(16) Mat4 {
 
 public:
 
 	using Type = T;
-	
+
 	constexpr static u32 Size = 4;
 
 
@@ -394,18 +510,34 @@ public:
 		setIdentity();
 	}
 
-	template<Float A>
-	constexpr Mat4(const Mat4<A>& m) : v{ m[0], m[1], m[2], m[3] } {}
+	template<Float F>
+	constexpr explicit Mat4(const Mat4<F>& m) : v {m[0], m[1], m[2], m[3]} {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D,
-		Arithmetic E, Arithmetic F, Arithmetic G, Arithmetic H,
-		Arithmetic I, Arithmetic J, Arithmetic K, Arithmetic L,
-		Arithmetic M, Arithmetic N, Arithmetic O, Arithmetic P>
-		constexpr Mat4(A a, B b, C c, D d, E e, F f, G g, H h,
-			I i, J j, K k, L l, M m, N n, O o, P p) : v{ {a, e, i, m}, {b, f, j, n}, {c, g, k, o}, {d, h, l, p} } {}
+			Arithmetic E, Arithmetic F, Arithmetic G, Arithmetic H,
+			Arithmetic I, Arithmetic J, Arithmetic K, Arithmetic L,
+			Arithmetic M, Arithmetic N, Arithmetic O, Arithmetic P>
+	constexpr Mat4(A a, B b, C c, D d, E e, F f, G g, H h,
+				   I i, J j, K k, L l, M m, N n, O o, P p) : v {{a, e, i, m},
+																{b, f, j, n},
+																{c, g, k, o},
+																{d, h, l, p}} {}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
-	constexpr Mat4(const Vec4<A>& a, const Vec4<B>& b, const Vec4<C>& c, const Vec4<D>& d) : v{ a, b, c, d } {}
+	constexpr Mat4(const Vec4<A>& a, const Vec4<B>& b, const Vec4<C>& c, const Vec4<D>& d) : v {a, b, c, d} {}
+
+	template<Float F>
+	constexpr explicit Mat4(const Mat2<F>& m) : v {{m[0][0], m[0][1], 0, 0},
+												  {m[1][0], m[1][1], 0, 0},
+												  {0, 0, 1, 0},
+												  {0, 0, 0, 1}} {}
+
+	template<Float F>
+	constexpr explicit Mat4(const Mat3<F>& m) : v {{m[0][0], m[0][1], m[0][2], 0},
+												  {m[1][0], m[1][1], m[1][2], 0},
+												  {m[2][0], m[2][1], m[2][2], 0},
+												  {0, 0, 0, 1}} {}
+
 
 	Mat2<T> toMat2() const {
 		return Mat2<T>(v[0][0], v[1][0], v[0][1], v[1][1]);
@@ -414,13 +546,13 @@ public:
 	Mat3<T> toMat3() const {
 
 		return Mat3<T>(v[0][0], v[1][0], v[2][0],
-			v[0][1], v[1][1], v[2][1],
-			v[0][2], v[1][2], v[2][2]);
+					   v[0][1], v[1][1], v[2][1],
+					   v[0][2], v[1][2], v[2][2]);
 
 	}
 
-	template<Float A>
-	constexpr Mat4& add(const Mat4<A>& m) {
+	template<Float F>
+	constexpr Mat4& add(const Mat4<F>& m) {
 		v[0] += m[0];
 		v[1] += m[1];
 		v[2] += m[2];
@@ -428,8 +560,8 @@ public:
 		return *this;
 	}
 
-	template<Float A>
-	constexpr Mat4& subtract(const Mat4<A>& m) {
+	template<Float F>
+	constexpr Mat4& subtract(const Mat4<F>& m) {
 		v[0] -= m[0];
 		v[1] -= m[1];
 		v[2] -= m[2];
@@ -437,8 +569,97 @@ public:
 		return *this;
 	}
 
-	template<Float A>
-	constexpr Mat4& multiply(const Mat4<A>& t) {
+	template<Float F>
+	constexpr Mat4& multiply(const Mat4<F>& t) {
+
+#ifdef ARC_VECTORIZE_X86_SSE
+
+		if (!std::is_constant_evaluated()) {
+
+			using U = decltype(v[0][0] * t[0][0]);
+
+			if constexpr (Equal<U, float>) {
+
+				__m128 l0 = _mm_set_ps(v[0][3], v[0][2], v[0][1], v[0][0]);
+				__m128 l1 = _mm_set_ps(v[1][3], v[1][2], v[1][1], v[1][0]);
+				__m128 l2 = _mm_set_ps(v[2][3], v[2][2], v[2][1], v[2][0]);
+				__m128 l3 = _mm_set_ps(v[3][3], v[3][2], v[3][1], v[3][0]);
+
+				__m128 r0 = _mm_set_ps(t[0][3], t[0][2], t[0][1], t[0][0]);
+
+				__m128 x00 = _mm_mul_ps(l0, _mm_shuffle_ps(r0, r0, 0x00));
+				__m128 x01 = _mm_mul_ps(l1, _mm_shuffle_ps(r0, r0, 0x55));
+				__m128 x02 = _mm_mul_ps(l2, _mm_shuffle_ps(r0, r0, 0xAA));
+				__m128 x03 = _mm_mul_ps(l3, _mm_shuffle_ps(r0, r0, 0xFF));
+
+				__m128 c0 = _mm_add_ps(_mm_add_ps(x00, x01), _mm_add_ps(x02, x03));
+
+				__m128 r1 = _mm_set_ps(t[1][3], t[1][2], t[1][1], t[1][0]);
+
+				__m128 x10 = _mm_mul_ps(l0, _mm_shuffle_ps(r1, r1, 0x00));
+				__m128 x11 = _mm_mul_ps(l1, _mm_shuffle_ps(r1, r1, 0x55));
+				__m128 x12 = _mm_mul_ps(l2, _mm_shuffle_ps(r1, r1, 0xAA));
+				__m128 x13 = _mm_mul_ps(l3, _mm_shuffle_ps(r1, r1, 0xFF));
+
+				__m128 c1 = _mm_add_ps(_mm_add_ps(x10, x11), _mm_add_ps(x12, x13));
+
+				__m128 r2 = _mm_set_ps(t[2][3], t[2][2], t[2][1], t[2][0]);
+
+				__m128 x20 = _mm_mul_ps(l0, _mm_shuffle_ps(r2, r2, 0x00));
+				__m128 x21 = _mm_mul_ps(l1, _mm_shuffle_ps(r2, r2, 0x55));
+				__m128 x22 = _mm_mul_ps(l2, _mm_shuffle_ps(r2, r2, 0xAA));
+				__m128 x23 = _mm_mul_ps(l3, _mm_shuffle_ps(r2, r2, 0xFF));
+
+				__m128 c2 = _mm_add_ps(_mm_add_ps(x20, x21), _mm_add_ps(x22, x23));
+
+				__m128 r3 = _mm_set_ps(t[3][3], t[3][2], t[3][1], t[3][0]);
+
+				__m128 x30 = _mm_mul_ps(l0, _mm_shuffle_ps(r3, r3, 0x00));
+				__m128 x31 = _mm_mul_ps(l1, _mm_shuffle_ps(r3, r3, 0x55));
+				__m128 x32 = _mm_mul_ps(l2, _mm_shuffle_ps(r3, r3, 0xAA));
+				__m128 x33 = _mm_mul_ps(l3, _mm_shuffle_ps(r3, r3, 0xFF));
+
+				__m128 c3 = _mm_add_ps(_mm_add_ps(x30, x31), _mm_add_ps(x32, x33));
+
+
+				alignas(16) float f[4];
+
+				_mm_store_ps(f, c0);
+
+				v[0].x = f[0];
+				v[0].y = f[1];
+				v[0].z = f[2];
+				v[0].w = f[3];
+
+				_mm_store_ps(f, c1);
+
+				v[1].x = f[0];
+				v[1].y = f[1];
+				v[1].z = f[2];
+				v[1].w = f[3];
+
+				_mm_store_ps(f, c2);
+
+				v[2].x = f[0];
+				v[2].y = f[1];
+				v[2].z = f[2];
+				v[2].w = f[3];
+
+				_mm_store_ps(f, c3);
+
+				v[3].x = f[0];
+				v[3].y = f[1];
+				v[3].z = f[2];
+				v[3].w = f[3];
+
+				return *this;
+
+			}
+
+		}
+
+#endif
+
 		T a = v[0][0] * t[0][0] + v[1][0] * t[0][1] + v[2][0] * t[0][2] + v[3][0] * t[0][3];
 		T b = v[0][1] * t[0][0] + v[1][1] * t[0][1] + v[2][1] * t[0][2] + v[3][1] * t[0][3];
 		T c = v[0][2] * t[0][0] + v[1][2] * t[0][1] + v[2][2] * t[0][2] + v[3][2] * t[0][3];
@@ -455,8 +676,11 @@ public:
 		T n = v[0][1] * t[3][0] + v[1][1] * t[3][1] + v[2][1] * t[3][2] + v[3][1] * t[3][3];
 		T o = v[0][2] * t[3][0] + v[1][2] * t[3][1] + v[2][2] * t[3][2] + v[3][2] * t[3][3];
 		T p = v[0][3] * t[3][0] + v[1][3] * t[3][1] + v[2][3] * t[3][2] + v[3][3] * t[3][3];
+
 		*this = Mat4(a, e, i, m, b, f, j, n, c, g, k, o, d, h, l, p);
+
 		return *this;
+
 	}
 
 	template<Arithmetic A>
@@ -468,8 +692,8 @@ public:
 		return *this;
 	}
 
-	template<Float A>
-	constexpr Mat4& compMultiply(const Mat4<A>& m) {
+	template<Float F>
+	constexpr Mat4& compMultiply(const Mat4<F>& m) {
 		v[0].compMultiply(m[0]);
 		v[1].compMultiply(m[1]);
 		v[2].compMultiply(m[2]);
@@ -507,19 +731,19 @@ public:
 
 	constexpr Mat4 transposed() const {
 		return Mat4(v[0][0], v[0][1], v[0][2], v[0][3], v[1][0], v[1][1], v[1][2], v[1][3],
-			v[2][0], v[2][1], v[2][2], v[2][3], v[3][0], v[3][1], v[3][2], v[3][3]);
+					v[2][0], v[2][1], v[2][2], v[2][3], v[3][0], v[3][1], v[3][2], v[3][3]);
 	}
 
 	constexpr T determinant() const {
 
 		T a = v[0][0] * (v[1][1] * v[2][2] * v[3][3] + v[2][1] * v[3][2] * v[1][3] + v[3][1] * v[1][2] * v[2][3]
-			- v[1][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[1][1] - v[3][3] * v[1][2] * v[2][1]);
+						 - v[1][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[1][1] - v[3][3] * v[1][2] * v[2][1]);
 		T b = v[1][0] * (v[0][1] * v[2][2] * v[3][3] + v[2][1] * v[3][2] * v[0][3] + v[3][1] * v[0][2] * v[2][3]
-			- v[0][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[2][1]);
+						 - v[0][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[2][1]);
 		T c = v[2][0] * (v[0][1] * v[1][2] * v[3][3] + v[1][1] * v[3][2] * v[0][3] + v[3][1] * v[0][2] * v[1][3]
-			- v[0][3] * v[1][2] * v[3][1] - v[1][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[1][1]);
+						 - v[0][3] * v[1][2] * v[3][1] - v[1][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[1][1]);
 		T d = v[3][0] * (v[0][1] * v[1][2] * v[2][3] + v[1][1] * v[2][2] * v[0][3] + v[2][1] * v[0][2] * v[1][3]
-			- v[0][3] * v[1][2] * v[2][1] - v[1][3] * v[2][2] * v[0][1] - v[2][3] * v[0][2] * v[1][1]);
+						 - v[0][3] * v[1][2] * v[2][1] - v[1][3] * v[2][2] * v[0][1] - v[2][3] * v[0][2] * v[1][1]);
 
 		return a - b + c - d;
 
@@ -578,18 +802,18 @@ public:
 	}
 
 	constexpr void setIdentity() {
-		v[0] = { 1, 0, 0, 0 };
-		v[1] = { 0, 1, 0, 0 };
-		v[2] = { 0, 0, 1, 0 };
-		v[3] = { 0, 0, 0, 1 };
+		v[0] = {1, 0, 0, 0};
+		v[1] = {0, 1, 0, 0};
+		v[2] = {0, 0, 1, 0};
+		v[3] = {0, 0, 0, 1};
 	}
 
 	constexpr T trace() const {
 		return v[0][0] + v[1][1] + v[2][2] + v[3][3];
 	}
 
-	template<Float A>
-	constexpr Mat4& operator=(const Mat4<A>& m) {
+	template<Float F>
+	constexpr Mat4& operator=(const Mat4<F>& m) {
 		v[0] = m[0];
 		v[1] = m[1];
 		v[2] = m[2];
@@ -597,18 +821,18 @@ public:
 		return *this;
 	}
 
-	template<Float A>
-	constexpr Mat4& operator+=(const Mat4<A>& m) {
+	template<Float F>
+	constexpr Mat4& operator+=(const Mat4<F>& m) {
 		return add(m);
 	}
 
-	template<Float A>
-	constexpr Mat4& operator-=(const Mat4<A>& m) {
+	template<Float F>
+	constexpr Mat4& operator-=(const Mat4<F>& m) {
 		return subtract(m);
 	}
 
-	template<Float A>
-	constexpr Mat4& operator*=(const Mat4<A>& m) {
+	template<Float F>
+	constexpr Mat4& operator*=(const Mat4<F>& m) {
 		return multiply(m);
 	}
 
@@ -617,14 +841,9 @@ public:
 		return multiply(a);
 	}
 
-	template<Float A>
-	constexpr bool operator==(const Mat4<A>& m) const {
+	template<Float F>
+	constexpr bool operator==(const Mat4<F>& m) const {
 		return v[0] == m[0] && v[1] == m[1] && v[2] == m[2] && v[3] == m[3];
-	}
-
-	template<Float A>
-	constexpr bool operator!=(const Mat4<A>& m) const {
-		return !(*this == m);
 	}
 
 	constexpr Vec4<T>& operator[](u32 index) {
@@ -660,8 +879,8 @@ public:
 		auto mcosTheta = 1.0 - cosTheta;
 
 		Mat3<T> n(u.x * u.x * mcosTheta + cosTheta, u.x * u.y * mcosTheta - u.z * sinTheta, u.x * u.z * mcosTheta + u.y * sinTheta,
-			u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta,
-			u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta);
+				  u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta,
+				  u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta);
 
 		Vec4 x = v[0] * n[0][0] + v[1] * n[0][1] + v[2] * n[0][2];
 		Vec4 y = v[0] * n[1][0] + v[1] * n[1][1] + v[2] * n[1][2];
@@ -700,7 +919,7 @@ public:
 
 	template<Arithmetic A>
 	constexpr static Mat4 fromTranslation(const Vec3<A>& vec) {
-		return Mat4(1, 0, 0, vec.x, 0, 1, 0, vec.y, 0, 0, 1, vec.z, 0, 0, 0, 1);
+		return fromTranslation(vec.x, vec.y, vec.z);
 	}
 
 	template<Float A, Arithmetic B>
@@ -719,7 +938,7 @@ public:
 	}
 
 	template<Arithmetic A, Arithmetic B, Arithmetic C>
-	constexpr static Mat4 fromRotationXYZ(A yaw, B pitch, C roll) {
+	constexpr static Mat4 fromRotation(A yaw, B pitch, C roll) {
 
 		auto sinA = Math::sin(yaw);
 		auto cosA = Math::cos(yaw);
@@ -758,9 +977,9 @@ public:
 		Vec3<T> u = f.cross(r);
 
 		return Mat4(r.x, r.y, r.z, -r.dot(pos),
-			u.x, u.y, u.z, -u.dot(pos),
-			f.x, f.y, f.z, -f.dot(pos),
-			0, 0, 0, 1);
+					u.x, u.y, u.z, -u.dot(pos),
+					f.x, f.y, f.z, -f.dot(pos),
+					0, 0, 0, 1);
 
 	}
 
@@ -775,9 +994,9 @@ public:
 		T f = far;
 
 		return Mat4(2 * n / (r - l), 0, (r + l) / (r - l), 0,
-			0, 2 * n / (t - b), (t + b) / (t - b), 0,
-			0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
-			0, 0, -1, 0);
+					0, 2 * n / (t - b), (t + b) / (t - b), 0,
+					0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
+					0, 0, -1, 0);
 
 	}
 
@@ -790,9 +1009,9 @@ public:
 		T f = far;
 
 		return Mat4(1 / (a * t), 0, 0, 0,
-			0, 1 / t, 0, 0,
-			0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
-			0, 0, -1, 0);
+					0, 1 / t, 0, 0,
+					0, 0, -(f + n) / (f - n), -2 * f * n / (f - n),
+					0, 0, -1, 0);
 
 	}
 
@@ -807,17 +1026,21 @@ public:
 		T f = far;
 
 		return Mat4(2 / (r - l), 0, 0, -(r + l) / (r - l),
-			0, 2 / (t - b), 0, -(t + b) / (t - b),
-			0, 0, -2 / (f - n), -(f + n) / (f - n),
-			0, 0, 0, 1);
+					0, 2 / (t - b), 0, -(t + b) / (t - b),
+					0, 0, -2 / (f - n), -(f + n) / (f - n),
+					0, 0, 0, 1);
 
+	}
+
+	template<Float F>
+	constexpr static Mat4 fromAffine2D(const Mat3<F>& m) {
+		return Mat4(m[0][0], m[1][0], 0, m[2][0], m[0][1], m[1][1], 0, m[2][1], 0, 0, 1, 0, m[0][2], m[1][2], 0, m[2][2]);
 	}
 
 
 	Vec4<T> v[4];
 
 };
-
 
 
 template<class T>
@@ -875,8 +1098,6 @@ constexpr auto operator*(const Mat4<A>& m, const Vec4<B>& v) {
 	return Vec4<A>(x, y, z, w);
 
 }
-
-
 
 
 #define MATRIX_DEFINE_NDTS(name, dim, type, suffix) typedef Mat##dim<type> name##dim##suffix;

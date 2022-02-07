@@ -15,15 +15,15 @@ class Ticker {
 
 public:
 
-    Ticker();
+	Ticker();
 
-    void start(u32 tps);
-    u32 getTicks();
+	void start(u32 tps);
+	u32 getTicks();
 
 private:
 
-    Timer timer;
-    u32 usPerTick;
+	Timer timer;
+	u32 usPerTick;
 	u64 accumulator;
 
 };

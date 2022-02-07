@@ -168,6 +168,9 @@ u32 Buffer::getBufferTypeEnum(BufferType type) {
 		case BufferType::CopyWriteBuffer:
 			return GL_COPY_WRITE_BUFFER;
 
+		case BufferType::ShaderStorageBuffer:
+			return GL_SHADER_STORAGE_BUFFER;
+
 		default:
 			gle_force_assert("Invalid buffer type 0x%X", type);
 			return -1;

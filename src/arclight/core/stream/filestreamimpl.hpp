@@ -14,18 +14,18 @@
 class File;
 
 class FileStreamImpl {
-    
+	
 public:
 
-    FileStreamImpl(File& file);
+	FileStreamImpl(File& file);
 
 	SizeT read(void* dest, SizeT size);
 	SizeT write(const void* src, SizeT size);
 
-    void seek(i64 offset);
-    void seekTo(u64 offset);
+	void seek(i64 offset);
+	void seekTo(u64 offset);
 	SizeT getPosition() const;
-    SizeT getSize() const;
+	SizeT getSize() const;
 
 	bool isOpen() const;
 	bool reachedEnd() const;

@@ -22,6 +22,10 @@ public:
 
 	void init(u32 w, u32 h, u32 samples, ImageFormat format, bool fixedSamples = false);
 
+	inline void bindImageUnit(u32 unit, ImageUnitAccess access, u32 level = 0) {
+		Texture::bindImageUnit(unit, false, 0, access, level);
+	}
+
 };
 
 

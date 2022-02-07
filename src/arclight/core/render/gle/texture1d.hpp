@@ -20,6 +20,10 @@ public:
 
 	constexpr Texture1D() : Texture(TextureType::Texture1D) {}
 
+	inline void bindImageUnit(u32 unit, ImageUnitAccess access, u32 level = 0) {
+		Texture::bindImageUnit(unit, false, 0, access, level);
+	}
+
 	void setData(u32 w, ImageFormat format, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data);
 	void setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data);
 	void update(u32 x, u32 w, TextureSourceFormat srcFormat, TextureSourceType srcType, const void* data, u32 level = 0);

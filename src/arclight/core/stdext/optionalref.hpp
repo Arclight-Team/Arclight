@@ -15,31 +15,31 @@
 
 
 /*
-    Exception for bad OptionalRef access
+	Exception for bad OptionalRef access
 */
 class BadOptionalRefException : public std::exception {
 
 public:
 
-    virtual const char* what() const noexcept {
-        return "Illegal optional access";
-    }
+	virtual const char* what() const noexcept {
+		return "Illegal optional access";
+	}
 
 };
 
 
 /*
-    Optional reference that will rebind upon assignment
+	Optional reference that will rebind upon assignment
 */
 template<class T>
 class OptionalRef {
 
 public:
 
-    static_assert(BaseType<TT::RemoveCV<T>>, "T must be a plain data type");
+	static_assert(BaseType<TT::RemoveCV<T>>, "T must be a plain data type");
 
-    constexpr OptionalRef() noexcept : storage(nullptr), valid(false) {}
-    constexpr OptionalRef(T& ref) noexcept : storage(&ref), valid(true) {}
+	constexpr OptionalRef() noexcept : storage(nullptr), valid(false) {}
+	constexpr OptionalRef(T& ref) noexcept : storage(&ref), valid(true) {}
 
 	template<class U> requires(Convertible<U&, T&>)
 	constexpr OptionalRef(const OptionalRef<U>& other) noexcept : storage(other.storage), valid(other.valid) {}
@@ -51,93 +51,93 @@ public:
 		return *this;
 	}
 
-    constexpr bool has() const noexcept {
-        return valid;
-    }
-
-    constexpr T& get() const {
-
-        if(!has()) {
-            throw BadOptionalRefException{};
-        }
-
-        return *storage;
-
-    }
-
-	constexpr T& getDirect() const noexcept {
-	     return *storage;
+	constexpr bool has() const noexcept {
+		return valid;
 	}
 
-    template<class U>
-    constexpr T& getOr(U& defaultValue) const noexcept {
+	constexpr T& get() const {
 
-        static_assert(std::is_convertible_v<U&&, T&>, "U& must be convertible to T&");
+		if(!has()) {
+			throw BadOptionalRefException{};
+		}
 
-        if(!has()) {
-            return static_cast<T&>(defaultValue);
-        }
+		return *storage;
 
-        return *storage;
+	}
 
-    }
+	constexpr T& getDirect() const noexcept {
+		 return *storage;
+	}
 
-    template<class U>
-    constexpr const T& getOr(const U& defaultValue) const noexcept {
+	template<class U>
+	constexpr T& getOr(U& defaultValue) const noexcept {
 
-        static_assert(std::is_convertible_v<U&&, const T&>, "const U& must be convertible to const T&");
+		static_assert(std::is_convertible_v<U&&, T&>, "U& must be convertible to T&");
 
-        if(!has()) {
-            return static_cast<const T&>(defaultValue);
-        }
+		if(!has()) {
+			return static_cast<T&>(defaultValue);
+		}
 
-        return *storage;
+		return *storage;
 
-    }
+	}
 
-    constexpr void swap(OptionalRef& other) noexcept {
+	template<class U>
+	constexpr const T& getOr(const U& defaultValue) const noexcept {
 
-        if (has() || other.has()) {
+		static_assert(std::is_convertible_v<U&&, const T&>, "const U& must be convertible to const T&");
 
-            if(!(has() && other.has())) {
-                valid = !valid;
-                other.valid = !valid;
-            }
+		if(!has()) {
+			return static_cast<const T&>(defaultValue);
+		}
 
-            std::swap(storage, other.storage);
+		return *storage;
 
-        }
+	}
 
-    }
+	constexpr void swap(OptionalRef& other) noexcept {
 
-    constexpr void reset() noexcept {
+		if (has() || other.has()) {
 
-        storage = nullptr;
-        valid = false;
+			if(!(has() && other.has())) {
+				valid = !valid;
+				other.valid = !valid;
+			}
 
-    }
+			std::swap(storage, other.storage);
 
-    constexpr explicit operator bool() const noexcept {
-        return has();
-    }
+		}
 
-    constexpr T* operator->() const noexcept {
-        return storage;
-    }
+	}
 
-    constexpr T& operator*() const noexcept {
-        return *storage;
-    }
+	constexpr void reset() noexcept {
 
-    constexpr bool operator==(const OptionalRef<T>& other) const noexcept = default;
+		storage = nullptr;
+		valid = false;
+
+	}
+
+	constexpr explicit operator bool() const noexcept {
+		return has();
+	}
+
+	constexpr T* operator->() const noexcept {
+		return storage;
+	}
+
+	constexpr T& operator*() const noexcept {
+		return *storage;
+	}
+
+	constexpr bool operator==(const OptionalRef<T>& other) const noexcept = default;
 
 private:
 
-    template<class U>
-    friend class OptionalRef;
+	template<class U>
+	friend class OptionalRef;
 
-    T* storage;
-    bool valid;
+	T* storage;
+	bool valid;
 
 };
 
@@ -146,10 +146,10 @@ private:
 template<class O, class I>
 OptionalRef<O> optionalRefCast(const OptionalRef<I>& in) {
 
-    if (!in.has())
-        return {};
+	if (!in.has())
+		return {};
 
-    return OptionalRef<O>(static_cast<O&>(in.get()));
+	return OptionalRef<O>(static_cast<O&>(in.get()));
 
 }
 

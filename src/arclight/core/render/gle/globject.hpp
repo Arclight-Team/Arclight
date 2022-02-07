@@ -16,33 +16,33 @@ GLE_BEGIN
 class GLObject {
 
 public:
-    
-    GLObject(const GLObject& obj) = delete;
-    GLObject& operator=(const GLObject& obj) = delete;
+	
+	GLObject(const GLObject& obj) = delete;
+	GLObject& operator=(const GLObject& obj) = delete;
 
-    GLObject(GLObject&& obj) noexcept {
-        id = obj.id;
-        obj.id = invalidID;
-    }
+	GLObject(GLObject&& obj) noexcept {
+		id = obj.id;
+		obj.id = invalidID;
+	}
 
-    GLObject& operator=(GLObject&& obj) noexcept {
-        id = obj.id;
-        obj.id = invalidID;
-        return *this;
-    }
+	GLObject& operator=(GLObject&& obj) noexcept {
+		id = obj.id;
+		obj.id = invalidID;
+		return *this;
+	}
 
-    constexpr bool isCreated() const {
-        return id != invalidID;
-    }
+	constexpr bool isCreated() const {
+		return id != invalidID;
+	}
 
-    virtual bool create() = 0;
-    virtual void destroy() = 0;
+	virtual bool create() = 0;
+	virtual void destroy() = 0;
 
 protected:
 
-    constexpr GLObject() : id(invalidID) {}
+	constexpr GLObject() : id(invalidID) {}
 
-    u32 id;
+	u32 id;
 
 };
 

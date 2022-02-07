@@ -41,6 +41,26 @@ namespace __Detail {
 
 	u32 maxUniformBlockBindings = 0;
 
+	u32 maxVertexStorageBlocks = 0;
+	u32 maxFragmentStorageBlocks = 0;
+	u32 maxGeometryStorageBlocks = 0;
+	u32 maxTessCtrlStorageBlocks = 0;
+	u32 maxTessEvalStorageBlocks = 0;
+	u32 maxComputeStorageBlocks = 0;
+	u32 maxCombinedStorageBlocks = 0;
+
+	u32 maxStorageBlockBindings = 0;
+	u32 maxStorageBlockSize = 0;
+
+	u32 maxComputeGroupCountX = 0;
+	u32 maxComputeGroupCountY = 0;
+	u32 maxComputeGroupCountZ = 0;
+	u32 maxComputeGroupSizeX = 0;
+	u32 maxComputeGroupSizeY = 0;
+	u32 maxComputeGroupSizeZ = 0;
+	u32 maxComputeGroupInvocations = 0;
+	u32 maxComputeSharedMemorySize = 0;
+
 }
 
 
@@ -119,6 +139,45 @@ namespace Core {
 
 		glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &tmp);
 		__Detail::maxUniformBlockBindings = tmp;
+
+		glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &tmp);
+		__Detail::maxVertexStorageBlocks = tmp;
+		glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &tmp);
+		__Detail::maxFragmentTextureUnits = tmp;
+		glGetIntegerv(GL_MAX_GEOMETRY_SHADER_STORAGE_BLOCKS, &tmp);
+		__Detail::maxGeometryTextureUnits = tmp;
+		glGetIntegerv(GL_MAX_TESS_CONTROL_SHADER_STORAGE_BLOCKS, &tmp);
+		__Detail::maxTessCtrlStorageBlocks = tmp;
+		glGetIntegerv(GL_MAX_TESS_EVALUATION_SHADER_STORAGE_BLOCKS, &tmp);
+		__Detail::maxTessEvalStorageBlocks = tmp;
+		glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &tmp);
+		__Detail::maxComputeStorageBlocks = tmp;
+		glGetIntegerv(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS, &tmp);
+		__Detail::maxCombinedStorageBlocks = tmp;
+
+		glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &tmp);
+		__Detail::maxStorageBlockBindings = tmp;
+		glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &tmp);
+		__Detail::maxStorageBlockSize = tmp;
+
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &tmp);
+		__Detail::maxComputeGroupCountX = tmp;
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &tmp);
+		__Detail::maxComputeGroupCountY = tmp;
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &tmp);
+		__Detail::maxComputeGroupCountZ = tmp;
+
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &tmp);
+		__Detail::maxComputeGroupSizeX = tmp;
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &tmp);
+		__Detail::maxComputeGroupSizeY = tmp;
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &tmp);
+		__Detail::maxComputeGroupSizeZ = tmp;
+
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, 2, &tmp);
+		__Detail::maxComputeGroupInvocations = tmp;
+		glGetIntegeri_v(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE, 2, &tmp);
+		__Detail::maxComputeSharedMemorySize = tmp;
 
 		return true;
 
@@ -255,6 +314,74 @@ namespace Limits {
 		return __Detail::maxUniformBlockBindings;
 	}
 
+	u32 getMaxVertexStorageBlocks() {
+		return __Detail::maxVertexStorageBlocks;
+	}
+
+	u32 getMaxFragmentStorageBlocks() {
+		return __Detail::maxFragmentStorageBlocks;
+	}
+
+	u32 getMaxGeometryStorageBlocks() {
+		return __Detail::maxGeometryStorageBlocks;
+	}
+
+	u32 getMaxTessControlStorageBlocks() {
+		return __Detail::maxTessCtrlStorageBlocks;
+	}
+
+	u32 getMaxTessEvaluationStorageBlocks() {
+		return __Detail::maxTessEvalStorageBlocks;
+	}
+
+	u32 getMaxComputeStorageBlocks() {
+		return __Detail::maxComputeStorageBlocks;
+	}
+
+	u32 getMaxCombinedStorageBlocks() {
+		return __Detail::maxCombinedStorageBlocks;
+	}
+
+	u32 getMaxStorageBlockBindings() {
+		return __Detail::maxStorageBlockBindings;
+	}
+
+	u32 getMaxStorageBlockSize() {
+		return __Detail::maxStorageBlockSize;
+	}
+
+	u32 getMaxComputeGroupCountX() {
+		return __Detail::maxComputeGroupCountX;
+	}
+
+	u32 getMaxComputeGroupCountY() {
+		return __Detail::maxComputeGroupCountY;
+	}
+
+	u32 getMaxComputeGroupCountZ() {
+		return __Detail::maxComputeGroupCountZ;
+	}
+
+	u32 getMaxComputeGroupSizeX() {
+		return __Detail::maxComputeGroupSizeX;
+	}
+
+	u32 getMaxComputeGroupSizeY() {
+		return __Detail::maxComputeGroupSizeY;
+	}
+
+	u32 getMaxComputeGroupSizeZ() {
+		return __Detail::maxComputeGroupSizeZ;
+	}
+
+	u32 getMaxComputeGroupInvocations() {
+		return __Detail::maxComputeGroupInvocations;
+	}
+
+	u32 getMaxComputeSharedMemorySize() {
+		return __Detail::maxComputeSharedMemorySize;
+	}
+
 }
 
 
@@ -266,6 +393,29 @@ void setRowUnpackAlignment(Alignment a) {
 
 void setRowPackAlignment(Alignment a) {
 	glPixelStorei(GL_PACK_ALIGNMENT, 1 << static_cast<u32>(a));
+}
+
+
+
+void setDepthFunction(DepthCompare function) {
+
+	switch (function) {
+
+		case DepthCompare::Never:           glDepthFunc(GL_NEVER);      break;
+		case DepthCompare::Less:            glDepthFunc(GL_LESS);       break;
+		case DepthCompare::LessEqual:       glDepthFunc(GL_LEQUAL);     break;
+		case DepthCompare::Equal:           glDepthFunc(GL_EQUAL);      break;
+		case DepthCompare::GreaterEqual:    glDepthFunc(GL_GEQUAL);     break;
+		case DepthCompare::Greater:         glDepthFunc(GL_GREATER);    break;
+		case DepthCompare::NotEqual:        glDepthFunc(GL_NOTEQUAL);   break;
+		case DepthCompare::Always:          glDepthFunc(GL_ALWAYS);     break;
+
+		default:
+			arc_force_assert("Illegal depth function %d", function);
+			break;
+
+	}
+
 }
 
 

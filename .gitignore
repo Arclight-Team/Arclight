@@ -2,6 +2,7 @@
 
 .vs/
 .vscode/
+enc_temp_folder/
 /[Oo]ut/
 /[Bb]in/
 /[Bb]uild/
@@ -14,12 +15,14 @@
 pack/
 src/*
 !src/arclight/
-arclight.modules
 tools/axrconv/b*
 tools/axrconv/AXRConv/*/*
 !tools/axrconv/AXRConv/shaders/*
 !tools/axrconv/AXRConv/*
+cmake-build-debug-visual-studio/
+cmake-build-release-visual-studio/
 *.user
+*.bak
 .editorconfig
 imgui.ini
 CMakeFiles/
@@ -29,3 +32,5 @@ CMakeFiles/
 !assets/logo.bmp
 !assets/logo.ico
 !assets/cursor.bmp
+arclight.modules
+buildsys.txt
