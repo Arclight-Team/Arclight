@@ -61,7 +61,11 @@
 
 		}
 
+		// Allow the developer to capture and analyze exceptions when running a Debug build
+
+#if !ARC_DEBUG
 		try {
+#endif
 
 			i32 ret = Bits::cast<i32>(arcMain(args));
 
@@ -72,12 +76,14 @@
 
 			}
 
+#if !ARC_DEBUG
 		} catch (const std::exception& e) {
 
 			Log::error("Runtime", "The application has thrown an exception: %s", e.what());
 			return initReturnBase + 2;
 
 		}
+#endif
 
 		return 0;
 
