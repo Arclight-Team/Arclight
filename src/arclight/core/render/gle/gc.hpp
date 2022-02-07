@@ -48,28 +48,28 @@
 
 GLE_BEGIN
 
-namespace {
+namespace __Detail {
 	constexpr const char* logSystemName = "GL Engine";
 }
 
 template<typename... Args>
 inline void debug(const std::string& msg, Args&&... args) {
-	Log::debug(logSystemName, msg, std::forward<Args>(args)...);
+	Log::debug(__Detail::logSystemName, msg, std::forward<Args>(args)...);
 }
 
 template<typename... Args>
 inline void info(const std::string& msg, Args&&... args) {
-	Log::info(logSystemName, msg, std::forward<Args>(args)...);
+	Log::info(__Detail::logSystemName, msg, std::forward<Args>(args)...);
 }
 
 template<typename... Args>
 inline void warn(const std::string& msg, Args&&... args) {
-	Log::warn(logSystemName, msg, std::forward<Args>(args)...);
+	Log::warn(__Detail::logSystemName, msg, std::forward<Args>(args)...);
 }
 
 template<typename... Args>
 inline void error(const std::string& msg, Args&&... args) {
-	Log::error(logSystemName, msg, std::forward<Args>(args)...);
+	Log::error(__Detail::logSystemName, msg, std::forward<Args>(args)...);
 }
 
 

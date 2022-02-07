@@ -16,6 +16,14 @@ GLE_BEGIN
 class GLObject {
 
 public:
+
+	inline ~GLObject() noexcept {
+
+		if (id != invalidID) {
+			warn("GL Object %d not destroyed, leaking", id);
+		}
+
+	}
 	
 	GLObject(const GLObject& obj) = delete;
 	GLObject& operator=(const GLObject& obj) = delete;
