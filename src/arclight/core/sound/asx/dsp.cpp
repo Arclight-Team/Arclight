@@ -62,7 +62,7 @@ namespace ASX
 	}
 
 	/*
-	*	Connection operations 
+	*	Connection operations
 	*/
 
 	void DSP::addInput(DSP& input, DSPConnection& connection, DSPConnectionType type) {
@@ -174,7 +174,7 @@ namespace ASX
 
 	DSPChannelFormat DSP::getChannelFormat() const {
 
-		FMOD_CHANNELMASK mask; 
+		FMOD_CHANNELMASK mask;
 		FMOD_SPEAKERMODE mode;
 		int count;
 
@@ -218,6 +218,128 @@ namespace ASX
 
 	void DSP::showConfigDialog(void* hwnd, bool show) {
 		ASX_TRY() = handle->showConfigDialog(hwnd, show);
+	}
+
+	float DSP::getParameterFloat(u32 index, std::string& string) const {
+		
+		float value{};
+
+		string.resize(512);
+
+		ASX_TRY() = handle->getParameterFloat(index, &value, string.data(), string.size());
+
+		string.shrink_to_fit();
+
+		return value;
+
+	}
+
+	int DSP::getParameterInt(u32 index, std::string& string) const {
+
+		int value{};
+
+		string.resize(512);
+
+		ASX_TRY() = handle->getParameterInt(index, &value, string.data(), string.size());
+
+		string.shrink_to_fit();
+
+		return value;
+
+	}
+
+	bool DSP::getParameterBool(u32 index, std::string& string) const {
+
+		bool value{};
+
+		string.resize(512);
+
+		ASX_TRY() = handle->getParameterBool(index, &value, string.data(), string.size());
+
+		string.shrink_to_fit();
+
+		return value;
+
+	}
+
+	std::span<const u8> DSP::getParameterData(u32 index, std::string& string) const {
+
+		void* data{};
+		u32 size{};
+
+		string.resize(512);
+
+		ASX_TRY() = handle->getParameterData(index, &data, &size, string.data(), string.size());
+
+		string.shrink_to_fit();
+
+		return std::span(static_cast<u8*>(data), size);
+
+	}
+
+	float DSP::getParameterFloat(u32 index) const {
+
+		float value{};
+
+		ASX_TRY() = handle->getParameterFloat(index, &value, nullptr, 0);
+
+		return value;
+
+	}
+
+	int DSP::getParameterInt(u32 index) const {
+
+		int value{};
+
+		ASX_TRY() = handle->getParameterInt(index, &value, nullptr, 0);
+
+		return value;
+
+	}
+
+	bool DSP::getParameterBool(u32 index) const {
+
+		bool value{};
+
+		ASX_TRY() = handle->getParameterBool(index, &value, nullptr, 0);
+
+		return value;
+
+	}
+
+	std::span<const u8> DSP::getParameterData(u32 index) const {
+
+		void* data{};
+		u32 size{};
+
+		ASX_TRY() = handle->getParameterData(index, &data, &size, nullptr, 0);
+
+		return std::span(static_cast<u8*>(data), size);
+
+	}
+
+	u32 DSP::getParameterCount() const {
+
+		int count{};
+
+		ASX_TRY() = handle->getNumParameters(&count);
+
+		return count;
+
+	}
+
+	const DSPParameterDescription& DSP::getParameterInfo(u32 index) const {
+
+		FMOD_DSP_PARAMETER_DESC* desc{};
+
+		ASX_TRY() = handle->getParameterInfo(index, &desc);
+
+		// TODO: can this be nullptr or does it return an error?
+		if (!desc)
+			throw ASXException("Parameter not found");
+
+		return *static_cast<const DSPParameterDescription*>(desc);
+
 	}
 	
 	/*

@@ -46,9 +46,13 @@ void Button::setSize(const Vec2f& size) {
 
 
 void Button::update() {
+
+	IImGuiControl::applyRenderModifiers();
+
 	if (ImGui::Button(m_Text.c_str(), { m_Size.x, m_Size.y })) {
 		m_OnClicked();
 	}
+
 }
 
 GUI_END

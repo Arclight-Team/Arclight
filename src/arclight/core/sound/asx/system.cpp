@@ -92,6 +92,20 @@ namespace ASX
 
 	}
 
+	u32 System::registerCodec(CodecDescription& description, u32 priority) {
+
+		if (!initialized()) {
+			throw std::exception("System not initialized");
+		}
+
+		u32 pluginHandle;
+
+		ASX_TRY() = handle->registerCodec(&description, &pluginHandle, priority);
+
+		return pluginHandle;
+
+	}
+
 	/*
 	*	General functions
 	*/

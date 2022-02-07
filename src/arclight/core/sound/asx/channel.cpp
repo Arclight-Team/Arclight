@@ -21,7 +21,7 @@ namespace ASX
 	void Channel::destroy() {
 
 		if (handle) {
-			ASX_TRY() = handle->stop();
+			ASX_TRY(FMOD_ERR_INVALID_HANDLE) = handle->stop();
 
 			release();
 		}

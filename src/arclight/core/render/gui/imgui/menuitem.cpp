@@ -68,9 +68,13 @@ void MenuItem::setShortcutText(const std::string& text) {
 
 
 void MenuItem::update() {
+
+	IImGuiControl::applyRenderModifiers();
+
 	if (ImGui::MenuItem(m_Text.c_str(), m_ShortcutText.c_str(), &m_Selected, m_Enabled)) {
 		m_OnClicked();
 	}
+
 }
 
 GUI_END

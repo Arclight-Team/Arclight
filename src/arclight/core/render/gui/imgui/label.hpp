@@ -8,12 +8,13 @@
 
 #pragma once
 
+#include "imgui_impl.hpp"
 #include "../common.hpp"
 #include "../control.hpp"
 
 GUI_BEGIN
 
-class Label : public IControl
+class Label : public IControl, public IImGuiControl
 {
 public:
 

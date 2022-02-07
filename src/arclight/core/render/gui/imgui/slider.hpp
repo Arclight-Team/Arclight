@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "imgui_impl.hpp"
 #include "../common.hpp"
 #include "../control.hpp"
 
@@ -15,7 +16,7 @@
 
 GUI_BEGIN
 
-class Slider : public IControl
+class Slider : public IControl, public IImGuiControl
 {
 public:
 

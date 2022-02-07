@@ -8,13 +8,14 @@
 
 #pragma once
 
+#include "imgui_impl.hpp"
 #include "../common.hpp"
 #include "../control.hpp"
 #include "../action.hpp"
 
 GUI_BEGIN
 
-class CheckBox : public IControl
+class CheckBox : public IControl, public IImGuiControl
 {
 public:
 

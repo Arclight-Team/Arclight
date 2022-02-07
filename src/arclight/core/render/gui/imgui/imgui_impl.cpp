@@ -19,6 +19,38 @@
 
 GUI_BEGIN
 
+void IImGuiControl::applyRenderModifiers() {
+
+	if (m_RenderModifiers & (1 << u32(Separator)))
+		ImGui::Separator();
+
+	if (m_RenderModifiers & (1 << u32(SameLine)))
+		ImGui::SameLine();
+
+	if (m_RenderModifiers & (1 << u32(NewLine)))
+		ImGui::NewLine();
+
+	if (m_RenderModifiers & (1 << u32(Spacing)))
+		ImGui::Spacing();
+
+	if (m_RenderModifiers & (1 << u32(Indent)))
+		ImGui::Indent();
+
+	if (m_RenderModifiers & (1 << u32(Unindent)))
+		ImGui::Unindent();
+
+	if (m_RenderModifiers & (1 << u32(BeginGroup)))
+		ImGui::BeginGroup();
+
+	if (m_RenderModifiers & (1 << u32(EndGroup)))
+		ImGui::EndGroup();
+
+	if (m_RenderModifiers & (1 << u32(AlignTextToFramePadding)))
+		ImGui::AlignTextToFramePadding();
+
+}
+
+
 void initialize(::Window& window) {
 
 	const char* glsl_version = "#version 130";

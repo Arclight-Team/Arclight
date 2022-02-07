@@ -46,6 +46,8 @@ void Menu::setText(const std::string& text) {
 
 bool Menu::begin() {
 
+	IImGuiControl::applyRenderModifiers();
+
 	bool open = ImGui::BeginMenu(m_Text.c_str(), m_Enabled);
 
 	if (open != m_Open) {

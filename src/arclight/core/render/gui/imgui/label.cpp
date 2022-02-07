@@ -35,7 +35,11 @@ void Label::setText(const std::string& text) {
 
 
 void Label::update() {
+
+	IImGuiControl::applyRenderModifiers();
+
 	ImGui::TextUnformatted(m_Text.c_str(), m_Text.c_str() + m_Text.length());
+
 }
 
 GUI_END
