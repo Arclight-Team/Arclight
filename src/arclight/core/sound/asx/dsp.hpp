@@ -114,7 +114,7 @@ namespace ASX
 		template<DSPType Type>
 		struct SelectDSPParameter
 		{
-			using ParamType = TT::NthPackType < SizeT(Type),
+			using ParamType = TT::NthPackType<SizeT(Type),
 				void,					// Unknown
 				void,					// Mixer
 				void,					// Oscillator
@@ -152,7 +152,7 @@ namespace ASX
 				void,					// Transceiver
 				void,					// ObjectPan
 				void					// MultibandEQ
-			> ;
+			>;
 		};
 
 	}

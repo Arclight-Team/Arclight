@@ -719,6 +719,8 @@ namespace ASX
 		// TODO!!
 	};
 
+	struct CodecDescription : FMOD_CODEC_DESCRIPTION {};
+
 	struct ClockInterval
 	{
 		u64 start = 0;
@@ -806,15 +808,17 @@ namespace ASX
 	public:
 
 		constexpr IHandleOwner() :
-			handle(nullptr)
+			handle(nullptr), userData(nullptr)
 		{}
 
 		constexpr IHandleOwner(IHandleOwner&& other) :
-			handle(std::exchange(other.handle, nullptr))
+			handle(std::exchange(other.handle, nullptr)),
+			userData(std::exchange(other.userData, nullptr))
 		{}
 
 		constexpr IHandleOwner& operator=(IHandleOwner&& other) {
 			handle = std::exchange(other.handle, nullptr);
+			userData = std::exchange(other.userData, nullptr);
 			return *this;
 		}
 
@@ -823,23 +827,25 @@ namespace ASX
 		IHandleOwner& operator=(IHandleOwner&) = delete;
 
 		void setUserData(void* data) {
-
-			if (handle) {
-				handle->setUserData(data);
-			}
-
+			userData = data;
 		}
 
 		void* getUserData() {
+			return userData;
+		}
 
-			void* data = nullptr;
+		const void* getUserData() const {
+			return userData;
+		}
 
-			if (handle) {
-				handle->getUserData(&data);
-			}
+		template<class T>
+		T getUserData() {
+			return Bits::rcast<T>(userData);
+		}
 
-			return data;
-
+		template<class T>
+		const T getUserData() const {
+			return Bits::rcast<const T>(userData);
 		}
 
 		constexpr bool has() const {
@@ -855,6 +861,7 @@ namespace ASX
 		friend class ISystemUser;
 
 		HandleT* handle;
+		void* userData;
 
 	};
 
