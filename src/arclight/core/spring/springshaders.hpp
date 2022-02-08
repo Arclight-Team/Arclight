@@ -24,11 +24,10 @@ uniform mat4 projection;
 
 void main() {
 
-	mat2 transform;
-	transform[0] = vec2(flatTransform.x, flatTransform.y);
-	transform[1] = vec2(flatTransform.z, flatTransform.w);
+	mat3x2 transform = mat3x2(vec2(flatTransform.x, flatTransform.y), vec2(flatTransform.z, flatTransform.w), translation);
+	vec2 transformedVertex = transform * vec3(vertex, 1.0);
 
-	gl_Position = projection * vec4(transform * vertex + translation, 0.0, 1.0);
+	gl_Position = projection * vec4(transformedVertex, 0.0, 1.0);
 
 }
 	)";
@@ -39,7 +38,7 @@ void main() {
 out vec4 outColor;
 
 void main() {
-	outColor = vec4(1.0);
+	outColor = vec4(gl_FragCoord.xy / 1000.0, 1.0, 1.0);
 }
 	)";
 

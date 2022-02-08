@@ -60,14 +60,14 @@ void SpriteRenderer::render() {
 			if (flags & Sprite::GroupDirty) {
 
 				//The group has changed (TODO: Purge after group change)
-				batch.createSprite(id, calculateSpriteMatrix(sprite));
+				batch.createSprite(id, calculateSpriteMatrix(sprite), sprite.getPosition());
 
 			} else if (flags & Sprite::TransformDirty) {
 
 				if (flags & Sprite::MatrixDirty) {
 
 					//Full transform update
-					batch.setSpriteMatrix(id, calculateSpriteMatrix(sprite));
+					batch.setSpriteTransform(id, calculateSpriteMatrix(sprite), sprite.getPosition());
 
 				} else {
 
@@ -178,19 +178,8 @@ u32 SpriteRenderer::activeSpriteCount() const noexcept {
 
 
 
-Mat3f SpriteRenderer::calculateSpriteMatrix(const Sprite& sprite) {
-
-	Mat3f transform;
-
-	//Shear is often (0, 0) so check if it needs a matrix
-	if (!sprite.getShear().isNull()) {
-		transform = Mat3f::fromShear(sprite.getShearX(), sprite.getShearY());
-	}
-
-	transform.scale(sprite.getScaleX(), sprite.getScaleY()).rotate(sprite.getRotation()).translate(sprite.getX(), sprite.getY());
-
-	return transform;
-
+Mat2f SpriteRenderer::calculateSpriteMatrix(const Sprite& sprite) {
+	return Mat3f::fromShear(sprite.getShearX(), sprite.getShearY()).scale(sprite.getScaleX(), sprite.getScaleY()).rotate(sprite.getRotation()).toMat2();
 }
 
 

@@ -25,9 +25,9 @@ public:
 
 	SpriteBatch();
 
-	void createSprite(u64 id, const Mat3f& affine);
-	void setSpriteTranslation(u64 id, const Vec2f& position);
-	void setSpriteMatrix(u64 id, const Mat3f& affine);
+	void createSprite(u64 id, const Mat2f& matrix, const Vec2f& translation);
+	void setSpriteTranslation(u64 id, const Vec2f& translation);
+	void setSpriteTransform(u64 id, const Mat2f& matrix, const Vec2f& translation);
 	void purgeSprite(u64 id);
 	void synchronize();
 	void render();
@@ -42,7 +42,7 @@ private:
 	void resetBounds() noexcept;
 
 	static void vectorDecay(const Vec2f& vector, const std::span<u8>& dest);
-	static void matrixDecay(const Mat3f& matrix, const std::span<u8>& dest);
+	static void matrixDecay(const Mat2f& matrix, const std::span<u8>& dest);
 
 
 	SizeT updateStart, updateEnd;
