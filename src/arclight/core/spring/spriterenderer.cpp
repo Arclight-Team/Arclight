@@ -7,12 +7,30 @@
  */
 
 #include "spriterenderer.hpp"
+#include "springshaders.hpp"
 #include "render/gle/gle.hpp"
 #include "render/utility/shaderloader.hpp"
-#include "render/utility/vertexhelper.hpp"
-#include "debug.hpp"
 #include "time/timer.hpp"
 #include "time/profiler.hpp"
+#include "debug.hpp"
+
+
+
+struct SpriteRendererShaders {
+
+	SpriteRendererShaders() {
+		rectangleOutlineShader = ShaderLoader::fromString(SpringShader::rectangularOutlineVS, SpringShader::rectangularOutlineFS);
+		uProjectionMatrix = rectangleOutlineShader.getUniform(SpringShader::rectangularOutlineUProjection);
+	}
+
+	~SpriteRendererShaders() {
+		rectangleOutlineShader.destroy();
+	}
+
+	GLE::ShaderProgram rectangleOutlineShader;
+	GLE::Uniform uProjectionMatrix;
+
+};
 
 
 
@@ -23,23 +41,58 @@ SpriteRenderer::SpriteRenderer() {}
 
 void SpriteRenderer::render() {
 
+	if (!shaders) {
+		shaders = std::make_shared<SpriteRendererShaders>();
+	}
+
 	Profiler p;
 	p.start();
 
-	p.start();
-
-	Vec2f pos;
-
 	for (Sprite& sprite : sprites) {
 
-		if (sprite.isDirty()) {
+		u8 flags = sprite.getFlags();
 
-			sprite.clearDirty();
+		if (flags) {
 
-			u64 key = SpriteBatch::generateKey(0, false, false);
-			//batches[key] =
+			u64 id = sprite.getID();
+			SpriteBatch& batch = batches[sprite.getGroupID()];
+
+			if (flags & Sprite::GroupDirty) {
+
+				//The group has changed (TODO: Purge after group change)
+				batch.createSprite(id, calculateSpriteMatrix(sprite));
+
+			} else if (flags & Sprite::TransformDirty) {
+
+				if (flags & Sprite::MatrixDirty) {
+
+					//Full transform update
+					batch.setSpriteMatrix(id, calculateSpriteMatrix(sprite));
+
+				} else {
+
+					//Translation update
+					batch.setSpriteTranslation(id, sprite.getPosition());
+
+				}
+
+			}
+
+			sprite.clearFlags();
 
 		}
+
+	}
+
+	GLE::clear(GLE::Color);
+
+	shaders->rectangleOutlineShader.start();
+	shaders->uProjectionMatrix.setMat4(projection);
+
+	for (auto& [key, batch] : batches) {
+
+		batch.synchronize();
+		batch.render();
 
 	}
 
@@ -58,10 +111,12 @@ void SpriteRenderer::setViewport(const Vec2d& lowerLeft, const Vec2d& topRight) 
 
 
 
-Sprite& SpriteRenderer::createSprite(UUID id, UUID typeID) {
+Sprite& SpriteRenderer::createSprite(Id64 id, Id32 typeID, Id32 groupID) {
 
 	Sprite& sprite = sprites.create(id);
-	sprite.spriteID = typeID;
+	sprite.id = id;
+	sprite.typeID = typeID;
+	sprite.groupID = groupID;
 
 	return sprite;
 
@@ -69,37 +124,37 @@ Sprite& SpriteRenderer::createSprite(UUID id, UUID typeID) {
 
 
 
-Sprite& SpriteRenderer::getSprite(UUID id) {
+Sprite& SpriteRenderer::getSprite(Id64 id) {
 	return sprites.get(id);
 }
 
 
 
-const Sprite& SpriteRenderer::getSprite(UUID id) const {
+const Sprite& SpriteRenderer::getSprite(Id64 id) const {
 	return sprites.get(id);
 }
 
 
 
-bool SpriteRenderer::containsSprite(UUID id) const {
+bool SpriteRenderer::containsSprite(Id64 id) const {
 	return sprites.contains(id);
 }
 
 
 
-void SpriteRenderer::destroySprite(UUID id) {
+void SpriteRenderer::destroySprite(Id64 id) {
 	sprites.destroy(id);
 }
 
 
 
-bool SpriteRenderer::hasType(UUID id) const {
+bool SpriteRenderer::hasType(Id64 id) const {
 	return factory.contains(id);
 }
 
 
 
-OptionalRef<const SpriteType> SpriteRenderer::getType(UUID id) const {
+OptionalRef<const SpriteType> SpriteRenderer::getType(Id64 id) const {
 
 	if (factory.contains(id)) {
 		factory.get(id);
@@ -111,7 +166,7 @@ OptionalRef<const SpriteType> SpriteRenderer::getType(UUID id) const {
 
 
 
-void SpriteRenderer::destroyType(UUID id) {
+void SpriteRenderer::destroyType(Id64 id) {
 	factory.destroy(id);
 }
 
@@ -123,6 +178,23 @@ u32 SpriteRenderer::activeSpriteCount() const noexcept {
 
 
 
+Mat3f SpriteRenderer::calculateSpriteMatrix(const Sprite& sprite) {
+
+	Mat3f transform;
+
+	//Shear is often (0, 0) so check if it needs a matrix
+	if (!sprite.getShear().isNull()) {
+		transform = Mat3f::fromShear(sprite.getShearX(), sprite.getShearY());
+	}
+
+	transform.scale(sprite.getScaleX(), sprite.getScaleY()).rotate(sprite.getRotation()).translate(sprite.getX(), sprite.getY());
+
+	return transform;
+
+}
+
+
+
 void SpriteRenderer::recalculateProjection() {
-	projection = Mat4f::ortho(viewport.getX(), viewport.getEndX(), viewport.getY(), viewport.getEndY(), 1, -1);
+	projection = Mat4f::ortho(viewport.getX(), viewport.getEndX(), viewport.getY(), viewport.getEndY(), -1, 1);
 }

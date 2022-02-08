@@ -8,30 +8,49 @@
 
 #pragma once
 
+#include "math/matrix.hpp"
 #include "memory/alignedallocator.hpp"
 #include "types.hpp"
 
 #include <vector>
+#include <span>
 
 
+
+class SpriteBatchData;
 
 class SpriteBatch {
 
 public:
 
-	SpriteBatch() = default;
+	SpriteBatch();
 
-	u64 getKey() const noexcept;
+	void createSprite(u64 id, const Mat3f& affine);
+	void setSpriteTranslation(u64 id, const Vec2f& position);
+	void setSpriteMatrix(u64 id, const Mat3f& affine);
+	void purgeSprite(u64 id);
+	void synchronize();
+	void render();
 
-	static u64 generateKey(u32 group, bool transparency, bool polygonal) noexcept;
+	SizeT getBatchSize() const;
 
 private:
 
-	u32 group;
-	bool transparency;
-	bool polygonal;
-	//Texture?
+	constexpr static u32 dataSize = 32;
 
-	//std::vector<u8, AlignedAllocator<u8, 16>> vertexData;
+	void updateBounds(SizeT offset, SizeT size);
+	void resetBounds() noexcept;
+
+	static void vectorDecay(const Vec2f& vector, const std::span<u8>& dest);
+	static void matrixDecay(const Mat3f& matrix, const std::span<u8>& dest);
+
+
+	SizeT updateStart, updateEnd;
+
+	std::shared_ptr<SpriteBatchData> data;
+
+	std::unordered_map<u64, SizeT> offsets;
+	std::unordered_map<SizeT, u64> ids;
+	std::vector<u8, AlignedAllocator<u8, 16>> vertexData;
 
 };

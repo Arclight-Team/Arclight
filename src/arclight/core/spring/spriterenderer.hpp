@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <map>
 #include "spritearray.hpp"
 #include "spritebatch.hpp"
 #include "spritefactory.hpp"
@@ -15,6 +16,8 @@
 #include "math/rectangle.hpp"
 
 
+
+class SpriteRendererShaders;
 
 class SpriteRenderer {
 
@@ -28,32 +31,37 @@ public:
 	void setViewport(const Vec2d& lowerLeft, const Vec2d& topRight);
 
 	//Sprite functions
-	Sprite& createSprite(UUID id, UUID typeID);
-	Sprite& getSprite(UUID id);
-	const Sprite& getSprite(UUID id) const;
-	bool containsSprite(UUID id) const;
-	void destroySprite(UUID id);
+	Sprite& createSprite(Id64 id, Id32 typeID, Id32 groupID = 0);
+	Sprite& getSprite(Id64 id);
+	const Sprite& getSprite(Id64 id) const;
+	bool containsSprite(Id64 id) const;
+	void destroySprite(Id64 id);
 
 	//Type functions
 	template<SpriteOutlineType OutlineType>
-	void createType(UUID id, UUID textureID, const Vec2f& relOrigin, const OutlineType& outline) {
+	void createType(Id64 id, Id64 textureID, const Vec2f& relOrigin, const OutlineType& outline) {
 		factory.create(id, textureID, relOrigin, outline);
 	}
 
-	bool hasType(UUID id) const;
-	OptionalRef<const SpriteType> getType(UUID id) const;
-	void destroyType(UUID id);
+	bool hasType(Id64 id) const;
+	OptionalRef<const SpriteType> getType(Id64 id) const;
+	void destroyType(Id64 id);
 
 	u32 activeSpriteCount() const noexcept;
 
 private:
+
+	static Mat3f calculateSpriteMatrix(const Sprite& sprite);
 
 	void recalculateProjection();
 
 	TextureHolder textureHolder;
 	SpriteFactory factory;
 	SpriteArray sprites;
-	std::unordered_map<u64, SpriteBatch> batches;
+
+	std::shared_ptr<SpriteRendererShaders> shaders;
+
+	std::map<u32, SpriteBatch> batches;
 
 	RectD viewport;          //The scene's viewport rect
 	Mat4f projection;

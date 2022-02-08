@@ -18,9 +18,9 @@ public:
 
 	constexpr SpringObject() noexcept = default;
 
-	bool isDirty() const noexcept;
-	void setDirty() noexcept;
-	void clearDirty() noexcept;
+	constexpr u8 getFlags() const noexcept { return flags; }
+	constexpr void setFlags(u8 flags) noexcept { this->flags = flags; }
+	constexpr void clearFlags() noexcept { flags = 0; }
 
 private:
 

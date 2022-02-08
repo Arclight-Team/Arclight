@@ -58,8 +58,6 @@ namespace __Detail {
 	u32 maxComputeGroupSizeX = 0;
 	u32 maxComputeGroupSizeY = 0;
 	u32 maxComputeGroupSizeZ = 0;
-	u32 maxComputeGroupInvocations = 0;
-	u32 maxComputeSharedMemorySize = 0;
 
 }
 
@@ -173,11 +171,6 @@ namespace Core {
 		__Detail::maxComputeGroupSizeY = tmp;
 		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &tmp);
 		__Detail::maxComputeGroupSizeZ = tmp;
-
-		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, 2, &tmp);
-		__Detail::maxComputeGroupInvocations = tmp;
-		glGetIntegeri_v(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE, 2, &tmp);
-		__Detail::maxComputeSharedMemorySize = tmp;
 
 		return true;
 
@@ -372,14 +365,6 @@ namespace Limits {
 
 	u32 getMaxComputeGroupSizeZ() {
 		return __Detail::maxComputeGroupSizeZ;
-	}
-
-	u32 getMaxComputeGroupInvocations() {
-		return __Detail::maxComputeGroupInvocations;
-	}
-
-	u32 getMaxComputeSharedMemorySize() {
-		return __Detail::maxComputeSharedMemorySize;
 	}
 
 }

@@ -10,7 +10,7 @@
 
 #include "sprite.hpp"
 #include "stdext/optionalref.hpp"
-#include "util/uuid.hpp"
+#include "util/identifier.hpp"
 
 #include <unordered_map>
 
