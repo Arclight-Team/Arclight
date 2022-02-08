@@ -18,7 +18,7 @@ public:
 	Ticker();
 
 	void start(u32 tps);
-	u32 getTicks();
+	u64 getTicks();
 
 private:
 

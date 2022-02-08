@@ -92,7 +92,10 @@ void SpriteRenderer::render() {
 	for (auto& [key, batch] : batches) {
 
 		batch.synchronize();
-		batch.render();
+
+		if (groups[key].isVisible()) {
+			batch.render();
+		}
 
 	}
 
@@ -168,6 +171,44 @@ OptionalRef<const SpriteType> SpriteRenderer::getType(Id64 id) const {
 
 void SpriteRenderer::destroyType(Id64 id) {
 	factory.destroy(id);
+}
+
+
+
+void SpriteRenderer::showGroup(Id32 groupID) {
+	groups[groupID].show();
+}
+
+
+
+void SpriteRenderer::hideGroup(Id32 groupID) {
+	groups[groupID].hide();
+}
+
+
+
+void SpriteRenderer::setGroupVisibility(Id32 groupID, bool visible) {
+	groups[groupID].setVisibility(visible);
+}
+
+
+
+void SpriteRenderer::toggleGroupVisibility(Id32 groupID) {
+	groups[groupID].toggleVisibility();
+}
+
+
+
+bool SpriteRenderer::isGroupVisible(Id32 groupID) const {
+
+	auto it = groups.find(groupID);
+
+	if (it != groups.end()) {
+		return it->second.isVisible();
+	}
+
+	return true;
+
 }
 
 

@@ -8,12 +8,14 @@
 
 #pragma once
 
-#include <map>
 #include "spritearray.hpp"
 #include "spritebatch.hpp"
+#include "spritegroup.hpp"
 #include "spritefactory.hpp"
 #include "textureholder.hpp"
 #include "math/rectangle.hpp"
+
+#include <map>
 
 
 
@@ -47,6 +49,13 @@ public:
 	OptionalRef<const SpriteType> getType(Id64 id) const;
 	void destroyType(Id64 id);
 
+	//Group functions
+	void showGroup(Id32 groupID);
+	void hideGroup(Id32 groupID);
+	void setGroupVisibility(Id32 groupID, bool visible);
+	void toggleGroupVisibility(Id32 groupID);
+	bool isGroupVisible(Id32 groupID) const;
+
 	u32 activeSpriteCount() const noexcept;
 
 private:
@@ -61,6 +70,7 @@ private:
 
 	std::shared_ptr<SpriteRendererShaders> shaders;
 
+	std::map<u32, SpriteGroup> groups;
 	std::map<u32, SpriteBatch> batches;
 
 	RectD viewport;          //The scene's viewport rect

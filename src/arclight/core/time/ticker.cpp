@@ -22,13 +22,13 @@ void Ticker::start(u32 tps) {
 
 
 
-u32 Ticker::getTicks() {
+u64 Ticker::getTicks() {
 
 	u64 delta = static_cast<u64>(timer.getElapsedTime(Time::Unit::Microseconds));
 	timer.start();
 
 	accumulator += delta;
-	u32 ticks = 0;
+	u64 ticks = 0;
 
 	if (accumulator > usPerTick) {
 
