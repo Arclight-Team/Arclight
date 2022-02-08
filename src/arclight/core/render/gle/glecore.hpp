@@ -68,6 +68,9 @@ namespace Limits {
 	u32 getMaxComputeGroupSizeY();
 	u32 getMaxComputeGroupSizeZ();
 
+	u32 getMaxComputeGroupInvocations();
+	u32 getMaxComputeSharedMemorySize();
+
 }
 
 
