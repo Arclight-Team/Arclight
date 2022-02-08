@@ -360,7 +360,7 @@ public:
 
 	}
 
-	constexpr T operator[](u32 index) const {
+	constexpr const T& operator[](u32 index) const {
 
 		switch (index) {
 
@@ -588,7 +588,7 @@ public:
 
 	}
 
-	constexpr T operator[](u32 index) const {
+	constexpr const T& operator[](u32 index) const {
 
 		switch (index) {
 

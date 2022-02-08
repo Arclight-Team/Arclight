@@ -111,15 +111,32 @@ namespace TT {
 			constexpr static bool Value = (std::is_same_v<T, Pack> && ...);
 		};
 
-		template<Float F> struct ToInteger { using Type = i32; };
-		template<> struct ToInteger<double> { using Type = i64; };
-		template<> struct ToInteger<long double> { using Type = imax; };
+		template<Float F>
+		struct ToInteger {
 
-		template<Integer I> struct ToFloat { using Type = float; };
+			constexpr static SizeT Size = sizeof(F);
+
+			using Type =    TT::Conditional<Size == 1, i8,
+							TT::Conditional<Size == 2, i16,
+							TT::Conditional<Size <= 4, i32,
+							TT::Conditional<Size <= 8, i64, imax>>>>;
+
+		};
+
+		template<Integer I>
+		struct ToFloat {
+
+			constexpr static SizeT Size = sizeof(I);
+
+			using Type =	TT::Conditional<Size <= sizeof(float), float,
+							TT::Conditional<Size <= sizeof(double), double, long double>>;
+
+		};
 		template<> struct ToFloat<u64> { using Type = double; };
 		template<> struct ToFloat<i64> { using Type = double; };
 
-		template<SizeT Size> struct UnsignedFromSize {
+		template<SizeT Size>
+		struct UnsignedFromSize {
 
 			static_assert(Size <= sizeof(umax), "Cannot supply unsigned type greater than sizeof(umax)");
 
@@ -130,7 +147,8 @@ namespace TT {
 
 		};
 
-		template<SizeT Size> struct SignedFromSize {
+		template<SizeT Size>
+		struct SignedFromSize {
 
 			static_assert(Size <= sizeof(imax), "Cannot supply signed type greater than sizeof(imax)");
 
