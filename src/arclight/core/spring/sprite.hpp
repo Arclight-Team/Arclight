@@ -38,35 +38,37 @@ public:
 	constexpr u32 getGroupID() const noexcept { return groupID; }
 
 	//Setters
-	constexpr void setX(float x) noexcept { position.x = x; positionDirty(); }
-	constexpr void setY(float y) noexcept { position.y = y; positionDirty(); }
+	constexpr void setX(float x) noexcept { position.x = x; translationDirty(); }
+	constexpr void setY(float y) noexcept { position.y = y; translationDirty(); }
 	constexpr void setPosition(float x, float y) noexcept { setPosition(Vec2f(x, y)); }
-	constexpr void setPosition(const Vec2f& pos) noexcept { position = pos; positionDirty(); }
-	constexpr void setRotation(float angle) noexcept { rotation = angle; matrixDirty(); }
-	constexpr void setScaleX(float sx) noexcept { scale.x = sx; matrixDirty(); }
-	constexpr void setScaleY(float sy) noexcept { scale.y = sy; matrixDirty(); }
+	constexpr void setPosition(const Vec2f& pos) noexcept { position = pos; translationDirty(); }
+	constexpr void setRotation(float angle) noexcept { rotation = angle; rsTransformDirty(); }
+	constexpr void setScaleX(float sx) noexcept { scale.x = sx; scaleDirty(); }
+	constexpr void setScaleY(float sy) noexcept { scale.y = sy; scaleDirty(); }
 	constexpr void setScale(float sx, float sy) noexcept { setScale(Vec2f(sx, sy)); }
-	constexpr void setScale(const Vec2f& s) noexcept { scale = s; matrixDirty(); }
-	constexpr void setShearX(float sx) noexcept { shear.x = sx; matrixDirty(); }
-	constexpr void setShearY(float sy) noexcept { shear.y = sy; matrixDirty(); }
+	constexpr void setScale(const Vec2f& s) noexcept { scale = s; scaleDirty(); }
+	constexpr void setShearX(float sx) noexcept { shear.x = sx; rsTransformDirty(); }
+	constexpr void setShearY(float sy) noexcept { shear.y = sy; rsTransformDirty(); }
 	constexpr void setShear(float sx, float sy) noexcept { setShear(Vec2f(sx, sy)); }
-	constexpr void setShear(const Vec2f& s) noexcept { shear = s; matrixDirty(); }
+	constexpr void setShear(const Vec2f& s) noexcept { shear = s; rsTransformDirty(); }
 
 private:
 
 	friend class SpriteRenderer;
 
-	constexpr void matrixDirty() noexcept { setFlags(getFlags() | Dirty | TransformDirty | MatrixDirty); }
-	constexpr void positionDirty() noexcept { setFlags(getFlags() | Dirty | TransformDirty); }
+	constexpr void rsTransformDirty() noexcept { setFlags(getFlags() | Dirty | RSTransformDirty); }
+	constexpr void translationDirty() noexcept { setFlags(getFlags() | Dirty | TranslationDirty); }
+	constexpr void scaleDirty() noexcept { setFlags(getFlags() | Dirty | ScaleDirty); }
 	constexpr void groupDirty() noexcept { setFlags(getFlags() | Dirty | GroupDirty); }
 	constexpr void allDirty() noexcept { setFlags(All); }
 
 	enum Flags {
 		Dirty = 0x1,
-		TransformDirty = 0x2,
-		MatrixDirty = 0x4,
-		GroupDirty = 0x8,
-		All = Dirty | TransformDirty | MatrixDirty | GroupDirty
+		RSTransformDirty = 0x2,
+		TranslationDirty = 0x4,
+		ScaleDirty = 0x8,
+		GroupDirty = 0x10,
+		All = Dirty | RSTransformDirty | TranslationDirty | ScaleDirty | GroupDirty
 	};
 
 	u64 id;

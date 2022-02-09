@@ -60,7 +60,7 @@ public:
 
 private:
 
-	static Mat2f calculateSpriteMatrix(const Sprite& sprite);
+	static Mat2f calculateSpriteRSTransform(const Sprite& sprite);
 
 	void recalculateProjection();
 

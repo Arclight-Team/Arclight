@@ -12,23 +12,45 @@
 #include "render/utility/shaderloader.hpp"
 #include "time/timer.hpp"
 #include "time/profiler.hpp"
+#include "image/bmp.hpp"
 #include "debug.hpp"
+#include "filesystem/file.hpp"
+#include "stream/fileinputstream.hpp"
 
 
 
 struct SpriteRendererShaders {
 
 	SpriteRendererShaders() {
+
 		rectangleOutlineShader = ShaderLoader::fromString(SpringShader::rectangularOutlineVS, SpringShader::rectangularOutlineFS);
 		uProjectionMatrix = rectangleOutlineShader.getUniform(SpringShader::rectangularOutlineUProjection);
+		uSampleTexture = rectangleOutlineShader.getUniform("sampleTexture");
+
+		File file("@/cursor.bmp", File::Binary | File::In);
+		file.open();
+		FileInputStream stream(file);
+		Image img = BMP::loadBitmap<Pixel::RGBA8>(stream);
+
+		sampleTexture.create();
+		sampleTexture.bind();
+		sampleTexture.setData(img.getWidth(), img.getHeight(), GLE::ImageFormat::RGBA8, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UByte, img.getImageBuffer().data());
+		sampleTexture.setMinFilter(GLE::TextureFilter::None);
+		sampleTexture.setMagFilter(GLE::TextureFilter::None);
+		sampleTexture.generateMipmaps();
+
 	}
 
 	~SpriteRendererShaders() {
 		rectangleOutlineShader.destroy();
+		sampleTexture.destroy();
 	}
 
 	GLE::ShaderProgram rectangleOutlineShader;
 	GLE::Uniform uProjectionMatrix;
+
+	GLE::Texture2D sampleTexture;
+	GLE::Uniform uSampleTexture;
 
 };
 
@@ -60,20 +82,20 @@ void SpriteRenderer::render() {
 			if (flags & Sprite::GroupDirty) {
 
 				//The group has changed (TODO: Purge after group change)
-				batch.createSprite(id, calculateSpriteMatrix(sprite), sprite.getPosition());
+				batch.createSprite(id, sprite.getPosition(), sprite.getScale(), calculateSpriteRSTransform(sprite));
 
-			} else if (flags & Sprite::TransformDirty) {
+			} else if (flags & (Sprite::TranslationDirty | Sprite::ScaleDirty | Sprite::RSTransformDirty)) {
 
-				if (flags & Sprite::MatrixDirty) {
-
-					//Full transform update
-					batch.setSpriteTransform(id, calculateSpriteMatrix(sprite), sprite.getPosition());
-
-				} else {
-
-					//Translation update
+				if (flags & Sprite::TranslationDirty) {
 					batch.setSpriteTranslation(id, sprite.getPosition());
+				}
 
+				if (flags & Sprite::ScaleDirty) {
+					batch.setSpriteScale(id, sprite.getScale());
+				}
+
+				if (flags & Sprite::RSTransformDirty) {
+					batch.setSpriteRSTransform(id, calculateSpriteRSTransform(sprite));
 				}
 
 			}
@@ -88,6 +110,9 @@ void SpriteRenderer::render() {
 
 	shaders->rectangleOutlineShader.start();
 	shaders->uProjectionMatrix.setMat4(projection);
+
+	shaders->sampleTexture.activate(0);
+	shaders->uSampleTexture.setInt(0);
 
 	for (auto& [key, batch] : batches) {
 
@@ -219,8 +244,8 @@ u32 SpriteRenderer::activeSpriteCount() const noexcept {
 
 
 
-Mat2f SpriteRenderer::calculateSpriteMatrix(const Sprite& sprite) {
-	return Mat3f::fromShear(sprite.getShearX(), sprite.getShearY()).scale(sprite.getScaleX(), sprite.getScaleY()).rotate(sprite.getRotation()).toMat2();
+Mat2f SpriteRenderer::calculateSpriteRSTransform(const Sprite& sprite) {
+	return Mat3f::fromRotation(sprite.getRotation()).shear(sprite.getShearX(), sprite.getShearY()).toMat2();
 }
 
 

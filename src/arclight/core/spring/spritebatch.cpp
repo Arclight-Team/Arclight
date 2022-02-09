@@ -36,7 +36,7 @@ struct SpriteBatchData {
 		matrixVbo.bind();
 
 		vao.setAttribute(1, 4, GLE::AttributeType::Float, 32, 0);
-		vao.setAttribute(2, 2, GLE::AttributeType::Float, 32, 16);
+		vao.setAttribute(2, 4, GLE::AttributeType::Float, 32, 16);
 		vao.enableAttribute(1);
 		vao.enableAttribute(2);
 		vao.setDivisor(1, 1);
@@ -73,7 +73,7 @@ SpriteBatch::SpriteBatch() {
 
 
 
-void SpriteBatch::createSprite(u64 id, const Mat2f& matrix, const Vec2f& translation) {
+void SpriteBatch::createSprite(u64 id, const Vec2f& translation, const Vec2f& scale, const Mat2f& rsTransform) {
 
 	SizeT offset = vertexData.size();
 
@@ -81,7 +81,9 @@ void SpriteBatch::createSprite(u64 id, const Mat2f& matrix, const Vec2f& transla
 	ids[offset] = id;
 	vertexData.resize(offset + dataSize);
 
-	setSpriteTransform(id, matrix, translation);
+	setSpriteRSTransform(id, rsTransform);
+	setSpriteTranslation(id, translation);
+	setSpriteScale(id, scale);
 
 }
 
@@ -91,30 +93,42 @@ void SpriteBatch::setSpriteTranslation(u64 id, const Vec2f& translation) {
 
 	arc_assert(offsets.contains(id), "Illegal incomplete sprite batch update");
 
-	alignas(16) u8 flatVec[8];
+	u8 flatVec[8];
 	vectorDecay(translation, flatVec);
 
-	SizeT offset = offsets[id] + 16;
-
+	SizeT offset = offsets[id] + translationOffset;
 	std::copy_n(flatVec, 8, &vertexData[offset]);
-
 	updateBounds(offset, 8);
 
 }
 
 
 
-void SpriteBatch::setSpriteTransform(u64 id, const Mat2f& matrix, const Vec2f& translation) {
+void SpriteBatch::setSpriteScale(u64 id, const Vec2f& scale) {
 
-	alignas(16) u8 flatMat[24];
-	matrixDecay(matrix, flatMat);
-	vectorDecay(translation, std::span{flatMat + 16, 8});
+	arc_assert(offsets.contains(id), "Illegal incomplete sprite batch update");
 
-	SizeT offset = offsets[id];
+	u8 flatVec[8];
+	vectorDecay(scale, flatVec);
 
-	std::copy_n(flatMat, 24, &vertexData[offset]);
+	SizeT offset = offsets[id] + scaleOffset;
+	std::copy_n(flatVec, 8, &vertexData[offset]);
+	updateBounds(offset, 8);
 
-	updateBounds(offset, 24);
+}
+
+
+
+void SpriteBatch::setSpriteRSTransform(u64 id, const Mat2f& rsTransform) {
+
+	arc_assert(offsets.contains(id), "Illegal incomplete sprite batch update");
+
+	u8 flatMat[16];
+	matrixDecay(rsTransform, flatMat);
+
+	SizeT offset = offsets[id] + transformOffset;
+	std::copy_n(flatMat, 16, &vertexData[offset]);
+	updateBounds(offset, 16);
 
 }
 

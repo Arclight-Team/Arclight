@@ -25,9 +25,11 @@ public:
 
 	SpriteBatch();
 
-	void createSprite(u64 id, const Mat2f& matrix, const Vec2f& translation);
+	void createSprite(u64 id, const Vec2f& translation, const Vec2f& scale, const Mat2f& rsTransform);
 	void setSpriteTranslation(u64 id, const Vec2f& translation);
-	void setSpriteTransform(u64 id, const Mat2f& matrix, const Vec2f& translation);
+	void setSpriteScale(u64 id, const Vec2f& scale);
+	void setSpriteRSTransform(u64 id, const Mat2f& rsTransform);
+
 	void purgeSprite(u64 id);
 	void synchronize();
 	void render();
@@ -37,6 +39,9 @@ public:
 private:
 
 	constexpr static u32 dataSize = 32;
+	constexpr static u32 transformOffset = 0;
+	constexpr static u32 translationOffset = 16;
+	constexpr static u32 scaleOffset = 24;
 
 	void updateBounds(SizeT offset, SizeT size);
 	void resetBounds() noexcept;
