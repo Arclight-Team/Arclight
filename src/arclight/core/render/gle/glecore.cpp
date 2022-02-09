@@ -40,6 +40,7 @@ namespace __Detail {
 	u32 maxDrawBuffers = 0;
 
 	u32 maxUniformBlockBindings = 0;
+	u32 maxUniformBlockSize = 0;
 
 	u32 maxVertexStorageBlocks = 0;
 	u32 maxFragmentStorageBlocks = 0;
@@ -140,6 +141,8 @@ namespace Core {
 
 		glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &tmp);
 		__Detail::maxUniformBlockBindings = tmp;
+		glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &tmp);
+		__Detail::maxUniformBlockSize = tmp;
 
 		glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &tmp);
 		__Detail::maxVertexStorageBlocks = tmp;
@@ -313,6 +316,10 @@ namespace Limits {
 
 	u32 getMaxUniformBlockBindings() {
 		return __Detail::maxUniformBlockBindings;
+	}
+
+	u32 getMaxUniformBlockSize() {
+		return __Detail::maxUniformBlockSize;
 	}
 
 	u32 getMaxVertexStorageBlocks() {

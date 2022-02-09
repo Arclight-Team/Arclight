@@ -49,6 +49,7 @@ namespace Limits {
 	u32 getMaxDrawBuffers();
 
 	u32 getMaxUniformBlockBindings();
+	u32 getMaxUniformBlockSize();
 
 	u32 getMaxVertexStorageBlocks();
 	u32 getMaxFragmentStorageBlocks();
