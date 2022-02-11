@@ -141,7 +141,7 @@ void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture) {
 			   texture.getTextureType() == TextureType::Texture2D ||
 			   texture.getTextureType() == TextureType::MultisampleTexture2D, "Cannot attach layered texture to non-layered framebuffer attachment");
 
-	glFramebufferTexture(GL_FRAMEBUFFER, getAttachmentEnum(attachmentIndex), texture.id, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, static_cast<u32>(attachmentIndex), texture.id, 0);
 
 }
 
@@ -167,7 +167,7 @@ void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture, u32
 				return;
 			}
 
-			glFramebufferTextureLayer(GL_FRAMEBUFFER, getAttachmentEnum(attachmentIndex), texture.id, 0, layer);
+			glFramebufferTextureLayer(GL_FRAMEBUFFER, static_cast<u32>(attachmentIndex), texture.id, 0, layer);
 			break;
 
 		case TextureType::ArrayTexture1D:
@@ -177,7 +177,7 @@ void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture, u32
 				return;
 			}
 
-			glFramebufferTextureLayer(GL_FRAMEBUFFER, getAttachmentEnum(attachmentIndex), texture.id, 0, layer);
+			glFramebufferTextureLayer(GL_FRAMEBUFFER, static_cast<u32>(attachmentIndex), texture.id, 0, layer);
 			break;
 
 		case TextureType::CubemapTexture:
@@ -187,7 +187,7 @@ void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture, u32
 				return;
 			}
 
-			glFramebufferTexture2D(GL_FRAMEBUFFER, getAttachmentEnum(attachmentIndex), Texture::getCubemapFaceEnum(Texture::getCubemapFace(layer)), texture.id, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, static_cast<u32>(attachmentIndex), static_cast<u32>(Texture::getCubemapFace(layer)), texture.id, 0);
 			break;
 
 		default:
@@ -206,7 +206,7 @@ void Framebuffer::attachRenderbuffer(u32 attachmentIndex, const Renderbuffer& re
 	gle_assert(renderbuffer.isInitialized(), "Renderbuffer %d has not been initialized (attempted to attach renderbuffer)", id);
 	gle_assert(validAttachmentIndex(attachmentIndex), "Framebuffer attachment index %d is invalid (id = %d)", attachmentIndex, id);
 
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, getAttachmentEnum(attachmentIndex), GL_RENDERBUFFER, renderbuffer.id);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, static_cast<u32>(attachmentIndex), GL_RENDERBUFFER, renderbuffer.id);
 
 }
 
@@ -236,29 +236,7 @@ void Framebuffer::setViewport(u32 x, u32 y, u32 w, u32 h) {
 
 
 bool Framebuffer::validAttachmentIndex(u32 index) {
-	return index < Limits::getMaxColorAttachments() + ColorIndex;
-}
-
-
-
-u32 Framebuffer::getAttachmentEnum(u32 index) {
-
-	switch (index) {
-
-		case DepthIndex:
-			return GL_DEPTH_ATTACHMENT;
-
-		case StencilIndex:
-			return GL_STENCIL_ATTACHMENT;
-
-		case DepthStencilIndex:
-			return GL_DEPTH_STENCIL_ATTACHMENT;
-
-		default:
-			return GL_COLOR_ATTACHMENT0 + index - ColorIndex;
-
-	}
-
+	return (index < Limits::getMaxColorAttachments() + ColorIndex) || (index == DepthIndex) || (index == StencilIndex) || (index == DepthStencilIndex);
 }
 
 

@@ -72,7 +72,7 @@ bool ShaderProgram::addShader(const char* source, u32 size, ShaderType type) {
 		return false;
 	}
 
-	u32 shaderEnum = getShaderTypeEnum(type);
+	u32 shaderEnum = static_cast<u32>(type);
 	u32 sid = glCreateShader(shaderEnum);
 
 	i32 sourceSize = size;
@@ -389,38 +389,6 @@ void ShaderProgram::destroyShaders() {
 			shaders[i] = invalidID;
 
 		}
-
-	}
-
-}
-
-
-
-u32 ShaderProgram::getShaderTypeEnum(ShaderType type) {
-
-	switch (type) {
-
-		case ShaderType::VertexShader:
-			return GL_VERTEX_SHADER;
-
-		case ShaderType::FragmentShader:
-			return GL_FRAGMENT_SHADER;
-
-		case ShaderType::GeometryShader:
-			return GL_GEOMETRY_SHADER;
-
-		case ShaderType::TessCtrlShader:
-			return GL_TESS_CONTROL_SHADER;
-
-		case ShaderType::TessEvalShader:
-			return GL_TESS_EVALUATION_SHADER;
-
-		case ShaderType::ComputeShader:
-			return GL_COMPUTE_SHADER;
-
-		default:
-			gle_force_assert("Invalid shader type 0x%X", type);
-			return -1;
 
 	}
 

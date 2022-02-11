@@ -44,7 +44,7 @@ void MultisampleArrayTexture2D::init(u32 w, u32 h, u32 layers, u32 samples, Imag
 	depth = layers;
 	texFormat = format;
 
-	glTexImage3DMultisample(getTextureTypeEnum(type), samples, Image::getImageFormatEnum(format), w, h, layers, fixedSamples);
+	glTexImage3DMultisample(static_cast<u32>(type), samples, static_cast<u32>(format), w, h, layers, fixedSamples);
 
 }
 

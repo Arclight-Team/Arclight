@@ -9,144 +9,140 @@
 #pragma once
 
 #include "gc.hpp"
+#include <GL/glew.h>
 
 GLE_BEGIN
 
 enum class ImageFormat {
-	None,
-	R8,
-	R8sn,
-	R16,
-	R16sn,
-	RG8,
-	RG8sn,
-	RG16,
-	RG16sn,
-	R3G3B2,
-	RGB4,
-	RGB5,
-	RGB8,
-	RGB8sn,
-	RGB10,
-	RGB12,
-	RGB16sn,
-	RGBA2,
-	RGBA4,
-	RGB5A1,
-	RGBA8,
-	RGBA8sn,
-	RGB10A2,
-	RGB10A2ui,
-	RGBA12,
-	RGBA16,
-	SRGB8,
-	SRGBA8,
-	R16f,
-	RG16f,
-	RGB16f,
-	RGBA16f,
-	R32f,
-	RG32f,
-	RGB32f,
-	RGBA32f,
-	R11fG11fB10f,
-	RGB9E5,
-	R8i,
-	R8ui,
-	R16i,
-	R16ui,
-	R32i,
-	R32ui,
-	RG8i,
-	RG8ui,
-	RG16i,
-	RG16ui,
-	RG32i,
-	RG32ui,
-	RGB8i,
-	RGB8ui,
-	RGB16i,
-	RGB16ui,
-	RGB32i,
-	RGB32ui,
-	RGBA8i,
-	RGBA8ui,
-	RGBA16i,
-	RGBA16ui,
-	RGBA32i,
-	RGBA32ui,
-	Depth16,
-	Depth24,
-	Depth32,
-	Depth32f,
-	Depth24Stencil8,
-	Depth32fStencil8,
-	Stencil8
+	None				= 0x0000,
+	R8					= 0x8229, // GL_R8
+	R8sn				= 0x8F94, // GL_R8_SNORM
+	R16					= 0x822A, // GL_R16
+	R16sn				= 0x8F98, // GL_R16_SNORM
+	RG8					= 0x822B, // GL_RG8
+	RG8sn				= 0x8F95, // GL_RG8_SNORM
+	RG16				= 0x822C, // GL_RG16
+	RG16sn				= 0x8F99, // GL_RG16_SNORM
+	R3G3B2				= 0x2A10, // GL_R3_G3_B2
+	RGB4				= 0x804F, // GL_RGB4
+	RGB5				= 0x8050, // GL_RGB5
+	RGB8				= 0x8051, // GL_RGB8
+	RGB8sn				= 0x8F96, // GL_RGB8_SNORM
+	RGB10				= 0x8052, // GL_RGB10
+	RGB12				= 0x8053, // GL_RGB12
+	RGB16sn				= 0x8F9A, // GL_RGB16_SNORM
+	RGBA2				= 0x8055, // GL_RGBA2
+	RGBA4				= 0x8056, // GL_RGBA4
+	RGB5A1				= 0x8057, // GL_RGB5_A1
+	RGBA8				= 0x8058, // GL_RGBA8
+	RGBA8sn				= 0x8F97, // GL_RGBA8_SNORM
+	RGB10A2				= 0x8059, // GL_RGB10_A2
+	RGB10A2ui			= 0x906F, // GL_RGB10_A2UI
+	RGBA12				= 0x805A, // GL_RGBA12
+	RGBA16				= 0x805B, // GL_RGBA16
+	SRGB8				= 0x8C41, // GL_SRGB8
+	SRGBA8				= 0x8C43, // GL_SRGB8_ALPHA8
+	R16f				= 0x822D, // GL_R16F
+	RG16f				= 0x822F, // GL_RG16F
+	RGB16f				= 0x881B, // GL_RGB16F
+	RGBA16f				= 0x881A, // GL_RGBA16F
+	R32f				= 0x822E, // GL_R32F
+	RG32f				= 0x8230, // GL_RG32F
+	RGB32f				= 0x8815, // GL_RGB32F
+	RGBA32f				= 0x8814, // GL_RGBA32F
+	R11fG11fB10f		= 0x8C3A, // GL_R11F_G11F_B10F
+	RGB9E5				= 0x8C3D, // GL_RGB9_E5
+	R8i					= 0x8231, // GL_R8I
+	R8ui				= 0x8232, // GL_R8UI
+	R16i				= 0x8233, // GL_R16I
+	R16ui				= 0x8234, // GL_R16UI
+	R32i				= 0x8235, // GL_R32I
+	R32ui				= 0x8236, // GL_R32UI
+	RG8i				= 0x8237, // GL_RG8I
+	RG8ui				= 0x8238, // GL_RG8UI
+	RG16i				= 0x8239, // GL_RG16I
+	RG16ui				= 0x823A, // GL_RG16UI
+	RG32i				= 0x823B, // GL_RG32I
+	RG32ui				= 0x823C, // GL_RG32UI
+	RGB8i				= 0x8D8F, // GL_RGB8I
+	RGB8ui				= 0x8D7D, // GL_RGB8UI
+	RGB16i				= 0x8D89, // GL_RGB16I
+	RGB16ui				= 0x8D77, // GL_RGB16UI
+	RGB32i				= 0x8D83, // GL_RGB32I
+	RGB32ui				= 0x8D71, // GL_RGB32UI
+	RGBA8i				= 0x8D8E, // GL_RGBA8I
+	RGBA8ui				= 0x8D7C, // GL_RGBA8UI
+	RGBA16i				= 0x8D88, // GL_RGBA16I
+	RGBA16ui			= 0x8D76, // GL_RGBA16UI
+	RGBA32i				= 0x8D82, // GL_RGBA32I
+	RGBA32ui			= 0x8D70, // GL_RGBA32UI
+	Depth16				= 0x81A5, // GL_DEPTH_COMPONENT16
+	Depth24				= 0x81A6, // GL_DEPTH_COMPONENT24
+	Depth32				= 0x81A7, // GL_DEPTH_COMPONENT32
+	Depth32f			= 0x8CAC, // GL_DEPTH_COMPONENT32F
+	Depth24Stencil8		= 0x88F0, // GL_DEPTH24_STENCIL8
+	Depth32fStencil8	= 0x8CAD, // GL_DEPTH32F_STENCIL8
+	Stencil8			= 0x8D48, // GL_STENCIL_INDEX8
 };
 
 
 enum class CompressedImageFormat {
-	RGTC1,
-	RGTC1s,
-	RGTC2,
-	RGTC2s,
-	RGBA_BPTCun,
-	SRGB_BPTCun,
-	BPTCf,
-	BPTCuf,
-	RGB_DXT1,
-	SRGB_DXT1,
-	RGBA_DXT1,
-	SRGBA_DXT1,
-	RGBA_DXT3,
-	SRGBA_DXT3,
-	RGBA_DXT5,
-	SRGBA_DXT5,
+	RGTC1		= 0x8DBB, // GL_COMPRESSED_RED_RGTC1
+	RGTC1s		= 0x8DBC, // GL_COMPRESSED_SIGNED_RED_RGTC1
+	RGTC2		= 0x8DBD, // GL_COMPRESSED_RG_RGTC2
+	RGTC2s		= 0x8DBE, // GL_COMPRESSED_SIGNED_RG_RGTC2
+	RGBA_BPTCun	= 0x8E8C, // GL_COMPRESSED_RGBA_BPTC_UNORM
+	SRGB_BPTCun	= 0x8E8D, // GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM
+	BPTCf		= 0x8E8E, // GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT
+	BPTCuf		= 0x8E8F, // GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT
+	RGB_DXT1	= 0x83F0, // GL_COMPRESSED_RGB_S3TC_DXT1_EXT
+	SRGB_DXT1	= 0x8C4C, // GL_COMPRESSED_SRGB_S3TC_DXT1_EXT
+	RGBA_DXT1	= 0x83F1, // GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
+	SRGBA_DXT1	= 0x8C4D, // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
+	RGBA_DXT3	= 0x83F2, // GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
+	SRGBA_DXT3	= 0x8C4E, // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
+	RGBA_DXT5	= 0x83F3, // GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
+	SRGBA_DXT5	= 0x8C4F, // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
 };
 
 
 enum class TextureBufferFormat {
-	R8,
-	R16,
-	R16f,
-	R32f,
-	R8i,
-	R16i,
-	R32i,
-	R8ui,
-	R16ui,
-	R32ui,
-	RG8,
-	RG16,
-	RG16f,
-	RG32f,
-	RG8i,
-	RG32i,
-	RG8ui,
-	RG16ui,
-	RG32ui,
-	RGB32f,		// need ARB_texture_buffer_object_rgb32
-	RGB32i,		//
-	RGB32ui,	//
-	RGBA8,
-	RGBA16,
-	RGBA16f,
-	RGBA32f,
-	RGBA8i,
-	RGBA16i,
-	RGBA32i,
-	RGBA8ui,
-	RGBA16ui,
-	RGBA32ui
+	R8			= 0x8229, // GL_R8
+	R16			= 0x822A, // GL_R16
+	R16f		= 0x822D, // GL_R16F
+	R32f		= 0x822E, // GL_R32F
+	R8i			= 0x8231, // GL_R8I
+	R16i		= 0x8233, // GL_R16I
+	R32i		= 0x8235, // GL_R32I
+	R8ui		= 0x8232, // GL_R8UI
+	R16ui		= 0x8234, // GL_R16UI
+	R32ui		= 0x8236, // GL_R32UI
+	RG8			= 0x822B, // GL_RG8
+	RG16		= 0x822C, // GL_RG16
+	RG16f		= 0x822F, // GL_RG16F
+	RG32f		= 0x8230, // GL_RG32F
+	RG8i		= 0x8237, // GL_RG8I
+	RG32i		= 0x823B, // GL_RG32I
+	RG8ui		= 0x8238, // GL_RG8UI
+	RG16ui		= 0x823A, // GL_RG16UI
+	RG32ui		= 0x823C, // GL_RG32UI
+	RGB32f		= 0x8815, // GL_RGB32F
+	RGB32i		= 0x8D83, // GL_RGB32I
+	RGB32ui		= 0x8D71, // GL_RGB32UI
+	RGBA8		= 0x8058, // GL_RGBA8
+	RGBA16		= 0x805B, // GL_RGBA16
+	RGBA16f		= 0x881A, // GL_RGBA16F
+	RGBA32f		= 0x8814, // GL_RGBA32F
+	RGBA8i		= 0x8D8E, // GL_RGBA8I
+	RGBA16i		= 0x8D88, // GL_RGBA16I
+	RGBA32i		= 0x8D82, // GL_RGBA32I
+	RGBA8ui		= 0x8D7C, // GL_RGBA8UI
+	RGBA16ui	= 0x8D76, // GL_RGBA16UI
+	RGBA32ui	= 0x8D70, // GL_RGBA32UI
 };
 
 
 namespace Image {
-
-	//Returns the corresponding enum value of format
-	u32 getImageFormatEnum(ImageFormat format);
-	u32 getImageFormatEnum(TextureBufferFormat format);
-	u32 getCompressedImageFormatEnum(CompressedImageFormat format);
 
 	//Returns the maximum number of samples of the given format
 	u32 getMaxSamples(ImageFormat format);

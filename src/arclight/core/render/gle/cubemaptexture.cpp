@@ -36,7 +36,7 @@ void CubemapTexture::setData(CubemapFace face, u32 s, ImageFormat format, Textur
 		return;
 	}
 
-	glTexImage2D(getCubemapFaceEnum(face), 0, Image::getImageFormatEnum(texFormat), s, s, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexImage2D(static_cast<u32>(face), 0, static_cast<u32>(texFormat), s, s, 0, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
 
 }
 
@@ -51,7 +51,7 @@ void CubemapTexture::setMipmapData(CubemapFace face, u32 level, TextureSourceFor
 		return;
 	}
 
-	glTexImage2D(getCubemapFaceEnum(face), level, Image::getImageFormatEnum(texFormat), getMipmapSize(level, width), getMipmapSize(level, height), 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexImage2D(static_cast<u32>(face), level, static_cast<u32>(texFormat), getMipmapSize(level, width), getMipmapSize(level, height), 0, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
 
 }
 
@@ -76,7 +76,7 @@ void CubemapTexture::update(CubemapFace face, u32 x, u32 y, u32 w, u32 h, Textur
 		return;
 	}
 
-	glTexSubImage2D(getCubemapFaceEnum(face), level, x, y, w, h, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexSubImage2D(static_cast<u32>(face), level, x, y, w, h, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
 
 }
 

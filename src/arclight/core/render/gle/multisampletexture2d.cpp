@@ -39,7 +39,7 @@ void MultisampleTexture2D::init(u32 w, u32 h, u32 samples, ImageFormat format, b
 	depth = 0;
 	texFormat = format;
 
-	glTexImage2DMultisample(getTextureTypeEnum(type), samples, Image::getImageFormatEnum(format), w, h, fixedSamples);
+	glTexImage2DMultisample(static_cast<u32>(type), samples, static_cast<u32>(format), w, h, fixedSamples);
 
 }
 

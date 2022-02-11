@@ -29,7 +29,7 @@ void Texture3D::setData(u32 w, u32 h, u32 d, ImageFormat format, TextureSourceFo
 	depth = d;
 	texFormat = format;
 
-	glTexImage3D(getTextureTypeEnum(type), 0, Image::getImageFormatEnum(texFormat), w, h, d, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexImage3D(static_cast<u32>(type), 0, static_cast<u32>(texFormat), w, h, d, 0, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
 
 }
 
@@ -44,7 +44,7 @@ void Texture3D::setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureS
 		return;
 	}
 
-	glTexImage3D(getTextureTypeEnum(type), level, Image::getImageFormatEnum(texFormat), getMipmapSize(level, width), getMipmapSize(level, height), getMipmapSize(level, depth), 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexImage3D(static_cast<u32>(type), level, static_cast<u32>(texFormat), getMipmapSize(level, width), getMipmapSize(level, height), getMipmapSize(level, depth), 0, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
 
 }
 
@@ -74,7 +74,7 @@ void Texture3D::update(u32 x, u32 y, u32 z, u32 w, u32 h, u32 d, TextureSourceFo
 		return;
 	}
 
-	glTexSubImage3D(getTextureTypeEnum(type), level, x, y, z, w, h, d, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexSubImage3D(static_cast<u32>(type), level, x, y, z, w, h, d, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
 
 }
 
@@ -94,7 +94,7 @@ void Texture3D::setCompressedData(u32 w, u32 h, u32 d, CompressedImageFormat for
 	depth = d;
 	texFormat = static_cast<ImageFormat>(format);
 
-	glCompressedTexImage3D(getTextureTypeEnum(type), 0, Image::getCompressedImageFormatEnum(format), w, h, d, 0, size, data);
+	glCompressedTexImage3D(static_cast<u32>(type), 0, static_cast<u32>(format), w, h, d, 0, size, data);
 
 }
 
@@ -111,7 +111,7 @@ void Texture3D::setCompressedMipmapData(u32 level, const void* data, u32 size) {
 
 	auto format = getCompressedImageFormat();
 
-	glCompressedTexImage3D(getTextureTypeEnum(type), level, Image::getCompressedImageFormatEnum(format), getMipmapSize(level, width), getMipmapSize(level, height), getMipmapSize(level, depth), 0, size, data);
+	glCompressedTexImage3D(static_cast<u32>(type), level, static_cast<u32>(format), getMipmapSize(level, width), getMipmapSize(level, height), getMipmapSize(level, depth), 0, size, data);
 
 }
 

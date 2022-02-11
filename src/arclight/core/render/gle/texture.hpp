@@ -16,16 +16,16 @@ GLE_BEGIN
 
 
 enum class TextureType {
-	Texture1D,
-	Texture2D,
-	Texture3D,
-	ArrayTexture1D,
-	ArrayTexture2D,
-	CubemapTexture,
-	CubemapArrayTexture,
-	MultisampleTexture2D,
-	MultisampleArrayTexture2D,
-	TextureBuffer
+	Texture1D					= 0x0DE0, // GL_TEXTURE_1D
+	Texture2D					= 0x0DE1, // GL_TEXTURE_2D
+	Texture3D					= 0x806F, // GL_TEXTURE_3D
+	ArrayTexture1D				= 0x8C18, // GL_TEXTURE_1D_ARRAY
+	ArrayTexture2D				= 0x8C1A, // GL_TEXTURE_2D_ARRAY
+	CubemapTexture				= 0x8513, // GL_TEXTURE_CUBE_MAP
+	CubemapArrayTexture			= 0x9009, // GL_TEXTURE_CUBE_MAP_ARRAY
+	MultisampleTexture2D		= 0x9100, // GL_TEXTURE_2D_MULTISAMPLE
+	MultisampleArrayTexture2D	= 0x9102, // GL_TEXTURE_2D_MULTISAMPLE_ARRAY
+	TextureBuffer				= 0x8C2A, // GL_TEXTURE_BUFFER
 };
 
 
@@ -37,78 +37,78 @@ enum class TextureFilter {
 
 
 enum class TextureWrap {
-	Repeat,
-	Clamp,
-	Mirror,
-	Border
+	Repeat	= 0x812F, // GL_CLAMP_TO_EDGE
+	Clamp	= 0x8370, // GL_MIRRORED_REPEAT
+	Mirror	= 0x2901, // GL_REPEAT
+	Border	= 0x812D, // GL_CLAMP_TO_BORDER
 };
 
 
 enum class CubemapFace {
-	PositiveX,
-	NegativeX,
-	PositiveY,
-	NegativeY,
-	PositiveZ,
-	NegativeZ
+	PositiveX = 0x8515, // GL_TEXTURE_CUBE_MAP_POSITIVE_X
+	NegativeX = 0x8516, // GL_TEXTURE_CUBE_MAP_NEGATIVE_X
+	PositiveY = 0x8517, // GL_TEXTURE_CUBE_MAP_POSITIVE_Y
+	NegativeY = 0x8518, // GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
+	PositiveZ = 0x8519, // GL_TEXTURE_CUBE_MAP_POSITIVE_Z
+	NegativeZ = 0x851A, // GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
 };
 
 
 enum class TextureSourceFormat {
-	Red,
-	Green,
-	Blue,
-	RG,
-	RGB,
-	BGR,
-	RGBA,
-	BGRA,
-	Ri,
-	Gi,
-	Bi,
-	RGi,
-	RGBi,
-	BGRi,
-	RGBAi,
-	BGRAi,
-	Depth,
-	Stencil,
-	DepthStencil
+	Red				= 0x1903, // GL_RED
+	Green			= 0x1904, // GL_GREEN
+	Blue			= 0x1905, // GL_BLUE
+	RG				= 0x8227, // GL_RG
+	RGB				= 0x1907, // GL_RGB
+	BGR				= 0x80E0, // GL_BGR
+	RGBA			= 0x1908, // GL_RGBA
+	BGRA			= 0x80E1, // GL_BGRA
+	Ri				= 0x8D94, // GL_RED_INTEGER
+	Gi				= 0x8D95, // GL_GREEN_INTEGER
+	Bi				= 0x8D96, // GL_BLUE_INTEGER
+	RGi				= 0x8228, // GL_RG_INTEGER
+	RGBi			= 0x8D98, // GL_RGB_INTEGER
+	BGRi			= 0x8D9A, // GL_BGR_INTEGER
+	RGBAi			= 0x8D99, // GL_RGBA_INTEGER
+	BGRAi			= 0x8D9B, // GL_BGRA_INTEGER
+	Depth			= 0x1902, // GL_DEPTH_COMPONENT
+	Stencil			= 0x1901, // GL_STENCIL_INDEX
+	DepthStencil	= 0x84F9, // GL_DEPTH_STENCI
 };
 
 
 enum class TextureSourceType {
-	UByte,
-	Byte,
-	UShort,
-	Short,
-	UInt,
-	Int,
-	Float,
-	UByte332,
-	UByte233,
-	UShort565,
-	UShort565R,
-	UShort4444,
-	UShort4444R,
-	UShort5551,
-	UShort1555,
-	UInt8888,
-	UInt8888R,
-	UInt10_2,
-	UInt2_10
+	UByte		= 0x1401, // GL_UNSIGNED_BYTE
+	Byte		= 0x1400, // GL_BYTE
+	UShort		= 0x1403, // GL_UNSIGNED_SHORT
+	Short		= 0x1402, // GL_SHORT
+	UInt		= 0x1405, // GL_UNSIGNED_INT
+	Int			= 0x1404, // GL_INT
+	Float		= 0x1406, // GL_FLOAT
+	UByte332	= 0x8032, // GL_UNSIGNED_BYTE_3_3_2
+	UByte233	= 0x8362, // GL_UNSIGNED_BYTE_2_3_3_REV
+	UShort565	= 0x8363, // GL_UNSIGNED_SHORT_5_6_5
+	UShort565R	= 0x8364, // GL_UNSIGNED_SHORT_5_6_5_REV
+	UShort4444	= 0x8033, // GL_UNSIGNED_SHORT_4_4_4_4
+	UShort4444R	= 0x8365, // GL_UNSIGNED_SHORT_4_4_4_4_REV
+	UShort5551	= 0x8034, // GL_UNSIGNED_SHORT_5_5_5_1
+	UShort1555	= 0x8366, // GL_UNSIGNED_SHORT_1_5_5_5_REV
+	UInt8888	= 0x8035, // GL_UNSIGNED_INT_8_8_8_8
+	UInt8888R	= 0x8367, // GL_UNSIGNED_INT_8_8_8_8_REV
+	UInt10_2	= 0x8036, // GL_UNSIGNED_INT_10_10_10_2
+	UInt2_10	= 0x8368, // GL_UNSIGNED_INT_2_10_10_10_REV
 };
 
 
 enum class TextureOperator {
-	Never,
-	Always,
-	Less,
-	LessEqual,
-	Equal,
-	NotEqual,
-	GreaterEqual,
-	Greater
+	Never			= 0x0200, // GL_NEVER
+	Always			= 0x0207, // GL_ALWAYS
+	Less			= 0x0201, // GL_LESS
+	LessEqual		= 0x0203, // GL_LEQUAL
+	Equal			= 0x0202, // GL_EQUAL
+	NotEqual		= 0x0205, // GL_NOTEQUAL
+	GreaterEqual	= 0x0206, // GL_GEQUAL
+	Greater			= 0x0204, // GL_GREATER
 };
 
 
@@ -187,13 +187,6 @@ protected:
 
 	void bindImageUnit(u32 unit, bool layered, u32 layer, Access access, u32 level);
 
-	static u32 getTextureTypeEnum(TextureType type);
-	static u32 getTextureWrapEnum(TextureWrap wrap);
-	static u32 getTextureSourceFormatEnum(TextureSourceFormat format);
-	static u32 getTextureSourceTypeEnum(TextureSourceType type);
-	static u32 getCubemapFaceEnum(CubemapFace face);
-	static u32 getTextureOperatorEnum(TextureOperator op);
-
 	u32 width;
 	u32 height;
 	u32 depth;
@@ -202,12 +195,52 @@ protected:
 
 private:
 
+	static inline u32 getBoundArrayIndex(TextureType type) {
+
+		switch (type) {
+
+			case TextureType::Texture1D:
+				return 0;
+
+			case TextureType::Texture2D:
+				return 1;
+
+			case TextureType::Texture3D:
+				return 2;
+
+			case TextureType::ArrayTexture1D:
+				return 3;
+
+			case TextureType::ArrayTexture2D:
+				return 4;
+
+			case TextureType::CubemapTexture:
+				return 5;
+
+			case TextureType::CubemapArrayTexture:
+				return 6;
+
+			case TextureType::MultisampleTexture2D:
+				return 7;
+
+			case TextureType::MultisampleArrayTexture2D:
+				return 8;
+
+			case TextureType::TextureBuffer:
+				return 9;
+
+			default:
+				gle_force_assert("Illegal texture type &d", type);
+
+		}
+	}
+
 	static inline void setBoundTextureID(TextureType type, u32 id) {
-		boundTextureIDs[static_cast<u32>(type)] = id;
+		boundTextureIDs[getBoundArrayIndex(type)] = id;
 	}
 
 	static inline u32 getBoundTextureID(TextureType type) {
-		return boundTextureIDs[static_cast<u32>(type)];
+		return boundTextureIDs[getBoundArrayIndex(type)];
 	}
 
 	static inline u32 boundTextureIDs[10] = {

@@ -15,19 +15,19 @@
 GLE_BEGIN
 
 enum class AttributeType {
-	Byte,
-	UByte,
-	Short,
-	UShort,
-	Int,
-	UInt,
-	HalfFloat,
-	Float,
-	Double,
-	Fixed,
-	Int2u10R,
-	UInt2u10R,
-	UInt10f11f11fR
+	Byte			= 0x1400, // GL_BYTE
+	UByte			= 0x1401, // GL_UNSIGNED_BYTE
+	Short			= 0x1402, // GL_SHORT
+	UShort			= 0x1403, // GL_UNSIGNED_SHORT
+	Int				= 0x1404, // GL_INT
+	UInt			= 0x1405, // GL_UNSIGNED_INT
+	HalfFloat		= 0x140B, // GL_HALF_FLOAT
+	Float			= 0x1406, // GL_FLOAT
+	Double			= 0x140A, // GL_DOUBLE
+	Fixed			= 0x140C, // GL_FIXED
+	Int2u10R		= 0x8D9F, // GL_INT_2_10_10_10_REV
+	UInt2u10R		= 0x8368, // GL_UNSIGNED_INT_2_10_10_10_REV
+	UInt10f11f11fR	= 0x8C3B, // GL_UNSIGNED_INT_10F_11F_11F_REV
 };
 
 
@@ -63,8 +63,6 @@ public:
 	bool isBound() const;
 
 private:
-
-	static u32 getAttributeTypeEnum(AttributeType type);
 
 	static inline u32 boundVertexArrayID = invalidBoundID;
 

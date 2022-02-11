@@ -89,7 +89,7 @@ void Renderbuffer::setStorage(u32 w, u32 h, ImageFormat format, u32 samples) {
 	this->samples = samples;
 	this->format = format;
 
-	glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, Image::getImageFormatEnum(format), w, h);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, static_cast<u32>(format), w, h);
 
 }
 

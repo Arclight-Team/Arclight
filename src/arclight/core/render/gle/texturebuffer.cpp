@@ -51,7 +51,7 @@ void TextureBuffer::load(TextureBufferFormat format) {
 
 	this->format = format;
 
-	glTexBuffer(GL_TEXTURE_BUFFER, Image::getImageFormatEnum(format), id);
+	glTexBuffer(GL_TEXTURE_BUFFER, static_cast<u32>(format), id);
 }
 
 
@@ -64,7 +64,7 @@ void TextureBuffer::loadRange(SizeT offset, SizeT size, TextureBufferFormat form
 
 	this->format = format;
 
-	glTexBufferRange(GL_TEXTURE_BUFFER, Image::getImageFormatEnum(format), id, offset, size);
+	glTexBufferRange(GL_TEXTURE_BUFFER, static_cast<u32>(format), id, offset, size);
 }
 
 
@@ -83,7 +83,7 @@ void TextureBuffer::bindImageUnit(u32 unit, Access access) {
 	gle_assert(Texture::imageLoadStoreSupported(), "Cannot bind image unit, image load store not supported");
 	gle_assert(Image::isImageUnitCompatible(format), "Texture %d has an image unit incompatible format (attempted to bind image unit)", texID);
 
-	glBindImageTexture(unit, texID, 0, false, 0, getAccessEnum(access), Image::getImageFormatEnum(format));
+	glBindImageTexture(unit, texID, 0, false, 0, static_cast<u32>(access), static_cast<u32>(format));
 }
 
 

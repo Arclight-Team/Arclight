@@ -30,7 +30,7 @@ void Texture1D::setData(u32 w, ImageFormat format, TextureSourceFormat srcFormat
 	depth = 0;
 	texFormat = format;
 
-	glTexImage1D(getTextureTypeEnum(type), 0, Image::getImageFormatEnum(texFormat), w, 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexImage1D(static_cast<u32>(type), 0, static_cast<u32>(texFormat), w, 0, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
 
 }
 
@@ -45,7 +45,7 @@ void Texture1D::setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureS
 		return;
 	}
 
-	glTexImage1D(getTextureTypeEnum(type), level, Image::getImageFormatEnum(texFormat), getMipmapSize(level, width), 0, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexImage1D(static_cast<u32>(type), level, static_cast<u32>(texFormat), getMipmapSize(level, width), 0, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
 
 }
 
@@ -65,7 +65,7 @@ void Texture1D::update(u32 x, u32 w, TextureSourceFormat srcFormat, TextureSourc
 		return;
 	}
 
-	glTexSubImage1D(getTextureTypeEnum(type), level, x, w, getTextureSourceFormatEnum(srcFormat), getTextureSourceTypeEnum(srcType), data);
+	glTexSubImage1D(static_cast<u32>(type), level, x, w, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
 
 }
 
@@ -85,7 +85,7 @@ void Texture1D::setCompressedData(u32 w, CompressedImageFormat format, const voi
 	depth = 0;
 	texFormat = static_cast<ImageFormat>(format);
 
-	glCompressedTexImage1D(getTextureTypeEnum(type), 0, Image::getCompressedImageFormatEnum(format), w, 0, size, data);
+	glCompressedTexImage1D(static_cast<u32>(type), 0, static_cast<u32>(format), w, 0, size, data);
 
 }
 
@@ -102,7 +102,7 @@ void Texture1D::setCompressedMipmapData(u32 level, const void* data, u32 size) {
 
 	auto format = getCompressedImageFormat();
 
-	glCompressedTexImage1D(getTextureTypeEnum(type), level, Image::getCompressedImageFormatEnum(format), getMipmapSize(level, width), 0, size, data);
+	glCompressedTexImage1D(static_cast<u32>(type), level, static_cast<u32>(format), getMipmapSize(level, width), 0, size, data);
 
 }
 

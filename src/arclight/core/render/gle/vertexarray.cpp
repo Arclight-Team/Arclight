@@ -71,7 +71,7 @@ void VertexArray::setAttribute(u32 index, u8 elements, AttributeType type, SizeT
 	gle_assert(index < maxVertexAttributes, "Vertex array attribute %d exceeds the limit of %d", index, maxVertexAttributes - 1);
 	gle_assert(elements > 0 && elements < 5, "Invalid element count (%d) for vertex array %d at attribute %d", elements, id, index);
 
-	u32 attrType = getAttributeTypeEnum(type);
+	u32 attrType = static_cast<u32>(type);
 	const void* ptrOffset = reinterpret_cast<const void*>(static_cast<uintptr_t>(offset));
 
 	switch (attrClass) {
@@ -133,59 +133,6 @@ void VertexArray::disableAttribute(u32 index) {
 
 bool VertexArray::isBound() const {
 	return id == boundVertexArrayID;
-}
-
-
-
-u32 VertexArray::getAttributeTypeEnum(AttributeType type) {
-
-	switch (type) {
-
-		case AttributeType::Byte:
-			return GL_BYTE;
-
-		case AttributeType::UByte:
-			return GL_UNSIGNED_BYTE;
-
-		case AttributeType::Short:
-			return GL_SHORT;
-
-		case AttributeType::UShort:
-			return GL_UNSIGNED_SHORT;
-
-		case AttributeType::Int:
-			return GL_INT;
-
-		case AttributeType::UInt:
-			return GL_UNSIGNED_INT;
-
-		case AttributeType::HalfFloat:
-			return GL_HALF_FLOAT;
-
-		case AttributeType::Float:
-			return GL_FLOAT;
-
-		case AttributeType::Double:
-			return GL_DOUBLE;
-
-		case AttributeType::Fixed:
-			return GL_FIXED;
-
-		case AttributeType::Int2u10R:
-			return GL_INT_2_10_10_10_REV;
-
-		case AttributeType::UInt2u10R:
-			return GL_UNSIGNED_INT_2_10_10_10_REV;
-
-		case AttributeType::UInt10f11f11fR:
-			return GL_UNSIGNED_INT_10F_11F_11F_REV;
-
-		default:
-			gle_force_assert("Invalid attribute type 0x%X", type);
-			return -1;
-
-	}
-
 }
 
 

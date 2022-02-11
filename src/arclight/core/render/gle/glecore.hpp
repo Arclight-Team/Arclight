@@ -88,25 +88,23 @@ void setRowUnpackAlignment(Alignment a);
 void setRowPackAlignment(Alignment a);
 
 enum class DepthCompare {
-	Never,
-	Less,
-	LessEqual,
-	Equal,
-	GreaterEqual,
-	Greater,
-	NotEqual,
-	Always
+	Never			= 0x0200, // GL_NEVER
+	Less			= 0x0201, // GL_LESS
+	LessEqual		= 0x0203, // GL_LEQUAL
+	Equal			= 0x0202, // GL_EQUAL
+	GreaterEqual	= 0x0206, // GL_GEQUAL
+	Greater			= 0x0204, // GL_GREATER
+	NotEqual		= 0x0205, // GL_NOTEQUAL
+	Always			= 0x0207, // GL_ALWAYS
 };
 
 void setDepthFunction(DepthCompare function);
 
 enum class Access {
-	Read,
-	Write,
-	ReadWrite
+	Read		= 0x88B8, // GL_READ_ONLY
+	Write		= 0x88B9, // GL_WRITE_ONLY
+	ReadWrite	= 0x88BA, // GL_READ_WRITE
 };
-
-u32 getAccessEnum(Access access);
 
 
 GLE_END

@@ -42,7 +42,7 @@ void Buffer::bind(BufferType type) {
 	this->type = type;
 
 	if (!isBound()) {
-		glBindBuffer(getBufferTypeEnum(type), id);
+		glBindBuffer(static_cast<u32>(type), id);
 		setBoundBufferID(type, id);
 	}
 
@@ -81,7 +81,7 @@ void Buffer::allocate(SizeT size, const void* data, BufferAccess access) {
 
 	//TODO: Check if buffer has been mapped non-persistently
 	this->size = size;
-	glBufferData(getBufferTypeEnum(type), size, data, getBufferAccessEnum(access));
+	glBufferData(static_cast<u32>(type), size, data, static_cast<u32>(access));
 
 }
 
@@ -92,7 +92,7 @@ void Buffer::update(SizeT offset, SizeT size, const void* data) {
 	gle_assert(isBound(), "Buffer object %d has not been bound (attempted to set buffer data)", id);
 	gle_assert((offset + size) <= this->size, "Attempted to write data out of bounds for buffer object %d", id);
 
-	glBufferSubData(getBufferTypeEnum(type), offset, size, data);
+	glBufferSubData(static_cast<u32>(type), offset, size, data);
 
 }
 
@@ -105,7 +105,7 @@ void* Buffer::map(Access access) {
 
 	mapped = true;
 
-	return glMapBuffer(getBufferTypeEnum(type), getAccessEnum(access));
+	return glMapBuffer(static_cast<u32>(type), static_cast<u32>(access));
 
 }
 
@@ -116,7 +116,7 @@ void Buffer::unmap() {
 	gle_assert(isBound(), "Buffer object %d has not been bound (attempted to unmap buffer)", id);
 	gle_assert(isMapped(), "Attempted to unmap non mapped buffer object %d", id);
 
-	glUnmapBuffer(getBufferTypeEnum(type));
+	glUnmapBuffer(static_cast<u32>(type));
 
 }
 
@@ -124,11 +124,11 @@ void Buffer::unmap() {
 
 void Buffer::unbind() {
 
-	arc_assert(isBound(), "Buffer object %d has not been bound (attempted to unbind buffer)", id);
+	gle_assert(isBound(), "Buffer object %d has not been bound (attempted to unbind buffer)", id);
 
 	setBoundBufferID(type, invalidBoundID);
 
-	glBindBuffer(getBufferTypeEnum(type), 0);
+	glBindBuffer(static_cast<u32>(type), 0);
 
 }
 
@@ -155,7 +155,7 @@ void Buffer::copy(Buffer& destBuffer, SizeT srcOffset, SizeT destOffset, SizeT s
 	destBuffer.bind(BufferType::CopyWriteBuffer);
 
 	//Now copy
-	glCopyBufferSubData(getBufferTypeEnum(BufferType::CopyReadBuffer), getBufferTypeEnum(BufferType::CopyWriteBuffer), srcOffset, destOffset, size);
+	glCopyBufferSubData(static_cast<u32>(BufferType::CopyReadBuffer), static_cast<u32>(BufferType::CopyWriteBuffer), srcOffset, destOffset, size);
 
 	//Restore old targets
 	this->type = srcType;
@@ -185,91 +185,6 @@ bool Buffer::isMapped() const {
 
 SizeT Buffer::getSize() const {
 	return size;
-}
-
-
-
-u32 Buffer::getBufferTypeEnum(BufferType type) {
-
-	switch (type) {
-
-		case BufferType::VertexBuffer:
-			return GL_ARRAY_BUFFER;
-
-		case BufferType::ElementBuffer:
-			return GL_ELEMENT_ARRAY_BUFFER;
-
-		case BufferType::TransformFeedbackBuffer:
-			return GL_TRANSFORM_FEEDBACK_BUFFER;
-
-		case BufferType::UniformBuffer:
-			return GL_UNIFORM_BUFFER;
-
-		case BufferType::CopyReadBuffer:
-			return GL_COPY_READ_BUFFER;
-
-		case BufferType::CopyWriteBuffer:
-			return GL_COPY_WRITE_BUFFER;
-
-		case BufferType::ShaderStorageBuffer:
-			return GL_SHADER_STORAGE_BUFFER;
-
-		case BufferType::PixelPackBuffer:
-			return GL_PIXEL_PACK_BUFFER;
-
-		case BufferType::PixelUnpackBuffer:
-			return GL_PIXEL_UNPACK_BUFFER;
-
-		case BufferType::TextureBuffer:
-			return GL_TEXTURE_BUFFER;
-
-		default:
-			gle_force_assert("Invalid buffer type 0x%X", type);
-			return -1;
-
-	}
-
-}
-
-
-
-u32 Buffer::getBufferAccessEnum(BufferAccess access) {
-
-	switch (access) {
-
-		case BufferAccess::StaticDraw:
-			return GL_STATIC_DRAW;
-
-		case BufferAccess::DynamicDraw:
-			return GL_DYNAMIC_DRAW;
-
-		case BufferAccess::StreamDraw:
-			return GL_STREAM_DRAW;
-
-		case BufferAccess::StaticRead:
-			return GL_STATIC_READ;
-
-		case BufferAccess::DynamicRead:
-			return GL_DYNAMIC_READ;
-
-		case BufferAccess::StreamRead:
-			return GL_STREAM_READ;
-
-		case BufferAccess::StaticCopy:
-			return GL_STATIC_COPY;
-
-		case BufferAccess::DynamicCopy:
-			return GL_DYNAMIC_COPY;
-
-		case BufferAccess::StreamCopy:
-			return GL_STREAM_COPY;
-
-		default:
-			gle_force_assert("Invalid buffer access mode 0x%X", access);
-			return -1;
-
-	}
-
 }
 
 

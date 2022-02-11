@@ -22,10 +22,10 @@ class Framebuffer : public GLObject {
 public:
 
 	enum AttachmentIndex {
-		DepthIndex,
-		StencilIndex,
-		DepthStencilIndex,
-		ColorIndex
+		DepthIndex			= 0x8D00, // GL_DEPTH_ATTACHMENT
+		StencilIndex		= 0x8D20, // GL_STENCIL_ATTACHMENT
+		DepthStencilIndex	= 0x821A, // GL_DEPTH_STENCIL_ATTACHMENT
+		ColorIndex			= 0x8CE0, // GL_COLOR_ATTACHMENT0
 	};
 
 	static inline u32 defaultFramebufferID = 0;
@@ -48,7 +48,6 @@ public:
 private:
 
 	static bool validAttachmentIndex(u32 index);
-	static u32 getAttachmentEnum(u32 index);
 
 	static inline u32 boundFramebufferID = defaultFramebufferID;
 
