@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "gc.hpp"
+#include "glecore.hpp"
 #include "globject.hpp"
 #include "imageformat.hpp"
 
@@ -24,7 +24,8 @@ enum class TextureType {
 	CubemapTexture,
 	CubemapArrayTexture,
 	MultisampleTexture2D,
-	MultisampleArrayTexture2D
+	MultisampleArrayTexture2D,
+	TextureBuffer
 };
 
 
@@ -111,13 +112,6 @@ enum class TextureOperator {
 };
 
 
-enum class ImageUnitAccess {
-	Read,
-	Write,
-	ReadWrite
-};
-
-
 
 class Texture : public GLObject {
 
@@ -132,6 +126,9 @@ public:
 
 	//Binds the texture if not already. Fails if it hasn't been created yet.
 	void bind();
+
+	//Unbinds the texture. Fails if it hasn't been bound.
+	void unbind();
 
 	//Destroys a texture if it was created once
 	virtual void destroy() override;
@@ -162,6 +159,7 @@ public:
 protected:
 
 	friend class Framebuffer;
+	friend class PixelPackBuffer;
 
 	//Don't even try creating a raw texture object.
 	constexpr explicit Texture(TextureType type) : type(type),
@@ -187,7 +185,7 @@ protected:
 
 	void generateMipmaps();
 
-	void bindImageUnit(u32 unit, bool layered, u32 layer, ImageUnitAccess access, u32 level);
+	void bindImageUnit(u32 unit, bool layered, u32 layer, Access access, u32 level);
 
 	static u32 getTextureTypeEnum(TextureType type);
 	static u32 getTextureWrapEnum(TextureWrap wrap);
@@ -195,7 +193,6 @@ protected:
 	static u32 getTextureSourceTypeEnum(TextureSourceType type);
 	static u32 getCubemapFaceEnum(CubemapFace face);
 	static u32 getTextureOperatorEnum(TextureOperator op);
-	static u32 getImageUnitAccessEnum(ImageUnitAccess access);
 
 	u32 width;
 	u32 height;
@@ -205,18 +202,20 @@ protected:
 
 private:
 
-	inline void setBoundTextureID(TextureType type, u32 id) const {
+	static inline void setBoundTextureID(TextureType type, u32 id) {
 		boundTextureIDs[static_cast<u32>(type)] = id;
 	}
 
-	inline u32 getBoundTextureID(TextureType type) const {
+	static inline u32 getBoundTextureID(TextureType type) {
 		return boundTextureIDs[static_cast<u32>(type)];
 	}
 
-	static inline u32 boundTextureIDs[9] = {
-		invalidBoundID, invalidBoundID, invalidBoundID,
-		invalidBoundID, invalidBoundID, invalidBoundID,
-		invalidBoundID, invalidBoundID, invalidBoundID 
+	static inline u32 boundTextureIDs[10] = {
+		invalidBoundID, invalidBoundID,
+		invalidBoundID, invalidBoundID,
+		invalidBoundID, invalidBoundID,
+		invalidBoundID, invalidBoundID,
+		invalidBoundID, invalidBoundID
 	};
 
 	static inline u32 activeTextureUnit = 0;

@@ -59,8 +59,8 @@ namespace Limits {
 	u32 getMaxComputeStorageBlocks();
 	u32 getMaxCombinedStorageBlocks();
 
-	u32 getMaxStorageBlockBindings();
-	u32 getMaxStorageBlockSize();
+	u32 getMaxShaderStorageBlockBindings();
+	u32 getMaxShaderStorageBlockSize();
 
 	u32 getMaxComputeGroupCountX();
 	u32 getMaxComputeGroupCountY();
@@ -71,6 +71,8 @@ namespace Limits {
 
 	u32 getMaxComputeGroupInvocations();
 	u32 getMaxComputeSharedMemorySize();
+
+	u32 getMaxTextureBufferSize();
 
 }
 
@@ -97,6 +99,14 @@ enum class DepthCompare {
 };
 
 void setDepthFunction(DepthCompare function);
+
+enum class Access {
+	Read,
+	Write,
+	ReadWrite
+};
+
+u32 getAccessEnum(Access access);
 
 
 GLE_END

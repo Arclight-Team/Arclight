@@ -9,7 +9,7 @@
 #pragma once
 
 #include "texture.hpp"
-#include "gc.hpp"
+#include "glecore.hpp"
 
 GLE_BEGIN
 
@@ -20,7 +20,7 @@ public:
 
 	constexpr Texture1D() : Texture(TextureType::Texture1D) {}
 
-	inline void bindImageUnit(u32 unit, ImageUnitAccess access, u32 level = 0) {
+	inline void bindImageUnit(u32 unit, Access access, u32 level = 0) {
 		Texture::bindImageUnit(unit, false, 0, access, level);
 	}
 

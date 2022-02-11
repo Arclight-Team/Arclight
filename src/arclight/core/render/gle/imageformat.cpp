@@ -348,6 +348,116 @@ u32 Image::getMaxSamples(ImageFormat format) {
 
 
 
+u32 Image::getImageFormatEnum(TextureBufferFormat format) {
+
+	switch (format) {
+
+		case TextureBufferFormat::R8:
+			return GL_R8;
+
+		case TextureBufferFormat::R16:
+			return GL_R16;
+
+		case TextureBufferFormat::RG8:
+			return GL_RG8;
+
+		case TextureBufferFormat::RG16:
+			return GL_RG16;
+
+		case TextureBufferFormat::RGBA16:
+			return GL_RGBA16;
+
+		case TextureBufferFormat::R16f:
+			return GL_R16F;
+
+		case TextureBufferFormat::RG16f:
+			return GL_RG16F;
+
+		case TextureBufferFormat::RGBA16f:
+			return GL_RGBA16F;
+
+		case TextureBufferFormat::R32f:
+			return GL_R32F;
+
+		case TextureBufferFormat::RG32f:
+			return GL_RG32F;
+
+		case TextureBufferFormat::RGB32f:
+			return GL_RGB32F;
+
+		case TextureBufferFormat::RGBA32f:
+			return GL_RGBA32F;
+
+		case TextureBufferFormat::R8i:
+			return GL_R8I;
+
+		case TextureBufferFormat::R8ui:
+			return GL_R8UI;
+
+		case TextureBufferFormat::R16i:
+			return GL_R16I;
+
+		case TextureBufferFormat::R16ui:
+			return GL_R16UI;
+
+		case TextureBufferFormat::R32i:
+			return GL_R32I;
+
+		case TextureBufferFormat::R32ui:
+			return GL_R32UI;
+
+		case TextureBufferFormat::RG8i:
+			return GL_RG8I;
+
+		case TextureBufferFormat::RG8ui:
+			return GL_RG8UI;
+
+		case TextureBufferFormat::RG16ui:
+			return GL_RG16UI;
+
+		case TextureBufferFormat::RG32i:
+			return GL_RG32I;
+
+		case TextureBufferFormat::RG32ui:
+			return GL_RG32UI;
+
+		case TextureBufferFormat::RGB32i:
+			return GL_RGB32I;
+
+		case TextureBufferFormat::RGB32ui:
+			return GL_RGB32UI;
+
+		case TextureBufferFormat::RGBA8:
+			return GL_RGBA8;
+
+		case TextureBufferFormat::RGBA8i:
+			return GL_RGBA8I;
+
+		case TextureBufferFormat::RGBA8ui:
+			return GL_RGBA8UI;
+
+		case TextureBufferFormat::RGBA16i:
+			return GL_RGBA16I;
+
+		case TextureBufferFormat::RGBA16ui:
+			return GL_RGBA16UI;
+
+		case TextureBufferFormat::RGBA32i:
+			return GL_RGBA32I;
+
+		case TextureBufferFormat::RGBA32ui:
+			return GL_RGBA32UI;
+
+		default:
+			gle_force_assert("Invalid texture buffer format 0x%X", format);
+			return -1;
+
+	}
+
+}
+
+
+
 bool Image::isImageUnitCompatible(ImageFormat format) {
 
 	switch (format) {
@@ -390,6 +500,50 @@ bool Image::isImageUnitCompatible(ImageFormat format) {
 		case ImageFormat::RGBA16ui:
 		case ImageFormat::RGBA32i:
 		case ImageFormat::RGBA32ui:
+			return true;
+
+		default:
+			return false;
+
+	}
+
+}
+
+
+
+bool Image::isImageUnitCompatible(TextureBufferFormat format) {
+
+	switch (format) {
+
+		case TextureBufferFormat::R8:
+		case TextureBufferFormat::R16:
+		case TextureBufferFormat::RG8:
+		case TextureBufferFormat::RG16:
+		case TextureBufferFormat::RGBA8:
+		case TextureBufferFormat::RGBA16:
+		case TextureBufferFormat::R16f:
+		case TextureBufferFormat::RG16f:
+		case TextureBufferFormat::RGBA16f:
+		case TextureBufferFormat::R32f:
+		case TextureBufferFormat::RG32f:
+		case TextureBufferFormat::RGBA32f:
+		case TextureBufferFormat::R8i:
+		case TextureBufferFormat::R8ui:
+		case TextureBufferFormat::R16i:
+		case TextureBufferFormat::R16ui:
+		case TextureBufferFormat::R32i:
+		case TextureBufferFormat::R32ui:
+		case TextureBufferFormat::RG8i:
+		case TextureBufferFormat::RG8ui:
+		case TextureBufferFormat::RG16ui:
+		case TextureBufferFormat::RG32i:
+		case TextureBufferFormat::RG32ui:
+		case TextureBufferFormat::RGBA8i:
+		case TextureBufferFormat::RGBA8ui:
+		case TextureBufferFormat::RGBA16i:
+		case TextureBufferFormat::RGBA16ui:
+		case TextureBufferFormat::RGBA32i:
+		case TextureBufferFormat::RGBA32ui:
 			return true;
 
 		default:

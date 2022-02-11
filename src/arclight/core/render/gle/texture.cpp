@@ -49,6 +49,18 @@ void Texture::bind() {
 
 
 
+void Texture::unbind() {
+
+	arc_assert(isBound(), "Texture %d has not been bound (attempted to unbind)", id);
+
+	setBoundTextureID(type, invalidBoundID);
+
+	glBindTexture(getTextureTypeEnum(type), 0);
+
+}
+
+
+
 void Texture::destroy() {
 
 	if (isCreated()) {
@@ -72,6 +84,8 @@ void Texture::destroy() {
 
 
 void Texture::activate(u32 unit) {
+
+	gle_assert(isCreated(), "Texture hasn't been created yet");
 
 	activateUnit(unit);
 
@@ -357,7 +371,7 @@ void Texture::generateMipmaps() {
 
 
 
-void Texture::bindImageUnit(u32 unit, bool layered, u32 layer, ImageUnitAccess access, u32 level) {
+void Texture::bindImageUnit(u32 unit, bool layered, u32 layer, Access access, u32 level) {
 
 	gle_assert(imageLoadStoreSupported(), "Cannot bind image unit, image load store not supported");
 	gle_assert(Image::isImageUnitCompatible(texFormat), "Texture %d has an image unit incompatible format (attempted to bind image unit)", id);
@@ -367,7 +381,7 @@ void Texture::bindImageUnit(u32 unit, bool layered, u32 layer, ImageUnitAccess a
 		return;
 	}
 
-	glBindImageTexture(unit, id, level, layered ? GL_TRUE : GL_FALSE, layer, getImageUnitAccessEnum(access), Image::getImageFormatEnum(texFormat));
+	glBindImageTexture(unit, id, level, layered, layer, getAccessEnum(access), Image::getImageFormatEnum(texFormat));
 
 }
 
@@ -628,12 +642,6 @@ u32 Texture::getTextureOperatorEnum(TextureOperator op) {
 
 	}
 
-}
-
-
-
-u32 Texture::getImageUnitAccessEnum(ImageUnitAccess access) {
-	return GL_READ_ONLY + static_cast<u32>(access);
 }
 
 

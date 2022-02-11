@@ -237,7 +237,7 @@ bool ShaderProgram::bindUniformBlock(u32 block, u32 index) {
 u32 ShaderProgram::getStorageBlockIndex(const char* name) const {
 
 #if !GLE_PASS_UNLINKED_SHADERS
-		gle_assert(isLinked(), "Cannot query uniform block from non-linked shader with ID %d", id);
+		gle_assert(isLinked(), "Cannot query storage block from non-linked shader with ID %d", id);
 #endif
 
 	if (!shaderStorageBufferSupported()) {
@@ -260,7 +260,7 @@ u32 ShaderProgram::getStorageBlockIndex(const char* name) const {
 bool ShaderProgram::bindStorageBlock(u32 block, u32 index) {
 
 #if !GLE_PASS_UNLINKED_SHADERS
-		gle_assert(isLinked(), "Cannot bind uniform block from non-linked shader with ID %d", id);
+		gle_assert(isLinked(), "Cannot bind storage block from non-linked shader with ID %d", id);
 #endif
 
 	if (!shaderStorageBufferSupported()) {
@@ -274,7 +274,7 @@ bool ShaderProgram::bindStorageBlock(u32 block, u32 index) {
 	}
 
 	if (index >= Limits::getMaxUniformBlockBindings()) {
-		GLE::warn("Given storage block binding index %d exceeds the maximum of %d (shader program ID=%d)", index, Limits::getMaxStorageBlockBindings(), id);
+		GLE::warn("Given storage block binding index %d exceeds the maximum of %d (shader program ID=%d)", index, Limits::getMaxShaderStorageBlockBindings(), id);
 		return false;
 	}
 

@@ -19,13 +19,13 @@ bool ShaderStorageBuffer::bindRange(u32 index, SizeT offset, SizeT size) {
 
 	gle_assert(isBound(), "Shader storage buffer object %d has not been bound (attempted to set uniform range binding)", id);
 
-	if (index >= Limits::getMaxStorageBlockBindings()) {
-		GLE::warn("Given storage block binding index %d exceeds the maximum of %d (shader storage buffer ID=%d)", index, Limits::getMaxStorageBlockBindings(), id);
+	if (index >= Limits::getMaxShaderStorageBlockBindings()) {
+		GLE::warn("Given storage block binding index %d exceeds the maximum of %d (shader storage buffer ID=%d)", index, Limits::getMaxShaderStorageBlockBindings(), id);
 		return false;
 	}
 
 	if ((offset + size) > this->size) {
-		GLE::warn("Storage block range to bind (offset = %d, %d bytes) exceeds the buffer size of %d (shader storage ID=%d)", offset, size, this->size, id);
+		GLE::warn("Storage block range to bind (offset = %d, %d bytes) exceeds the buffer size of %d (shader storage buffer ID=%d)", offset, size, this->size, id);
 		return false;
 	}
 

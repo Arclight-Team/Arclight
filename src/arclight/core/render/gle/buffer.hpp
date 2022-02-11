@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "gc.hpp"
+#include "glecore.hpp"
 #include "globject.hpp"
 
 
@@ -21,7 +21,10 @@ enum class BufferType {
 	UniformBuffer,
 	CopyReadBuffer,
 	CopyWriteBuffer,
-	ShaderStorageBuffer
+	ShaderStorageBuffer,
+	PixelPackBuffer,
+	PixelUnpackBuffer,
+	TextureBuffer
 };
 
 
@@ -55,6 +58,13 @@ public:
 	//Updates the buffer's data. Fails if no storage has been allocated first.
 	void update(SizeT offset, SizeT size, const void* data);
 
+	//Maps/Unmaps the buffer. Fails if buffer has been already mapped/unmapped.
+	void* map(Access access);
+	void unmap();
+
+	//Unbinds the buffer. Fails if buffer hasn't been bound.
+	void unbind();
+
 	//Copies this buffer (or a portion of it) to destBuffer
 	void copy(Buffer& destBuffer);
 	void copy(Buffer& destBuffer, SizeT srcOffset, SizeT destOffset, SizeT size);
@@ -62,13 +72,14 @@ public:
 	//Checks the given states
 	bool isBound() const;
 	bool isInitialized() const;
+	bool isMapped() const;
 
 	SizeT getSize() const;
 
 protected:
 
 	//Protected so that only a specialized type may be created
-	constexpr Buffer(BufferType type) : type(type), size(0) {}
+	constexpr Buffer(BufferType type) : type(type), size(0), mapped(false) {}
 
 	//Binds the buffer to the given target if not already. Fails if it hasn't been created yet.
 	void bind(BufferType type);
@@ -86,11 +97,18 @@ protected:
 
 	BufferType type;	//Currently bound type
 	SizeT size;			//Buffer size or 0 if none has been allocated
+	bool mapped;		//Defines if a buffer is currently mapped
 
 private:
 
 	//Active buffer handles per type
-	static inline u32 boundBufferIDs[6] = { invalidBoundID, invalidBoundID, invalidBoundID, invalidBoundID, invalidBoundID, invalidBoundID };
+	static inline u32 boundBufferIDs[10] = {
+		invalidBoundID, invalidBoundID,
+		invalidBoundID, invalidBoundID,
+		invalidBoundID, invalidBoundID,
+		invalidBoundID, invalidBoundID,
+		invalidBoundID, invalidBoundID
+	};
 
 };
 

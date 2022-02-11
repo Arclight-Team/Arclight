@@ -105,10 +105,47 @@ enum class CompressedImageFormat {
 };
 
 
+enum class TextureBufferFormat {
+	R8,
+	R16,
+	R16f,
+	R32f,
+	R8i,
+	R16i,
+	R32i,
+	R8ui,
+	R16ui,
+	R32ui,
+	RG8,
+	RG16,
+	RG16f,
+	RG32f,
+	RG8i,
+	RG32i,
+	RG8ui,
+	RG16ui,
+	RG32ui,
+	RGB32f,		// need ARB_texture_buffer_object_rgb32
+	RGB32i,		//
+	RGB32ui,	//
+	RGBA8,
+	RGBA16,
+	RGBA16f,
+	RGBA32f,
+	RGBA8i,
+	RGBA16i,
+	RGBA32i,
+	RGBA8ui,
+	RGBA16ui,
+	RGBA32ui
+};
+
+
 namespace Image {
 
 	//Returns the corresponding enum value of format
 	u32 getImageFormatEnum(ImageFormat format);
+	u32 getImageFormatEnum(TextureBufferFormat format);
 	u32 getCompressedImageFormatEnum(CompressedImageFormat format);
 
 	//Returns the maximum number of samples of the given format
@@ -116,6 +153,7 @@ namespace Image {
 
 	//Returns true if the format can be used for image load store operations
 	bool isImageUnitCompatible(ImageFormat format);
+	bool isImageUnitCompatible(TextureBufferFormat format);
 
 }
 

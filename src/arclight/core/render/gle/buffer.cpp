@@ -61,6 +61,7 @@ void Buffer::destroy() {
 		glDeleteBuffers(1, &id);
 		id = invalidID;
 		size = 0;
+		mapped = false;
 
 	}
 
@@ -92,6 +93,42 @@ void Buffer::update(SizeT offset, SizeT size, const void* data) {
 	gle_assert((offset + size) <= this->size, "Attempted to write data out of bounds for buffer object %d", id);
 
 	glBufferSubData(getBufferTypeEnum(type), offset, size, data);
+
+}
+
+
+
+void* Buffer::map(Access access) {
+
+	gle_assert(isBound(), "Buffer object %d has not been bound (attempted to map buffer)", id);
+	gle_assert(!isMapped(), "Attempted to map already mapped buffer object %d", id);
+
+	mapped = true;
+
+	return glMapBuffer(getBufferTypeEnum(type), getAccessEnum(access));
+
+}
+
+
+
+void Buffer::unmap() {
+
+	gle_assert(isBound(), "Buffer object %d has not been bound (attempted to unmap buffer)", id);
+	gle_assert(isMapped(), "Attempted to unmap non mapped buffer object %d", id);
+
+	glUnmapBuffer(getBufferTypeEnum(type));
+
+}
+
+
+
+void Buffer::unbind() {
+
+	arc_assert(isBound(), "Buffer object %d has not been bound (attempted to unbind buffer)", id);
+
+	setBoundBufferID(type, invalidBoundID);
+
+	glBindBuffer(getBufferTypeEnum(type), 0);
 
 }
 
@@ -140,6 +177,12 @@ bool Buffer::isInitialized() const {
 
 
 
+bool Buffer::isMapped() const {
+	return mapped;
+}
+
+
+
 SizeT Buffer::getSize() const {
 	return size;
 }
@@ -170,6 +213,15 @@ u32 Buffer::getBufferTypeEnum(BufferType type) {
 
 		case BufferType::ShaderStorageBuffer:
 			return GL_SHADER_STORAGE_BUFFER;
+
+		case BufferType::PixelPackBuffer:
+			return GL_PIXEL_PACK_BUFFER;
+
+		case BufferType::PixelUnpackBuffer:
+			return GL_PIXEL_UNPACK_BUFFER;
+
+		case BufferType::TextureBuffer:
+			return GL_TEXTURE_BUFFER;
 
 		default:
 			gle_force_assert("Invalid buffer type 0x%X", type);

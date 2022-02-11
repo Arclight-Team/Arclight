@@ -50,8 +50,8 @@ namespace __Detail {
 	u32 maxComputeStorageBlocks = 0;
 	u32 maxCombinedStorageBlocks = 0;
 
-	u32 maxStorageBlockBindings = 0;
-	u32 maxStorageBlockSize = 0;
+	u32 maxShaderStorageBlockBindings = 0;
+	u32 maxShaderStorageBlockSize = 0;
 
 	u32 maxComputeGroupCountX = 0;
 	u32 maxComputeGroupCountY = 0;
@@ -62,6 +62,8 @@ namespace __Detail {
 
 	u32 maxComputeGroupInvocations = 0;
 	u32 maxComputeSharedMemorySize = 0;
+
+	u32 maxTextureBufferSize = 0;
 
 }
 
@@ -160,9 +162,9 @@ namespace Core {
 		__Detail::maxCombinedStorageBlocks = tmp;
 
 		glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &tmp);
-		__Detail::maxStorageBlockBindings = tmp;
+		__Detail::maxShaderStorageBlockBindings = tmp;
 		glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &tmp);
-		__Detail::maxStorageBlockSize = tmp;
+		__Detail::maxShaderStorageBlockSize = tmp;
 
 		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &tmp);
 		__Detail::maxComputeGroupCountX = tmp;
@@ -182,6 +184,9 @@ namespace Core {
 		__Detail::maxComputeGroupInvocations = tmp;
 		glGetIntegerv(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE, &tmp);
 		__Detail::maxComputeSharedMemorySize = tmp;
+
+		glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &tmp);
+		__Detail::maxTextureBufferSize = tmp;
 
 		return true;
 
@@ -350,12 +355,12 @@ namespace Limits {
 		return __Detail::maxCombinedStorageBlocks;
 	}
 
-	u32 getMaxStorageBlockBindings() {
-		return __Detail::maxStorageBlockBindings;
+	u32 getMaxShaderStorageBlockBindings() {
+		return __Detail::maxShaderStorageBlockBindings;
 	}
 
-	u32 getMaxStorageBlockSize() {
-		return __Detail::maxStorageBlockSize;
+	u32 getMaxShaderStorageBlockSize() {
+		return __Detail::maxShaderStorageBlockSize;
 	}
 
 	u32 getMaxComputeGroupCountX() {
@@ -388,6 +393,10 @@ namespace Limits {
 
 	u32 getMaxComputeSharedMemorySize() {
 		return __Detail::maxComputeSharedMemorySize;
+	}
+
+	u32 getMaxTextureBufferSize() {
+		return __Detail::maxTextureBufferSize;
 	}
 
 }
@@ -424,6 +433,27 @@ void setDepthFunction(DepthCompare function) {
 
 	}
 
+}
+
+
+
+u32 getAccessEnum(Access access) {
+
+	switch (access) {
+
+		case Access::Read:
+			return GL_READ_ONLY;
+
+		case Access::Write:
+			return GL_WRITE_ONLY;
+
+		case Access::ReadWrite:
+			return GL_READ_WRITE;
+
+		default:
+			arc_force_assert("Illegal access value %d", access);
+			return -1;
+	}
 }
 
 
