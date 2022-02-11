@@ -14,7 +14,7 @@
 
 WindowConfig& WindowConfig::setOpenGLVersion(u32 major, u32 minor) {
 
-	arc_assert((major == 3 || major == 4) && minor <= 6, "OpenGL version %d.%d not supported", major, minor);
+	arc_assert(major == 4 && minor <= 6 && minor >= 3, "OpenGL version %d.%d not supported", major, minor);
 	this->openglMajor = major;
 	this->openglMinor = minor;
 	return *this;

@@ -23,7 +23,7 @@ public:
 	};
 
 	constexpr WindowConfig() :
-		openglMajor(3), openglMinor(3), profile(OpenGLProfile::Core), forwardContext(true), debugContext(false), srgbRendering(true),
+		openglMajor(4), openglMinor(3), profile(OpenGLProfile::Core), forwardContext(true), debugContext(false), srgbRendering(true),
 		samples(1), redBits(8), greenBits(8), blueBits(8), alphaBits(8), depthBits(24), stencilBits(8),
 		resizable(false), maximized(false), alwaysOnTop(false), transparent(false) {}
 
