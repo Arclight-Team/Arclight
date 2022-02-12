@@ -40,10 +40,8 @@ public:
 	void destroySprite(Id64 id);
 
 	//Type functions
-	template<SpriteOutlineType OutlineType>
-	void createType(Id64 id, Id64 textureID, const Vec2f& relOrigin, const OutlineType& outline) {
-		factory.create(id, textureID, relOrigin, outline);
-	}
+	void createType(Id64 id, Id64 textureID, const Vec2f& size);
+	void createType(Id64 id, Id64 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline);
 
 	bool hasType(Id64 id) const;
 	OptionalRef<const SpriteType> getType(Id64 id) const;

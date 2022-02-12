@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "vector.hpp"
 #include "util/concepts.hpp"
 #include "arcconfig.hpp"
 

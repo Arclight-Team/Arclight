@@ -14,7 +14,7 @@ namespace SpringShader {
 
 
 	constexpr const char* rectangularOutlineVS = R"(
-#version 330
+#version 430
 
 layout (location = 0) in vec2 vertex;
 layout (location = 1) in vec4 rsTransform;
@@ -37,7 +37,7 @@ void main() {
 	)";
 
 	constexpr const char* rectangularOutlineFS = R"(
-#version 330
+#version 430
 
 in vec2 uv;
 out vec4 outColor;

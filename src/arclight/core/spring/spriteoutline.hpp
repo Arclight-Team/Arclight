@@ -11,52 +11,22 @@
 #include "math/vector.hpp"
 
 #include <span>
-#include <variant>
 
 
 
-enum class SpriteOutline {
-	Square,
-	Rectangle,
-	Polygon
-};
+struct SpriteOutline {
 
+	enum class Type {
+		Rectangle,
+		Polygon
+	};
 
+	constexpr SpriteOutline() : uvBase(Vec2f(0)), uvScale(Vec2f(1)), type(Type::Rectangle) {}
+	constexpr SpriteOutline(const Vec2f& base, const Vec2f& scale, Type type, const std::span<const u8>& data) : uvBase(base), uvScale(scale), type(type), polygon(data) {}
 
-struct SpriteSquareOutline {
-
-	constexpr SpriteSquareOutline() noexcept : SpriteSquareOutline(1.0) {}
-	constexpr explicit SpriteSquareOutline(double size) noexcept : size(size) {}
-
-	double size;
-
-};
-
-
-
-struct SpriteRectangleOutline {
-
-	constexpr SpriteRectangleOutline() noexcept : SpriteRectangleOutline(Vec2d(1.0)) {}
-	constexpr explicit SpriteRectangleOutline(const Vec2d& size) noexcept : size(size) {}
-
-	Vec2d size;
-
-};
-
-
-
-struct SpritePolygonOutline {
-
-	constexpr SpritePolygonOutline() noexcept = default;
-	constexpr explicit SpritePolygonOutline(const std::span<const u8>& polygon) noexcept : polygon(polygon) {}
-
+	Vec2f uvBase;
+	Vec2f uvScale;
+	Type type;
 	std::span<const u8> polygon;
 
 };
-
-
-
-using SpriteOutlineData = std::variant<SpriteSquareOutline, SpriteRectangleOutline, SpritePolygonOutline>;
-
-template<class T>
-concept SpriteOutlineType = Equal<T, SpriteSquareOutline> || Equal<T, SpriteRectangleOutline> || Equal<T, SpritePolygonOutline>;

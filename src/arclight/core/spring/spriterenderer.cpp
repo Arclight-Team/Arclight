@@ -176,6 +176,18 @@ void SpriteRenderer::destroySprite(Id64 id) {
 
 
 
+void SpriteRenderer::createType(Id64 id, Id64 textureID, const Vec2f& size) {
+	createType(id, textureID, size, Vec2f(0), SpriteOutline());
+}
+
+
+
+void SpriteRenderer::createType(Id64 id, Id64 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline) {
+	factory.create(id, textureID, size, origin, outline);
+}
+
+
+
 bool SpriteRenderer::hasType(Id64 id) const {
 	return factory.contains(id);
 }

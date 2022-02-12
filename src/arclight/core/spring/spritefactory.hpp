@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "math/rectangle.hpp"
 #include "spriteoutline.hpp"
 #include "types.hpp"
 
@@ -17,12 +18,13 @@
 
 struct SpriteType {
 
-	constexpr SpriteType() noexcept : textureID(-1), outlineType(SpriteOutline::Square), outlineData(SpriteSquareOutline()) {}
+	constexpr SpriteType() noexcept : textureID(-1), size(Vec2f(1)) {}
+	constexpr SpriteType(u32 texture, const Vec2f& origin, const Vec2f& size, const SpriteOutline& outline) noexcept : textureID(textureID), origin(origin), size(size), outline(outline) {}
 
 	u32 textureID;
 	Vec2f origin;
-	SpriteOutline outlineType;
-	SpriteOutlineData outlineData;
+	Vec2f size;
+	SpriteOutline outline;
 
 };
 
@@ -32,26 +34,8 @@ class SpriteFactory {
 
 public:
 
-	template<SpriteOutlineType OutlineType>
-	void create(u64 id, u32 textureID, const Vec2f& relOrigin, const OutlineType& outline) {
-
-		SpriteType type;
-		type.textureID = textureID;
-		type.origin = relOrigin;
-		type.outlineData = outline;
-
-		if constexpr (Equal<OutlineType, SpriteSquareOutline>) {
-			type.outlineType = SpriteOutline::Square;
-		} else if constexpr (Equal<OutlineType, SpriteRectangleOutline>) {
-			type.outlineType = SpriteOutline::Rectangle;
-		} else if constexpr (Equal<OutlineType, SpritePolygonOutline>) {
-			type.outlineType = SpriteOutline::Polygon;
-		} else {
-			arc_force_assert("Unknown spring outline type");
-		}
-
-		spriteTypes[id] = type;
-
+	void create(u64 id, u32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline) {
+		spriteTypes.try_emplace(id, textureID, origin, size, outline);
 	}
 
 	bool contains(u64 id) const;
