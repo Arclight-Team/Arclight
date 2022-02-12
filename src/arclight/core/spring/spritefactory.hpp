@@ -34,18 +34,18 @@ class SpriteFactory {
 
 public:
 
-	void create(u64 id, u32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline) {
+	void create(u32 id, u32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline) {
 		spriteTypes.try_emplace(id, textureID, origin, size, outline);
 	}
 
-	bool contains(u64 id) const;
-	const SpriteType& get(u64 id) const;
+	bool contains(u32 id) const;
+	const SpriteType& get(u32 id) const;
 
-	void destroy(u64 id);
+	void destroy(u32 id);
 	void destroyAll();
 
 private:
 
-	std::unordered_map<u64, SpriteType> spriteTypes;
+	std::unordered_map<u32, SpriteType> spriteTypes;
 
 };

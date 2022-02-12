@@ -82,20 +82,16 @@ void SpriteRenderer::render() {
 			if (flags & Sprite::GroupDirty) {
 
 				//The group has changed (TODO: Purge after group change)
-				batch.createSprite(id, sprite.getPosition(), sprite.getScale(), calculateSpriteRSTransform(sprite));
+				batch.createSprite(id, sprite.getPosition(), calculateSpriteTransform(sprite));
 
-			} else if (flags & (Sprite::TranslationDirty | Sprite::ScaleDirty | Sprite::RSTransformDirty)) {
+			} else if (flags & (Sprite::TranslationDirty | Sprite::TransformDirty)) {
 
 				if (flags & Sprite::TranslationDirty) {
 					batch.setSpriteTranslation(id, sprite.getPosition());
 				}
 
-				if (flags & Sprite::ScaleDirty) {
-					batch.setSpriteScale(id, sprite.getScale());
-				}
-
-				if (flags & Sprite::RSTransformDirty) {
-					batch.setSpriteRSTransform(id, calculateSpriteRSTransform(sprite));
+				if (flags & Sprite::TransformDirty) {
+					batch.setSpriteTransform(id, calculateSpriteTransform(sprite));
 				}
 
 			}
@@ -176,37 +172,31 @@ void SpriteRenderer::destroySprite(Id64 id) {
 
 
 
-void SpriteRenderer::createType(Id64 id, Id64 textureID, const Vec2f& size) {
+void SpriteRenderer::createType(Id32 id, Id32 textureID, const Vec2f& size) {
 	createType(id, textureID, size, Vec2f(0), SpriteOutline());
 }
 
 
 
-void SpriteRenderer::createType(Id64 id, Id64 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline) {
+void SpriteRenderer::createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline) {
 	factory.create(id, textureID, size, origin, outline);
 }
 
 
 
-bool SpriteRenderer::hasType(Id64 id) const {
+bool SpriteRenderer::hasType(Id32 id) const {
 	return factory.contains(id);
 }
 
 
 
-OptionalRef<const SpriteType> SpriteRenderer::getType(Id64 id) const {
-
-	if (factory.contains(id)) {
-		factory.get(id);
-	}
-
-	return {};
-
+const SpriteType& SpriteRenderer::getType(Id32 id) const {
+	return factory.get(id);
 }
 
 
 
-void SpriteRenderer::destroyType(Id64 id) {
+void SpriteRenderer::destroyType(Id32 id) {
 	factory.destroy(id);
 }
 
@@ -256,8 +246,17 @@ u32 SpriteRenderer::activeSpriteCount() const noexcept {
 
 
 
-Mat2f SpriteRenderer::calculateSpriteRSTransform(const Sprite& sprite) {
-	return Mat3f::fromRotation(sprite.getRotation()).shear(sprite.getShearX(), sprite.getShearY()).toMat2();
+Mat2f SpriteRenderer::calculateSpriteTransform(const Sprite& sprite) const {
+
+	Vec2f globalScale = calculateGlobalSpriteScale(sprite);
+	return Mat3f::fromRotation(sprite.getRotation()).shear(sprite.getShearX(), sprite.getShearY()).scale(globalScale.x, globalScale.y).toMat2();
+
+}
+
+
+
+Vec2f SpriteRenderer::calculateGlobalSpriteScale(const Sprite& sprite) const {
+	return sprite.getScale() * getType(sprite.getTypeID()).size;
 }
 
 

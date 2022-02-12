@@ -40,12 +40,12 @@ public:
 	void destroySprite(Id64 id);
 
 	//Type functions
-	void createType(Id64 id, Id64 textureID, const Vec2f& size);
-	void createType(Id64 id, Id64 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline);
+	void createType(Id32 id, Id32 textureID, const Vec2f& size);
+	void createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline);
 
-	bool hasType(Id64 id) const;
-	OptionalRef<const SpriteType> getType(Id64 id) const;
-	void destroyType(Id64 id);
+	bool hasType(Id32 id) const;
+	const SpriteType& getType(Id32 id) const;
+	void destroyType(Id32 id);
 
 	//Group functions
 	void showGroup(Id32 groupID);
@@ -58,7 +58,8 @@ public:
 
 private:
 
-	static Mat2f calculateSpriteRSTransform(const Sprite& sprite);
+	Mat2f calculateSpriteTransform(const Sprite& sprite) const;
+	Vec2f calculateGlobalSpriteScale(const Sprite& sprite) const;
 
 	void recalculateProjection();
 
