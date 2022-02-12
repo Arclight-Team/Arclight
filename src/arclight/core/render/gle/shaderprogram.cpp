@@ -62,16 +62,6 @@ bool ShaderProgram::addShader(const char* source, u32 size, ShaderType type) {
 	gle_assert(!isLinked(), "Attempted to add shader to linked program");
 	gle_assert(shaders[static_cast<u32>(type)] == invalidID, "Cannot attach duplicate shader types to the program");
 
-	if ((type == ShaderType::TessCtrlShader || type == ShaderType::TessEvalShader) && !tesselationShadersSupported()) {
-		GLE::warn("Tesselation shaders are not supported");
-		return false;
-	}
-
-	if (type == ShaderType::ComputeShader && !computeShadersSupported()) {
-		GLE::warn("Compute shaders are not supported");
-		return false;
-	}
-
 	u32 shaderEnum = static_cast<u32>(type);
 	u32 sid = glCreateShader(shaderEnum);
 
@@ -118,14 +108,8 @@ bool ShaderProgram::loadBinary(void* binary, u32 size) {
 	gle_assert(!isLinked(), "Attempted to load shader program binary into previously linked program");
 	gle_assert(size >= 4, "Shader binary has invalid size");
 
-	if (shaderBinariesSupported()) {
-
-		glProgramBinary(id, *static_cast<u32*>(binary), static_cast<u8*>(binary) + 4, size - 4);
-		checkLinking();
-
-	} else {
-		GLE::warn("Shader binaries are not supported");
-	}
+	glProgramBinary(id, *static_cast<u32*>(binary), static_cast<u8*>(binary) + 4, size - 4);
+	checkLinking();
 	
 	return linked;
 
@@ -139,19 +123,13 @@ std::vector<u8> ShaderProgram::saveBinary() {
 	
 	std::vector<u8> binary;
 
-	if (shaderBinariesSupported()) {
+	i32 binarySize = 0;
+	u32 binaryFormat = 0;
 
-		i32 binarySize = 0;
-		u32 binaryFormat = 0;
-
-		glGetProgramiv(id, GL_PROGRAM_BINARY_LENGTH, &binarySize);
-		binary.resize(binarySize + 4);
-		glGetProgramBinary(id, binarySize, &binarySize, reinterpret_cast<u32*>(&binary[0]), &binary[4]);
-		binary.resize(binarySize + 4);
-
-	} else {
-		GLE::warn("Shader binaries are not supported");
-	}
+	glGetProgramiv(id, GL_PROGRAM_BINARY_LENGTH, &binarySize);
+	binary.resize(binarySize + 4);
+	glGetProgramBinary(id, binarySize, &binarySize, reinterpret_cast<u32*>(&binary[0]), &binary[4]);
+	binary.resize(binarySize + 4);
 
 	return binary;
 
@@ -240,11 +218,6 @@ u32 ShaderProgram::getStorageBlockIndex(const char* name) const {
 		gle_assert(isLinked(), "Cannot query storage block from non-linked shader with ID %d", id);
 #endif
 
-	if (!shaderStorageBufferSupported()) {
-		GLE::warn("Shader storage buffers are not supported");
-		return -1;
-	}
-
 	u32 uniformID = glGetProgramResourceIndex(id, GL_SHADER_STORAGE_BLOCK, name);
 
 	if (uniformID == invalidID) {
@@ -262,11 +235,6 @@ bool ShaderProgram::bindStorageBlock(u32 block, u32 index) {
 #if !GLE_PASS_UNLINKED_SHADERS
 		gle_assert(isLinked(), "Cannot bind storage block from non-linked shader with ID %d", id);
 #endif
-
-	if (!shaderStorageBufferSupported()) {
-		GLE::warn("Shader storage buffers are not supported");
-		return false;
-	}
 
 	if (block == invalidID) {
 		GLE::warn("Attempted to bind invalid storage block (shader program ID=%d)", id);
@@ -294,30 +262,6 @@ bool ShaderProgram::isActive() const {
 
 bool ShaderProgram::isLinked() const {
 	return linked;
-}
-
-
-
-bool ShaderProgram::shaderBinariesSupported() {
-	return GLE_EXT_SUPPORTED(ARB_get_program_binary);
-}
-
-
-
-bool ShaderProgram::tesselationShadersSupported() {
-	return GLE_EXT_SUPPORTED(ARB_tessellation_shader);
-}
-
-
-
-bool ShaderProgram::computeShadersSupported() {
-	return GLE_EXT_SUPPORTED(ARB_compute_shader);
-}
-
-
-
-bool ShaderProgram::shaderStorageBufferSupported() {
-	return GLE_EXT_SUPPORTED(ARB_shader_storage_buffer_object);
 }
 
 

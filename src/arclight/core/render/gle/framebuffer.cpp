@@ -136,7 +136,7 @@ void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture) {
 
 	gle_assert(isBound(), "Framebuffer %d has not been bound (attempted to attach texture)", id);
 	gle_assert(texture.isInitialized(), "Texture %d has not been initialized (attempted to attach texture)", id);
-	gle_assert(validAttachmentIndex(attachmentIndex), "Framebuffer attachment index %d is invalid (id = %d)", attachmentIndex, id);
+	gle_assert(validAttachmentIndex(attachmentIndex), "Framebuffer attachment index 0x%04X is invalid (id = %d)", attachmentIndex, id);
 	gle_assert(texture.getTextureType() == TextureType::Texture1D ||
 			   texture.getTextureType() == TextureType::Texture2D ||
 			   texture.getTextureType() == TextureType::MultisampleTexture2D, "Cannot attach layered texture to non-layered framebuffer attachment");
@@ -151,7 +151,7 @@ void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture, u32
 
 	gle_assert(isBound(), "Framebuffer %d has not been bound (attempted to attach texture)", id);
 	gle_assert(texture.isInitialized(), "Texture %d has not been initialized (attempted to attach texture)", id);
-	gle_assert(validAttachmentIndex(attachmentIndex), "Framebuffer attachment index %d is invalid (id = %d)", attachmentIndex, id);
+	gle_assert(validAttachmentIndex(attachmentIndex), "Framebuffer attachment index 0x%04X is invalid (id = %d)", attachmentIndex, id);
 	gle_assert(texture.getTextureType() != TextureType::Texture1D &&
 			   texture.getTextureType() != TextureType::Texture2D &&
 			   texture.getTextureType() != TextureType::MultisampleTexture2D, "Cannot attach non-layered texture to layered framebuffer attachment");
@@ -191,7 +191,7 @@ void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture, u32
 			break;
 
 		default:
-			gle_force_assert("Texture type %d cannot be attached to framebuffer", static_cast<u32>(texture.getTextureType()));
+			gle_force_assert("Texture type 0x%04X cannot be attached to framebuffer", static_cast<u32>(texture.getTextureType()));
 			break;
 
 	}
@@ -204,7 +204,7 @@ void Framebuffer::attachRenderbuffer(u32 attachmentIndex, const Renderbuffer& re
 
 	gle_assert(isBound(), "Framebuffer %d has not been bound (attempted to attach renderbuffer)", id);
 	gle_assert(renderbuffer.isInitialized(), "Renderbuffer %d has not been initialized (attempted to attach renderbuffer)", id);
-	gle_assert(validAttachmentIndex(attachmentIndex), "Framebuffer attachment index %d is invalid (id = %d)", attachmentIndex, id);
+	gle_assert(validAttachmentIndex(attachmentIndex), "Framebuffer attachment index 0x%04X is invalid (id = %d)", attachmentIndex, id);
 
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, static_cast<u32>(attachmentIndex), GL_RENDERBUFFER, renderbuffer.id);
 

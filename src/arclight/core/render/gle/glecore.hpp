@@ -49,7 +49,7 @@ namespace Limits {
 	u32 getMaxDrawBuffers();
 
 	u32 getMaxUniformBlockBindings();
-	u32 getMaxUniformBlockSize();
+	u64 getMaxUniformBlockSize();
 
 	u32 getMaxVertexStorageBlocks();
 	u32 getMaxFragmentStorageBlocks();
@@ -60,7 +60,7 @@ namespace Limits {
 	u32 getMaxCombinedStorageBlocks();
 
 	u32 getMaxShaderStorageBlockBindings();
-	u32 getMaxShaderStorageBlockSize();
+	u64 getMaxShaderStorageBlockSize();
 
 	u32 getMaxComputeGroupCountX();
 	u32 getMaxComputeGroupCountY();
@@ -70,7 +70,7 @@ namespace Limits {
 	u32 getMaxComputeGroupSizeZ();
 
 	u32 getMaxComputeGroupInvocations();
-	u32 getMaxComputeSharedMemorySize();
+	u64 getMaxComputeSharedMemorySize();
 
 	u32 getMaxTextureBufferSize();
 

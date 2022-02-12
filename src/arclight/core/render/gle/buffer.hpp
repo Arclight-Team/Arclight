@@ -120,6 +120,7 @@ protected:
 
 			default:
 				gle_force_assert("Illegal buffer type &d", type);
+				return -1;
 
 		}
 	}

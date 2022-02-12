@@ -73,11 +73,6 @@ public:
 	bool isActive() const;
 	bool isLinked() const;
 
-	static bool shaderBinariesSupported();
-	static bool tesselationShadersSupported();
-	static bool computeShadersSupported();
-	static bool shaderStorageBufferSupported();
-
 private:
 
 	bool checkCompilation(u32 sid);

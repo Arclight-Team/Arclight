@@ -154,8 +154,6 @@ public:
 	static u32 getMipmapSize(u32 level, u32 d);
 	static CubemapFace getCubemapFace(u32 index);
 
-	static bool imageLoadStoreSupported();
-
 protected:
 
 	friend class Framebuffer;
@@ -231,6 +229,7 @@ private:
 
 			default:
 				gle_force_assert("Illegal texture type &d", type);
+				return -1;
 
 		}
 	}
