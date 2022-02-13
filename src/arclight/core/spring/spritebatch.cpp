@@ -19,7 +19,7 @@ struct SpriteBatchData {
 	SpriteBatchData() {
 
 		constexpr float squareOutline[] = {
-			-0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f
+			0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f
 		};
 
 		vao.create();
@@ -37,7 +37,7 @@ struct SpriteBatchData {
 
 		vao.setAttribute(1, 4, GLE::AttributeType::Float, 32, 0);
 		vao.setAttribute(2, 2, GLE::AttributeType::Float, 32, 16);
-		vao.setAttribute(3, 1, GLE::AttributeType::UInt, 32, 16, GLE::AttributeClass::Int);
+		vao.setAttribute(3, 1, GLE::AttributeType::UInt, 32, 24, GLE::AttributeClass::Int);
 		vao.enableAttribute(1);
 		vao.enableAttribute(2);
 		vao.enableAttribute(3);

@@ -30,7 +30,7 @@ public:
 	void preload();
 	void render();
 
-	void setViewport(const Vec2d& lowerLeft, const Vec2d& topRight);
+	void setViewport(const Vec2f& lowerLeft, const Vec2f& topRight);
 
 	//Sprite functions
 	Sprite& createSprite(Id64 id, Id32 typeID, Id32 groupID = 0);
@@ -41,7 +41,7 @@ public:
 
 	//Type functions
 	void createType(Id32 id, Id32 textureID, const Vec2f& size);
-	void createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline);
+	void createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline = SpriteOutline());
 
 	bool hasType(Id32 id) const;
 	const SpriteType& getType(Id32 id) const;
@@ -72,7 +72,7 @@ private:
 	std::map<u32, SpriteGroup> groups;
 	std::map<u32, SpriteBatch> batches;
 
-	RectD viewport;          //The scene's viewport rect
+	RectF viewport;          //The scene's viewport rect
 	Mat4f projection;
 
 };

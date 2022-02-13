@@ -72,6 +72,8 @@ void SpriteRenderer::render() {
 
 	for (Sprite& sprite : sprites) {
 
+		ArcDebug() << sprite.getPosition();
+
 		u8 flags = sprite.getFlags();
 
 		if (flags) {
@@ -134,9 +136,9 @@ void SpriteRenderer::render() {
 
 
 
-void SpriteRenderer::setViewport(const Vec2d& lowerLeft, const Vec2d& topRight) {
+void SpriteRenderer::setViewport(const Vec2f& lowerLeft, const Vec2f& topRight) {
 
-	viewport = RectD::fromPoints(lowerLeft, topRight);
+	viewport = RectF::fromPoints(lowerLeft, topRight);
 	recalculateProjection();
 
 }

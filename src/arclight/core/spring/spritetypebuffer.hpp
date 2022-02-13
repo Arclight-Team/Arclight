@@ -35,7 +35,7 @@ public:
 
 private:
 
-	constexpr static u32 typeDataSize = 8;
+	constexpr static u32 typeDataSize = 32;
 
 	void updateBounds(SizeT offset, SizeT size);
 	void resetBounds();

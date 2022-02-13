@@ -304,8 +304,6 @@ project (${PROJECT_NAME})
 
 	endif()
 
-	include_directories("lib/zlib")
-	list(APPEND APPLICATION_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/lib/zlib/lib/zlibwapi.lib)
 
 ######################
 ###### APP ICON ######

@@ -61,6 +61,12 @@ void SpriteTypeBuffer::setTypeData(u32 typeID, const SpriteType& type) {
 	SizeT offset = typeMap[typeID] * typeDataSize;
 	std::copy_n(Bits::toByteArray(&type.origin.x), 4, &buffer[offset]);
 	std::copy_n(Bits::toByteArray(&type.origin.y), 4, &buffer[offset + 4]);
+	std::copy_n(Bits::toByteArray(&type.outline.uvBase.x), 4, &buffer[offset + 8]);
+	std::copy_n(Bits::toByteArray(&type.outline.uvBase.y), 4, &buffer[offset + 12]);
+	std::copy_n(Bits::toByteArray(&type.outline.uvScale.x), 4, &buffer[offset + 16]);
+	std::copy_n(Bits::toByteArray(&type.outline.uvScale.y), 4, &buffer[offset + 20]);
+	std::copy_n(Bits::toByteArray(&type.textureID), 4, &buffer[offset + 24]);
+	std::copy_n(Bits::toByteArray(&type.textureID), 4, &buffer[offset + 28]);
 
 	updateBounds(offset, typeDataSize);
 
@@ -139,7 +145,7 @@ void SpriteTypeBuffer::updateBounds(SizeT offset, SizeT size) {
 
 void SpriteTypeBuffer::resetBounds() {
 
-	updateStart = 0;
-	updateEnd = -1;
+	updateEnd = 0;
+	updateStart = -1;
 
 }
