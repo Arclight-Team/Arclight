@@ -19,12 +19,12 @@ GLE_BEGIN
 
 
 enum class ShaderType {
-	VertexShader	= 0x8B31, // GL_VERTEX_SHADER
-	FragmentShader	= 0x8B30, // GL_FRAGMENT_SHADER
-	GeometryShader	= 0x8DD9, // GL_GEOMETRY_SHADER
-	TessCtrlShader	= 0x8E88, // GL_TESS_CONTROL_SHADER
-	TessEvalShader	= 0x8E87, // GL_TESS_EVALUATION_SHADER
-	ComputeShader	= 0x91B9, // GL_COMPUTE_SHADER
+	VertexShader,
+	FragmentShader,
+	GeometryShader,
+	TessCtrlShader,
+	TessEvalShader,
+	ComputeShader
 };
 
 
@@ -72,11 +72,6 @@ public:
 	//Checks the given states
 	bool isActive() const;
 	bool isLinked() const;
-
-	static bool shaderBinariesSupported();
-	static bool tesselationShadersSupported();
-	static bool computeShadersSupported();
-	static bool shaderStorageBufferSupported();
 
 private:
 

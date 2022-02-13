@@ -40,7 +40,7 @@ namespace __Detail {
 	u32 maxDrawBuffers = 0;
 
 	u32 maxUniformBlockBindings = 0;
-	u32 maxUniformBlockSize = 0;
+	u64 maxUniformBlockSize = 0;
 
 	u32 maxVertexStorageBlocks = 0;
 	u32 maxFragmentStorageBlocks = 0;
@@ -51,7 +51,7 @@ namespace __Detail {
 	u32 maxCombinedStorageBlocks = 0;
 
 	u32 maxShaderStorageBlockBindings = 0;
-	u32 maxShaderStorageBlockSize = 0;
+	u64 maxShaderStorageBlockSize = 0;
 
 	u32 maxComputeGroupCountX = 0;
 	u32 maxComputeGroupCountY = 0;
@@ -61,7 +61,7 @@ namespace __Detail {
 	u32 maxComputeGroupSizeZ = 0;
 
 	u32 maxComputeGroupInvocations = 0;
-	u32 maxComputeSharedMemorySize = 0;
+	u64 maxComputeSharedMemorySize = 0;
 
 	u32 maxTextureBufferSize = 0;
 
@@ -95,6 +95,7 @@ namespace Core {
 		GLE::info("Debug context %s", (__Detail::openglDebugContext ? "enabled" : "disabled"));
 
 		i32 tmp = 0;
+		i64 tmp64 = 0;
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &tmp);
 		__Detail::maxTextureSize = tmp;
 		glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &tmp);
@@ -143,8 +144,8 @@ namespace Core {
 
 		glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &tmp);
 		__Detail::maxUniformBlockBindings = tmp;
-		glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &tmp);
-		__Detail::maxUniformBlockSize = tmp;
+		glGetInteger64v(GL_MAX_UNIFORM_BLOCK_SIZE, &tmp64);
+		__Detail::maxUniformBlockSize = tmp64;
 
 		glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &tmp);
 		__Detail::maxVertexStorageBlocks = tmp;
@@ -163,8 +164,8 @@ namespace Core {
 
 		glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &tmp);
 		__Detail::maxShaderStorageBlockBindings = tmp;
-		glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &tmp);
-		__Detail::maxShaderStorageBlockSize = tmp;
+		glGetInteger64v(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &tmp64);
+		__Detail::maxShaderStorageBlockSize = tmp64;
 
 		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &tmp);
 		__Detail::maxComputeGroupCountX = tmp;
@@ -182,8 +183,8 @@ namespace Core {
 
 		glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &tmp);
 		__Detail::maxComputeGroupInvocations = tmp;
-		glGetIntegerv(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE, &tmp);
-		__Detail::maxComputeSharedMemorySize = tmp;
+		glGetInteger64v(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE, &tmp64);
+		__Detail::maxComputeSharedMemorySize = tmp64;
 
 		glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &tmp);
 		__Detail::maxTextureBufferSize = tmp;
@@ -323,7 +324,7 @@ namespace Limits {
 		return __Detail::maxUniformBlockBindings;
 	}
 
-	u32 getMaxUniformBlockSize() {
+	u64 getMaxUniformBlockSize() {
 		return __Detail::maxUniformBlockSize;
 	}
 
@@ -359,7 +360,7 @@ namespace Limits {
 		return __Detail::maxShaderStorageBlockBindings;
 	}
 
-	u32 getMaxShaderStorageBlockSize() {
+	u64 getMaxShaderStorageBlockSize() {
 		return __Detail::maxShaderStorageBlockSize;
 	}
 
@@ -391,7 +392,7 @@ namespace Limits {
 		return __Detail::maxComputeGroupInvocations;
 	}
 
-	u32 getMaxComputeSharedMemorySize() {
+	u64 getMaxComputeSharedMemorySize() {
 		return __Detail::maxComputeSharedMemorySize;
 	}
 

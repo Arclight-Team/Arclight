@@ -19,7 +19,11 @@ class TextureBuffer : public Buffer {
 
 public:
 
-	constexpr TextureBuffer() : Buffer(BufferType::TextureBuffer) {}
+	constexpr TextureBuffer() : 
+		Buffer(BufferType::TextureBuffer),
+		format(TextureBufferFormat::RGBA8),
+		texID(invalidID)
+	{}
 
 	//Binds to the default target
 	inline void bind() {
@@ -36,12 +40,7 @@ public:
 
 	void bindImageUnit(u32 unit, Access access);
 
-	static bool rangeSupported();
-	static bool threeComponentFormatSupported();
-
 private:
-
-	static bool requiresExtension(TextureBufferFormat format);
 
 	TextureBufferFormat format;
 	u32 texID;

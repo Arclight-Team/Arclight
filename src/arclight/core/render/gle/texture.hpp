@@ -16,16 +16,16 @@ GLE_BEGIN
 
 
 enum class TextureType {
-	Texture1D					= 0x0DE0, // GL_TEXTURE_1D
-	Texture2D					= 0x0DE1, // GL_TEXTURE_2D
-	Texture3D					= 0x806F, // GL_TEXTURE_3D
-	ArrayTexture1D				= 0x8C18, // GL_TEXTURE_1D_ARRAY
-	ArrayTexture2D				= 0x8C1A, // GL_TEXTURE_2D_ARRAY
-	CubemapTexture				= 0x8513, // GL_TEXTURE_CUBE_MAP
-	CubemapArrayTexture			= 0x9009, // GL_TEXTURE_CUBE_MAP_ARRAY
-	MultisampleTexture2D		= 0x9100, // GL_TEXTURE_2D_MULTISAMPLE
-	MultisampleArrayTexture2D	= 0x9102, // GL_TEXTURE_2D_MULTISAMPLE_ARRAY
-	TextureBuffer				= 0x8C2A, // GL_TEXTURE_BUFFER
+	Texture1D,
+	Texture2D,
+	Texture3D,
+	ArrayTexture1D,
+	ArrayTexture2D,
+	CubemapTexture,
+	CubemapArrayTexture,
+	MultisampleTexture2D,
+	MultisampleArrayTexture2D,
+	TextureBuffer
 };
 
 
@@ -154,8 +154,6 @@ public:
 	static u32 getMipmapSize(u32 level, u32 d);
 	static CubemapFace getCubemapFace(u32 index);
 
-	static bool imageLoadStoreSupported();
-
 protected:
 
 	friend class Framebuffer;
@@ -195,52 +193,12 @@ protected:
 
 private:
 
-	static inline u32 getBoundArrayIndex(TextureType type) {
-
-		switch (type) {
-
-			case TextureType::Texture1D:
-				return 0;
-
-			case TextureType::Texture2D:
-				return 1;
-
-			case TextureType::Texture3D:
-				return 2;
-
-			case TextureType::ArrayTexture1D:
-				return 3;
-
-			case TextureType::ArrayTexture2D:
-				return 4;
-
-			case TextureType::CubemapTexture:
-				return 5;
-
-			case TextureType::CubemapArrayTexture:
-				return 6;
-
-			case TextureType::MultisampleTexture2D:
-				return 7;
-
-			case TextureType::MultisampleArrayTexture2D:
-				return 8;
-
-			case TextureType::TextureBuffer:
-				return 9;
-
-			default:
-				gle_force_assert("Illegal texture type &d", type);
-
-		}
-	}
-
 	static inline void setBoundTextureID(TextureType type, u32 id) {
-		boundTextureIDs[getBoundArrayIndex(type)] = id;
+		boundTextureIDs[u32(type)] = id;
 	}
 
 	static inline u32 getBoundTextureID(TextureType type) {
-		return boundTextureIDs[getBoundArrayIndex(type)];
+		return boundTextureIDs[u32(type)];
 	}
 
 	static inline u32 boundTextureIDs[10] = {

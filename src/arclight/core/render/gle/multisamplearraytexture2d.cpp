@@ -8,7 +8,6 @@
 
 #include "multisamplearraytexture2d.hpp"
 
-#include "glecore.hpp"
 #include GLE_HEADER
 
 

@@ -8,7 +8,6 @@
 
 #include "texture3d.hpp"
 
-#include "glecore.hpp"
 #include GLE_HEADER
 
 

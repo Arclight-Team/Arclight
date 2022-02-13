@@ -8,11 +8,24 @@
 
 #include "texture.hpp"
 
-#include "glecore.hpp"
 #include GLE_HEADER
 
 
 GLE_BEGIN
+
+
+constexpr u32 glTextureTypeEnum[] = {
+	0x0DE0, // GL_TEXTURE_1D
+	0x0DE1, // GL_TEXTURE_2D
+	0x806F, // GL_TEXTURE_3D
+	0x8C18, // GL_TEXTURE_1D_ARRAY
+	0x8C1A, // GL_TEXTURE_2D_ARRAY
+	0x8513, // GL_TEXTURE_CUBE_MAP
+	0x9009, // GL_TEXTURE_CUBE_MAP_ARRAY
+	0x9100, // GL_TEXTURE_2D_MULTISAMPLE
+	0x9102, // GL_TEXTURE_2D_MULTISAMPLE_ARRAY
+	0x8C2A, // GL_TEXTURE_BUFFER
+};
 
 
 bool Texture::create() {
@@ -41,7 +54,7 @@ void Texture::bind() {
 	gle_assert(isCreated(), "Texture hasn't been created yet");
 
 	if (!isBound()) {
-		glBindTexture(static_cast<u32>(type), id);
+		glBindTexture(glTextureTypeEnum[u32(type)], id);
 		setBoundTextureID(type, id);
 	}
 
@@ -55,7 +68,7 @@ void Texture::unbind() {
 
 	setBoundTextureID(type, invalidBoundID);
 
-	glBindTexture(static_cast<u32>(type), 0);
+	glBindTexture(glTextureTypeEnum[u32(type)], 0);
 
 }
 
@@ -90,7 +103,7 @@ void Texture::activate(u32 unit) {
 	activateUnit(unit);
 
 	//Force-bind
-	glBindTexture(static_cast<u32>(type), id);
+	glBindTexture(glTextureTypeEnum[u32(type)], id);
 	setBoundTextureID(type, id);
 
 }
@@ -183,7 +196,7 @@ void Texture::setMipmapBaseLevel(u32 level) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set base mipmap level)", id);
 
-	glTexParameteri(static_cast<u32>(type), GL_TEXTURE_BASE_LEVEL, level);
+	glTexParameteri(glTextureTypeEnum[u32(type)], GL_TEXTURE_BASE_LEVEL, level);
 
 }
 
@@ -193,7 +206,7 @@ void Texture::setMipmapMaxLevel(u32 level) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set max mipmap level)", id);
 
-	glTexParameteri(static_cast<u32>(type), GL_TEXTURE_MAX_LEVEL, level);
+	glTexParameteri(glTextureTypeEnum[u32(type)], GL_TEXTURE_MAX_LEVEL, level);
 
 }
 
@@ -227,7 +240,7 @@ void Texture::setAnisotropy(float a) {
 		a = maxAnisotropy;
 	}
 
-	glTexParameterf(static_cast<u32>(type), GL_TEXTURE_MAX_ANISOTROPY, a);
+	glTexParameterf(glTextureTypeEnum[u32(type)], GL_TEXTURE_MAX_ANISOTROPY, a);
 
 }
 
@@ -240,7 +253,7 @@ void Texture::setMinFilter(TextureFilter filter, bool mipmapped) {
 	switch (filter) {
 
 		case TextureFilter::None:
-			glTexParameteri(static_cast<u32>(type), GL_TEXTURE_MIN_FILTER, mipmapped ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST);
+			glTexParameteri(glTextureTypeEnum[u32(type)], GL_TEXTURE_MIN_FILTER, mipmapped ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST);
 			break;
 
 		case TextureFilter::Trilinear:
@@ -250,15 +263,15 @@ void Texture::setMinFilter(TextureFilter filter, bool mipmapped) {
 				gle_assert("Attempted to set minifying filter to trilinear in non-mipmapped mode. To auto-merge modes, enable GLE_TEXTURE_MERGE_FILTERS.");
 				//If we're not in debug mode and the program does not exit here, enable standard bilinear filtering
 #endif
-				glTexParameteri(static_cast<u32>(type), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri(glTextureTypeEnum[u32(type)], GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			} else {
-				glTexParameteri(static_cast<u32>(type), GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glTexParameteri(glTextureTypeEnum[u32(type)], GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			}
 
 			break;
 
 		case TextureFilter::Bilinear:
-			glTexParameteri(static_cast<u32>(type), GL_TEXTURE_MIN_FILTER, mipmapped ? GL_NEAREST_MIPMAP_LINEAR : GL_LINEAR);
+			glTexParameteri(glTextureTypeEnum[u32(type)], GL_TEXTURE_MIN_FILTER, mipmapped ? GL_NEAREST_MIPMAP_LINEAR : GL_LINEAR);
 			break;
 
 	}
@@ -274,7 +287,7 @@ void Texture::setMagFilter(TextureFilter filter) {
 	switch (filter) {
 
 		case TextureFilter::None:
-			glTexParameteri(static_cast<u32>(type), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(glTextureTypeEnum[u32(type)], GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			break;
 
 		case TextureFilter::Trilinear:
@@ -283,7 +296,7 @@ void Texture::setMagFilter(TextureFilter filter) {
 			//If we're not in debug mode and the program does not exit here, enable standard bilinear filtering
 #endif
 		case TextureFilter::Bilinear:
-			glTexParameteri(static_cast<u32>(type), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(glTextureTypeEnum[u32(type)], GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			break;
 
 	}
@@ -296,8 +309,8 @@ void Texture::enableComparisonMode(TextureOperator op) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to enable texture comparison)", id);
 
-	glTexParameteri(static_cast<u32>(type), GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-	glTexParameteri(static_cast<u32>(type), GL_TEXTURE_COMPARE_FUNC, static_cast<u32>(op));
+	glTexParameteri(glTextureTypeEnum[u32(type)], GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	glTexParameteri(glTextureTypeEnum[u32(type)], GL_TEXTURE_COMPARE_FUNC, static_cast<u32>(op));
 
 }
 
@@ -307,7 +320,7 @@ void Texture::disableComparisonMode() {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to disable texture comparison)", id);
 
-	glTexParameteri(static_cast<u32>(type), GL_TEXTURE_COMPARE_MODE, GL_NONE);
+	glTexParameteri(glTextureTypeEnum[u32(type)], GL_TEXTURE_COMPARE_MODE, GL_NONE);
 
 }
 
@@ -324,7 +337,7 @@ void Texture::setWrapU(TextureWrap wrap) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set wrap mode)", id);
 
-	glTexParameteri(static_cast<u32>(type), GL_TEXTURE_WRAP_S, static_cast<u32>(wrap));
+	glTexParameteri(glTextureTypeEnum[u32(type)], GL_TEXTURE_WRAP_S, static_cast<u32>(wrap));
 
 }
 
@@ -334,7 +347,7 @@ void Texture::setWrapV(TextureWrap wrap) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set wrap mode)", id);
 
-	glTexParameteri(static_cast<u32>(type), GL_TEXTURE_WRAP_T, static_cast<u32>(wrap));
+	glTexParameteri(glTextureTypeEnum[u32(type)], GL_TEXTURE_WRAP_T, static_cast<u32>(wrap));
 
 }
 
@@ -344,7 +357,7 @@ void Texture::setWrapW(TextureWrap wrap) {
 
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set wrap mode)", id);
 
-	glTexParameteri(static_cast<u32>(type), GL_TEXTURE_WRAP_R, static_cast<u32>(wrap));
+	glTexParameteri(glTextureTypeEnum[u32(type)], GL_TEXTURE_WRAP_R, static_cast<u32>(wrap));
 
 }
 
@@ -355,7 +368,7 @@ void Texture::setBorderColor(float r, float g, float b, float a) {
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to set border color)", id);
 
 	float color[4] = {r, g, b, a};
-	glTexParameterfv(static_cast<u32>(type), GL_TEXTURE_BORDER_COLOR, color);
+	glTexParameterfv(glTextureTypeEnum[u32(type)], GL_TEXTURE_BORDER_COLOR, color);
 
 }
 
@@ -365,7 +378,7 @@ void Texture::generateMipmaps() {
 	
 	gle_assert(isBound(), "Texture %d has not been bound (attempted to generate mipmaps)", id);
 	
-	glGenerateMipmap(static_cast<u32>(type));
+	glGenerateMipmap(glTextureTypeEnum[u32(type)]);
 
 }
 
@@ -373,7 +386,6 @@ void Texture::generateMipmaps() {
 
 void Texture::bindImageUnit(u32 unit, bool layered, u32 layer, Access access, u32 level) {
 
-	gle_assert(imageLoadStoreSupported(), "Cannot bind image unit, image load store not supported");
 	gle_assert(Image::isImageUnitCompatible(texFormat), "Texture %d has an image unit incompatible format (attempted to bind image unit)", id);
 
 	if (level > getMipmapCount()) {
@@ -389,12 +401,6 @@ void Texture::bindImageUnit(u32 unit, bool layered, u32 layer, Access access, u3
 
 TextureType Texture::getTextureType() const {
 	return type;
-}
-
-
-
-bool Texture::imageLoadStoreSupported() {
-	return GLE_EXT_SUPPORTED(ARB_shader_image_load_store);
 }
 
 

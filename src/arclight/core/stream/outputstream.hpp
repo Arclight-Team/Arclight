@@ -17,9 +17,9 @@ class OutputStream : virtual public StreamBase {
 
 public:
   
-	template<class T>
-	SizeT write(const std::span<const T>& dest) {
-		return write(dest.data(), dest.size());
+	template<class T, SizeT Extent = std::dynamic_extent>
+	SizeT write(const std::span<const T, Extent>& dest) {
+		return write(dest.data(), dest.size_bytes());
 	}
 
 	virtual SizeT write(const void* src, SizeT size) = 0;
