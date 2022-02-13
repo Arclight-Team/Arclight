@@ -29,7 +29,7 @@ bool UniformBuffer::bindRange(u32 index, SizeT offset, SizeT size) {
 		return false;
 	}
 
-	glBindBufferRange(static_cast<u32>(type), index, id, offset, size);
+	glBindBufferRange(glBufferTypeEnum[u32(type)], index, id, offset, size);
 	setBoundBufferID(type, id);
 
 	return true;
