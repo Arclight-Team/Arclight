@@ -28,7 +28,7 @@ void Texture2D::setData(u32 w, u32 h, ImageFormat format, TextureSourceFormat sr
 	depth = 0;
 	texFormat = format;
 
-	glTexImage2D(static_cast<u32>(type), 0, static_cast<u32>(texFormat), w, h, 0, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
+	glTexImage2D(glTextureTypeEnum[u32(type)], 0, static_cast<u32>(texFormat), w, h, 0, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
 
 }
 
@@ -43,7 +43,7 @@ void Texture2D::setMipmapData(u32 level, TextureSourceFormat srcFormat, TextureS
 		return;
 	}
 
-	glTexImage2D(static_cast<u32>(type), level, static_cast<u32>(texFormat), getMipmapSize(level, width), getMipmapSize(level, height), 0, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
+	glTexImage2D(glTextureTypeEnum[u32(type)], level, static_cast<u32>(texFormat), getMipmapSize(level, width), getMipmapSize(level, height), 0, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
 
 }
 
@@ -68,7 +68,7 @@ void Texture2D::update(u32 x, u32 y, u32 w, u32 h, TextureSourceFormat srcFormat
 		return;
 	}
 
-	glTexSubImage2D(static_cast<u32>(type), level, x, y, w, h, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
+	glTexSubImage2D(glTextureTypeEnum[u32(type)], level, x, y, w, h, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
 
 }
 
@@ -88,7 +88,7 @@ void Texture2D::setCompressedData(u32 w, u32 h, CompressedImageFormat format, co
 	depth = 0;
 	texFormat = static_cast<ImageFormat>(format);
 
-	glCompressedTexImage2D(static_cast<u32>(type), 0, static_cast<u32>(format), w, h, 0, size, data);
+	glCompressedTexImage2D(glTextureTypeEnum[u32(type)], 0, static_cast<u32>(format), w, h, 0, size, data);
 
 }
 
@@ -105,7 +105,7 @@ void Texture2D::setCompressedMipmapData(u32 level, const void* data, u32 size) {
 
 	auto format = getCompressedImageFormat();
 
-	glCompressedTexImage2D(static_cast<u32>(type), level, static_cast<u32>(format), getMipmapSize(level, width), getMipmapSize(level, height), 0, size, data);
+	glCompressedTexImage2D(glTextureTypeEnum[u32(type)], level, static_cast<u32>(format), getMipmapSize(level, width), getMipmapSize(level, height), 0, size, data);
 
 }
 

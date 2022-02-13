@@ -34,7 +34,7 @@ void ArrayTexture1D::setData(u32 w, u32 layers, ImageFormat format, TextureSourc
 	depth = 0;
 	texFormat = format;
 
-	glTexImage2D(static_cast<u32>(type), 0, static_cast<u32>(texFormat), w, layers, 0, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
+	glTexImage2D(glTextureTypeEnum[u32(type)], 0, static_cast<u32>(texFormat), w, layers, 0, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
 
 }
 
@@ -49,7 +49,7 @@ void ArrayTexture1D::setMipmapData(u32 level, TextureSourceFormat srcFormat, Tex
 		return;
 	}
 
-	glTexImage2D(static_cast<u32>(type), level, static_cast<u32>(texFormat), getMipmapSize(level, width), height, 0, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
+	glTexImage2D(glTextureTypeEnum[u32(type)], level, static_cast<u32>(texFormat), getMipmapSize(level, width), height, 0, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
 
 }
 
@@ -74,7 +74,7 @@ void ArrayTexture1D::update(u32 x, u32 w, u32 layerStart, u32 layerCount, Textur
 		return;
 	}
 
-	glTexSubImage2D(static_cast<u32>(type), level, x, layerStart, w, layerCount, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
+	glTexSubImage2D(glTextureTypeEnum[u32(type)], level, x, layerStart, w, layerCount, static_cast<u32>(srcFormat), static_cast<u32>(srcType), data);
 
 }
 
