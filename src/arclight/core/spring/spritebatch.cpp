@@ -37,10 +37,13 @@ struct SpriteBatchData {
 
 		vao.setAttribute(1, 4, GLE::AttributeType::Float, 32, 0);
 		vao.setAttribute(2, 2, GLE::AttributeType::Float, 32, 16);
+		vao.setAttribute(3, 1, GLE::AttributeType::UInt, 32, 16, GLE::AttributeClass::Int);
 		vao.enableAttribute(1);
 		vao.enableAttribute(2);
+		vao.enableAttribute(3);
 		vao.setDivisor(1, 1);
 		vao.setDivisor(2, 1);
+		vao.setDivisor(3, 1);
 
 	}
 
@@ -73,7 +76,7 @@ SpriteBatch::SpriteBatch() {
 
 
 
-void SpriteBatch::createSprite(u64 id, const Vec2f& translation, const Mat2f& transform) {
+void SpriteBatch::createSprite(u64 id, const Vec2f& translation, const Mat2f& transform, u32 typeIndex) {
 
 	SizeT offset = vertexData.size();
 
@@ -83,6 +86,7 @@ void SpriteBatch::createSprite(u64 id, const Vec2f& translation, const Mat2f& tr
 
 	setSpriteTransform(id, transform);
 	setSpriteTranslation(id, translation);
+	setSpriteTypeIndex(id, typeIndex);
 
 }
 
@@ -113,6 +117,17 @@ void SpriteBatch::setSpriteTransform(u64 id, const Mat2f& transform) {
 	SizeT offset = offsets[id] + transformOffset;
 	std::copy_n(flatMat, 16, &vertexData[offset]);
 	updateBounds(offset, 16);
+
+}
+
+
+void SpriteBatch::setSpriteTypeIndex(u64 id, u32 typeIndex) {
+
+	arc_assert(offsets.contains(id), "Illegal incomplete sprite batch update");
+
+	SizeT offset = offsets[id] + typeIndexOffset;
+	std::copy_n(Bits::toByteArray(&typeIndex), 4, &vertexData[offset]);
+	updateBounds(offset, 4);
 
 }
 

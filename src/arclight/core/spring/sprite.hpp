@@ -9,7 +9,6 @@
 #pragma once
 
 #include "springobject.hpp"
-#include "spriteoutline.hpp"
 #include "math/matrix.hpp"
 #include "util/bitmaskenum.hpp"
 
@@ -37,6 +36,9 @@ public:
 	constexpr u32 getTypeID() const noexcept { return typeID; }
 	constexpr u32 getGroupID() const noexcept { return groupID; }
 
+	constexpr void setGroupID(u32 id) noexcept { groupID = id; groupDirty(); }
+	constexpr void setTypeID(u32 id) noexcept { typeID = id; typeDirty(); }
+
 	//Setters
 	constexpr void setX(float x) noexcept { position.x = x; translationDirty(); }
 	constexpr void setY(float y) noexcept { position.y = y; translationDirty(); }
@@ -59,6 +61,7 @@ private:
 	constexpr void transformDirty() noexcept { setFlags(getFlags() | Dirty | TransformDirty); }
 	constexpr void translationDirty() noexcept { setFlags(getFlags() | Dirty | TranslationDirty); }
 	constexpr void groupDirty() noexcept { setFlags(getFlags() | Dirty | GroupDirty); }
+	constexpr void typeDirty() noexcept { setFlags(getFlags() | Dirty | TypeDirty); }
 	constexpr void allDirty() noexcept { setFlags(All); }
 
 	enum Flags {
@@ -66,7 +69,8 @@ private:
 		TransformDirty = 0x2,
 		TranslationDirty = 0x4,
 		GroupDirty = 0x10,
-		All = Dirty | TransformDirty | TranslationDirty | GroupDirty
+		TypeDirty = 0x20,
+		All = Dirty | TransformDirty | TranslationDirty | GroupDirty | TypeDirty
 	};
 
 	u64 id;

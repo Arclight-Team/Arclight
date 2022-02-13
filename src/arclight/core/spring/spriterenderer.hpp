@@ -12,14 +12,14 @@
 #include "spritebatch.hpp"
 #include "spritegroup.hpp"
 #include "spritefactory.hpp"
+#include "spritetypebuffer.hpp"
 #include "textureholder.hpp"
 #include "math/rectangle.hpp"
 
 #include <map>
+#include <memory>
 
 
-
-class SpriteRendererShaders;
 
 class SpriteRenderer {
 
@@ -45,7 +45,6 @@ public:
 
 	bool hasType(Id32 id) const;
 	const SpriteType& getType(Id32 id) const;
-	void destroyType(Id32 id);
 
 	//Group functions
 	void showGroup(Id32 groupID);
@@ -67,8 +66,9 @@ private:
 	SpriteFactory factory;
 	SpriteArray sprites;
 
-	std::shared_ptr<SpriteRendererShaders> shaders;
+	std::shared_ptr<class SpriteRendererShaders> shaders;
 
+	SpriteTypeBuffer typeBuffer;
 	std::map<u32, SpriteGroup> groups;
 	std::map<u32, SpriteBatch> batches;
 

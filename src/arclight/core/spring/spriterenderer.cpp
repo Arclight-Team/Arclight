@@ -82,7 +82,7 @@ void SpriteRenderer::render() {
 			if (flags & Sprite::GroupDirty) {
 
 				//The group has changed (TODO: Purge after group change)
-				batch.createSprite(id, sprite.getPosition(), calculateSpriteTransform(sprite));
+				batch.createSprite(id, sprite.getPosition(), calculateSpriteTransform(sprite), typeBuffer.getTypeIndex(sprite.getTypeID()));
 
 			} else if (flags & (Sprite::TranslationDirty | Sprite::TransformDirty)) {
 
@@ -94,6 +94,10 @@ void SpriteRenderer::render() {
 					batch.setSpriteTransform(id, calculateSpriteTransform(sprite));
 				}
 
+			} else if (flags & Sprite::TypeDirty) {
+
+				batch.setSpriteTypeIndex(id, typeBuffer.getTypeIndex(sprite.getTypeID()));
+
 			}
 
 			sprite.clearFlags();
@@ -104,8 +108,12 @@ void SpriteRenderer::render() {
 
 	GLE::clear(GLE::Color);
 
+
 	shaders->rectangleOutlineShader.start();
 	shaders->uProjectionMatrix.setMat4(projection);
+
+	typeBuffer.update();
+	typeBuffer.bind();
 
 	shaders->sampleTexture.activate(0);
 	shaders->uSampleTexture.setInt(0);
@@ -179,7 +187,10 @@ void SpriteRenderer::createType(Id32 id, Id32 textureID, const Vec2f& size) {
 
 
 void SpriteRenderer::createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline) {
-	factory.create(id, textureID, size, origin, outline);
+
+	const SpriteType& type = factory.create(id, textureID, size, origin, outline);
+	typeBuffer.addType(id, type);
+
 }
 
 
@@ -192,12 +203,6 @@ bool SpriteRenderer::hasType(Id32 id) const {
 
 const SpriteType& SpriteRenderer::getType(Id32 id) const {
 	return factory.get(id);
-}
-
-
-
-void SpriteRenderer::destroyType(Id32 id) {
-	factory.destroy(id);
 }
 
 

@@ -20,6 +20,10 @@ layout (location = 0) in vec2 vertex;
 layout (location = 1) in vec4 transform;
 layout (location = 2) in vec2 translation;
 
+layout (std430, binding = 0) buffer typeBuffer {
+	vec2 origin[];
+};
+
 out vec2 uv;
 
 uniform mat4 projection;

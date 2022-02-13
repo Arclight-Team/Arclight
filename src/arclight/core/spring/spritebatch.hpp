@@ -17,17 +17,16 @@
 
 
 
-class SpriteBatchData;
-
 class SpriteBatch {
 
 public:
 
 	SpriteBatch();
 
-	void createSprite(u64 id, const Vec2f& translation, const Mat2f& transform);
+	void createSprite(u64 id, const Vec2f& translation, const Mat2f& transform, u32 typeIndex);
 	void setSpriteTranslation(u64 id, const Vec2f& translation);
 	void setSpriteTransform(u64 id, const Mat2f& transform);
+	void setSpriteTypeIndex(u64 id, u32 typeIndex);
 
 	void purgeSprite(u64 id);
 	void synchronize();
@@ -40,6 +39,7 @@ private:
 	constexpr static u32 dataSize = 32;
 	constexpr static u32 transformOffset = 0;
 	constexpr static u32 translationOffset = 16;
+	constexpr static u32 typeIndexOffset = 24;
 
 	void updateBounds(SizeT offset, SizeT size);
 	void resetBounds() noexcept;
@@ -50,7 +50,7 @@ private:
 
 	SizeT updateStart, updateEnd;
 
-	std::shared_ptr<SpriteBatchData> data;
+	std::shared_ptr<class SpriteBatchData> data;
 
 	std::unordered_map<u64, SizeT> offsets;
 	std::unordered_map<SizeT, u64> ids;
