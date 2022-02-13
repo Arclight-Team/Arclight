@@ -17,9 +17,9 @@ class InputStream : virtual public StreamBase {
 
 public:
 
-	template<class T>
-	SizeT read(const std::span<T>& dest) {
-		return read(dest.data(), dest.size());
+	template<class T, SizeT Extent = std::dynamic_extent>
+	SizeT read(const std::span<T, Extent>& dest) {
+		return read(dest.data(), dest.size_bytes());
 	}
 
 	virtual SizeT read(void* dest, SizeT size) = 0;

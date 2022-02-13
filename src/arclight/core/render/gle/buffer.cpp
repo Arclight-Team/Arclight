@@ -14,6 +14,20 @@
 GLE_BEGIN
 
 
+constexpr u32 glBufferTypeEnum[] = {
+	0x8892, // GL_ARRAY_BUFFER
+	0x8893,	// GL_ELEMENT_ARRAY_BUFFER
+	0x8C8E,	// GL_TRANSFORM_FEEDBACK_BUFFER
+	0x8A11,	// GL_UNIFORM_BUFFER
+	0x8F36,	// GL_COPY_READ_BUFFER
+	0x8F37,	// GL_COPY_WRITE_BUFFER
+	0x90D2,	// GL_SHADER_STORAGE_BUFFER
+	0x88EB,	// GL_PIXEL_PACK_BUFFER
+	0x88EC,	// GL_PIXEL_UNPACK_BUFFER
+	0x8C2A,	// GL_TEXTURE_BUFFER
+};
+
+
 bool Buffer::create() {
 
 	if (!isCreated()) {
@@ -42,7 +56,7 @@ void Buffer::bind(BufferType type) {
 	this->type = type;
 
 	if (!isBound()) {
-		glBindBuffer(static_cast<u32>(type), id);
+		glBindBuffer(glBufferTypeEnum[u32(type)], id);
 		setBoundBufferID(type, id);
 	}
 
@@ -81,7 +95,7 @@ void Buffer::allocate(SizeT size, const void* data, BufferAccess access) {
 
 	//TODO: Check if buffer has been mapped non-persistently
 	this->size = size;
-	glBufferData(static_cast<u32>(type), size, data, static_cast<u32>(access));
+	glBufferData(glBufferTypeEnum[u32(type)], size, data, static_cast<u32>(access));
 
 }
 
@@ -92,7 +106,7 @@ void Buffer::update(SizeT offset, SizeT size, const void* data) {
 	gle_assert(isBound(), "Buffer object %d has not been bound (attempted to set buffer data)", id);
 	gle_assert((offset + size) <= this->size, "Attempted to write data out of bounds for buffer object %d", id);
 
-	glBufferSubData(static_cast<u32>(type), offset, size, data);
+	glBufferSubData(glBufferTypeEnum[u32(type)], offset, size, data);
 
 }
 
@@ -105,7 +119,7 @@ void* Buffer::map(Access access) {
 
 	mapped = true;
 
-	return glMapBuffer(static_cast<u32>(type), static_cast<u32>(access));
+	return glMapBuffer(glBufferTypeEnum[u32(type)], static_cast<u32>(access));
 
 }
 
@@ -116,7 +130,7 @@ void Buffer::unmap() {
 	gle_assert(isBound(), "Buffer object %d has not been bound (attempted to unmap buffer)", id);
 	gle_assert(isMapped(), "Attempted to unmap non mapped buffer object %d", id);
 
-	glUnmapBuffer(static_cast<u32>(type));
+	glUnmapBuffer(glBufferTypeEnum[u32(type)]);
 
 }
 
@@ -128,7 +142,7 @@ void Buffer::unbind() {
 
 	setBoundBufferID(type, invalidBoundID);
 
-	glBindBuffer(static_cast<u32>(type), 0);
+	glBindBuffer(glBufferTypeEnum[u32(type)], 0);
 
 }
 

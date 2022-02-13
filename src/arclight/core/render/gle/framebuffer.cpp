@@ -8,7 +8,6 @@
 
 #include "framebuffer.hpp"
 
-#include "glecore.hpp"
 #include "texture.hpp"
 #include "renderbuffer.hpp"
 #include GLE_HEADER

@@ -19,7 +19,11 @@ class TextureBuffer : public Buffer {
 
 public:
 
-	constexpr TextureBuffer() : Buffer(BufferType::TextureBuffer) {}
+	constexpr TextureBuffer() : 
+		Buffer(BufferType::TextureBuffer),
+		format(TextureBufferFormat::RGBA8),
+		texID(invalidID)
+	{}
 
 	//Binds to the default target
 	inline void bind() {

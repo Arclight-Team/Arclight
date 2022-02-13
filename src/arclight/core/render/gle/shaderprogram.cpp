@@ -15,6 +15,16 @@
 GLE_BEGIN
 
 
+constexpr u32 glShaderTypeEnum[] = {
+	0x8B31, // GL_VERTEX_SHADER
+	0x8B30, // GL_FRAGMENT_SHADER
+	0x8DD9, // GL_GEOMETRY_SHADER
+	0x8E88, // GL_TESS_CONTROL_SHADER
+	0x8E87, // GL_TESS_EVALUATION_SHADER
+	0x91B9, // GL_COMPUTE_SHADER
+};
+
+
 bool ShaderProgram::create() {
 
 	if (!isCreated()) {
@@ -60,9 +70,9 @@ bool ShaderProgram::addShader(const char* source, u32 size, ShaderType type) {
 
 	gle_assert(isCreated(), "Attempted to attach shader without creating a program first");
 	gle_assert(!isLinked(), "Attempted to add shader to linked program");
-	gle_assert(shaders[static_cast<u32>(type)] == invalidID, "Cannot attach duplicate shader types to the program");
+	gle_assert(shaders[u32(type)] == invalidID, "Cannot attach duplicate shader types to the program");
 
-	u32 shaderEnum = static_cast<u32>(type);
+	u32 shaderEnum = glShaderTypeEnum[u32(type)];
 	u32 sid = glCreateShader(shaderEnum);
 
 	i32 sourceSize = size;
@@ -78,7 +88,7 @@ bool ShaderProgram::addShader(const char* source, u32 size, ShaderType type) {
 	}
 
 	glAttachShader(id, sid);
-	shaders[static_cast<u32>(type)] = sid;
+	shaders[u32(type)] = sid;
 
 	return true;
 
