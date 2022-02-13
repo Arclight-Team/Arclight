@@ -14,20 +14,20 @@
 GLE_BEGIN
 
 
-	class ShaderStorageBuffer : public Buffer {
+class ShaderStorageBuffer : public Buffer {
 
-	public:
+public:
 
-		inline ShaderStorageBuffer() : Buffer(BufferType::ShaderStorageBuffer) {}
+	inline ShaderStorageBuffer() : Buffer(BufferType::ShaderStorageBuffer) {}
 
-		//Binds to the default target
-		inline void bind() {
-			Buffer::bind(BufferType::ShaderStorageBuffer);
-		}
+	//Binds to the default target
+	inline void bind() {
+		Buffer::bind(BufferType::ShaderStorageBuffer);
+	}
 
-		bool bindRange(u32 index, SizeT offset, SizeT size);
+	bool bindRange(u32 index, SizeT offset, SizeT size);
 
-	};
+};
 
 
 GLE_END
