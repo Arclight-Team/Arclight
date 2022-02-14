@@ -36,10 +36,7 @@ struct SpriteTypeBufferData {
 
 
 SpriteTypeBuffer::SpriteTypeBuffer() {
-
 	data = std::make_shared<SpriteTypeBufferData>();
-	resetBounds();
-
 }
 
 
@@ -59,16 +56,11 @@ void SpriteTypeBuffer::setTypeData(u32 typeID, const SpriteType& type) {
 	arc_assert(typeMap.contains(typeID), "Illegal partial update of sprite type buffer");
 
 	SizeT offset = typeMap[typeID] * typeDataSize;
-	std::copy_n(Bits::toByteArray(&type.origin.x), 4, &buffer[offset]);
-	std::copy_n(Bits::toByteArray(&type.origin.y), 4, &buffer[offset + 4]);
-	std::copy_n(Bits::toByteArray(&type.outline.uvBase.x), 4, &buffer[offset + 8]);
-	std::copy_n(Bits::toByteArray(&type.outline.uvBase.y), 4, &buffer[offset + 12]);
-	std::copy_n(Bits::toByteArray(&type.outline.uvScale.x), 4, &buffer[offset + 16]);
-	std::copy_n(Bits::toByteArray(&type.outline.uvScale.y), 4, &buffer[offset + 20]);
-	std::copy_n(Bits::toByteArray(&type.textureID), 4, &buffer[offset + 24]);
-	std::copy_n(Bits::toByteArray(&type.textureID), 4, &buffer[offset + 28]);
 
-	updateBounds(offset, typeDataSize);
+	buffer.write(offset + 0, type.origin);
+	buffer.write(offset + 8, type.outline.uvBase);
+	buffer.write(offset + 16, type.outline.uvScale);
+	buffer.write(offset + 24, type.textureID);
 
 }
 
@@ -80,7 +72,7 @@ void SpriteTypeBuffer::clear() {
 	buffer.clear();
 
 	data = std::make_shared<SpriteTypeBufferData>();
-	resetBounds();
+	buffer.finishUpdate();
 
 }
 
@@ -94,7 +86,7 @@ u32 SpriteTypeBuffer::getTypeIndex(u32 typeID) const {
 
 void SpriteTypeBuffer::update() {
 
-	if (updateStart >= updateEnd) {
+	if (!buffer.hasChanged()) {
 		return;
 	}
 
@@ -109,11 +101,11 @@ void SpriteTypeBuffer::update() {
 
 	} else {
 
-		ssbo.update(updateStart, updateEnd - updateStart, buffer.data() + updateStart);
+		ssbo.update(buffer.getUpdateStart(), buffer.getUpdateSize(), buffer.updateStartData());
 
 	}
 
-	resetBounds();
+	buffer.finishUpdate();
 
 }
 
@@ -124,28 +116,5 @@ void SpriteTypeBuffer::bind() {
 	GLE::ShaderStorageBuffer& ssbo = data->typeSSBO;
 	ssbo.bind();
 	ssbo.bindRange(0, 0, buffer.size());
-
-}
-
-
-
-void SpriteTypeBuffer::updateBounds(SizeT offset, SizeT size) {
-
-	if (offset < updateStart) {
-		updateStart = offset;
-	}
-
-	if (offset + size > updateEnd) {
-		updateEnd = offset + size;
-	}
-
-}
-
-
-
-void SpriteTypeBuffer::resetBounds() {
-
-	updateEnd = 0;
-	updateStart = -1;
 
 }

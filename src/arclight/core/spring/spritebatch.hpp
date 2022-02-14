@@ -8,8 +8,7 @@
 
 #pragma once
 
-#include "math/matrix.hpp"
-#include "memory/alignedallocator.hpp"
+#include "syncbuffer.hpp"
 #include "types.hpp"
 
 #include <vector>
@@ -41,19 +40,14 @@ private:
 	constexpr static u32 translationOffset = 16;
 	constexpr static u32 typeIndexOffset = 24;
 
-	void updateBounds(SizeT offset, SizeT size);
-	void resetBounds() noexcept;
-
 	static void vectorDecay(const Vec2f& vector, const std::span<u8>& dest);
 	static void matrixDecay(const Mat2f& matrix, const std::span<u8>& dest);
-
-
-	SizeT updateStart, updateEnd;
 
 	std::shared_ptr<class SpriteBatchData> data;
 
 	std::unordered_map<u64, SizeT> offsets;
 	std::unordered_map<SizeT, u64> ids;
-	std::vector<u8, AlignedAllocator<u8, 16>> vertexData;
+
+	SyncBuffer buffer;
 
 };

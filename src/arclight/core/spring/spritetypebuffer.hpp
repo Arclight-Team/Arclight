@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "memory/alignedallocator.hpp"
+#include "syncbuffer.hpp"
 #include "types.hpp"
 
 #include <memory>
@@ -37,13 +37,9 @@ private:
 
 	constexpr static u32 typeDataSize = 32;
 
-	void updateBounds(SizeT offset, SizeT size);
-	void resetBounds();
-
-	SizeT updateStart, updateEnd;
-
-	std::vector<u8, AlignedAllocator<u8, 16>> buffer;
 	std::shared_ptr<class SpriteTypeBufferData> data;
 	std::unordered_map<u32, u32> typeMap;
+
+	SyncBuffer buffer;
 
 };
