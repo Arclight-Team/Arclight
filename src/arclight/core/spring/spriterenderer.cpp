@@ -8,14 +8,13 @@
 
 #include "spriterenderer.hpp"
 #include "springshaders.hpp"
+#include "compositetexture.hpp"
+#include "textureset.hpp"
 #include "render/gle/gle.hpp"
 #include "render/utility/shaderloader.hpp"
 #include "time/timer.hpp"
 #include "time/profiler.hpp"
-#include "image/bmp.hpp"
 #include "debug.hpp"
-#include "filesystem/file.hpp"
-#include "stream/fileinputstream.hpp"
 
 
 
@@ -25,32 +24,18 @@ struct SpriteRendererShaders {
 
 		rectangleOutlineShader = ShaderLoader::fromString(SpringShader::rectangularOutlineVS, SpringShader::rectangularOutlineFS);
 		uProjectionMatrix = rectangleOutlineShader.getUniform(SpringShader::rectangularOutlineUProjection);
-		uSampleTexture = rectangleOutlineShader.getUniform("sampleTexture");
-
-		File file("@/cursor.bmp", File::Binary | File::In);
-		file.open();
-		FileInputStream stream(file);
-		Image img = BMP::loadBitmap<Pixel::RGBA8>(stream);
-
-		sampleTexture.create();
-		sampleTexture.bind();
-		sampleTexture.setData(img.getWidth(), img.getHeight(), GLE::ImageFormat::RGBA8, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UByte, img.getImageBuffer().data());
-		sampleTexture.setMinFilter(GLE::TextureFilter::None);
-		sampleTexture.setMagFilter(GLE::TextureFilter::None);
-		sampleTexture.generateMipmaps();
+		uDiffuseTexture = rectangleOutlineShader.getUniform("diffuseTexture");
 
 	}
 
 	~SpriteRendererShaders() {
 		rectangleOutlineShader.destroy();
-		sampleTexture.destroy();
 	}
 
 	GLE::ShaderProgram rectangleOutlineShader;
 	GLE::Uniform uProjectionMatrix;
 
-	GLE::Texture2D sampleTexture;
-	GLE::Uniform uSampleTexture;
+	GLE::Uniform uDiffuseTexture;
 
 };
 
@@ -71,8 +56,6 @@ void SpriteRenderer::render() {
 	p.start();
 
 	for (Sprite& sprite : sprites) {
-
-		ArcDebug() << sprite.getPosition();
 
 		u8 flags = sprite.getFlags();
 
@@ -117,8 +100,11 @@ void SpriteRenderer::render() {
 	typeBuffer.update();
 	typeBuffer.bind();
 
-	shaders->sampleTexture.activate(0);
-	shaders->uSampleTexture.setInt(0);
+	for (CompositeTexture& texture : textures) {
+		texture.bind(0);
+	}
+
+	shaders->uDiffuseTexture.setInt(0);
 
 	for (auto& [key, batch] : batches) {
 
@@ -130,7 +116,7 @@ void SpriteRenderer::render() {
 
 	}
 
-	p.stop("Sprite B");
+	//p.stop("Sprite B");
 
 }
 
@@ -205,6 +191,15 @@ bool SpriteRenderer::hasType(Id32 id) const {
 
 const SpriteType& SpriteRenderer::getType(Id32 id) const {
 	return factory.get(id);
+}
+
+
+
+void SpriteRenderer::loadTextureSet(const TextureSet& set) {
+
+	CompositeTexture texture = CompositeTexture::loadAndComposite(set, CompositeTexture::Type::Array);
+	textures.emplace_back(texture);
+
 }
 
 

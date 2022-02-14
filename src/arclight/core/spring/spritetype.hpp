@@ -36,7 +36,7 @@ struct SpriteOutline {
 struct SpriteType {
 
 	constexpr SpriteType() noexcept : textureID(0), size(Vec2f(1)) {}
-	constexpr SpriteType(u32 texture, const Vec2f& origin, const Vec2f& size, const SpriteOutline& outline) noexcept : textureID(textureID), origin(origin), size(size), outline(outline) {}
+	constexpr SpriteType(u32 texture, const Vec2f& origin, const Vec2f& size, const SpriteOutline& outline) noexcept : textureID(texture), origin(origin), size(size), outline(outline) {}
 
 	u32 textureID;
 	Vec2f origin;

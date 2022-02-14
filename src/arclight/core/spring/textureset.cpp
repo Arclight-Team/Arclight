@@ -7,38 +7,25 @@
  */
 
 #include "textureset.hpp"
-#include "filesystem/file.hpp"
-#include "image/bmp.hpp"
-#include "stream/fileinputstream.hpp"
 
 
 
-bool TextureSet::isLoaded(Id64 id) const {
-	return textures.contains(id);
+bool TextureSet::isAdded(Id32 id) const {
+	return texturePaths.contains(id);
 }
 
 
 
-bool TextureSet::load(Id64 id, const Path& path) {
+bool TextureSet::add(Id32 id, const Path& path) {
 
-	if (isLoaded(id)) {
+	if (isAdded(id)) {
 
-		Log::error("Texture Set", "Texture with ID = %d already loaded", id);
+		Log::error("Texture Set", "Texture with ID = %d already added", id);
 		return false;
 
 	}
 
-	File file(path.getFilename(), File::In | File::Binary);
-
-	if (!file.open()) {
-
-		Log::error("Texture Set", "Failed to open file %s", path.getFilename().c_str());
-		return false;
-
-	}
-
-	FileInputStream stream(file);
-	textures.emplace(id, BMP::loadBitmap<Pixel::RGBA8>(stream));
+	texturePaths.emplace(id, path);
 
 	return true;
 
@@ -46,11 +33,11 @@ bool TextureSet::load(Id64 id, const Path& path) {
 
 
 
-bool TextureSet::load(const std::vector<std::pair<Id64, Path>>& files) {
+bool TextureSet::add(const std::vector<std::pair<Id32, Path>>& files) {
 
 	for (const auto& [id, path] : files) {
 
-		if (!load(id, path)) {
+		if (!add(id, path)) {
 			return false;
 		}
 
@@ -63,11 +50,11 @@ bool TextureSet::load(const std::vector<std::pair<Id64, Path>>& files) {
 
 
 void TextureSet::clear() {
-	textures.clear();
+	texturePaths.clear();
 }
 
 
 
-std::unordered_map<u64, Image<Pixel::RGBA8>> TextureSet::getAndClear() {
-	return std::exchange(textures, {});
+const std::unordered_map<u32, Path>& TextureSet::getTexturePaths() const {
+	return texturePaths;
 }

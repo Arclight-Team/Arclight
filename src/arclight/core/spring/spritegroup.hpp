@@ -25,6 +25,7 @@ public:
 
 private:
 
+
 	bool visible;
 
 };

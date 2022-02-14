@@ -21,17 +21,17 @@ class TextureSet {
 
 public:
 
-	bool isLoaded(Id64 id) const;
+	bool isAdded(Id32 id) const;
 
-	bool load(Id64 id, const Path& path);
-	bool load(const std::vector<std::pair<Id64, Path>>& files);
+	bool add(Id32 id, const Path& path);
+	bool add(const std::vector<std::pair<Id32, Path>>& files);
 
 	void clear();
 
-	std::unordered_map<u64, Image<Pixel::RGBA8>> getAndClear();
+	const std::unordered_map<u32, Path>& getTexturePaths() const;
 
 private:
 
-	std::unordered_map<u64, Image<Pixel::RGBA8>> textures;
+	std::unordered_map<u32, Path> texturePaths;
 
 };

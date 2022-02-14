@@ -32,7 +32,7 @@ layout (std430, binding = 0) buffer TypeBuffer {
 	Type types[];
 } typeBuffer;
 
-out vec2 uv;
+out vec3 uv;
 
 uniform mat4 projection;
 
@@ -42,7 +42,7 @@ void main() {
 	vec2 origin = type.origin;
 	vec2 transformedVertex = mat2(transform.xy, transform.zw) * (vertex - origin) + translation;
 
-	uv = vertex * type.uvScale + type.uvBase;
+	uv = vec3(vertex * type.uvScale + type.uvBase, type.diffuseIndex.x);
 	gl_Position = projection * vec4(transformedVertex, 0.0, 1.0);
 
 }
@@ -51,13 +51,13 @@ void main() {
 	constexpr const char* rectangularOutlineFS = R"(
 #version 430
 
-in vec2 uv;
+in vec3 uv;
 out vec4 outColor;
 
-uniform sampler2D sampleTexture;
+uniform sampler2DArray diffuseTexture;
 
 void main() {
-	outColor = vec4(texture(sampleTexture, uv).rgb, 1.0);
+	outColor = vec4(texture(diffuseTexture, uv).rgb, 1.0);
 }
 	)";
 

@@ -8,18 +8,20 @@
 
 #pragma once
 
+#include "compositetexture.hpp"
 #include "spritearray.hpp"
 #include "spritebatch.hpp"
 #include "spritegroup.hpp"
 #include "spritefactory.hpp"
 #include "spritetypebuffer.hpp"
-#include "textureholder.hpp"
 #include "math/rectangle.hpp"
 
 #include <map>
 #include <memory>
 
 
+
+class TextureSet;
 
 class SpriteRenderer {
 
@@ -42,9 +44,11 @@ public:
 	//Type functions
 	void createType(Id32 id, Id32 textureID, const Vec2f& size);
 	void createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline = SpriteOutline());
-
 	bool hasType(Id32 id) const;
 	const SpriteType& getType(Id32 id) const;
+
+	//Texture functions
+	void loadTextureSet(const TextureSet& set);
 
 	//Group functions
 	void showGroup(Id32 groupID);
@@ -57,12 +61,13 @@ public:
 
 private:
 
+	constexpr static u32 textureSlotRange = -1;
+
 	Mat2f calculateSpriteTransform(const Sprite& sprite) const;
 	Vec2f calculateGlobalSpriteScale(const Sprite& sprite) const;
 
 	void recalculateProjection();
 
-	TextureHolder textureHolder;
 	SpriteFactory factory;
 	SpriteArray sprites;
 
@@ -71,6 +76,9 @@ private:
 	SpriteTypeBuffer typeBuffer;
 	std::map<u32, SpriteGroup> groups;
 	std::map<u32, SpriteBatch> batches;
+
+	std::vector<CompositeTexture> textures;
+	std::unordered_map<u64, u32> texComposites;
 
 	RectF viewport;          //The scene's viewport rect
 	Mat4f projection;

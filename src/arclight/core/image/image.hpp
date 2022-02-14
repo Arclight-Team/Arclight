@@ -39,10 +39,19 @@ public:
 
 
 	constexpr Image() : Image(0, 0) {}
+
 	constexpr Image(u32 width, u32 height) : width(width), height(height) {
 		data.resize(width * height);
 	}
 
+
+	constexpr void reset() {
+
+		width = 0;
+		height = 0;
+		data.clear();
+
+	}
 
 	constexpr void clear(const PixelType& clearPixel = PixelType()) {
 		
