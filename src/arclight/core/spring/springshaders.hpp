@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "spring.hpp"
+
 
 
 namespace SpringShader {
@@ -54,10 +56,10 @@ void main() {
 in vec3 uv;
 out vec4 outColor;
 
-uniform sampler2DArray diffuseTexture;
+uniform sampler2DArray textures[16];
 
 void main() {
-	outColor = vec4(texture(diffuseTexture, uv).rgb, 1.0);
+	outColor = vec4(texture(textures[0], uv).rgb, 1.0);
 }
 	)";
 

@@ -27,6 +27,8 @@ public:
 	void setSpriteTransform(u64 id, const Mat2f& transform);
 	void setSpriteTypeIndex(u64 id, u32 typeIndex);
 
+	u32 getSpriteTypeIndex(u64 id) const;
+
 	void purgeSprite(u64 id);
 	void synchronize();
 	void render();

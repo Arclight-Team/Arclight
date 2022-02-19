@@ -14,7 +14,7 @@ class SpriteGroup {
 
 public:
 
-	constexpr SpriteGroup() : visible(true) {}
+	SpriteGroup() : visible(true) {}
 
 	constexpr bool isVisible() const { return visible; }
 
@@ -24,7 +24,6 @@ public:
 	constexpr void toggleVisibility() { visible = !visible; }
 
 private:
-
 
 	bool visible;
 

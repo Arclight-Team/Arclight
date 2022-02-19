@@ -122,6 +122,15 @@ void SpriteBatch::setSpriteTypeIndex(u64 id, u32 typeIndex) {
 
 
 
+u32 SpriteBatch::getSpriteTypeIndex(u64 id) const {
+
+	arc_assert(offsets.contains(id), "Illegal sprite batch query");
+	return Bits::assemble<u32>(buffer.data() + offsets.find(id)->second + typeIndexOffset);
+
+}
+
+
+
 void SpriteBatch::purgeSprite(u64 id) {
 
 	auto it = offsets.find(id);

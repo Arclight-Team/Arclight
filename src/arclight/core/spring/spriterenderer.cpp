@@ -24,7 +24,16 @@ struct SpriteRendererShaders {
 
 		rectangleOutlineShader = ShaderLoader::fromString(SpringShader::rectangularOutlineVS, SpringShader::rectangularOutlineFS);
 		uProjectionMatrix = rectangleOutlineShader.getUniform(SpringShader::rectangularOutlineUProjection);
-		uDiffuseTexture = rectangleOutlineShader.getUniform("diffuseTexture");
+
+		rectangleOutlineShader.start();
+
+		for (u32 i = 0; i < Spring::textureSlots; i++) {
+
+			std::string name = "textures[" + std::to_string(i) + "]";
+			uTextures[i] = rectangleOutlineShader.getUniform(name.c_str());
+			uTextures[i].setInt(i);
+
+		}
 
 	}
 
@@ -35,7 +44,7 @@ struct SpriteRendererShaders {
 	GLE::ShaderProgram rectangleOutlineShader;
 	GLE::Uniform uProjectionMatrix;
 
-	GLE::Uniform uDiffuseTexture;
+	GLE::Uniform uTextures[Spring::textureSlots];
 
 };
 
@@ -62,12 +71,14 @@ void SpriteRenderer::render() {
 		if (flags) {
 
 			u64 id = sprite.getID();
-			SpriteBatch& batch = batches[sprite.getGroupID()];
+			RenderGroup& group = renderGroups[getSpriteRenderKey(sprite)];
+			SpriteBatch& batch = group.getBatch();
 
 			if (flags & Sprite::GroupDirty) {
 
 				//The group has changed (TODO: Purge after group change)
 				batch.createSprite(id, sprite.getPosition(), calculateSpriteTransform(sprite), typeBuffer.getTypeIndex(sprite.getTypeID()));
+				group.addCTReference(getCompositeTextureID(sprite));
 
 			} else if (flags & (Sprite::TranslationDirty | Sprite::TransformDirty)) {
 
@@ -81,7 +92,16 @@ void SpriteRenderer::render() {
 
 			} else if (flags & Sprite::TypeDirty) {
 
-				batch.setSpriteTypeIndex(id, typeBuffer.getTypeIndex(sprite.getTypeID()));
+				u32 oldTypeIndex = batch.getSpriteTypeIndex(id);
+				u32 newTypeIndex = typeBuffer.getTypeIndex(sprite.getTypeID());
+
+				if (oldTypeIndex != newTypeIndex) {
+
+					batch.setSpriteTypeIndex(id, newTypeIndex);
+					group.removeCTReference(oldTypeIndex);
+					group.addCTReference(newTypeIndex);
+
+				}
 
 			}
 
@@ -100,19 +120,19 @@ void SpriteRenderer::render() {
 	typeBuffer.update();
 	typeBuffer.bind();
 
-	for (CompositeTexture& texture : textures) {
-		texture.bind(0);
-	}
+	const CTAllocationTable* prevCTAT = &initialCTAllocationTable;
 
-	shaders->uDiffuseTexture.setInt(0);
+	for (auto& [key, group] : renderGroups) {
 
-	for (auto& [key, batch] : batches) {
+		group.prepareCTTable(*prevCTAT);
+		prevCTAT = &group.getCTAllocationTable();
 
-		batch.synchronize();
-
-		if (groups[key].isVisible()) {
-			batch.render();
+		for (const auto& [ctID, slot] : group.getCTBindings()) {
+			textures[ctID].bind(slot);
 		}
+
+		group.syncData();
+		group.render();
 
 	}
 
@@ -163,7 +183,18 @@ bool SpriteRenderer::containsSprite(Id64 id) const {
 
 
 void SpriteRenderer::destroySprite(Id64 id) {
+
+	if (!containsSprite(id)) {
+		return;
+	}
+
+	const Sprite& sprite = getSprite(id);
+
+	RenderGroup& group = renderGroups[getSpriteRenderKey(sprite)];
+	group.removeCTReference(getCompositeTextureID(sprite));
+
 	sprites.destroy(id);
+
 }
 
 
@@ -197,8 +228,14 @@ const SpriteType& SpriteRenderer::getType(Id32 id) const {
 
 void SpriteRenderer::loadTextureSet(const TextureSet& set) {
 
+	u32 ctID = textures.size();
+
 	CompositeTexture texture = CompositeTexture::loadAndComposite(set, CompositeTexture::Type::Array);
 	textures.emplace_back(texture);
+
+	for (const auto& [id, path] : set.getTexturePaths()) {
+		textureToCompositeID.try_emplace(id, ctID);
+	}
 
 }
 
@@ -244,6 +281,18 @@ bool SpriteRenderer::isGroupVisible(Id32 groupID) const {
 
 u32 SpriteRenderer::activeSpriteCount() const noexcept {
 	return sprites.size();
+}
+
+
+
+u64 SpriteRenderer::getSpriteRenderKey(const Sprite& sprite) const {
+	return sprite.getGroupID();
+}
+
+
+
+u32 SpriteRenderer::getCompositeTextureID(const Sprite& sprite) const {
+	return textureToCompositeID.find(getType(sprite.getTypeID()).textureID)->second;
 }
 
 

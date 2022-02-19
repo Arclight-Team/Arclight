@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "spring.hpp"
 #include "compositetexture.hpp"
 #include "spritearray.hpp"
 #include "spritebatch.hpp"
@@ -15,9 +16,11 @@
 #include "spritefactory.hpp"
 #include "spritetypebuffer.hpp"
 #include "math/rectangle.hpp"
+#include "rendergroup.hpp"
 
 #include <map>
 #include <memory>
+#include <unordered_map>
 
 
 
@@ -61,12 +64,16 @@ public:
 
 private:
 
-	constexpr static u32 textureSlotRange = -1;
+	u64 getSpriteRenderKey(const Sprite& sprite) const;
+	u32 getCompositeTextureID(const Sprite& sprite) const;
 
 	Mat2f calculateSpriteTransform(const Sprite& sprite) const;
 	Vec2f calculateGlobalSpriteScale(const Sprite& sprite) const;
 
 	void recalculateProjection();
+
+
+	inline static const CTAllocationTable initialCTAllocationTable = std::vector<u32>(Spring::textureSlots, Spring::unusedCTSlot);
 
 	SpriteFactory factory;
 	SpriteArray sprites;
@@ -75,10 +82,10 @@ private:
 
 	SpriteTypeBuffer typeBuffer;
 	std::map<u32, SpriteGroup> groups;
-	std::map<u32, SpriteBatch> batches;
+	std::map<u64, RenderGroup> renderGroups;
 
 	std::vector<CompositeTexture> textures;
-	std::unordered_map<u64, u32> texComposites;
+	std::unordered_map<u64, u32> textureToCompositeID;
 
 	RectF viewport;          //The scene's viewport rect
 	Mat4f projection;
