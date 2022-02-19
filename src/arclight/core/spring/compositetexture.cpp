@@ -27,6 +27,7 @@ struct TextureHandle {
 
 		for (u32 layerID = 0; auto& [id, texData] : compositeTexture.textures) {
 
+			texData.arrayIndex = layerID;
 			texture.update(0, 0, texData.width, texData.height, layerID++, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UByte, texData.image.getImageBuffer().data());
 			texData.image.reset();
 
@@ -79,13 +80,13 @@ u32 CompositeTexture::getTextureCount() const noexcept {
 
 
 
-bool CompositeTexture::hasTexture(Id64 texID) const {
+bool CompositeTexture::hasTexture(Id32 texID) const {
 	return textures.contains(texID);
 }
 
 
 
-const CompositeTexture::TextureData& CompositeTexture::getTextureData(Id64 texID) const {
+const CompositeTexture::TextureData& CompositeTexture::getTextureData(Id32 texID) const {
 	return textures.find(texID)->second;
 }
 
@@ -93,38 +94,48 @@ const CompositeTexture::TextureData& CompositeTexture::getTextureData(Id64 texID
 
 CompositeTexture CompositeTexture::loadAndComposite(const TextureSet& set, Type type) {
 
-	const std::unordered_map<u32, Path>& paths = set.getTexturePaths();
-	std::unordered_map<u32, TextureData> textures;
+	try {
 
-	u32 maxWidth = 0;
-	u32 maxHeight = 0;
+		const std::unordered_map<u32, Path>& paths = set.getTexturePaths();
+		std::unordered_map<u32, TextureData> textures;
 
-	for (const auto& [id, path] : paths) {
+		u32 maxWidth = 0;
+		u32 maxHeight = 0;
 
-		File file(path.getString(), File::In | File::Binary);
+		for(const auto&[id, path] : paths) {
 
-		if (!file.open()) {
-			Log::error("Texture Compositor", "Failed to open file %s", path.getString().c_str());
-			continue;
+			File file(path.getString(), File::In | File::Binary);
+
+			if (!file.open()) {
+
+				Log::error("Texture Compositor", "Failed to open file %s", path.getString().c_str());
+				throw BadTextureCompositeException();
+
+			}
+
+			FileInputStream stream(file);
+			Image image = BMP::loadBitmap<Pixel::RGBA8>(stream);
+
+			maxWidth = Math::max(image.getWidth(), maxWidth);
+			maxHeight = Math::max(image.getHeight(), maxHeight);
+
+			textures.emplace(id, TextureData(image.getWidth(), image.getHeight(), std::move(image)));
+
 		}
 
-		FileInputStream stream(file);
-		Image image = BMP::loadBitmap<Pixel::RGBA8>(stream);
+		CompositeTexture texture;
+		texture.width = maxWidth;
+		texture.height = maxHeight;
+		texture.type = type;
+		texture.textures = std::move(textures);
+		texture.textureHandle = std::make_shared<TextureHandle>(texture);
 
-		maxWidth = Math::max(image.getWidth(), maxWidth);
-		maxHeight = Math::max(image.getHeight(), maxHeight);
+		return texture;
 
-		textures.emplace(id, TextureData(image.getWidth(), image.getHeight(), std::move(image)));
+	} catch (const std::exception&) {
+
+		throw BadTextureCompositeException();
 
 	}
-
-	CompositeTexture texture;
-	texture.width = maxWidth;
-	texture.height = maxHeight;
-	texture.type = type;
-	texture.textures = std::move(textures);
-	texture.textureHandle = std::make_shared<TextureHandle>(texture);
-
-	return texture;
 
 }

@@ -85,7 +85,7 @@ private:
 	std::map<u64, RenderGroup> renderGroups;
 
 	std::vector<CompositeTexture> textures;
-	std::unordered_map<u64, u32> textureToCompositeID;
+	std::unordered_map<u32, u32> textureToCompositeID;
 
 	RectF viewport;          //The scene's viewport rect
 	Mat4f projection;

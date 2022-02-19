@@ -24,8 +24,8 @@ public:
 
 	SpriteTypeBuffer();
 
-	void addType(u32 typeID, const SpriteType& type);
-	void setTypeData(u32 typeID, const SpriteType& type);
+	void addType(u32 typeID, const SpriteType& type, u32 ctID, u32 texID);
+	void setTypeData(u32 typeID, const SpriteType& type, u32 ctID, u32 texID);
 	void clear();
 
 	u32 getTypeIndex(u32 typeID) const;

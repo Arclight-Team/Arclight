@@ -90,7 +90,6 @@ void CTGroupTableBuffer::update() {
 void CTGroupTableBuffer::bind() {
 
     GLE::UniformBuffer& ubo = data->tableUBO;
-    ubo.bind();
     ubo.bindRange(0, 0, buffer.size());
 
 }

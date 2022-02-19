@@ -41,17 +41,17 @@ SpriteTypeBuffer::SpriteTypeBuffer() {
 
 
 
-void SpriteTypeBuffer::addType(u32 typeID, const SpriteType& type) {
+void SpriteTypeBuffer::addType(u32 typeID, const SpriteType& type, u32 ctID, u32 texID) {
 
 	typeMap.try_emplace(typeID, static_cast<u32>(typeMap.size()));
 	buffer.resize(buffer.size() + typeDataSize);
-	setTypeData(typeID, type);
+	setTypeData(typeID, type, ctID, texID);
 
 }
 
 
 
-void SpriteTypeBuffer::setTypeData(u32 typeID, const SpriteType& type) {
+void SpriteTypeBuffer::setTypeData(u32 typeID, const SpriteType& type, u32 ctID, u32 texID) {
 
 	arc_assert(typeMap.contains(typeID), "Illegal partial update of sprite type buffer");
 
@@ -60,7 +60,8 @@ void SpriteTypeBuffer::setTypeData(u32 typeID, const SpriteType& type) {
 	buffer.write(offset + 0, type.origin);
 	buffer.write(offset + 8, type.outline.uvBase);
 	buffer.write(offset + 16, type.outline.uvScale);
-	buffer.write(offset + 24, type.textureID);
+	buffer.write(offset + 24, ctID);
+	buffer.write(offset + 28, texID);
 
 }
 
@@ -114,7 +115,6 @@ void SpriteTypeBuffer::update() {
 void SpriteTypeBuffer::bind() {
 
 	GLE::ShaderStorageBuffer& ssbo = data->typeSSBO;
-	ssbo.bind();
 	ssbo.bindRange(0, 0, buffer.size());
 
 }

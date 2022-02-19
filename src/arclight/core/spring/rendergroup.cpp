@@ -154,6 +154,7 @@ void RenderGroup::syncData() {
 
 void RenderGroup::render() {
 
+	ctGroupTableBuffer.bind();
 	batch.render();
 
 }

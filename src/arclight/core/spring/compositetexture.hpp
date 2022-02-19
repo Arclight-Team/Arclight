@@ -13,8 +13,17 @@
 #include "util/identifier.hpp"
 
 #include <memory>
+#include <stdexcept>
 #include <unordered_map>
 
+
+
+class BadTextureCompositeException : public std::runtime_error {
+
+public:
+	BadTextureCompositeException() : std::runtime_error("Bad texture composite") {}
+
+};
 
 
 class TextureSet;
@@ -22,7 +31,6 @@ class TextureSet;
 class CompositeTexture {
 
 public:
-
 
 	struct TextureData {
 
@@ -50,8 +58,8 @@ public:
 	u32 getHeight() const noexcept;
 	u32 getTextureCount() const noexcept;
 
-	bool hasTexture(Id64 texID) const;
-	const TextureData& getTextureData(Id64 texID) const;
+	bool hasTexture(Id32 texID) const;
+	const TextureData& getTextureData(Id32 texID) const;
 
 	static CompositeTexture loadAndComposite(const TextureSet& set, Type type);
 

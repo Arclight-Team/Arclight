@@ -208,7 +208,11 @@ void SpriteRenderer::createType(Id32 id, Id32 textureID, const Vec2f& size) {
 void SpriteRenderer::createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline) {
 
 	const SpriteType& type = factory.create(id, textureID, size, origin, outline);
-	typeBuffer.addType(id, type);
+
+	u32 ctID = textureToCompositeID[textureID];
+	u32 texID = textures[ctID].getTextureData(textureID).arrayIndex;
+
+	typeBuffer.addType(id, type, ctID, texID);
 
 }
 
