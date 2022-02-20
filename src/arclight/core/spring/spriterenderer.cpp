@@ -95,11 +95,15 @@ void SpriteRenderer::render() {
 				u32 oldTypeIndex = batch.getSpriteTypeIndex(id);
 				u32 newTypeIndex = typeBuffer.getTypeIndex(sprite.getTypeID());
 
-				if (oldTypeIndex != newTypeIndex) {
+				u32 oldCTID = textureToCompositeID[getType(oldTypeIndex).textureID];
+				u32 newCTID = textureToCompositeID[getType(newTypeIndex).textureID];
 
-					batch.setSpriteTypeIndex(id, newTypeIndex);
-					group.removeCTReference(oldTypeIndex);
-					group.addCTReference(newTypeIndex);
+				batch.setSpriteTypeIndex(id, newTypeIndex);
+
+				if (oldCTID != newCTID) {
+
+					group.removeCTReference(oldCTID);
+					group.addCTReference(newCTID);
 
 				}
 
@@ -191,7 +195,13 @@ void SpriteRenderer::destroySprite(Id64 id) {
 	const Sprite& sprite = getSprite(id);
 
 	RenderGroup& group = renderGroups[getSpriteRenderKey(sprite)];
-	group.removeCTReference(getCompositeTextureID(sprite));
+
+	//TODO: If a group has multiple batches, find the one sprite is contained in
+	if (sprite.getFlags() & Sprite::TypeDirty) {
+		group.removeCTReference(group.getBatch().getSpriteTypeIndex(sprite.getID()));
+	} else {
+		group.removeCTReference(getCompositeTextureID(sprite));
+	}
 
 	sprites.destroy(id);
 
