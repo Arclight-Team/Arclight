@@ -112,6 +112,8 @@ public:
 	u32 getX() const;
 	u32 getY() const;
 	Vec2ui getPosition() const;
+	Vec2ui getSize() const;
+	Vec2ui getFramebufferSize() const;
 
 	void minimize();
 	void restore();

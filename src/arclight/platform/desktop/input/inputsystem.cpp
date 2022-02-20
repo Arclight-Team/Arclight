@@ -52,10 +52,6 @@ void InputSystem::connect(const Window& window) {
 		return;
 	}
 
-	if (glfwRawMouseMotionSupported()) {
-		glfwSetInputMode(handle->handle, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-	}
-
 	glfwSetKeyCallback(handle->handle, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
 
 		if (key == GLFW_KEY_UNKNOWN) {

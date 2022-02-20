@@ -35,12 +35,6 @@ class InputContext {
 public:
 
 	InputContext();
-	~InputContext();
-
-	InputContext(const InputContext& context) = delete;
-	InputContext& operator=(const InputContext& context) = delete;
-	InputContext(InputContext&& context) noexcept = default;
-	InputContext& operator=(InputContext&& context) = default;
 
 	void addState(u32 stateID, bool disablePropagation = false);
 	void removeState(u32 stateID);
@@ -80,19 +74,20 @@ public:
 	bool onCursorAreaEvent(const CursorAreaEvent& event);
 	bool onContinuousEvent(u32 ticks, const std::vector<KeyState>& keyStates, std::vector<u32>& eventCounts);
 
-	void linkHandler(InputHandler& handler);
-	void unlinkHandler();
+	InputHandler& getHandler();
+	const InputHandler& getHandler() const;
 
 	u32 getCurrentStateID() const;
 	bool propagationDisabled() const;
 
 private:
 
-	bool triggerCompare(const std::vector<KeyState>& keyStates, const KeyTrigger& trigger, const KeyEvent& event) const;
+	static bool triggerCompare(const std::vector<KeyState>& keyStates, const KeyTrigger& trigger, const KeyEvent& event);
 
 	bool enabled;
 	u32 currentState;
-	InputHandler* handler;
+	InputHandler handler;
+
 	std::unordered_map<u32, State> inputStates;
 	std::unordered_map<KeyAction, std::pair<KeyTrigger, bool>> actionBindings;
 	std::unordered_map<KeyAction, KeyTrigger> defaultBindings;
