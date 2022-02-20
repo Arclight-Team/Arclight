@@ -10,6 +10,7 @@
 #include "arcconfig.hpp"
 #include "util/bits.hpp"
 #include "util/log.hpp"
+#include "util/destructionguard.hpp"
 #include "types.hpp"
 
 #ifdef ARC_WINDOW_MODULE
@@ -22,22 +23,17 @@
 
 	extern u32 arcMain(const std::vector<std::string>& args);
 
-	struct ArcRTShutdownGuard {
-
-		~ArcRTShutdownGuard() noexcept {
-			ArcRuntime::shutdown();
-		}
-
-	};
-
 	int main(int argc, char** argv) {
 
 		constexpr u32 initReturnBase = 0x7000;
-		[[maybe_unused]] ArcRTShutdownGuard guard;
+
+		DestructionGuard guard([]() {
+			ArcRuntime::shutdown();
+		});
 
 		std::set_terminate([]() {
 			Log::error("Runtime", "An unhandled exception has been thrown, terminating.");
-			ArcRTShutdownGuard();
+			ArcRuntime::shutdown();
 		});
 
 		if (!ArcRuntime::initialize()) {
