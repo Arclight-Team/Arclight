@@ -104,11 +104,11 @@ CompositeTexture CompositeTexture::loadAndComposite(const TextureSet& set, Type 
 
 		for(const auto&[id, path] : paths) {
 
-			File file(path.getString(), File::In | File::Binary);
+			File file(path.toString(), File::In | File::Binary);
 
 			if (!file.open()) {
 
-				Log::error("Texture Compositor", "Failed to open file %s", path.getString().c_str());
+				Log::error("Texture Compositor", "Failed to open file %s", path.toString().c_str());
 				throw BadTextureCompositeException();
 
 			}

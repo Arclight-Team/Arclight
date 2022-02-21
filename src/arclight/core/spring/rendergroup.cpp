@@ -126,7 +126,7 @@ void RenderGroup::prepareCTTable(const CTAllocationTable& prev, bool forceRecalc
 
 				ctGroupTableBuffer.setSlot(remCT, i);
 				ctAllocationTable[i] = remCT;
-				ctBindings.emplace_back(remCT, i);
+				ctBindings.emplace_back(remCT, static_cast<u32>(i));
 				searchStartIndex = i + 1;
 
 				break;
