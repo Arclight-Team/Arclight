@@ -81,13 +81,13 @@ Path& Path::setFilename(const std::string& name) {
 
 
 
-std::string Path::getString() const {
+std::string Path::toString() const {
 	return path.generic_string();
 }
 
 
 
-std::string Path::getNativeString() const {
+std::string Path::toNativeString() const {
 	return std::filesystem::path(path).make_preferred().string();
 }
 
@@ -232,7 +232,7 @@ Path Path::parent() const {
 
 
 Path::operator std::string() const {
-	return getString();
+	return toString();
 }
 
 

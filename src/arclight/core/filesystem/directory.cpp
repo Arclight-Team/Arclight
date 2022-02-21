@@ -352,7 +352,7 @@ std::vector<FSEntry> Directory::listEntries(Sorting sorting, bool recursive) con
 			
 			if constexpr (Bool::one(S, Sorting::NameAscending, Sorting::NameDescending)) {
 
-				return compare(a.getPath().getNativeString(), b.getPath().getNativeString());
+				return compare(a.getPath().toNativeString(), b.getPath().toNativeString());
 
 			} else if constexpr (Bool::one(S, Sorting::TypeAscending, Sorting::TypeDescending)) {
 
@@ -369,7 +369,7 @@ std::vector<FSEntry> Directory::listEntries(Sorting sorting, bool recursive) con
 
 				} else {
 
-					return compare(a.getPath().getNativeString(), b.getPath().getNativeString());
+					return compare(a.getPath().toNativeString(), b.getPath().toNativeString());
 
 				}
 
@@ -385,7 +385,7 @@ std::vector<FSEntry> Directory::listEntries(Sorting sorting, bool recursive) con
 
 				} else {
 
-					return compare(a.getPath().getNativeString(), b.getPath().getNativeString());
+					return compare(a.getPath().toNativeString(), b.getPath().toNativeString());
 
 				}
 

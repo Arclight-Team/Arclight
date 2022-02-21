@@ -71,9 +71,9 @@ void ArcballCamera::setRotation(double angleH, double angleV) {
 	yaw = angleH;
 	pitch = Math::clamp(angleV, Math::toRadians(-89.99), Math::toRadians(89.99));
 
-	position.x = Math::cos(yaw) * Math::cos(pitch);
-	position.y = Math::sin(pitch);
-	position.z = Math::sin(yaw) * Math::cos(pitch);
+	position.x = Math::cos(yaw) * -Math::cos(pitch);
+	position.y = -Math::sin(pitch);
+	position.z = Math::sin(yaw) * -Math::cos(pitch);
 
 }
 
@@ -168,14 +168,14 @@ bool ArcballCamera::actionListener(KeyAction action) {
 		if (inputBusy())
 			return false;
 
-		rotationX += 1;
+		rotationX -= 1;
 		break;
 
 	case CameraAction::MoveDown:
 		if (inputBusy())
 			return false;
 
-		rotationX -= 1;
+		rotationX += 1;
 		break;
 
 	case CameraAction::ZoomIn:
@@ -225,7 +225,7 @@ bool ArcballCamera::actionListener(KeyAction action) {
 		Vec2f dif = mouse - mouseGrab;
 		mouseGrab = mouse;
 		dif *= defaultSpeed * 0.092;
-		rotate(dif.x, dif.y);
+		rotate(dif.x, -dif.y);
 		break;
 	}
 

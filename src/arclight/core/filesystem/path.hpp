@@ -34,8 +34,8 @@ public:
 	Path& setExtension(const std::string& ext);
 	Path& setFilename(const std::string& name);
 
-	std::string getString() const;
-	std::string getNativeString() const;
+	std::string toString() const;
+	std::string toNativeString() const;
 
 	std::string getStem() const;
 	std::string getExtension() const;
