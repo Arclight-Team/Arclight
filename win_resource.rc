@@ -1,0 +1,2 @@
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "arclight.exe.manifest"
+IDI_ICON1 ICON "assets/logo.ico"

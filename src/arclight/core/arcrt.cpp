@@ -8,6 +8,7 @@
 
 #include "arcrt.hpp"
 #include "arcconfig.hpp"
+#include "arcbuild.hpp"
 #include "util/bits.hpp"
 #include "util/log.hpp"
 #include "util/destructionguard.hpp"
@@ -17,6 +18,10 @@
 	#include <GLFW/glfw3.h>
 #endif
 
+
+namespace ArcRuntime {
+	extern bool platformInit();
+}
 
 
 #ifdef ARC_USE_ARCRT
@@ -91,11 +96,17 @@
 
 bool ArcRuntime::initialize() noexcept {
 
+	Log::info("Runtime", "Initializing runtime");
+
+	//Platform init
+	if (!ArcRuntime::platformInit()) {
+		return false;
+	}
+
 	//Initialize Log
 	Log::init();
 	Log::openLogFile(std::string(ARC_URI_ROOT) + "/" + ARC_LOG_DIRECTORY);
 
-	Log::info("Runtime", "Initializing runtime");
 
 #ifdef ARC_WINDOW_MODULE
 

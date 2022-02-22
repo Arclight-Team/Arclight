@@ -304,6 +304,23 @@ Notification Notification::post(const std::string& title, const std::string& tex
 
 
 
+Notification Notification::post(const std::string& title, const std::string& text, const std::string& tooltip, const Image<Pixel::RGBA8>& icon, const Image<Pixel::RGBA8>& image, Options options) {
+
+	Notification notification;
+	notification.setTitle(title);
+	notification.setText(text);
+	notification.setTooltip(tooltip);
+	notification.setIcon(icon);
+	notification.setImage(image);
+	notification.setOptions(options);
+	notification.show();
+
+	return notification;
+
+}
+
+
+
 void Notification::purgeAll() {
 
 	NOTIFYICONDATAW data {};

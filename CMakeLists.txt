@@ -90,6 +90,7 @@ project (${PROJECT_NAME})
 			set(${CompilerFlag} "${${CompilerFlag}} /MP /permissive /Zi /utf-8")
 		endforeach()
 
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /MANIFESTUAC:NO")
 		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
 
 	endif()
@@ -173,6 +174,11 @@ project (${PROJECT_NAME})
 	list(APPEND APPLICATION_SOURCES ${SOURCES})
 	file(GLOB SOURCES RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${ARCLIGHT_MODULE_CORE_PATH}/*.cpp)
 	list(APPEND APPLICATION_SOURCES ${SOURCES})
+
+	foreach(Platform ${ARCLIGHT_PLATFORMS})
+		file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${ARCLIGHT_MODULE_PLATFORM_PATH}/${Platform}/*.cpp)
+		list(APPEND APPLICATION_SOURCES ${SOURCES})
+	endforeach()
 
 	foreach(ModulePath ${MODULE_PATHS})
 
@@ -312,12 +318,14 @@ project (${PROJECT_NAME})
 	if(WIN32)
 
 		# We only support windows icons yet
-		list(APPEND APPLICATION_SOURCES "windows_logo.rc")
+		list(APPEND APPLICATION_SOURCES "win_resource.rc" "arclight.exe.manifest")
 		#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 		#set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 
 		# Force Unicode
 		add_compile_definitions(UNICODE _UNICODE)
+
+		list(APPEND APPLICATION_LIBS ComCtl32.lib)
 
 	endif()
 

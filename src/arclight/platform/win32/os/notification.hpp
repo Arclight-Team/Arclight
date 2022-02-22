@@ -56,6 +56,7 @@ public:
 
 	static Notification post(const std::string& title, const std::string& text, const std::string& tooltip, const std::string& icon, Options options = Options::None);
 	static Notification post(const std::string& title, const std::string& text, const std::string& tooltip, const Image<Pixel::RGBA8>& icon, Options options = Options::None);
+	static Notification post(const std::string& title, const std::string& text, const std::string& tooltip, const Image<Pixel::RGBA8>& icon, const Image<Pixel::RGBA8>& image, Options options = Options::None);
 
 	static void purgeAll();
 
