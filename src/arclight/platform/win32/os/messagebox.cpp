@@ -122,3 +122,19 @@ MessageBox::Result MessageBox::show() {
 	}
 
 }
+
+
+
+MessageBox::Result MessageBox::create(const std::string& title, const std::string& text, Type type, Icon icon, u32 defaultButton, bool modal) {
+
+	MessageBox box;
+	box.setTitle(title);
+	box.setText(text);
+	box.setType(type);
+	box.setIcon(icon);
+	box.setDefaultButton(defaultButton);
+	box.setModality(modal);
+
+	return box.show();
+
+}

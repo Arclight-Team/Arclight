@@ -56,6 +56,8 @@ public:
 
 	Result show();
 
+	static Result create(const std::string& title, const std::string& text, Type type, Icon icon, u32 defaultButton = 0, bool modal = false);
+
 private:
 
 	std::string title;
