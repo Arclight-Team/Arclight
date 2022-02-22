@@ -308,17 +308,18 @@ project (${PROJECT_NAME})
 	list(APPEND APPLICATION_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/lib/zlib/lib/zlibwapi.lib)
 
 ######################
-###### APP ICON ######
+###### PLATFORM ######
 ######################
 
-	# We only support windows icons yet
 	if(WIN32)
 
+		# We only support windows icons yet
 		list(APPEND APPLICATION_SOURCES "windows_logo.rc")
 		#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 		#set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 
-		message("Added application logo")
+		# Force Unicode
+		add_compile_definitions(UNICODE _UNICODE)
 
 	endif()
 

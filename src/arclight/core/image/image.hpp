@@ -286,6 +286,26 @@ public:
 	}
 
 
+	template<Pixel Q>
+	Image<Q> convert() const {
+
+		Image<Q> img(width, height);
+
+		for (u32 y = 0; y < height; y++) {
+
+			for (u32 x = 0; x < width; x++) {
+
+				img.setPixel(x, y, PixelConverter::convert<Q>(getPixel(x, y)));
+
+			}
+
+		}
+
+		return img;
+
+	}
+
+
 private:
 
 	u32 width;

@@ -652,10 +652,12 @@ public:
 	template<Pixel DestPixel, class T>
 	constexpr static auto convert(T&& pixel) {
 
-		using SrcFormat = typename T::Format;
+		using U = TT::RemoveCVRef<T>;
+
+		using SrcFormat = typename U::Format;
 		using DestFormat = PixelFormat<DestPixel>;
 		using DestPixelType = typename PixelType<DestPixel>::Type;
-		using SrcType = typename T::PackedT;
+		using SrcType = typename U::PackedT;
 		using DestType = typename DestPixelType::PackedT;
 		using ConvType = TT::Conditional<(sizeof(SrcType) > sizeof(DestType)), SrcType, DestType>;
 

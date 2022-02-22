@@ -33,6 +33,8 @@ public:
 
 	enum class Options {
 
+		None = 0x0,
+
 		MultiSelect = 0x2,
 		ShowHidden = 0x4,
 		DisableSymlinks = 0x8,
