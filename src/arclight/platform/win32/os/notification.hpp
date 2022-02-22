@@ -33,6 +33,9 @@ public:
 	Notification();
 	~Notification();
 
+	Notification(Notification&&) = default;
+	Notification& operator=(Notification&&) = default;
+
 	Options getOptions() const;
 
 	void setTitle(const std::string& title);
@@ -41,13 +44,20 @@ public:
 
 	void setStandardIcon(const std::string& name);
 	void setIcon(const Image<Pixel::RGBA8>& icon);
+	void setImage(const Image<Pixel::RGBA8>& image);
+
+	void removeIcon();
+	void removeImage();
 
 	void setOptions(Options options);
 
 	void show();
+	void remove();
 
-	static void post(const std::string& title, const std::string& text, const std::string& tooltip, const std::string& icon, Options options = Options::None);
-	static void post(const std::string& title, const std::string& text, const std::string& tooltip, const Image<Pixel::RGBA8>& icon, Options options = Options::None);
+	static Notification post(const std::string& title, const std::string& text, const std::string& tooltip, const std::string& icon, Options options = Options::None);
+	static Notification post(const std::string& title, const std::string& text, const std::string& tooltip, const Image<Pixel::RGBA8>& icon, Options options = Options::None);
+
+	static void purgeAll();
 
 private:
 

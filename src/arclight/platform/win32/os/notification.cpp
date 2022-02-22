@@ -7,11 +7,11 @@
  */
 
 #include "notification.hpp"
-#include "debug.hpp"
 #include "util/destructionguard.hpp"
 
+#include <unordered_set>
+
 #include <Windows.h>
-#include <strsafe.h>
 
 
 
@@ -20,13 +20,18 @@ class NotificationHandle {
 public:
 
 	NOTIFYICONDATAW data {};
+	bool active;
 
-	NotificationHandle() = default;
+	NotificationHandle() : active(false) {}
 
 	~NotificationHandle() {
 
 		if (data.hIcon) {
 			DestroyIcon(data.hIcon);
+		}
+
+		if (data.hBalloonIcon) {
+			DestroyIcon(data.hBalloonIcon);
 		}
 
 	}
@@ -35,7 +40,12 @@ public:
 
 
 
-static void setIconInternal(NotificationHandle& handle, const Image<Pixel::RGBA8>& icon, bool main) {
+static std::unordered_set<u64> activeNotifications;
+static u64 activeID = 0;
+
+
+
+static void setIconInternal(NotificationHandle& handle, const Image<Pixel::RGBA8>& icon, bool isIcon) {
 
 	ICONINFO iconInfo {true, 0, 0, nullptr, nullptr };
 
@@ -62,7 +72,7 @@ static void setIconInternal(NotificationHandle& handle, const Image<Pixel::RGBA8
 		return;
 	}
 
-	HICON& hIcon = main ? handle.data.hIcon : handle.data.hBalloonIcon;
+	HICON& hIcon = isIcon ? handle.data.hIcon : handle.data.hBalloonIcon;
 
 	if (hIcon) {
 		DestroyIcon(hIcon);
@@ -100,6 +110,7 @@ void Notification::setTitle(const std::string& title) {
 	}
 
 	std::copy(str.begin(), str.end(), handle->data.szInfoTitle);
+	handle->data.szInfoTitle[str.size()] = 0;
 
 }
 
@@ -114,6 +125,7 @@ void Notification::setText(const std::string& text) {
 	}
 
 	std::copy(str.begin(), str.end(), handle->data.szInfo);
+	handle->data.szInfo[str.size()] = 0;
 
 }
 
@@ -128,6 +140,7 @@ void Notification::setTooltip(const std::string& tooltip) {
 	}
 
 	std::copy(str.begin(), str.end(), handle->data.szTip);
+	handle->data.szTip[str.size()] = 0;
 
 }
 
@@ -155,6 +168,44 @@ void Notification::setIcon(const Image<Pixel::RGBA8>& icon) {
 
 
 
+void Notification::setImage(const Image<Pixel::RGBA8>& icon) {
+	setIconInternal(*handle, icon, false);
+}
+
+
+
+void Notification::removeIcon() {
+
+	handle->data.dwInfoFlags = NIIF_NONE;
+
+	HICON& icon = handle->data.hIcon;
+
+	if (icon) {
+
+		DestroyIcon(icon);
+		icon = nullptr;
+
+	}
+
+}
+
+
+
+void Notification::removeImage() {
+
+	HICON& icon = handle->data.hBalloonIcon;
+
+	if (icon) {
+
+		DestroyIcon(icon);
+		icon = nullptr;
+
+	}
+
+}
+
+
+
 void Notification::setOptions(Options options) {
 	this->options = options;
 }
@@ -165,7 +216,6 @@ void Notification::show() {
 
 	NOTIFYICONDATAW& data = handle->data;
 	data.cbSize = sizeof(data);
-
 	data.uFlags = NIF_TIP | NIF_INFO;
 
 	if (data.hIcon) {
@@ -189,14 +239,40 @@ void Notification::show() {
 		data.dwInfoFlags |= NIIF_NOSOUND;
 	}
 
-	Shell_NotifyIconW(NIM_ADD, &data);
-	Shell_NotifyIconW(NIM_SETVERSION, &data);
+	if (!handle->active) {
+
+		handle->active = true;
+		activeNotifications.insert(activeID);
+		data.uID = activeID++;
+
+		Shell_NotifyIconW(NIM_ADD, &data);
+		Shell_NotifyIconW(NIM_SETVERSION, &data);
+
+	} else {
+
+		Shell_NotifyIconW(NIM_MODIFY, &data);
+
+	}
 
 }
 
 
 
-void Notification::post(const std::string& title, const std::string& text, const std::string& tooltip, const std::string& icon, Options options) {
+void Notification::remove() {
+
+	if (handle->active) {
+
+		Shell_NotifyIconW(NIM_DELETE, &handle->data);
+		activeNotifications.erase(handle->data.uID);
+		handle->active = false;
+
+	}
+
+}
+
+
+
+Notification Notification::post(const std::string& title, const std::string& text, const std::string& tooltip, const std::string& icon, Options options) {
 
 	Notification notification;
 	notification.setTitle(title);
@@ -206,11 +282,13 @@ void Notification::post(const std::string& title, const std::string& text, const
 	notification.setOptions(options);
 	notification.show();
 
+	return notification;
+
 }
 
 
 
-void Notification::post(const std::string& title, const std::string& text, const std::string& tooltip, const Image<Pixel::RGBA8>& icon, Options options) {
+Notification Notification::post(const std::string& title, const std::string& text, const std::string& tooltip, const Image<Pixel::RGBA8>& icon, Options options) {
 
 	Notification notification;
 	notification.setTitle(title);
@@ -219,6 +297,23 @@ void Notification::post(const std::string& title, const std::string& text, const
 	notification.setIcon(icon);
 	notification.setOptions(options);
 	notification.show();
+
+	return notification;
+
+}
+
+
+
+void Notification::purgeAll() {
+
+	NOTIFYICONDATAW data {};
+
+	for (u64 id : activeNotifications) {
+
+		data.uID = id;
+		Shell_NotifyIconW(NIM_DELETE, &data);
+
+	}
 
 }
 
