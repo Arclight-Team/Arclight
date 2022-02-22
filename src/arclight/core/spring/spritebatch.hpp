@@ -8,8 +8,7 @@
 
 #pragma once
 
-#include "math/matrix.hpp"
-#include "memory/alignedallocator.hpp"
+#include "syncbuffer.hpp"
 #include "types.hpp"
 
 #include <vector>
@@ -17,18 +16,18 @@
 
 
 
-class SpriteBatchData;
-
 class SpriteBatch {
 
 public:
 
 	SpriteBatch();
 
-	void createSprite(u64 id, const Vec2f& translation, const Vec2f& scale, const Mat2f& rsTransform);
+	void createSprite(u64 id, const Vec2f& translation, const Mat2f& transform, u32 typeIndex);
 	void setSpriteTranslation(u64 id, const Vec2f& translation);
-	void setSpriteScale(u64 id, const Vec2f& scale);
-	void setSpriteRSTransform(u64 id, const Mat2f& rsTransform);
+	void setSpriteTransform(u64 id, const Mat2f& transform);
+	void setSpriteTypeIndex(u64 id, u32 typeIndex);
+
+	u32 getSpriteTypeIndex(u64 id) const;
 
 	void purgeSprite(u64 id);
 	void synchronize();
@@ -41,21 +40,16 @@ private:
 	constexpr static u32 dataSize = 32;
 	constexpr static u32 transformOffset = 0;
 	constexpr static u32 translationOffset = 16;
-	constexpr static u32 scaleOffset = 24;
-
-	void updateBounds(SizeT offset, SizeT size);
-	void resetBounds() noexcept;
+	constexpr static u32 typeIndexOffset = 24;
 
 	static void vectorDecay(const Vec2f& vector, const std::span<u8>& dest);
 	static void matrixDecay(const Mat2f& matrix, const std::span<u8>& dest);
 
-
-	SizeT updateStart, updateEnd;
-
-	std::shared_ptr<SpriteBatchData> data;
+	std::shared_ptr<class SpriteBatchData> data;
 
 	std::unordered_map<u64, SizeT> offsets;
 	std::unordered_map<SizeT, u64> ids;
-	std::vector<u8, AlignedAllocator<u8, 16>> vertexData;
+
+	SyncBuffer buffer;
 
 };

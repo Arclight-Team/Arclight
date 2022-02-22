@@ -485,6 +485,30 @@ Vec2ui Window::getPosition() const {
 
 
 
+Vec2ui Window::getSize() const {
+
+	arc_assert(isOpen(), "Tried to get window size for non-existing window");
+
+	Vec2i v;
+	glfwGetWindowSize(windowHandle->handle, &v.x, &v.y);
+	return v;
+
+}
+
+
+
+Vec2ui Window::getFramebufferSize() const {
+
+	arc_assert(isOpen(), "Tried to get framebuffer size for non-existing window");
+
+	Vec2i v;
+	glfwGetFramebufferSize(windowHandle->handle, &v.x, &v.y);
+	return v;
+
+}
+
+
+
 void Window::minimize() {
 
 	arc_assert(isOpen(), "Tried to minimize window for non-existing window");

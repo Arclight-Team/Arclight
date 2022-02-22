@@ -28,14 +28,8 @@ public:
 	using ScrollListener        = std::function<bool(double, double)>;
 	using CursorAreaListener    = std::function<bool(bool)>;
 
-	inline InputHandler() noexcept : context(nullptr), actionListener(nullptr), coActionListener(nullptr), keyListener(nullptr), charListener(nullptr), cursorListener(nullptr), scrollListener(nullptr), cursorAreaListener(nullptr) {};
+	inline InputHandler() noexcept : actionListener(nullptr), coActionListener(nullptr), keyListener(nullptr), charListener(nullptr), cursorListener(nullptr), scrollListener(nullptr), cursorAreaListener(nullptr) {};
 
-	virtual ~InputHandler();
-
-	InputHandler(const InputHandler& handler) noexcept = delete;
-	InputHandler& operator=(const InputHandler& handler) noexcept = delete;
-	InputHandler(InputHandler&& handler) noexcept = default;
-	InputHandler& operator=(InputHandler&& handler) noexcept = default;
 
 	inline void setActionListener(const ActionListener& listener) {
 		actionListener = listener;
@@ -69,7 +63,6 @@ private:
 
 	friend class InputContext;
 
-	InputContext* context;
 	ActionListener actionListener;
 	CoActionListener coActionListener;
 	KeyListener keyListener;

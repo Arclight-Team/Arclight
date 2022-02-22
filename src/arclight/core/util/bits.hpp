@@ -232,9 +232,10 @@ namespace Bits {
 
 		SizeT s = TT::SizeofN<0, J...>;
 		SizeT n = sizeof...(js) * s;
+		SizeT shift = 0;
 		I i = 0;
-		
-		(((i |= static_cast<I>(js) << (n - s)), i >>= s), ...);
+
+		(((i |= static_cast<TT::MakeUnsigned<I>>(cast<TT::MakeUnsigned<J>>(js)) << shift), shift += s * 8), ...);
 
 		return i;
 
@@ -248,7 +249,7 @@ namespace Bits {
 
 		for (SizeT n = 0; n < sizeof(I) / sizeof(J) && n < max; n++) {
 
-			i |= static_cast<I>(js[n]) << shift;
+			i |= static_cast<TT::MakeUnsigned<I>>(cast<TT::MakeUnsigned<J>>(js[n])) << shift;
 			shift += sizeof(J) * 8;
 
 		}
@@ -259,7 +260,7 @@ namespace Bits {
 
 	template<Integer I, Integer... J>
 	constexpr void disassemble(I i, J&... js) noexcept requires (TT::IsAllSame<J...> && (TT::SizeofN<0, J...> * sizeof...(J)) == sizeof(I)) {
-		((js = i & ~static_cast<J>(0), i >>= (TT::SizeofN<0, J...> * 8)), ...);
+		((js = cast<J>(TT::MakeUnsigned<J>(i & ~static_cast<J>(0))), i >>= (TT::SizeofN<0, J...> * 8)), ...);
 	}
 
 	template<Integer I, Integer J>
@@ -267,7 +268,7 @@ namespace Bits {
 
 		for(SizeT n = 0; n < sizeof(I) / sizeof(J) && n < max; n++) {
 
-			js[n] = i & ~static_cast<J>(0);
+			js[n] = cast<J>(TT::MakeUnsigned<J>(i & ~static_cast<J>(0)));
 			i >>= sizeof(J) * 8;
 
 		}

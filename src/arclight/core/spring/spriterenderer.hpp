@@ -8,18 +8,23 @@
 
 #pragma once
 
+#include "spring.hpp"
+#include "compositetexture.hpp"
 #include "spritearray.hpp"
 #include "spritebatch.hpp"
 #include "spritegroup.hpp"
 #include "spritefactory.hpp"
-#include "textureholder.hpp"
+#include "spritetypebuffer.hpp"
 #include "math/rectangle.hpp"
+#include "rendergroup.hpp"
 
 #include <map>
+#include <memory>
+#include <unordered_map>
 
 
 
-class SpriteRendererShaders;
+class TextureSet;
 
 class SpriteRenderer {
 
@@ -30,7 +35,7 @@ public:
 	void preload();
 	void render();
 
-	void setViewport(const Vec2d& lowerLeft, const Vec2d& topRight);
+	void setViewport(const Vec2f& lowerLeft, const Vec2f& topRight);
 
 	//Sprite functions
 	Sprite& createSprite(Id64 id, Id32 typeID, Id32 groupID = 0);
@@ -40,12 +45,13 @@ public:
 	void destroySprite(Id64 id);
 
 	//Type functions
-	void createType(Id64 id, Id64 textureID, const Vec2f& size);
-	void createType(Id64 id, Id64 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline);
+	void createType(Id32 id, Id32 textureID, const Vec2f& size);
+	void createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline = SpriteOutline());
+	bool hasType(Id32 id) const;
+	const SpriteType& getType(Id32 id) const;
 
-	bool hasType(Id64 id) const;
-	OptionalRef<const SpriteType> getType(Id64 id) const;
-	void destroyType(Id64 id);
+	//Texture functions
+	void loadTextureSet(const TextureSet& set);
 
 	//Group functions
 	void showGroup(Id32 groupID);
@@ -58,20 +64,30 @@ public:
 
 private:
 
-	static Mat2f calculateSpriteRSTransform(const Sprite& sprite);
+	u64 getSpriteRenderKey(const Sprite& sprite) const;
+	u32 getCompositeTextureID(const Sprite& sprite) const;
+
+	Mat2f calculateSpriteTransform(const Sprite& sprite) const;
+	Vec2f calculateGlobalSpriteScale(const Sprite& sprite) const;
 
 	void recalculateProjection();
 
-	TextureHolder textureHolder;
+
+	inline static const CTAllocationTable initialCTAllocationTable = std::vector<u32>(Spring::textureSlots, Spring::unusedCTSlot);
+
 	SpriteFactory factory;
 	SpriteArray sprites;
 
-	std::shared_ptr<SpriteRendererShaders> shaders;
+	std::shared_ptr<class SpriteRendererShaders> shaders;
 
+	SpriteTypeBuffer typeBuffer;
 	std::map<u32, SpriteGroup> groups;
-	std::map<u32, SpriteBatch> batches;
+	std::map<u64, RenderGroup> renderGroups;
 
-	RectD viewport;          //The scene's viewport rect
+	std::vector<CompositeTexture> textures;
+	std::unordered_map<u32, u32> textureToCompositeID;
+
+	RectF viewport;          //The scene's viewport rect
 	Mat4f projection;
 
 };

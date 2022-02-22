@@ -263,11 +263,11 @@ OptionalRef<const Sprite> SpriteArray::getOrNull(u64 id) const noexcept {
 
 
 SpriteArray::iterator SpriteArray::begin() noexcept {
-	return iterator(*this, &storageByIndex(firstActive), firstActive);
+	return iterator(*this, size() ? &storageByIndex(firstActive) : nullptr, firstActive);
 }
 
 SpriteArray::const_iterator SpriteArray::begin() const noexcept {
-	return const_iterator(*this, &storageByIndex(firstActive), firstActive);
+	return const_iterator(*this, size() ? &storageByIndex(firstActive) : nullptr, firstActive);
 }
 
 SpriteArray::const_iterator SpriteArray::cbegin() const noexcept {

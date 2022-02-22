@@ -19,7 +19,7 @@ struct SpriteBatchData {
 	SpriteBatchData() {
 
 		constexpr float squareOutline[] = {
-			-0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f
+			0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f
 		};
 
 		vao.create();
@@ -36,11 +36,14 @@ struct SpriteBatchData {
 		matrixVbo.bind();
 
 		vao.setAttribute(1, 4, GLE::AttributeType::Float, 32, 0);
-		vao.setAttribute(2, 4, GLE::AttributeType::Float, 32, 16);
+		vao.setAttribute(2, 2, GLE::AttributeType::Float, 32, 16);
+		vao.setAttribute(3, 1, GLE::AttributeType::UInt, 32, 24, GLE::AttributeClass::Int);
 		vao.enableAttribute(1);
 		vao.enableAttribute(2);
+		vao.enableAttribute(3);
 		vao.setDivisor(1, 1);
 		vao.setDivisor(2, 1);
+		vao.setDivisor(3, 1);
 
 	}
 
@@ -65,25 +68,22 @@ struct SpriteBatchData {
 
 
 SpriteBatch::SpriteBatch() {
-
 	data = std::make_shared<SpriteBatchData>();
-	resetBounds();
-
 }
 
 
 
-void SpriteBatch::createSprite(u64 id, const Vec2f& translation, const Vec2f& scale, const Mat2f& rsTransform) {
+void SpriteBatch::createSprite(u64 id, const Vec2f& translation, const Mat2f& transform, u32 typeIndex) {
 
-	SizeT offset = vertexData.size();
+	SizeT offset = buffer.size();
 
 	offsets[id] = offset;
 	ids[offset] = id;
-	vertexData.resize(offset + dataSize);
+	buffer.resize(offset + dataSize);
 
-	setSpriteRSTransform(id, rsTransform);
+	setSpriteTransform(id, transform);
 	setSpriteTranslation(id, translation);
-	setSpriteScale(id, scale);
+	setSpriteTypeIndex(id, typeIndex);
 
 }
 
@@ -93,42 +93,39 @@ void SpriteBatch::setSpriteTranslation(u64 id, const Vec2f& translation) {
 
 	arc_assert(offsets.contains(id), "Illegal incomplete sprite batch update");
 
-	u8 flatVec[8];
-	vectorDecay(translation, flatVec);
-
 	SizeT offset = offsets[id] + translationOffset;
-	std::copy_n(flatVec, 8, &vertexData[offset]);
-	updateBounds(offset, 8);
+	buffer.write(offset, translation);
 
 }
 
 
 
-void SpriteBatch::setSpriteScale(u64 id, const Vec2f& scale) {
+void SpriteBatch::setSpriteTransform(u64 id, const Mat2f& transform) {
 
 	arc_assert(offsets.contains(id), "Illegal incomplete sprite batch update");
-
-	u8 flatVec[8];
-	vectorDecay(scale, flatVec);
-
-	SizeT offset = offsets[id] + scaleOffset;
-	std::copy_n(flatVec, 8, &vertexData[offset]);
-	updateBounds(offset, 8);
-
-}
-
-
-
-void SpriteBatch::setSpriteRSTransform(u64 id, const Mat2f& rsTransform) {
-
-	arc_assert(offsets.contains(id), "Illegal incomplete sprite batch update");
-
-	u8 flatMat[16];
-	matrixDecay(rsTransform, flatMat);
 
 	SizeT offset = offsets[id] + transformOffset;
-	std::copy_n(flatMat, 16, &vertexData[offset]);
-	updateBounds(offset, 16);
+	buffer.write(offset, transform);
+
+}
+
+
+
+void SpriteBatch::setSpriteTypeIndex(u64 id, u32 typeIndex) {
+
+	arc_assert(offsets.contains(id), "Illegal incomplete sprite batch update");
+
+	SizeT offset = offsets[id] + typeIndexOffset;
+	buffer.write(offset, typeIndex);
+
+}
+
+
+
+u32 SpriteBatch::getSpriteTypeIndex(u64 id) const {
+
+	arc_assert(offsets.contains(id), "Illegal sprite batch query");
+	return Bits::assemble<u32>(buffer.data() + offsets.find(id)->second + typeIndexOffset);
 
 }
 
@@ -141,13 +138,15 @@ void SpriteBatch::purgeSprite(u64 id) {
 	if (it != offsets.end()) {
 
 		SizeT offset = it->second;
-		SizeT lastOffset = vertexData.size() - dataSize;
+		SizeT lastOffset = buffer.size() - dataSize;
 		u64 lastSprite = ids[lastOffset];
 
-		std::copy_n(&vertexData[lastOffset], dataSize, &vertexData[offset]);
+		buffer.write(offset, {&buffer[lastOffset], dataSize});
 
 		ids.erase(lastOffset);
 		offsets.erase(lastSprite);
+
+		buffer.resize(lastOffset);
 
 	}
 
@@ -157,7 +156,7 @@ void SpriteBatch::purgeSprite(u64 id) {
 
 void SpriteBatch::synchronize() {
 
-	if (updateStart >= updateEnd) {
+	if (!buffer.hasChanged()) {
 		return;
 	}
 
@@ -165,18 +164,18 @@ void SpriteBatch::synchronize() {
 
 	matrixVbo.bind();
 
-	if (matrixVbo.getSize() < vertexData.size()) {
+	if (matrixVbo.getSize() < buffer.size()) {
 
-		matrixVbo.allocate(Math::alignUp(vertexData.size(), 2048), GLE::BufferAccess::DynamicDraw);
-		matrixVbo.update(0, vertexData.size(), vertexData.data());
+		matrixVbo.allocate(Math::alignUp(buffer.size(), 2048), GLE::BufferAccess::DynamicDraw);
+		matrixVbo.update(0, buffer.size(), buffer.data());
 
 	} else {
 
-		matrixVbo.update(updateStart, updateEnd - updateStart, vertexData.data() + updateStart);
+		matrixVbo.update(buffer.getUpdateStart(), buffer.getUpdateSize(), buffer.updateStartData());
 
 	}
 
-	resetBounds();
+	buffer.finishUpdate();
 
 }
 
@@ -193,55 +192,4 @@ void SpriteBatch::render() {
 
 SizeT SpriteBatch::getBatchSize() const {
 	return offsets.size();
-}
-
-
-
-void SpriteBatch::updateBounds(SizeT offset, SizeT size) {
-
-	if (offset < updateStart) {
-		updateStart = offset;
-	}
-
-	if (offset + size > updateEnd) {
-		updateEnd = offset + size;
-	}
-
-}
-
-
-
-void SpriteBatch::resetBounds() noexcept {
-
-	updateEnd = 0;
-	updateStart = -1;
-
-}
-
-
-
-void SpriteBatch::vectorDecay(const Vec2f& vector, const std::span<u8>& dest) {
-
-	u32 x = 0;
-
-	for (u32 i = 0; i < 2; i++, x += 4) {
-		std::copy_n(Bits::toByteArray(&vector[i]), 4, &dest[x]);
-	}
-
-}
-
-
-
-void SpriteBatch::matrixDecay(const Mat2f& matrix, const std::span<u8>& dest) {
-
-	u32 x = 0;
-
-	for (u32 i = 0; i < 2; i++) {
-
-		for (u32 j = 0; j < 2; j++, x += 4) {
-			std::copy_n(Bits::toByteArray(&matrix[i][j]), 4, &dest[x]);
-		}
-
-	}
-
 }

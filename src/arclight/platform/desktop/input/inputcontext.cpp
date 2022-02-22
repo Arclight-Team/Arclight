@@ -15,12 +15,8 @@
 
 
 
-InputContext::InputContext() : enabled(true), handler(nullptr), currentState(0) {
+InputContext::InputContext() : enabled(true), currentState(0) {
 	addState(0, false);
-}
-
-InputContext::~InputContext() {
-	unlinkHandler();
 }
 
 
@@ -400,7 +396,7 @@ void InputContext::enable() {
 
 bool InputContext::onKeyEvent(const KeyEvent& event, const std::vector<KeyState>& keyStates) {
 
-	if (!enabled || !handler) {
+	if (!enabled) {
 		return propagationDisabled();
 	}
 
@@ -408,7 +404,7 @@ bool InputContext::onKeyEvent(const KeyEvent& event, const std::vector<KeyState>
 	Key key = event.getKey();
 	KeyState state = event.getKeyState();
 
-	if (handler->actionListener) {
+	if (handler.actionListener) {
 
 		auto& keyMap = inputStates[currentState].keyLookup;
 		const auto& actions = keyMap.equal_range(key);
@@ -419,7 +415,7 @@ bool InputContext::onKeyEvent(const KeyEvent& event, const std::vector<KeyState>
 
 			if(triggerCompare(keyStates, trigger, event)){
 			
-				if (handler->actionListener(it->second)) {
+				if (handler.actionListener(it->second)) {
 					consumed = true;
 					break;
 				}
@@ -430,8 +426,8 @@ bool InputContext::onKeyEvent(const KeyEvent& event, const std::vector<KeyState>
 
 	}
 
-	if (handler->keyListener) {
-		consumed |= handler->keyListener(key, state);
+	if (handler.keyListener) {
+		consumed |= handler.keyListener(key, state);
 	}
 
 	return consumed || propagationDisabled();
@@ -442,11 +438,11 @@ bool InputContext::onKeyEvent(const KeyEvent& event, const std::vector<KeyState>
 
 bool InputContext::onCharEvent(const CharEvent& event) {
 
-	if (!enabled || !handler || !handler->charListener) {
+	if (!enabled || !handler.charListener) {
 		return propagationDisabled();
 	}
 
-	return handler->charListener(event.getChar()) || propagationDisabled();
+	return handler.charListener(event.getChar()) || propagationDisabled();
 
 }
 
@@ -454,11 +450,11 @@ bool InputContext::onCharEvent(const CharEvent& event) {
 
 bool InputContext::onCursorEvent(const CursorEvent& event) {
 
-	if (!enabled || !handler || !handler->cursorListener) {
+	if (!enabled || !handler.cursorListener) {
 		return propagationDisabled();
 	}
 
-	return handler->cursorListener(event.getX(), event.getY()) || propagationDisabled();
+	return handler.cursorListener(event.getX(), event.getY()) || propagationDisabled();
 
 }
 
@@ -466,11 +462,11 @@ bool InputContext::onCursorEvent(const CursorEvent& event) {
 
 bool InputContext::onScrollEvent(const ScrollEvent& event) {
 
-	if (!enabled || !handler || !handler->scrollListener) {
+	if (!enabled || !handler.scrollListener) {
 		return propagationDisabled();
 	}
 
-	return handler->scrollListener(event.scrollX(), event.scrollY()) || propagationDisabled();
+	return handler.scrollListener(event.scrollX(), event.scrollY()) || propagationDisabled();
 
 }
 
@@ -478,11 +474,11 @@ bool InputContext::onScrollEvent(const ScrollEvent& event) {
 
 bool InputContext::onCursorAreaEvent(const CursorAreaEvent& event) {
 
-	if (!enabled || !handler || !handler->cursorAreaListener) {
+	if (!enabled || !handler.cursorAreaListener) {
 		return propagationDisabled();
 	}
 
-	return handler->cursorAreaListener(event.areaEntered()) || propagationDisabled();
+	return handler.cursorAreaListener(event.areaEntered()) || propagationDisabled();
 
 }
 
@@ -491,7 +487,7 @@ bool InputContext::onCursorAreaEvent(const CursorAreaEvent& event) {
 
 bool InputContext::onContinuousEvent(u32 ticks, const std::vector<KeyState>& keyStates, std::vector<u32>& eventCounts) {
 
-	if (!enabled || !handler || !handler->coActionListener) {
+	if (!enabled || !handler.coActionListener) {
 		return propagationDisabled();
 	}
 
@@ -518,7 +514,7 @@ bool InputContext::onContinuousEvent(u32 ticks, const std::vector<KeyState>& key
 		bool result = false;
 
 		for (u32 i = 0; i < combinedEventCount; i++) {
-			result |= handler->coActionListener(action, 1);
+			result |= handler.coActionListener(action, 1);
 		}
 
 		if (result) {
@@ -537,23 +533,14 @@ bool InputContext::onContinuousEvent(u32 ticks, const std::vector<KeyState>& key
 
 
 
-void InputContext::linkHandler(InputHandler& handler) {
-
-	unlinkHandler();
-	this->handler = &handler;
-	this->handler->context = this;
-
+InputHandler& InputContext::getHandler() {
+	return handler;
 }
 
 
 
-void InputContext::unlinkHandler() {
-
-	if (handler) {
-		handler->context = nullptr;
-		handler = nullptr;
-	}
-
+const InputHandler& InputContext::getHandler() const {
+	return handler;
 }
 
 
@@ -570,7 +557,7 @@ bool InputContext::propagationDisabled() const {
 
 
 
-bool InputContext::triggerCompare(const std::vector<KeyState>& keyStates, const KeyTrigger& trigger, const KeyEvent& event) const {
+bool InputContext::triggerCompare(const std::vector<KeyState>& keyStates, const KeyTrigger& trigger, const KeyEvent& event) {
 
 	if (trigger.getKeyState() != event.getKeyState()) {
 		return false;

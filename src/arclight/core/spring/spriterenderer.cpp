@@ -8,14 +8,13 @@
 
 #include "spriterenderer.hpp"
 #include "springshaders.hpp"
+#include "compositetexture.hpp"
+#include "textureset.hpp"
 #include "render/gle/gle.hpp"
 #include "render/utility/shaderloader.hpp"
 #include "time/timer.hpp"
 #include "time/profiler.hpp"
-#include "image/bmp.hpp"
 #include "debug.hpp"
-#include "filesystem/file.hpp"
-#include "stream/fileinputstream.hpp"
 
 
 
@@ -25,32 +24,27 @@ struct SpriteRendererShaders {
 
 		rectangleOutlineShader = ShaderLoader::fromString(SpringShader::rectangularOutlineVS, SpringShader::rectangularOutlineFS);
 		uProjectionMatrix = rectangleOutlineShader.getUniform(SpringShader::rectangularOutlineUProjection);
-		uSampleTexture = rectangleOutlineShader.getUniform("sampleTexture");
 
-		File file("@/cursor.bmp", File::Binary | File::In);
-		file.open();
-		FileInputStream stream(file);
-		Image img = BMP::loadBitmap<Pixel::RGBA8>(stream);
+		rectangleOutlineShader.start();
 
-		sampleTexture.create();
-		sampleTexture.bind();
-		sampleTexture.setData(img.getWidth(), img.getHeight(), GLE::ImageFormat::RGBA8, GLE::TextureSourceFormat::RGBA, GLE::TextureSourceType::UByte, img.getImageBuffer().data());
-		sampleTexture.setMinFilter(GLE::TextureFilter::None);
-		sampleTexture.setMagFilter(GLE::TextureFilter::None);
-		sampleTexture.generateMipmaps();
+		for (u32 i = 0; i < Spring::textureSlots; i++) {
+
+			std::string name = "textures[" + std::to_string(i) + "]";
+			uTextures[i] = rectangleOutlineShader.getUniform(name.c_str());
+			uTextures[i].setInt(i);
+
+		}
 
 	}
 
 	~SpriteRendererShaders() {
 		rectangleOutlineShader.destroy();
-		sampleTexture.destroy();
 	}
 
 	GLE::ShaderProgram rectangleOutlineShader;
 	GLE::Uniform uProjectionMatrix;
 
-	GLE::Texture2D sampleTexture;
-	GLE::Uniform uSampleTexture;
+	GLE::Uniform uTextures[Spring::textureSlots];
 
 };
 
@@ -77,25 +71,40 @@ void SpriteRenderer::render() {
 		if (flags) {
 
 			u64 id = sprite.getID();
-			SpriteBatch& batch = batches[sprite.getGroupID()];
+			RenderGroup& group = renderGroups[getSpriteRenderKey(sprite)];
+			SpriteBatch& batch = group.getBatch();
 
 			if (flags & Sprite::GroupDirty) {
 
 				//The group has changed (TODO: Purge after group change)
-				batch.createSprite(id, sprite.getPosition(), sprite.getScale(), calculateSpriteRSTransform(sprite));
+				batch.createSprite(id, sprite.getPosition(), calculateSpriteTransform(sprite), typeBuffer.getTypeIndex(sprite.getTypeID()));
+				group.addCTReference(getCompositeTextureID(sprite));
 
-			} else if (flags & (Sprite::TranslationDirty | Sprite::ScaleDirty | Sprite::RSTransformDirty)) {
+			} else if (flags & (Sprite::TranslationDirty | Sprite::TransformDirty)) {
 
 				if (flags & Sprite::TranslationDirty) {
 					batch.setSpriteTranslation(id, sprite.getPosition());
 				}
 
-				if (flags & Sprite::ScaleDirty) {
-					batch.setSpriteScale(id, sprite.getScale());
+				if (flags & Sprite::TransformDirty) {
+					batch.setSpriteTransform(id, calculateSpriteTransform(sprite));
 				}
 
-				if (flags & Sprite::RSTransformDirty) {
-					batch.setSpriteRSTransform(id, calculateSpriteRSTransform(sprite));
+			} else if (flags & Sprite::TypeDirty) {
+
+				u32 oldTypeIndex = batch.getSpriteTypeIndex(id);
+				u32 newTypeIndex = typeBuffer.getTypeIndex(sprite.getTypeID());
+
+				u32 oldCTID = textureToCompositeID[getType(oldTypeIndex).textureID];
+				u32 newCTID = textureToCompositeID[getType(newTypeIndex).textureID];
+
+				batch.setSpriteTypeIndex(id, newTypeIndex);
+
+				if (oldCTID != newCTID) {
+
+					group.removeCTReference(oldCTID);
+					group.addCTReference(newCTID);
+
 				}
 
 			}
@@ -108,31 +117,38 @@ void SpriteRenderer::render() {
 
 	GLE::clear(GLE::Color);
 
+
 	shaders->rectangleOutlineShader.start();
 	shaders->uProjectionMatrix.setMat4(projection);
 
-	shaders->sampleTexture.activate(0);
-	shaders->uSampleTexture.setInt(0);
+	typeBuffer.update();
+	typeBuffer.bind();
 
-	for (auto& [key, batch] : batches) {
+	const CTAllocationTable* prevCTAT = &initialCTAllocationTable;
 
-		batch.synchronize();
+	for (auto& [key, group] : renderGroups) {
 
-		if (groups[key].isVisible()) {
-			batch.render();
+		group.prepareCTTable(*prevCTAT);
+		prevCTAT = &group.getCTAllocationTable();
+
+		for (const auto& [ctID, slot] : group.getCTBindings()) {
+			textures[ctID].bind(slot);
 		}
+
+		group.syncData();
+		group.render();
 
 	}
 
-	p.stop("Sprite B");
+	//p.stop("Sprite B");
 
 }
 
 
 
-void SpriteRenderer::setViewport(const Vec2d& lowerLeft, const Vec2d& topRight) {
+void SpriteRenderer::setViewport(const Vec2f& lowerLeft, const Vec2f& topRight) {
 
-	viewport = RectD::fromPoints(lowerLeft, topRight);
+	viewport = RectF::fromPoints(lowerLeft, topRight);
 	recalculateProjection();
 
 }
@@ -171,43 +187,70 @@ bool SpriteRenderer::containsSprite(Id64 id) const {
 
 
 void SpriteRenderer::destroySprite(Id64 id) {
+
+	if (!containsSprite(id)) {
+		return;
+	}
+
+	const Sprite& sprite = getSprite(id);
+
+	RenderGroup& group = renderGroups[getSpriteRenderKey(sprite)];
+
+	//TODO: If a group has multiple batches, find the one sprite is contained in
+	if (sprite.getFlags() & Sprite::TypeDirty) {
+		group.removeCTReference(group.getBatch().getSpriteTypeIndex(sprite.getID()));
+	} else {
+		group.removeCTReference(getCompositeTextureID(sprite));
+	}
+
 	sprites.destroy(id);
+
 }
 
 
 
-void SpriteRenderer::createType(Id64 id, Id64 textureID, const Vec2f& size) {
+void SpriteRenderer::createType(Id32 id, Id32 textureID, const Vec2f& size) {
 	createType(id, textureID, size, Vec2f(0), SpriteOutline());
 }
 
 
 
-void SpriteRenderer::createType(Id64 id, Id64 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline) {
-	factory.create(id, textureID, size, origin, outline);
+void SpriteRenderer::createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline) {
+
+	const SpriteType& type = factory.create(id, textureID, size, origin, outline);
+
+	u32 ctID = textureToCompositeID[textureID];
+	u32 texID = textures[ctID].getTextureData(textureID).arrayIndex;
+
+	typeBuffer.addType(id, type, ctID, texID);
+
 }
 
 
 
-bool SpriteRenderer::hasType(Id64 id) const {
+bool SpriteRenderer::hasType(Id32 id) const {
 	return factory.contains(id);
 }
 
 
 
-OptionalRef<const SpriteType> SpriteRenderer::getType(Id64 id) const {
-
-	if (factory.contains(id)) {
-		factory.get(id);
-	}
-
-	return {};
-
+const SpriteType& SpriteRenderer::getType(Id32 id) const {
+	return factory.get(id);
 }
 
 
 
-void SpriteRenderer::destroyType(Id64 id) {
-	factory.destroy(id);
+void SpriteRenderer::loadTextureSet(const TextureSet& set) {
+
+	u32 ctID = textures.size();
+
+	CompositeTexture texture = CompositeTexture::loadAndComposite(set, CompositeTexture::Type::Array);
+	textures.emplace_back(texture);
+
+	for (const auto& [id, path] : set.getTexturePaths()) {
+		textureToCompositeID.try_emplace(id, ctID);
+	}
+
 }
 
 
@@ -256,8 +299,29 @@ u32 SpriteRenderer::activeSpriteCount() const noexcept {
 
 
 
-Mat2f SpriteRenderer::calculateSpriteRSTransform(const Sprite& sprite) {
-	return Mat3f::fromRotation(sprite.getRotation()).shear(sprite.getShearX(), sprite.getShearY()).toMat2();
+u64 SpriteRenderer::getSpriteRenderKey(const Sprite& sprite) const {
+	return sprite.getGroupID();
+}
+
+
+
+u32 SpriteRenderer::getCompositeTextureID(const Sprite& sprite) const {
+	return textureToCompositeID.find(getType(sprite.getTypeID()).textureID)->second;
+}
+
+
+
+Mat2f SpriteRenderer::calculateSpriteTransform(const Sprite& sprite) const {
+
+	Vec2f globalScale = calculateGlobalSpriteScale(sprite);
+	return Mat3f::fromRotation(sprite.getRotation()).shear(sprite.getShearX(), sprite.getShearY()).scale(globalScale.x, globalScale.y).toMat2();
+
+}
+
+
+
+Vec2f SpriteRenderer::calculateGlobalSpriteScale(const Sprite& sprite) const {
+	return sprite.getScale() * getType(sprite.getTypeID()).size;
 }
 
 

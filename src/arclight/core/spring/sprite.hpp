@@ -9,7 +9,6 @@
 #pragma once
 
 #include "springobject.hpp"
-#include "spriteoutline.hpp"
 #include "math/matrix.hpp"
 #include "util/bitmaskenum.hpp"
 
@@ -37,38 +36,41 @@ public:
 	constexpr u32 getTypeID() const noexcept { return typeID; }
 	constexpr u32 getGroupID() const noexcept { return groupID; }
 
+	constexpr void setGroupID(u32 id) noexcept { groupID = id; groupDirty(); }
+	constexpr void setTypeID(u32 id) noexcept { typeID = id; typeDirty(); }
+
 	//Setters
 	constexpr void setX(float x) noexcept { position.x = x; translationDirty(); }
 	constexpr void setY(float y) noexcept { position.y = y; translationDirty(); }
 	constexpr void setPosition(float x, float y) noexcept { setPosition(Vec2f(x, y)); }
 	constexpr void setPosition(const Vec2f& pos) noexcept { position = pos; translationDirty(); }
-	constexpr void setRotation(float angle) noexcept { rotation = angle; rsTransformDirty(); }
-	constexpr void setScaleX(float sx) noexcept { scale.x = sx; scaleDirty(); }
-	constexpr void setScaleY(float sy) noexcept { scale.y = sy; scaleDirty(); }
+	constexpr void setRotation(float angle) noexcept { rotation = angle; transformDirty(); }
+	constexpr void setScaleX(float sx) noexcept { scale.x = sx; transformDirty(); }
+	constexpr void setScaleY(float sy) noexcept { scale.y = sy; transformDirty(); }
 	constexpr void setScale(float sx, float sy) noexcept { setScale(Vec2f(sx, sy)); }
-	constexpr void setScale(const Vec2f& s) noexcept { scale = s; scaleDirty(); }
-	constexpr void setShearX(float sx) noexcept { shear.x = sx; rsTransformDirty(); }
-	constexpr void setShearY(float sy) noexcept { shear.y = sy; rsTransformDirty(); }
+	constexpr void setScale(const Vec2f& s) noexcept { scale = s; transformDirty(); }
+	constexpr void setShearX(float sx) noexcept { shear.x = sx; transformDirty(); }
+	constexpr void setShearY(float sy) noexcept { shear.y = sy; transformDirty(); }
 	constexpr void setShear(float sx, float sy) noexcept { setShear(Vec2f(sx, sy)); }
-	constexpr void setShear(const Vec2f& s) noexcept { shear = s; rsTransformDirty(); }
+	constexpr void setShear(const Vec2f& s) noexcept { shear = s; transformDirty(); }
 
 private:
 
 	friend class SpriteRenderer;
 
-	constexpr void rsTransformDirty() noexcept { setFlags(getFlags() | Dirty | RSTransformDirty); }
+	constexpr void transformDirty() noexcept { setFlags(getFlags() | Dirty | TransformDirty); }
 	constexpr void translationDirty() noexcept { setFlags(getFlags() | Dirty | TranslationDirty); }
-	constexpr void scaleDirty() noexcept { setFlags(getFlags() | Dirty | ScaleDirty); }
 	constexpr void groupDirty() noexcept { setFlags(getFlags() | Dirty | GroupDirty); }
+	constexpr void typeDirty() noexcept { setFlags(getFlags() | Dirty | TypeDirty); }
 	constexpr void allDirty() noexcept { setFlags(All); }
 
 	enum Flags {
 		Dirty = 0x1,
-		RSTransformDirty = 0x2,
+		TransformDirty = 0x2,
 		TranslationDirty = 0x4,
-		ScaleDirty = 0x8,
 		GroupDirty = 0x10,
-		All = Dirty | RSTransformDirty | TranslationDirty | ScaleDirty | GroupDirty
+		TypeDirty = 0x20,
+		All = Dirty | TransformDirty | TranslationDirty | GroupDirty | TypeDirty
 	};
 
 	u64 id;

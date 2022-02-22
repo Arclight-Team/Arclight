@@ -11,20 +11,28 @@
 
 
 
-bool SpriteFactory::contains(u64 id) const {
+bool SpriteFactory::contains(u32 id) const {
 	return spriteTypes.contains(id);
 }
 
 
 
-const SpriteType& SpriteFactory::get(u64 id) const {
-	return spriteTypes.at(id);
+const SpriteType& SpriteFactory::get(u32 id) const {
+
+	auto it = spriteTypes.find(id);
+
+	if (it == spriteTypes.end()) {
+		return defaultSpriteType;
+	} else {
+		return it->second;
+	}
+
 }
 
 
 
 
-void SpriteFactory::destroy(u64 id) {
+void SpriteFactory::destroy(u32 id) {
 	spriteTypes.erase(id);
 }
 

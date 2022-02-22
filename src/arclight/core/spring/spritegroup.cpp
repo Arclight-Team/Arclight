@@ -3,7 +3,6 @@
  *
  *	 This file is part of Arclight. All rights reserved.
  *
- *	 sprite.cpp
+ *	 spritegroup.cpp
  */
 
-#include "sprite.hpp"
