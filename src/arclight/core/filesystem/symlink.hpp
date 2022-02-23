@@ -1,0 +1,45 @@
+/*
+ *	 Copyright (c) 2022 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 symlink.hpp
+ */
+
+#pragma once
+
+#include "fsentry.hpp"
+
+
+
+enum class FSCopySymlink {
+	Follow,
+	Copy,
+	Skip
+};
+
+
+
+class Symlink {
+
+public:
+
+	Symlink();
+	Symlink(const Path& path);
+	Symlink(FSEntry entry);
+
+	bool exists();
+
+	bool create(const Path& target, bool asFile = true);
+	bool copy(const Path& where, FSCopyExisting copyExisting = FSCopyExisting::Skip);
+	bool rename(const Path& to);
+	bool remove();
+
+	Path getPath() const;
+	FSEntry getFSEntry() const;
+
+private:
+
+	FSEntry entry;
+
+};

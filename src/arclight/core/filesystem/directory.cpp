@@ -190,9 +190,9 @@ constexpr static u32 getOrderRank(FSEntry::Type type) {
 
 
 
-Directory::Directory() : FSEntry(Path::getApplicationDirectory()) {}
-
-Directory::Directory(const Path& path) : FSEntry(path) {}
+Directory::Directory() : Directory(Path::getApplicationDirectory()) {}
+Directory::Directory(const Path& path) : Directory(FSEntry(path)) {}
+Directory::Directory(FSEntry entry) : entry(std::move(entry)) {}
 
 
 
@@ -233,15 +233,15 @@ Directory::Counts Directory::countEntries(bool recursive) const {
 
 		switch(entry.getType()) {
 
-			case Type::File:
+			case FSEntry::File:
 				counts.files++;
 				break;
 
-			case Type::Directory:
+			case FSEntry::Directory:
 				counts.subdirs++;
 				break;
 
-			case Type::Symlink:
+			case FSEntry::Symlink:
 				counts.symlinks++;
 				break;
 
@@ -259,7 +259,7 @@ Directory::Counts Directory::countEntries(bool recursive) const {
 
 
 
-umax Directory::getCount(Type type, bool recursive) const {
+umax Directory::getCount(FSEntry::Type type, bool recursive) const {
 
 	DirectoryIterator::Flag flags = DirectoryIterator::SkipPermissionDenied;
 
@@ -280,13 +280,13 @@ umax Directory::getCount(Type type, bool recursive) const {
 
 
 umax Directory::getFileCount(bool recursive) const {
-	return getCount(Type::File, recursive);
+	return getCount(FSEntry::File, recursive);
 }
 
 
 
 umax Directory::getDirectoryCount(bool recursive) const {
-	return getCount(Type::Directory, recursive);
+	return getCount(FSEntry::Directory, recursive);
 }
 
 
@@ -444,6 +444,24 @@ std::vector<FSEntry> Directory::listEntries(Sorting sorting, bool recursive) con
 
 
 
+bool Directory::empty() const {
+
+	for (const FSEntry& entry : DirectoryIterator(getPath())) {
+		return false;
+	}
+
+	return true;
+
+}
+
+
+
+bool Directory::exists() {
+	return entry.exists();
+}
+
+
+
 bool Directory::create() {
 
 	if (exists()) {
@@ -476,6 +494,75 @@ bool Directory::createSingle() {
 
 	return true;
 
+}
+
+
+
+bool Directory::copy(const Path& where, bool recursive, bool onlyDirs, FSCopyExisting copyExisting, FSCopySymlink copySymlink) {
+
+	std::filesystem::copy_options options = std::filesystem::copy_options::none;
+
+	if (recursive) {
+		options |= std::filesystem::copy_options::recursive;
+	}
+
+	if (onlyDirs) {
+		options |= std::filesystem::copy_options::directories_only;
+	}
+
+	switch (copyExisting) {
+
+		case FSCopyExisting::Skip: options |= std::filesystem::copy_options::skip_existing; break;
+		case FSCopyExisting::Update: options |= std::filesystem::copy_options::update_existing; break;
+		case FSCopyExisting::Overwrite: options |= std::filesystem::copy_options::overwrite_existing; break;
+		default: break;
+
+	}
+
+	switch (copySymlink) {
+
+		case FSCopySymlink::Copy: options |= std::filesystem::copy_options::copy_symlinks; break;
+		case FSCopySymlink::Skip: options |= std::filesystem::copy_options::skip_symlinks; break;
+		default: break;
+
+	}
+
+	if (!entry.isDirectory()) {
+		return false;
+	}
+
+	try {
+		std::filesystem::copy(getPath().getHandle(), where.getHandle(), options);
+	} catch (const std::exception&) {
+		return false;
+	}
+
+	return true;
+
+}
+
+
+
+bool Directory::rename(const Path& to) {
+	return entry.rename(to);
+}
+
+
+
+bool Directory::remove() {
+	return entry.remove();
+}
+
+
+
+Path Directory::getPath() const {
+	return entry.getPath();
+}
+
+
+
+FSEntry Directory::getFSEntry() const {
+	return entry;
 }
 
 

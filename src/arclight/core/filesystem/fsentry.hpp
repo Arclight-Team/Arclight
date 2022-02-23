@@ -47,6 +47,14 @@ enum class FSPermission {
 ARC_CREATE_BITMASK_ENUM(FSPermission)
 
 
+enum class FSCopyExisting {
+	Error,
+	Skip,
+	Overwrite,
+	Update
+};
+
+
 
 class FSEntry {
 

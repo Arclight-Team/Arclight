@@ -8,10 +8,12 @@
 
 #pragma once
 
+#include "symlink.hpp"
 #include "fsentry.hpp"
 
 #include <vector>
 #include <variant>
+
 
 
 class Directory;
@@ -59,7 +61,7 @@ ARC_CREATE_BITMASK_ENUM(DirectoryIterator::Flag)
 
 
 
-class Directory : public FSEntry {
+class Directory {
 
 public:
 
@@ -83,6 +85,7 @@ public:
 
 	Directory();
 	Directory(const Path& path);
+	Directory(FSEntry entry);
 
 	DirectoryIterator begin() const;
 	DirectoryIterator end() const;
@@ -92,7 +95,7 @@ public:
 
 	Counts countEntries(bool recursive = false) const;
 	
-	umax getCount(Type type, bool recursive = false) const;
+	umax getCount(FSEntry::Type type, bool recursive = false) const;
 	umax getFileCount(bool recursive = false) const;
 	umax getDirectoryCount(bool recursive = false) const;
 	umax getTotalCount(bool recursive = false) const;
@@ -123,8 +126,22 @@ public:
 
 	}
 
+	bool empty() const;
+
+	bool exists();
+
 	bool create();
 	bool createSingle();
+	bool copy(const Path& where, bool recursive = true, bool onlyDirs = false, FSCopyExisting copyExisting = FSCopyExisting::Skip, FSCopySymlink copySymlink = FSCopySymlink::Copy);
+	bool rename(const Path& to);
+	bool remove();
+
+	Path getPath() const;
+	FSEntry getFSEntry() const;
+
+private:
+
+	FSEntry entry;
 
 };
 
