@@ -53,7 +53,39 @@ FSEntry::Type FSEntry::getType() const {
 
 	}
 
-	return FSEntry::Unknown;
+}
+
+
+
+bool FSEntry::rename(const Path& to) {
+
+	if (!exists()) {
+		return false;
+	}
+
+	try {
+		std::filesystem::rename(getPath().getHandle(), to.getHandle());
+	} catch (const std::exception&) {
+		return false;
+	}
+
+	return true;
+
+}
+
+
+
+bool FSEntry::remove() {
+
+	if (!exists()) {
+		return false;
+	}
+
+	try {
+		return std::filesystem::remove_all(getPath().getHandle());
+	} catch (const std::exception& e) {
+		return false;
+	}
 
 }
 
@@ -126,6 +158,24 @@ u64 FSEntry::getLastModifiedTime() const {
 
 void FSEntry::setLastModifiedTime(u64 nanos) {
 	std::filesystem::last_write_time(entry.path(), std::chrono::clock_cast<std::chrono::file_clock>(std::chrono::sys_time{std::chrono::milliseconds{nanos}}));
+}
+
+
+
+umax FSEntry::getAvailableSpace() const {
+	return std::filesystem::space(getPath().getHandle()).available;
+}
+
+
+
+umax FSEntry::getFreeSpace() const {
+	return std::filesystem::space(getPath().getHandle()).free;
+}
+
+
+
+umax FSEntry::getCapacity() const {
+	return std::filesystem::space(getPath().getHandle()).capacity;
 }
 
 

@@ -72,6 +72,9 @@ public:
 	bool exists() const;
 	Type getType() const;
 
+	bool rename(const Path& to);
+	bool remove();
+
 	bool isFile() const;
 	bool isDirectory() const;
 	bool isSymlink() const;
@@ -87,6 +90,10 @@ public:
 
 	u64 getLastModifiedTime() const;
 	void setLastModifiedTime(u64 nanos);
+
+	umax getAvailableSpace() const;
+	umax getFreeSpace() const;
+	umax getCapacity() const;
 
 	FSPermission getPermissions() const;
 	bool hasPermissions(FSPermission perms) const;

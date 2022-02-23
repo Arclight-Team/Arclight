@@ -123,11 +123,8 @@ public:
 
 	}
 
-	static Directory getDesktopFolder();
-	static Directory getDocumentFolder();
-	static Directory getDownloadFolder();
-	static Directory getPictureFolder();
-	static Directory getVideoFolder();
+	bool create();
+	bool createSingle();
 
 };
 

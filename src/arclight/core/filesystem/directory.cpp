@@ -444,6 +444,40 @@ std::vector<FSEntry> Directory::listEntries(Sorting sorting, bool recursive) con
 
 
 
+bool Directory::create() {
+
+	if (exists()) {
+		return true;
+	}
+
+	try {
+		std::filesystem::create_directories(getPath().getHandle());
+	} catch (const std::exception& e) {
+		return false;
+	}
+
+	return true;
+
+}
+
+
+
+bool Directory::createSingle() {
+
+	if (exists()) {
+		return true;
+	}
+
+	try {
+		std::filesystem::create_directory(getPath().getHandle());
+	} catch (const std::exception&) {
+		return false;
+	}
+
+	return true;
+
+}
+
 
 
 DirectoryIterator begin(const DirectoryIterator& dir) {

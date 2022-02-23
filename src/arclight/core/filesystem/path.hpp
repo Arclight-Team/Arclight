@@ -69,12 +69,29 @@ public:
 
 	operator std::string() const;
 
+
 	const std::filesystem::path& getHandle() const;
+
 
 	static Path getCurrentWorkingDirectory();
 	static void setCurrentWorkingDirectory(const Path& path);
 
 	static Path getApplicationDirectory();
+
+
+	enum class Folder {
+		Desktop,
+		Documents,
+		Downloads,
+		Images,
+		Music,
+		Videos,
+		User,
+		Recent,
+		Temp
+	};
+
+	static Path getFolderPath(Folder folder);
 
 	static std::string convertAnnotatedPath(const std::string& annotatedPath);
 	
