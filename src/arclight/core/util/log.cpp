@@ -8,13 +8,12 @@
 
 #include "log.hpp"
 #include "assert.hpp"
+#include "filesystem/directory.hpp"
 #include "filesystem/file.hpp"
 #include "time/time.hpp"
 #include "arcconfig.hpp"
 
 #include <iostream>
-#include <sstream>
-
 
 #define LOG_DEBUG "D"
 #define LOG_INFO  "I"
@@ -45,22 +44,22 @@ namespace Log {
 	}
 
 
-	void openLogFile(Uri path) noexcept {
+	void openLogFile(Path path) noexcept {
 
 		try {
 
-			bool dirCreated = path.createDirectory();
+			bool dirCreated = Directory(path).create();
 
 			if (!dirCreated) {
-				Log::error("Log", "Failed to create log file directory '%s'", path.getPath().c_str());
+				Log::error("Log", "Failed to create log file directory '%s'", path.toString().c_str());
 				return;
 			}
 
-			path.move("log_" + Time::getTimestamp() + ".txt");
+			path.append("log_" + Time::getTimestamp() + ".txt");
 			logfile.open(path, File::Out);
 
 			if (!logfile.isOpen()) {
-				Log::error("Log", "Failed to open log file '%s'", path.getPath().c_str());
+				Log::error("Log", "Failed to open log file '%s'", path.toString().c_str());
 			}
 
 		} catch (const std::exception&) {

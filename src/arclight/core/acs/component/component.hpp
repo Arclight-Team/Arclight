@@ -16,5 +16,8 @@
 class IComponent {};
 typedef u32 ComponentID;
 
+//TRANSITION
+class Transform : public IComponent {};
+
 template<class C>
 concept Component = BaseOf<IComponent, TT::RemoveRef<C>>;

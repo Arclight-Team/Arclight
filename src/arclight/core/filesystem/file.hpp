@@ -8,9 +8,9 @@
 
 #pragma once
 
-// TRANSITION
-#include "util/uri.hpp"
+#include "path.hpp"
 #include "types.hpp"
+#include "fsentry.hpp"
 
 #include <string>
 #include <fstream>
@@ -32,10 +32,11 @@ public:
 	};
 
 	File();
-	explicit File(const Uri& path, u32 flags = File::In);
+	File(FSEntry entry, u32 flags = File::In);
+	File(const Path& path, u32 flags = File::In);
 
 	bool open();
-	bool open(const Uri& path, u32 flags = File::In);
+	bool open(const Path& path, u32 flags = File::In);
 	void close();
 
 	std::string read(u64 count);
@@ -56,14 +57,23 @@ public:
 	bool isOpen() const;
 	u64 getFileSize() const;
 
-	Uri getUri() const;
 	u32 getStreamFlags() const;
-	u64 getLastWriteTime() const;
-	
+
+
+	bool exists();
+
+	bool create();
+	bool copy(const Path& where, FSCopyExisting copyExisting = FSCopyExisting::Skip);
+	bool rename(const Path& to);
+	bool remove();
+
+	Path getPath() const;
+	FSEntry getFSEntry() const;
+
 private:
 
 	mutable std::fstream stream;
-	Uri filepath;
+	FSEntry entry;
 	u32 openFlags;
 
 };

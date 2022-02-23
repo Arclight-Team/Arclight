@@ -14,8 +14,9 @@
 #include <tuple>
 
 
+
 //Add component types here
-using ComponentTypes = std::tuple<>;
+using ComponentTypes = std::tuple<Transform>;
 
 
 struct ComponentHelper {

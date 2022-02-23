@@ -105,7 +105,7 @@ bool ArcRuntime::initialize() noexcept {
 
 	//Initialize Log
 	Log::init();
-	Log::openLogFile(std::string(ARC_URI_ROOT) + "/" + ARC_LOG_DIRECTORY);
+	Log::openLogFile(std::string(ARC_PATH_ROOT) + ARC_LOG_DIRECTORY);
 
 
 #ifdef ARC_WINDOW_MODULE

@@ -60,7 +60,7 @@ public:
 		}
 
 		auto& vec = observerInvokables[oei];
-		vec.push_back(AnyCallback(TypeTag<Function<C>>{}, callback));
+		vec.push_back(AnyCallback(TT::TypeTag<Function<C>>{}, callback));
 
 	}
 

@@ -9,6 +9,8 @@
 #include "system.hpp"
 #include "channel.hpp"
 #include "util/log.hpp"
+#include "filesystem/file.hpp"
+
 
 
 // ASX - Arclight FMOD wrapper
@@ -75,18 +77,18 @@ namespace ASX
 	*	Plugin support
 	*/
 
-	u32 System::loadPlugin(const Uri& path) {
+	u32 System::loadPlugin(const Path& path) {
 
 		if (!initialized()) {
 			throw std::exception("System not initialized");
 		}
 
-		if (!path.fileExists())
+		if (!File(path).exists())
 			return -1u;
 
 		u32 pluginHandle;
 
-		ASX_TRY() = handle->loadPlugin(path.getPath().c_str(), &pluginHandle);
+		ASX_TRY() = handle->loadPlugin(path.toString().c_str(), &pluginHandle);
 		
 		return pluginHandle;
 

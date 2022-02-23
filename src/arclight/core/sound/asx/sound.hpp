@@ -12,10 +12,12 @@
 #include "channel.hpp"
 #include "system.hpp"
 
-#include "util/uri.hpp"
 #include <span>
 #include <optional>
 
+
+
+class Path;
 
 // ASX - Arclight FMOD wrapper
 namespace ASX
@@ -39,8 +41,8 @@ namespace ASX
 	{
 	public:
 
-		void create(const Uri& uri, const SoundOptions& opt = {});
-		void create(const Uri& uri, CreateSoundInfo& info, const SoundOptions& opt = {});
+		void create(const Path& path, const SoundOptions& opt = {});
+		void create(const Path& path, CreateSoundInfo& info, const SoundOptions& opt = {});
 
 		void destroy();
 

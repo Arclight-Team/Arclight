@@ -8,9 +8,9 @@
 
 #pragma once
 
+#include "filesystem/path.hpp"
 #include "math/matrix.hpp"
 #include "math/vector.hpp"
-#include "util/uri.hpp"
 #include "types.hpp"
 
 #include <vector>
@@ -42,12 +42,12 @@ namespace arc
 	public:
 
 		constexpr TextureParser() : data(nullptr), width(0), height(0), channels(0) {}
-		TextureParser(const Uri& path, bool flipY = false) : TextureParser() {
+		TextureParser(const Path& path, bool flipY = false) : TextureParser() {
 			load(path, flipY);
 		}
 		virtual ~TextureParser() { destroy(); }
 
-		bool load(const Uri& path, bool flipY = false) {
+		bool load(const Path& path, bool flipY = false) {
 
 			width = 0;
 			height = 0;
@@ -173,7 +173,7 @@ namespace arc
 	{
 	public:
 
-		bool load(const Uri& path, bool flipY = false, bool srgb = false) {
+		bool load(const Path& path, bool flipY = false, bool srgb = false) {
 
 			TextureParser parser(path, flipY);
 
@@ -182,19 +182,19 @@ namespace arc
 				if (parser.isLoaded()) {
 
 					if (parser.getWidth() <= 0) {
-						Log::error("arcTexture2D", "Invalid texture width (%d) in %s", parser.getWidth(), path.getPath().c_str());
+						Log::error("arcTexture2D", "Invalid texture width (%d) in %s", parser.getWidth(), path.toString().c_str());
 					}
 
 					if (parser.getHeight() <= 0) {
-						Log::error("arcTexture2D", "Invalid texture height (%d) in %s", parser.getHeight(), path.getPath().c_str());
+						Log::error("arcTexture2D", "Invalid texture height (%d) in %s", parser.getHeight(), path.toString().c_str());
 					}
 
 					if (parser.getChannels() < 3 || parser.getChannels() > 4) {
-						Log::error("arcTexture2D", "Invalid number of channels (%d) in %s", parser.getChannels(), path.getPath().c_str());
+						Log::error("arcTexture2D", "Invalid number of channels (%d) in %s", parser.getChannels(), path.toString().c_str());
 					}
 				}
 				else {
-					Log::error("arcTexture2D", "Failed to load texture %s", path.getPath().c_str());
+					Log::error("arcTexture2D", "Failed to load texture %s", path.toString().c_str());
 				}
 
 				return false;
@@ -205,7 +205,7 @@ namespace arc
 			setData(parser.getWidth(), parser.getHeight(), parser.getImageFormat(srgb), parser.getSourceFormat(), GLE::TextureSourceType::UByte, parser.getData());
 			generateMipmaps();
 
-			Log::info("arcTexture2D", "Loaded texture %s", path.getPath().c_str());
+			Log::info("arcTexture2D", "Loaded texture %s", path.toString().c_str());
 
 			return true;
 
@@ -233,7 +233,7 @@ namespace arc
 
 		}
 
-		bool parse(const aiMaterial* material, const Uri& path) {
+		bool parse(const aiMaterial* material, const Path& path) {
 
 			if (!material) {
 				Log::error("arcMesh", "Material is null");
@@ -255,11 +255,8 @@ namespace arc
 						auto& target = getTextureContainer(type);
 						auto& texture = target.emplace_back();
 
-						Uri resPath(path);
-						//Uri resPath(std::filesystem::absolute(path.getPath()).string());
-						//resPath.move("..");
-						resPath.move(texPath.C_Str());
-						//resPath = std::filesystem::absolute(resPath.getPath()).string();
+						Path resPath(path);
+						resPath.append(texPath.C_Str());
 
 						if (!texture.load(resPath, textureFlipY, textureSRGB)) {
 							target.pop_back();
@@ -1261,18 +1258,18 @@ namespace arc
 
 
 		ModelParser() : scene(nullptr) {}
-		ModelParser(const Uri& path, u32 processFlags = DefaultProcessFlags) {
+		ModelParser(const Path& path, u32 processFlags = DefaultProcessFlags) {
 			load(path, processFlags);
 		}
 		virtual ~ModelParser() { destroy(); }
 
-		bool load(const Uri& path, u32 processFlags = DefaultProcessFlags) {
+		bool load(const Path& path, u32 processFlags = DefaultProcessFlags) {
 
 			importer.FreeScene();
-			scene = importer.ReadFile(path.getPath(), processFlags);
+			scene = importer.ReadFile(path.toString(), processFlags);
 
 			filePath = path;
-			rootPath = path.parentPath();
+			rootPath = path.parent();
 
 			if (!isLoaded()) {
 				return false;
@@ -1330,10 +1327,11 @@ namespace arc
 			return importer.GetErrorString();
 		}
 		
-		Uri getFilePath() const {
+		Path getFilePath() const {
 			return filePath;
 		}
-		Uri getRootPath() const {
+
+		Path getRootPath() const {
 			return rootPath;
 		}
 
@@ -1341,8 +1339,8 @@ namespace arc
 
 		Assimp::Importer importer;
 		const aiScene* scene;
-		Uri filePath;
-		Uri rootPath;
+		Path filePath;
+		Path rootPath;
 
 	};
 
@@ -1354,7 +1352,7 @@ namespace arc
 	{
 	public:
 
-		bool load(const Uri& path, bool flipY = false, bool sRGB = false) {
+		bool load(const Path& path, bool flipY = false, bool sRGB = false) {
 
 			ModelParser parser(path, ModelParser::DefaultProcessFlags/* | (flipY ? aiProcess_FlipUVs : 0)*/);
 

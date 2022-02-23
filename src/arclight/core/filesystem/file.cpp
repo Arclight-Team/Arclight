@@ -36,9 +36,9 @@ constexpr static std::ios::openmode convertFlagsToStdFlags(u32 flags) {
 
 
 
-File::File() : openFlags(0) {}
-
-File::File(const Uri& path, u32 flags) : filepath(path), openFlags(flags) {};
+File::File() : File(Path(), File::In) {}
+File::File(FSEntry entry, u32 flags) : entry(std::move(entry)), openFlags(flags) {};
+File::File(const Path& path, u32 flags) : File(FSEntry(path), flags) {};
 
 
 
@@ -47,20 +47,20 @@ bool File::open() {
 	arc_assert((openFlags & File::In) || (openFlags & File::Out), "Invalid file flags requested: %02X", openFlags);
 
 	if (isOpen()) {
-		Log::warn("File", "Attempting to open stream that has already been opened. Opened: '%s'", filepath.getPath().c_str());
+		Log::warn("File", "Attempting to open stream that has already been opened. Opened: '%s'", getPath().toString().c_str());
 		return false;
 	}
 
-	stream.open(filepath.getPath(), convertFlagsToStdFlags(openFlags));
+	stream.open(getPath().toString(), convertFlagsToStdFlags(openFlags));
 
 	return isOpen();
 
 }
 
 
-bool File::open(const Uri& path, u32 flags) {
+bool File::open(const Path& path, u32 flags) {
 
-	filepath = path;
+	entry = FSEntry(path);
 	openFlags = flags;
 
 	return open();
@@ -72,7 +72,7 @@ bool File::open(const Uri& path, u32 flags) {
 void File::close() {
 
 	if (!isOpen()) {
-		Log::warn("File", "Attempting to close stream that is already closed (URI = '%s')", filepath.getPath().c_str());
+		Log::warn("File", "Attempting to close stream that is already closed (URI = '%s')", getPath().toString());
 		return;
 	}
 
@@ -206,25 +206,81 @@ bool File::isOpen() const {
 
 
 
-u64 File::getFileSize() const {
-	return filepath.getFileSize();
-}
-
-
-
-Uri File::getUri() const {
-	return filepath;
-}
-
-
-
 u32 File::getStreamFlags() const {
 	return openFlags;
 }
 
 
 
-u64 File::getLastWriteTime() const {
-	arc_assert(filepath.fileExists(), "Invalid URI '%s'", filepath.getPath().c_str());
-	return std::filesystem::last_write_time(filepath.getPath()).time_since_epoch().count();
+u64 File::getFileSize() const {
+	return std::filesystem::file_size(getPath().getHandle());
+}
+
+
+
+bool File::exists() {
+	return entry.exists();
+}
+
+
+
+bool File::create() {
+
+	try {
+		std::ofstream dummyStream(getPath().toString(), std::ios::out);
+	} catch (const std::exception&) {
+		return false;
+	}
+
+	return exists();
+
+}
+
+
+
+bool File::copy(const Path& where, FSCopyExisting copyExisting) {
+
+	std::filesystem::copy_options options = std::filesystem::copy_options::none;
+
+	switch (copyExisting) {
+
+		case FSCopyExisting::Skip: options |= std::filesystem::copy_options::skip_existing; break;
+		case FSCopyExisting::Update: options |= std::filesystem::copy_options::update_existing; break;
+		case FSCopyExisting::Overwrite: options |= std::filesystem::copy_options::overwrite_existing; break;
+		default: break;
+
+	}
+
+	try {
+		std::filesystem::copy_file(getPath().getHandle(), where.getHandle(), options);
+	} catch (const std::exception&) {
+		return false;
+	}
+
+	return true;
+
+}
+
+
+
+bool File::rename(const Path& to) {
+	return entry.rename(to);
+}
+
+
+
+bool File::remove() {
+	return entry.remove();
+}
+
+
+
+Path File::getPath() const {
+	return entry.getPath();
+}
+
+
+
+FSEntry File::getFSEntry() const {
+	return entry;
 }

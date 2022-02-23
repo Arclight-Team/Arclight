@@ -29,8 +29,8 @@ project (${PROJECT_NAME})
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 
 	### URI TRANSITION
-	# Set Uri root path
-	add_compile_definitions(ARC_URI_ROOT="../../")
+	# Set root path
+	add_compile_definitions(ARC_PATH_ROOT="../../")
 
 	message("Building '${PROJECT_NAME}'")
 

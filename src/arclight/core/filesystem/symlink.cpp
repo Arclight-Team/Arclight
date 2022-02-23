@@ -43,7 +43,7 @@ bool Symlink::create(const Path& target, bool asFile) {
 }
 
 
-#include "debug.hpp"
+
 bool Symlink::copy(const Path& where, FSCopyExisting copyExisting) {
 
 	std::filesystem::copy_options options = std::filesystem::copy_options::copy_symlinks;
@@ -63,8 +63,7 @@ bool Symlink::copy(const Path& where, FSCopyExisting copyExisting) {
 
 	try {
 		std::filesystem::copy(getPath().getHandle(), where.getHandle(), options);
-	} catch (const std::exception& e) {
-		ArcDebug() << e.what();
+	} catch (const std::exception&) {
 		return false;
 	}
 

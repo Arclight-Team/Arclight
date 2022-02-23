@@ -47,7 +47,7 @@ class ComponentView {
 		template<class T, bool Const>
 		static AnyContainer construct(ComponentProvider& provider, ComponentViewChannel& channel, bool begin) {
 
-			AnyContainer container(TypeTag<Container<T, Const>>{}, provider.getComponentArray<T>(), begin);
+			AnyContainer container(TT::TypeTag<Container<T, Const>>{}, provider.getComponentArray<T>(), begin);
 
 			if(begin) {
 				execute<T, Const>(container, channel, Action::Reset);   

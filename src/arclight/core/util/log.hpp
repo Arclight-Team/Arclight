@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "uri.hpp"
+#include "filesystem/path.hpp"
 #include "string.hpp"
 
 
@@ -17,7 +17,7 @@ namespace Log {
 
 
 	void init() noexcept;
-	void openLogFile(Uri path) noexcept;
+	void openLogFile(Path path) noexcept;
 	void closeLogFile() noexcept;
 
 

@@ -13,7 +13,7 @@
 namespace ASX
 {
 	
-	void Sound::create(const Uri& uri, const SoundOptions& opt) {
+	void Sound::create(const Path& path, const SoundOptions& opt) {
 
 		// Already constructed
 		if (handle) {
@@ -24,11 +24,11 @@ namespace ASX
 			nonBlocking = true;
 
 		handle = nullptr;
-		ASX_TRY() = getSystemHandle()->createSound(uri.getPath().c_str(), opt.getFlag(), nullptr, &handle);
+		ASX_TRY() = getSystemHandle()->createSound(path.toString().c_str(), opt.getFlag(), nullptr, &handle);
 
 	}
 
-	void Sound::create(const Uri& uri, CreateSoundInfo& info, const SoundOptions& opt) {
+	void Sound::create(const Path& path, CreateSoundInfo& info, const SoundOptions& opt) {
 
 		// Already constructed
 		if (handle) {
@@ -39,7 +39,7 @@ namespace ASX
 			nonBlocking = true;
 
 		handle = nullptr;
-		ASX_TRY() = getSystemHandle()->createSound(uri.getPath().c_str(), opt.getFlag(), &info, &handle);
+		ASX_TRY() = getSystemHandle()->createSound(path.getPath().c_str(), opt.getFlag(), &info, &handle);
 
 	}
 
