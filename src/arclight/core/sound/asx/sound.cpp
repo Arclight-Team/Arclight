@@ -39,7 +39,7 @@ namespace ASX
 			nonBlocking = true;
 
 		handle = nullptr;
-		ASX_TRY() = getSystemHandle()->createSound(path.getPath().c_str(), opt.getFlag(), &info, &handle);
+		ASX_TRY() = getSystemHandle()->createSound(path.toString().c_str(), opt.getFlag(), &info, &handle);
 
 	}
 

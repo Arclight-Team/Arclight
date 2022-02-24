@@ -55,7 +55,7 @@ namespace arc
 
 			stbi_set_flip_vertically_on_load(!flipY);
 
-			data = stbi_load(path.getPath().c_str(), &width, &height, &channels, 0);
+			data = stbi_load(path.toString().c_str(), &width, &height, &channels, 0);
 
 			if (!isLoaded()) {
 				return false;
