@@ -72,7 +72,7 @@ bool File::open(const Path& path, u32 flags) {
 void File::close() {
 
 	if (!isOpen()) {
-		Log::warn("File", "Attempting to close stream that is already closed (Path = '%s')", getPath().toString());
+		Log::warn("File", "Attempting to close stream that is already closed (Path = '%s')", getPath().toString().c_str());
 		return;
 	}
 
