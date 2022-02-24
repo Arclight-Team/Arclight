@@ -126,13 +126,9 @@ std::string File::readAllText() {
 
 	arc_assert(isOpen(), "Attempted to read from an unopened file");
 
+	seekFromEnd(0);
 	auto fileSize = stream.tellg();
-
-	if (fileSize < 0) {
-		return {};
-	}
-
-	stream.seekg(0, std::ios::beg);
+	seekTo(0);
 
 	std::string bytes(fileSize, 0);
 	stream.read(bytes.data(), fileSize);
@@ -209,6 +205,15 @@ void File::seekTo(u64 offset) {
 
 	arc_assert(isOpen(), "Attempted to seek in an unopened file");
 	stream.seekg(offset, std::ios::beg);
+
+}
+
+
+
+void File::seekFromEnd(u64 offset) {
+
+	arc_assert(isOpen(), "Attempted to seek in an unopened file");
+	stream.seekg(offset, std::ios::end);
 
 }
 

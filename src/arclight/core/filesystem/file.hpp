@@ -53,6 +53,7 @@ public:
 
 	void seek(i64 offset);
 	void seekTo(u64 offset);
+	void seekFromEnd(u64 offset);
 
 	u64 getPosition() const;
 
