@@ -29,14 +29,14 @@ public:
 
 	constexpr void seek(i64 n) noexcept {
 
-		arc_assert(i64(cursor) + n >= 0 && cursor + n <= getSize(), "Attempted to seek out of bounds");
+		arc_assert(i64(cursor) + n >= 0 && cursor + n <= size(), "Attempted to seek out of bounds");
 		cursor += n;
 
 	}
 
 	constexpr void seekTo(u64 n) noexcept {
 
-		arc_assert(n <= getSize(), "Attempted to seek out of bounds");
+		arc_assert(n <= size(), "Attempted to seek out of bounds");
 		cursor = n;
 
 	}

@@ -72,7 +72,7 @@ bool File::open(const Path& path, u32 flags) {
 void File::close() {
 
 	if (!isOpen()) {
-		Log::warn("File", "Attempting to close stream that is already closed (URI = '%s')", getPath().toString());
+		Log::warn("File", "Attempting to close stream that is already closed (URI = '%s')", getPath().toString().c_str());
 		return;
 	}
 
@@ -126,10 +126,18 @@ std::string File::readAllText() {
 
 	arc_assert(isOpen(), "Attempted to read from an unopened file");
 
-	std::string bytes(size(), '0');
-	stream.read(bytes.data(), bytes.size());
+	auto fileSize = stream.tellg();
 
-	return bytes;
+	if (fileSize < 0) {
+		return {};
+	}
+
+	stream.seekg(0, std::ios::beg);
+
+	std::string bytes(fileSize, 0);
+	stream.read(bytes.data(), fileSize);
+
+    return bytes;
 
 }
 
