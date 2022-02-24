@@ -12,7 +12,6 @@
 #include "filesystem/path.hpp"
 #include "image/bmp.hpp"
 #include "image/image.hpp"
-#include "stream/fileinputstream.hpp"
 #include "render/gle/gle.hpp"
 
 
@@ -104,17 +103,7 @@ CompositeTexture CompositeTexture::loadAndComposite(const TextureSet& set, Type 
 
 		for(const auto&[id, path] : paths) {
 
-			File file(path.toString(), File::In | File::Binary);
-
-			if (!file.open()) {
-
-				Log::error("Texture Compositor", "Failed to open file %s", path.toString().c_str());
-				throw BadTextureCompositeException();
-
-			}
-
-			FileInputStream stream(file);
-			Image image = BMP::loadBitmap<Pixel::RGBA8>(stream);
+			Image image = BMP::loadBitmap<Pixel::RGBA8>(path);
 
 			maxWidth = Math::max(image.getWidth(), maxWidth);
 			maxHeight = Math::max(image.getHeight(), maxHeight);

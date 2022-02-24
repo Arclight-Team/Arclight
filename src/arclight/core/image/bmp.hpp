@@ -8,8 +8,8 @@
 
 #pragma once
 
+#include "filesystem/file.hpp"
 #include "image/image.hpp"
-#include "stream/inputstream.hpp"
 #include "stream/binaryreader.hpp"
 #include "util/bool.hpp"
 #include "util/typetraits.hpp"
@@ -109,13 +109,13 @@ namespace BMP {
 	};
 
 	template<Pixel P>
-	Image<P> loadBitmap(InputStream& stream) {
+	Image<P> loadBitmap(const std::span<const u8>& stream) {
 
 		using Format = PixelFormat<P>;
 		using PixelType = typename PixelType<P>::Type;
 
-		BinaryReader reader(stream, true, ByteOrder::Little);
-		SizeT streamSize = stream.getSize();
+		BinaryReader reader(stream, ByteOrder::Little);
+		SizeT streamSize = reader.size();
 
 		if(streamSize < headerSize + infoHeaderSize) {
 			Log::error("Bitmap Loader", "Failed to load bitmap: Bitmap stream size too small");
@@ -285,7 +285,7 @@ namespace BMP {
 						return Image<P>();
 					}
 
-					stream.seekTo(header.dataOffset);
+					reader.seekTo(header.dataOffset);
 					
 					u8 data[4];
 
@@ -305,7 +305,7 @@ namespace BMP {
 							if constexpr (N == 2 || N == 3) {
 
 								if(rowAlign) {
-									stream.seek(rowAlign);
+									reader.seek(rowAlign);
 								}
 
 							}
@@ -342,7 +342,7 @@ namespace BMP {
 					std::vector<PixelType> palette;
 					u32 colorCount = infoHeader.paletteColors ? infoHeader.paletteColors : 1 << infoHeader.bitsPerPixel;
 					
-					SizeT streamPos = stream.getPosition();
+					SizeT streamPos = reader.position();
 
 					if(streamSize < streamPos + colorCount * 4 * 4) {
 						Log::error("Bitmap Loader", "Failed to load bitmap: Stream size too small");
@@ -367,7 +367,7 @@ namespace BMP {
 						return Image<P>();
 					}
 
-					stream.seekTo(header.dataOffset);
+					reader.seekTo(header.dataOffset);
 
 					auto loadData = [&]<u32 BPP>() {
 
@@ -457,7 +457,7 @@ namespace BMP {
 				std::vector<PixelType> palette;
 				u32 colorCount = infoHeader.paletteColors ? infoHeader.paletteColors : 1 << infoHeader.bitsPerPixel;
 				
-				SizeT streamPos = stream.getPosition();
+				SizeT streamPos = reader.position();
 
 				if(streamSize < streamPos + colorCount * 4 * 4) {
 					Log::error("Bitmap Loader", "Failed to load bitmap: Stream size too small");
@@ -468,7 +468,7 @@ namespace BMP {
 					palette.push_back(PixelConverter::convert<P>(PixelBGRA8(reader.read<u32>())));
 				}
 
-				stream.seekTo(header.dataOffset);
+				reader.seekTo(header.dataOffset);
 
 				u8 ctrl[2];
 				u32 x = 0;
@@ -552,7 +552,7 @@ namespace BMP {
 									reader.read(std::span<u8>{indices, byteCount});
 
 									if(byteCount & 1) {
-										stream.seek(1);
+										reader.seek(1);
 									}
 
 									for(u32 i = 0; i < pixelCount; i++) {
@@ -635,7 +635,7 @@ namespace BMP {
 					return Image<P>();
 				}
 
-				stream.seekTo(header.dataOffset);
+				reader.seekTo(header.dataOffset);
 
 				auto loadData = [&]<u32 N>() {
 
@@ -656,7 +656,7 @@ namespace BMP {
 						if constexpr (N == 16) {
 
 							if(rowAlign) {
-								stream.seek(2);
+								reader.seek(2);
 							}
 
 						} 
@@ -682,6 +682,22 @@ namespace BMP {
 		}
 
 		return image;
+
+	}
+
+	template<Pixel P>
+	Image<P> loadBitmap(const Path& filepath) {
+
+		File file(filepath);
+
+		if (!file.open()) {
+			Log::error("Bitmap Loader", "Failed to load file %s", filepath.toString().c_str());
+			return Image<P>();
+		}
+
+		std::vector<u8> bytes = file.readAll();
+
+		return loadBitmap<P>(bytes);
 
 	}
 

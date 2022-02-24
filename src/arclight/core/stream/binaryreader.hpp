@@ -8,106 +8,46 @@
 
 #pragma once
 
-#include "inputstream.hpp"
+#include "binarystream.hpp"
 #include "util/bits.hpp"
-#include "util/assert.hpp"
-#include "util/typetraits.hpp"
-#include "arcconfig.hpp"
+
+#include <span>
 
 
-class BinaryReader {
+
+class BinaryReader : public BinaryStream<true> {
 
 public:
 
-	BinaryReader(InputStream& stream, bool convertEndianess = false, ByteOrder order = ByteOrder::Little) : stream(stream), convert(convertEndianess && Bits::requiresEndianConversion(order)) {}
+	constexpr BinaryReader() noexcept : convert(false) {}
+	constexpr explicit BinaryReader(const std::span<ByteType>& stream, ByteOrder order = ByteOrder::Little) noexcept : BinaryStream(stream), convert(Bits::requiresEndianConversion(order)) {}
+
 
 	template<Arithmetic T>
-	T read() {
+	constexpr T read() noexcept {
 
-		T in;
-
-		[[maybe_unused]] SizeT readBytes = stream.read(&in, sizeof(T));
-
-#ifndef ARC_STREAM_ACCELERATE
-		if (readBytes != sizeof(T)) {
-			arc_force_assert("Failed to read data from stream");
-			return {};
-		}
-#endif
+		T t = Bits::assemble<T>(head());
+		seek(sizeof(T));
 
 		if (convert) {
-			in = Bits::swap(in);
+			t = Bits::swap(t);
 		}
 
-		return in;
+		return t;
 
 	}
 
 	template<Arithmetic T>
-	void read(const std::span<T>& data, SizeT count) {
-		read(data.subspan(0, count));
-	}
+	constexpr void read(const std::span<T>& dest) noexcept {
 
-	template<Arithmetic T>
-	void read(const std::span<T>& data) {
-
-		SizeT size = data.size();
-		SizeT bytes = sizeof(T) * size;
-
-		if (convert) {
-
-			for(SizeT i = 0; i < size; i++) {
-
-				T& in = data[i];
-				[[maybe_unused]] SizeT readBytes = stream.read(&in, sizeof(T));
-
-#ifndef ARC_STREAM_ACCELERATE
-				if (readBytes != sizeof(T)) {
-					arc_force_assert("Failed to read data from stream");
-					return;
-				}
-#endif
-
-				in = Bits::swap(in);
-
-			}
-
-		} else {
-
-			[[maybe_unused]] SizeT readBytes = stream.read(data.data(), bytes);
-
-#ifndef ARC_STREAM_ACCELERATE
-			if (readBytes != bytes) {
-				arc_force_assert("Failed to read data from stream");
-				return;
-			}
-#endif
-
+		for (SizeT i = 0; i < dest.size(); i++) {
+			dest[i] = read<T>();
 		}
 
-	}
-
-
-	void skip(u64 n) {
-		stream.seek(n);
-	}
-
-
-	u64 getPosition() const {
-		return stream.getPosition();
-	}
-
-	InputStream& getStream() {
-		return stream;
-	}
-
-	const InputStream& getStream() const {
-		return stream;
 	}
 
 private:
 
-	InputStream& stream;
-	const bool convert;
+	bool convert;
 
 };

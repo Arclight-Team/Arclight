@@ -498,7 +498,7 @@ bool Directory::createSingle() {
 
 
 
-bool Directory::copy(const Path& where, bool recursive, bool onlyDirs, FSCopyExisting copyExisting, FSCopySymlink copySymlink) {
+bool Directory::copy(const Path& where, bool recursive, bool onlyDirs, FSCopyExisting copyExisting, FSCopySymlink copySymlink) const {
 
 	std::filesystem::copy_options options = std::filesystem::copy_options::none;
 

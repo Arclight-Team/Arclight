@@ -30,7 +30,7 @@ namespace TrueType {
 
 	std::vector<TableMap> parseSharedFileHeader(BinaryReader& reader) {
 
-		SizeT streamSize = reader.getStream().getSize();
+		SizeT streamSize = reader.size();
 
 		if(streamSize < ttcHeaderMinSize) {
 			throw LoaderException("Failed to load TrueType collection: Stream size too small");
@@ -81,7 +81,7 @@ namespace TrueType {
 
 		for(u32 i = 0; i < fontCount; i++) {
 
-			reader.getStream().seekTo(offsets[i]);
+			reader.seekTo(offsets[i]);
 			tableMaps.emplace_back(parseFileHeader(reader));
 
 		}
@@ -93,7 +93,7 @@ namespace TrueType {
 
 	TableMap parseFileHeader(BinaryReader& reader) {
 
-		SizeT streamSize = reader.getStream().getSize();
+		SizeT streamSize = reader.size();
 
 		if(streamSize < offsetSubtableSize) {
 			throw LoaderException("Failed to load TrueType font: Stream size too small");
@@ -157,7 +157,7 @@ namespace TrueType {
 
 		for(const auto& [tag, entry] : tableEntries) {
 			
-			if(reader.getStream().getSize() < entry.offset + entry.length) {
+			if(reader.size() < entry.offset + entry.length) {
 				throw LoaderException("Failed to load TrueType font: Stream size too small");
 			}
 

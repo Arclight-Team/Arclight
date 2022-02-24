@@ -8,100 +8,45 @@
 
 #pragma once
 
-#include "outputstream.hpp"
+#include "binarystream.hpp"
 #include "util/bits.hpp"
-#include "util/typetraits.hpp"
-#include "arcconfig.hpp"
+
+#include <span>
 
 
-class BinaryWriter {
+
+class BinaryWriter : public BinaryStream<false> {
 
 public:
 
-	BinaryWriter(OutputStream& stream, bool convertEndianess = false, ByteOrder order = ByteOrder::Little) : stream(stream), convert(convertEndianess && Bits::requiresEndianConversion(order)) {}
+	constexpr BinaryWriter() noexcept : convert(false) {}
+	constexpr explicit BinaryWriter(const std::span<ByteType>& stream, ByteOrder order = ByteOrder::Little) noexcept : BinaryStream(stream), convert(Bits::requiresEndianConversion(order)) {}
 
 	template<Arithmetic T>
-	void write(T value) noexcept {
-
-		T in = value;
+	constexpr void write(T t) noexcept {
 
 		if (convert) {
-			in = Bits::swap(in);
+			t = Bits::swap(t);
 		}
 
-		[[maybe_unused]] SizeT writtenBytes = stream.write(&in, sizeof(T));
+		ByteType* ptr = head();
+		Bits::disassemble(t, ptr);
 
-#ifndef ARC_STREAM_ACCELERATE
-		if (writtenBytes != sizeof(T)) {
-			arc_force_assert("Failed to write data to stream");
-		}
-#endif
+		seek(sizeof(T));
 
 	}
 
 	template<Arithmetic T>
-	void write(const std::span<const T>& data, SizeT count) {
-		write(data.subspan(0, count));
-	}
+	constexpr void write(const std::span<T>& dest) noexcept {
 
-	template<Arithmetic T>
-	void write(const std::span<const T>& data) {
-
-		SizeT size = data.size();
-		SizeT bytes = sizeof(T) * size;
-
-		if (convert) {
-
-			for(SizeT i = 0; i < size; i++) {
-
-				T in = data[i];
-				in = Bits::swap(in);
-	
-				[[maybe_unused]] SizeT writtenBytes = stream.write(&in, sizeof(T));
-
-#ifndef ARC_STREAM_ACCELERATE
-				if (writtenBytes != sizeof(T)) {
-					arc_force_assert("Failed to write data to stream");
-				}
-#endif
-
-			}
-
-		} else {
-
-			[[maybe_unused]] SizeT writtenBytes = stream.write(data.data(), bytes);
-
-#ifndef ARC_STREAM_ACCELERATE
-			if (writtenBytes != bytes) {
-				arc_force_assert("Failed to write data to stream");
-			}
-#endif
-
+		for (SizeT i = 0; i < dest.size(); i++) {
+			write<T>(dest[i]);
 		}
 
-	}
-
-
-	void skip(u64 n) {
-		stream.seek(n);
-	}
-
-
-	u64 getPosition() const {
-		return stream.getPosition();
-	}
-
-	OutputStream& getStream() {
-		return stream;
-	}
-
-	const OutputStream& getStream() const {
-		return stream;
 	}
 
 private:
 
-	OutputStream& stream;
-	const bool convert;
+	bool convert;
 
 };

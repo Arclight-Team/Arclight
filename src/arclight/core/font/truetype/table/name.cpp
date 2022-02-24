@@ -16,8 +16,8 @@ namespace TrueType {
 
 	void parseNameTable(BinaryReader& reader, u32 tableSize) {
 
-		SizeT streamSize = reader.getStream().getSize();
-		SizeT offset = reader.getPosition();
+		SizeT streamSize = reader.size();
+		SizeT offset = reader.position();
 
 		if(tableSize < 6) {
 			throw LoaderException("Failed to load naming table: Stream size too small");
@@ -108,10 +108,10 @@ namespace TrueType {
 		for(NameRecord& record : nameRecords) {
 
 			//TODO: Manage encodings dependent on platform IDs, verify values
-			reader.getStream().seekTo(offset + stringOffset + record.offset);
+			reader.seekTo(offset + stringOffset + record.offset);
 
 			text.resize(Math::max(record.length, text.size()));
-			reader.read(std::span{text}, record.length);
+			reader.read(std::span{text});
 
 			record.content = decodeText(static_cast<PlatformID>(record.platformID), record.platformSpecificID, text);
 

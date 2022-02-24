@@ -63,11 +63,9 @@
 
 /*
 	Allocator debugging
-	ARC_ALLOCATOR_DEBUG_CHECKS: Enables debug assertions during heap creation/allocation
 	ARC_ALLOCATOR_DEBUG_LOG: Logs all allocations performed with Arclight Allocators
 */
 
-#define ARC_ALLOCATOR_DEBUG_CHECKS
 #define ARC_ALLOCATOR_DEBUG_LOG
 
 
@@ -167,12 +165,6 @@
 */
 //#define ARC_PIXEL_EXACT
 
-
-/*
-	Stream reader/writer acceleration
-	ARC_STREAM_ACCELERATE: Accelerates stream reader/writer performance by disabling runtime checks
-*/
-#define ARC_STREAM_ACCELERATE
 
 
 /*

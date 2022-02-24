@@ -53,7 +53,7 @@ namespace TrueType {
 		std::vector<Glyph> glyphs;
 		glyphs.reserve(glyphOffsets.size());
 
-		SizeT glyfStart = reader.getPosition();
+		SizeT glyfStart = reader.position();
 
 		std::vector<Vec2ui> contours;
 		std::vector<u8> flags;
@@ -76,7 +76,7 @@ namespace TrueType {
 				throw LoaderException("Failed to load glyph table: Stream size too small");
 			}
 
-			reader.getStream().seekTo(glyfStart + offset);
+			reader.seekTo(glyfStart + offset);
 
 			i16 numberOfContours = reader.read<i16>();
 			i16 xMin = reader.read<i16>();

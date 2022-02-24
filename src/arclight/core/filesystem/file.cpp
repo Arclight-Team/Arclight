@@ -24,7 +24,7 @@ constexpr static std::ios::openmode convertFlagsToStdFlags(u32 flags) {
 
 	if(flags & File::In) { mode |= std::ios::in; }
 	if(flags & File::Out) { mode |= std::ios::out; }
-	if(flags & File::Binary) { mode |= std::ios::binary; }
+	if(!(flags & File::Text)) { mode |= std::ios::binary; }
 	if(flags & File::AtEnd) { mode |= std::ios::ate; }
 	if(flags & File::Append) { mode |= std::ios::app; }
 	if(flags & File::Trunc) { mode |= std::ios::trunc; }
@@ -82,7 +82,7 @@ void File::close() {
 
 
 
-std::string File::read(u64 count) {
+std::string File::readChars(u64 count) {
 
 	arc_assert(isOpen(), "Attempted to read from an unopened file");
 
@@ -122,15 +122,17 @@ std::string File::readLine() {
 
 
 
-std::string File::readAll() {
+std::string File::readAllText() {
 
 	arc_assert(isOpen(), "Attempted to read from an unopened file");
 
-	std::vector<char> bytes(getFileSize());
+	std::string bytes(size(), '0');
 	stream.read(bytes.data(), bytes.size());
 
-	return std::string(bytes.data(), bytes.size());
+	return bytes;
+
 }
+
 
 
 void File::write(const std::string& text) {
@@ -168,6 +170,19 @@ void File::write(const std::span<const u8>& data) {
 	arc_assert(isOpen(), "Attempted to write to an unopened file");
 
 	stream.write(reinterpret_cast<const char*>(data.data()), data.size());
+
+}
+
+
+
+std::vector<u8> File::readAll() {
+
+	arc_assert(isOpen(), "Attempted to read from an unopened file");
+
+	std::vector<u8> bytes(size());
+	stream.read(reinterpret_cast<char*>(bytes.data()), bytes.size());
+
+	return bytes;
 
 }
 
@@ -212,13 +227,13 @@ u32 File::getStreamFlags() const {
 
 
 
-u64 File::getFileSize() const {
+u64 File::size() const {
 	return std::filesystem::file_size(getPath().getHandle());
 }
 
 
 
-bool File::exists() {
+bool File::exists() const {
 	return entry.exists();
 }
 
@@ -227,7 +242,7 @@ bool File::exists() {
 bool File::create() {
 
 	try {
-		std::ofstream dummyStream(getPath().toString(), std::ios::out);
+		std::ofstream dummyStream(getPath().toString(), std::ios::out | std::ios::app);
 	} catch (const std::exception&) {
 		return false;
 	}
@@ -238,7 +253,7 @@ bool File::create() {
 
 
 
-bool File::copy(const Path& where, FSCopyExisting copyExisting) {
+bool File::copy(const Path& where, FSCopyExisting copyExisting) const {
 
 	std::filesystem::copy_options options = std::filesystem::copy_options::none;
 

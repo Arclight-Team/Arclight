@@ -18,7 +18,7 @@ Symlink::Symlink(FSEntry entry) : entry(std::move(entry)) {}
 
 
 
-bool Symlink::exists() {
+bool Symlink::exists() const {
 	return entry.exists();
 }
 
@@ -44,7 +44,7 @@ bool Symlink::create(const Path& target, bool asFile) {
 
 
 
-bool Symlink::copy(const Path& where, FSCopyExisting copyExisting) {
+bool Symlink::copy(const Path& where, FSCopyExisting copyExisting) const {
 
 	std::filesystem::copy_options options = std::filesystem::copy_options::copy_symlinks;
 

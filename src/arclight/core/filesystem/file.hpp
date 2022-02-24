@@ -25,7 +25,7 @@ public:
 	enum Flags : u32 {
 		In = 0x1,
 		Out = 0x2,
-		Binary = 0x4,
+		Text = 0x4,
 		AtEnd = 0x8,
 		Append = 0x10,
 		Trunc = 0x20
@@ -39,15 +39,17 @@ public:
 	bool open(const Path& path, u32 flags = File::In);
 	void close();
 
-	std::string read(u64 count);
+	std::string readChars(u64 count);
 	std::string readWord();
 	std::string readLine();
-	std::string readAll();
+	std::string readAllText();
+
 	void write(const std::string& text);
 	void writeLine(const std::string& line);
 
 	SizeT read(const std::span<u8>& data);
 	void write(const std::span<const u8>& data);
+	std::vector<u8> readAll();
 
 	void seek(i64 offset);
 	void seekTo(u64 offset);
@@ -55,15 +57,15 @@ public:
 	u64 getPosition() const;
 
 	bool isOpen() const;
-	u64 getFileSize() const;
+	u64 size() const;
 
 	u32 getStreamFlags() const;
 
 
-	bool exists();
+	bool exists() const;
 
 	bool create();
-	bool copy(const Path& where, FSCopyExisting copyExisting = FSCopyExisting::Skip);
+	bool copy(const Path& where, FSCopyExisting copyExisting = FSCopyExisting::Skip) const;
 	bool rename(const Path& to);
 	bool remove();
 

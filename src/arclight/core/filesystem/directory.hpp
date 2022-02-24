@@ -132,7 +132,7 @@ public:
 
 	bool create();
 	bool createSingle();
-	bool copy(const Path& where, bool recursive = true, bool onlyDirs = false, FSCopyExisting copyExisting = FSCopyExisting::Skip, FSCopySymlink copySymlink = FSCopySymlink::Copy);
+	bool copy(const Path& where, bool recursive = true, bool onlyDirs = false, FSCopyExisting copyExisting = FSCopyExisting::Skip, FSCopySymlink copySymlink = FSCopySymlink::Copy) const;
 	bool rename(const Path& to);
 	bool remove();
 

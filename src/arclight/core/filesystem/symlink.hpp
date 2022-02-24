@@ -28,10 +28,10 @@ public:
 	Symlink(const Path& path);
 	Symlink(FSEntry entry);
 
-	bool exists();
+	bool exists() const;
 
 	bool create(const Path& target, bool asFile = true);
-	bool copy(const Path& where, FSCopyExisting copyExisting = FSCopyExisting::Skip);
+	bool copy(const Path& where, FSCopyExisting copyExisting = FSCopyExisting::Skip) const;
 	bool rename(const Path& to);
 	bool remove();
 
