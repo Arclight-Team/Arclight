@@ -3,28 +3,28 @@
  *
  *	 This file is part of Arclight. All rights reserved.
  *
- *	 binarystream.hpp
+ *	 bitstream.hpp
  */
-
 
 #pragma once
 
-#include "util/assert.hpp"
-#include "util/typetraits.hpp"
 
-#include <span>
+#include "stdext/bitspan.hpp"
+#include "util/assert.hpp"
 
 
 
 template<bool Const>
-class BinaryStream {
+class BitStream {
 
 public:
 
 	using ByteType = TT::ConditionalConst<Const, u8>;
+	using StreamType = BitSpan<std::dynamic_extent, Const>;
 
-	constexpr BinaryStream() noexcept : cursor(0) {}
-	constexpr explicit BinaryStream(const std::span<ByteType>& stream) noexcept : stream(stream), cursor(0) {}
+
+	constexpr BitStream() noexcept : cursor(0) {}
+	constexpr explicit BitStream(const StreamType& stream) noexcept : stream(stream), cursor(0) {}
 
 
 	constexpr void seek(i64 n) noexcept {
@@ -41,11 +41,11 @@ public:
 
 	}
 
-	constexpr void setStream(const std::span<ByteType>& stream) noexcept {
+	constexpr void setStream(const StreamType& stream) noexcept {
 		this->stream = stream;
 	}
 
-	constexpr std::span<ByteType> getStream() const noexcept {
+	constexpr StreamType getStream() const noexcept {
 		return stream;
 	}
 
@@ -64,10 +64,14 @@ public:
 protected:
 
 	constexpr ByteType* head() const noexcept {
-		return stream.data() + cursor;
+		return stream.data() + cursor / 8;
 	}
 
-	std::span<ByteType> stream;
+	constexpr u32 headOffset() const noexcept {
+		return cursor % 8;
+	}
+
+	StreamType stream;
 	u64 cursor;
 
 };

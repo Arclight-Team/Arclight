@@ -110,6 +110,10 @@ public:
 			return *ptr & (1 << bit);
 		}
 
+		constexpr P* operator&() const noexcept {
+			return ptr;
+		}
+
 	private:
 
 		P* ptr;
