@@ -151,6 +151,7 @@ void FileDialog::setFileFilters(const std::vector<FileFilter>& filters, SizeT se
 	std::vector<std::wstring> wideStrings;
 	std::vector<COMDLG_FILTERSPEC> convertedFilter;
 
+	wideStrings.reserve(filters.size() * 2);
 	convertedFilter.reserve(filters.size());
 
 	for(const FileFilter& filter : filters) {
