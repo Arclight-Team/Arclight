@@ -143,8 +143,8 @@ void SpriteBatch::purgeSprite(u64 id) {
 
 		buffer.write(offset, {&buffer[lastOffset], dataSize});
 
-		ids.erase(lastOffset);
-		offsets.erase(lastSprite);
+		ids.erase(offset);
+		offsets.erase(it);
 
 		buffer.resize(lastOffset);
 

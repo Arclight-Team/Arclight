@@ -16,7 +16,7 @@ GLE_BEGIN
 
 
 bool UniformBuffer::bindRange(u32 index, SizeT offset, SizeT size) {
-	
+
 	if (index >= Limits::getMaxUniformBlockBindings()) {
 		GLE::warn("Given uniform block binding index %d exceeds the maximum of %d (uniform buffer ID=%d)", index, Limits::getMaxUniformBlockBindings(), id);
 		return false;

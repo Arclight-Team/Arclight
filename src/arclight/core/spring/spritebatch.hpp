@@ -42,9 +42,6 @@ private:
 	constexpr static u32 translationOffset = 16;
 	constexpr static u32 typeIndexOffset = 24;
 
-	static void vectorDecay(const Vec2f& vector, const std::span<u8>& dest);
-	static void matrixDecay(const Mat2f& matrix, const std::span<u8>& dest);
-
 	std::shared_ptr<class SpriteBatchData> data;
 
 	std::unordered_map<u64, SizeT> offsets;

@@ -43,6 +43,7 @@ public:
 	const Sprite& getSprite(Id64 id) const;
 	bool containsSprite(Id64 id) const;
 	void destroySprite(Id64 id);
+	void destroyAllSprites();
 
 	//Type functions
 	void createType(Id32 id, Id32 textureID, const Vec2f& size);

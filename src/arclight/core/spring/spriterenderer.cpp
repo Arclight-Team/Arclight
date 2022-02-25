@@ -203,7 +203,18 @@ void SpriteRenderer::destroySprite(Id64 id) {
 		group.removeCTReference(getCompositeTextureID(sprite));
 	}
 
+	group.getBatch().purgeSprite(id);
 	sprites.destroy(id);
+
+}
+
+
+
+void SpriteRenderer::destroyAllSprites() {
+
+	sprites.clear();
+	groups.clear();
+	renderGroups.clear();
 
 }
 
