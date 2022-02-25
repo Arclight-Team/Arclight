@@ -30,25 +30,27 @@ The following features have been fully implemented:
 - Full window support (including Cursor + opt. Animations)
 - OpenGL 3D rendering backend GLE
 - Advanced input management
-- Actor-Component-System (ACS)
 - Image manipulation library (+ BMP loading)
 - Mathematics (Vectors, Matrices, Quaternions, Beziers, Fading and more)
 - Logging & Debugging
 - Timing utilities
-- Streams
+- Stream readers/writers
 - Unicode conversion support
 - Compile-time encryption/hashing (DES, TripleDES, MD5, SHAx)
 - Additional containers/extensions to std (BitSpan, OptionalRef, improved Any)
 - XML parser
 - Filesystem library
+- System classes (FileDialog, MessageBox, Notifications)
 - Type traits + Concepts
 - Configuration & Platform macros
+- Optional runtime for easier setup
+- Actor-Component-System (ACS)
 
 Following features are being worked on/are planned:
 - Unified code examples
-- UnicodeString
-- 2D Sprite Engine
+- Spring, our 2D Sprite Engine
 - Command-line argument parser
+- UnicodeString
 - Compression algorithms (+ DEFLATE)
 - Encryption algorithms
 - Arclight Sound System (AS2)
@@ -56,6 +58,7 @@ Following features are being worked on/are planned:
 - Advanced imaging formats (GIF/PNG/JPEG)
 - Full font render engine with TTF/OTF support
 - Noise library (extension to imaging)
+- OS information query
 - Full 3D render engine
 
 ## Support
@@ -65,5 +68,5 @@ If you consider joining our team, contact us through arcayn.arclight@gmail.com.
 ## Credits
 - [Arcayn](https://github.com/Arcaynx) for the project's management
 - [Ed_IT](https://github.com/Ed-1T) for the help as the second head developer
+- [ItzTacos](https://github.com/ItzTacosOfficial) for the logo, testing the code and several additions / fixes
 - [KonPet](https://github.com/KonPet) for the great compression support + PNG management
-- [ItzTacos](https://github.com/ItzTacosOfficial) for testing the code and the official logo
