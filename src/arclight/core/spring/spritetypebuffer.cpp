@@ -58,8 +58,8 @@ void SpriteTypeBuffer::setTypeData(u32 typeID, const SpriteType& type, u32 ctID,
 	SizeT offset = typeMap[typeID] * typeDataSize;
 
 	buffer.write(offset + 0, type.origin);
-	buffer.write(offset + 8, type.outline.uvBase);
-	buffer.write(offset + 16, type.outline.uvScale);
+	buffer.write(offset + 8, type.uvBase);
+	buffer.write(offset + 16, type.uvScale);
 	buffer.write(offset + 24, ctID);
 	buffer.write(offset + 28, texID);
 

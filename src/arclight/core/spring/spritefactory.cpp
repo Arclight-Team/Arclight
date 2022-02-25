@@ -20,12 +20,7 @@ bool SpriteFactory::contains(u32 id) const {
 const SpriteType& SpriteFactory::get(u32 id) const {
 
 	auto it = spriteTypes.find(id);
-
-	if (it == spriteTypes.end()) {
-		return defaultSpriteType;
-	} else {
-		return it->second;
-	}
+	return it->second;
 
 }
 

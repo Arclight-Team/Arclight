@@ -116,7 +116,7 @@ void SpriteRenderer::render() {
 	}
 
 	GLE::clear(GLE::Color);
-
+	GLE::enableBlending();
 
 	shaders->rectangleOutlineShader.start();
 	shaders->uProjectionMatrix.setMat4(projection);
@@ -136,7 +136,10 @@ void SpriteRenderer::render() {
 		}
 
 		group.syncData();
-		group.render();
+
+		if (groups[key].isVisible()) {
+			group.render();
+		}
 
 	}
 
@@ -221,19 +224,23 @@ void SpriteRenderer::destroyAllSprites() {
 
 
 void SpriteRenderer::createType(Id32 id, Id32 textureID, const Vec2f& size) {
-	createType(id, textureID, size, Vec2f(0), SpriteOutline());
+	createType(id, textureID, size, Vec2f(0));
 }
 
 
 
-void SpriteRenderer::createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline) {
-
-	const SpriteType& type = factory.create(id, textureID, size, origin, outline);
+void SpriteRenderer::createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const Vec2f& uvBase, const Vec2f& uvScale, SpriteOutline outline, const std::span<const u8>& polygon) {
 
 	u32 ctID = textureToCompositeID[textureID];
-	u32 texID = textures[ctID].getTextureData(textureID).arrayIndex;
 
-	typeBuffer.addType(id, type, ctID, texID);
+	const CompositeTexture& ct = textures[ctID];
+	CompositeTexture::TextureData texData = ct.getTextureData(textureID);
+
+	Vec2f newUvBase = uvBase + Vec2f(texData.x, texData.y) / ct.getSize();
+	Vec2f newUvScale = uvScale * Vec2f(texData.width, texData.height) / ct.getSize();
+
+	const SpriteType& type = factory.create(id, textureID, size, origin, newUvBase, newUvScale, outline, polygon);
+	typeBuffer.addType(id, type, ctID, texData.arrayIndex);
 
 }
 

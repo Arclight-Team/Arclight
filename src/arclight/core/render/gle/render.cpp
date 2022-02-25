@@ -39,6 +39,18 @@ void disableCulling() {
 
 
 
+void enableBlending() {
+	glEnable(GL_BLEND);
+}
+
+
+
+void disableBlending() {
+	glDisable(GL_BLEND);
+}
+
+
+
 void setClearColor(float r, float g, float b, float a) {
 	glClearColor(r, g, b ,a);
 }

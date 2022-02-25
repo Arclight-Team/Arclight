@@ -52,6 +52,10 @@ void disableDepthTests();
 void enableCulling();
 void disableCulling();
 
+//Blending
+void enableBlending();
+void disableBlending();
+
 //Clearing
 void setClearColor(float r, float g, float b, float a);
 void clear(u32 bufferMask);

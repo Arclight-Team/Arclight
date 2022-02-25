@@ -86,7 +86,10 @@ SizeT SyncBuffer::getUpdateSize() const noexcept {
 
 
 void SyncBuffer::write(SizeT offset, const std::span<const u8>& source) {
+
 	std::copy_n(source.begin(), source.size(), buffer.data() + offset);
+	updateBounds(offset, source.size());
+
 }
 
 

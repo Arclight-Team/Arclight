@@ -73,6 +73,12 @@ u32 CompositeTexture::getHeight() const noexcept {
 
 
 
+Vec2ui CompositeTexture::getSize() const noexcept {
+	return { width, height };
+}
+
+
+
 u32 CompositeTexture::getTextureCount() const noexcept {
 	return textures.size();
 }
@@ -108,7 +114,7 @@ CompositeTexture CompositeTexture::loadAndComposite(const TextureSet& set, Type 
 			maxWidth = Math::max(image.getWidth(), maxWidth);
 			maxHeight = Math::max(image.getHeight(), maxHeight);
 
-			textures.emplace(id, TextureData(image.getWidth(), image.getHeight(), std::move(image)));
+			textures.emplace(id, TextureData(0, 0, image.getWidth(), image.getHeight(), std::move(image)));
 
 		}
 

@@ -47,7 +47,7 @@ public:
 
 	//Type functions
 	void createType(Id32 id, Id32 textureID, const Vec2f& size);
-	void createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline = SpriteOutline());
+	void createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const Vec2f& uvBase = Vec2f(0), const Vec2f& uvScale = Vec2f(1), SpriteOutline outline = SpriteOutline::Rectangle, const std::span<const u8>& polygon = {});
 	bool hasType(Id32 id) const;
 	const SpriteType& getType(Id32 id) const;
 
@@ -82,6 +82,7 @@ private:
 	std::shared_ptr<class SpriteRendererShaders> shaders;
 
 	SpriteTypeBuffer typeBuffer;
+
 	std::map<u32, SpriteGroup> groups;
 	std::map<u64, RenderGroup> renderGroups;
 
