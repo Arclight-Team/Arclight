@@ -16,7 +16,7 @@ bool TextureSet::isAdded(Id32 id) const {
 
 
 
-bool TextureSet::add(Id32 id, const Path& path) {
+bool TextureSet::add(Id32 id, const Path& path, bool hasAlpha) {
 
 	if (isAdded(id)) {
 
@@ -25,7 +25,7 @@ bool TextureSet::add(Id32 id, const Path& path) {
 
 	}
 
-	texturePaths.emplace(id, path);
+	texturePaths.emplace(id, TextureLoadData {id, path, hasAlpha});
 
 	return true;
 
@@ -33,11 +33,11 @@ bool TextureSet::add(Id32 id, const Path& path) {
 
 
 
-bool TextureSet::add(const std::vector<std::pair<Id32, Path>>& files) {
+bool TextureSet::add(const std::vector<TextureLoadData>& textures) {
 
-	for (const auto& [id, path] : files) {
+	for (const auto& [id, path, alpha] : textures) {
 
-		if (!add(id, path)) {
+		if (!add(id, path, alpha)) {
 			return false;
 		}
 
@@ -55,6 +55,6 @@ void TextureSet::clear() {
 
 
 
-const std::unordered_map<u32, Path>& TextureSet::getTexturePaths() const {
+const std::unordered_map<u32, TextureLoadData>& TextureSet::getTexturePaths() const {
 	return texturePaths;
 }

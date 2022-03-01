@@ -73,7 +73,7 @@ SpriteBatch::SpriteBatch() {
 
 
 
-void SpriteBatch::createSprite(u64 id, const Vec2f& translation, const Mat2f& transform, u32 typeIndex) {
+void SpriteBatch::createSprite(u64 id, u32 typeIndex, const Vec2f& translation, const Mat2f& transform) {
 
 	SizeT offset = buffer.size();
 
@@ -117,15 +117,6 @@ void SpriteBatch::setSpriteTypeIndex(u64 id, u32 typeIndex) {
 
 	SizeT offset = offsets[id] + typeIndexOffset;
 	buffer.write(offset, typeIndex);
-
-}
-
-
-
-u32 SpriteBatch::getSpriteTypeIndex(u64 id) const {
-
-	arc_assert(offsets.contains(id), "Illegal sprite batch query");
-	return Bits::assemble<u32>(buffer.data() + offsets.find(id)->second + typeIndexOffset);
 
 }
 

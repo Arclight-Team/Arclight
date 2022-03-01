@@ -22,12 +22,10 @@ public:
 
 	SpriteBatch();
 
-	void createSprite(u64 id, const Vec2f& translation, const Mat2f& transform, u32 typeIndex);
+	void createSprite(u64 id, u32 typeIndex, const Vec2f& translation, const Mat2f& transform);
 	void setSpriteTranslation(u64 id, const Vec2f& translation);
 	void setSpriteTransform(u64 id, const Mat2f& transform);
 	void setSpriteTypeIndex(u64 id, u32 typeIndex);
-
-	u32 getSpriteTypeIndex(u64 id) const;
 
 	void purgeSprite(u64 id);
 	void synchronize();

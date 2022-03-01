@@ -34,15 +34,16 @@ public:
 
 	struct TextureData {
 
-		constexpr TextureData() : width(0), height(0), arrayIndex(0) {}
-		constexpr TextureData(u32 x, u32 y, u32 w, u32 h, const Image<Pixel::RGBA8>& img, u32 index = 0) : x(x), y(y), width(w), height(h), image(img), arrayIndex(index) {}
+		constexpr TextureData() : x(0), y(0), width(0), height(0), arrayIndex(0), hasAlpha(false) {}
+		constexpr TextureData(u32 x, u32 y, u32 w, u32 h, bool alpha, const Image<Pixel::RGBA8>& img, u32 index = 0) : x(x), y(y), width(w), height(h), hasAlpha(alpha), image(img), arrayIndex(index) {}
 
-		u32 arrayIndex;
 		u32 x;
 		u32 y;
 		u32 width;
 		u32 height;
+		u32 arrayIndex;
 		Image<Pixel::RGBA8> image;
+		bool hasAlpha;
 
 	};
 

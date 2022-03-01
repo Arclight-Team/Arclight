@@ -7,46 +7,12 @@
  */
 
 #include "spriterenderer.hpp"
-#include "springshaders.hpp"
 #include "compositetexture.hpp"
 #include "textureset.hpp"
 #include "render/gle/gle.hpp"
 #include "render/utility/shaderloader.hpp"
-#include "time/timer.hpp"
 #include "time/profiler.hpp"
 #include "debug.hpp"
-
-
-
-struct SpriteRendererShaders {
-
-	SpriteRendererShaders() {
-
-		rectangleOutlineShader = ShaderLoader::fromString(SpringShader::rectangularOutlineVS, SpringShader::rectangularOutlineFS);
-		uProjectionMatrix = rectangleOutlineShader.getUniform(SpringShader::rectangularOutlineUProjection);
-
-		rectangleOutlineShader.start();
-
-		for (u32 i = 0; i < Spring::textureSlots; i++) {
-
-			std::string name = "textures[" + std::to_string(i) + "]";
-			uTextures[i] = rectangleOutlineShader.getUniform(name.c_str());
-			uTextures[i].setInt(i);
-
-		}
-
-	}
-
-	~SpriteRendererShaders() {
-		rectangleOutlineShader.destroy();
-	}
-
-	GLE::ShaderProgram rectangleOutlineShader;
-	GLE::Uniform uProjectionMatrix;
-
-	GLE::Uniform uTextures[Spring::textureSlots];
-
-};
 
 
 
@@ -54,12 +20,7 @@ SpriteRenderer::SpriteRenderer() {}
 
 
 
-
 void SpriteRenderer::render() {
-
-	if (!shaders) {
-		shaders = std::make_shared<SpriteRendererShaders>();
-	}
 
 	Profiler p;
 	p.start();
@@ -71,39 +32,54 @@ void SpriteRenderer::render() {
 		if (flags) {
 
 			u64 id = sprite.getID();
-			RenderGroup& group = renderGroups[getSpriteRenderKey(sprite)];
-			SpriteBatch& batch = group.getBatch();
 
-			if (flags & Sprite::GroupDirty) {
+			if (flags & Sprite::Created) {
 
-				//The group has changed (TODO: Purge after group change)
-				batch.createSprite(id, sprite.getPosition(), calculateSpriteTransform(sprite), typeBuffer.getTypeIndex(sprite.getTypeID()));
-				group.addCTReference(getCompositeTextureID(sprite));
+				getGroup(getShaderID(sprite), sprite.groupID).getBatch().createSprite(id, sprite.typeID, sprite.getPosition(), calculateSpriteTransform(sprite));
 
-			} else if (flags & (Sprite::TranslationDirty | Sprite::TransformDirty)) {
+			} else {
 
-				if (flags & Sprite::TranslationDirty) {
-					batch.setSpriteTranslation(id, sprite.getPosition());
-				}
+				if (flags & (Sprite::TypeDirty | Sprite::GroupDirty)) {
 
-				if (flags & Sprite::TransformDirty) {
-					batch.setSpriteTransform(id, calculateSpriteTransform(sprite));
-				}
+					u32 oldTypeIndex = sprite.prevTypeID;
+					u32 newTypeIndex = sprite.getTypeID();
 
-			} else if (flags & Sprite::TypeDirty) {
+					const SpriteType& oldType = getType(oldTypeIndex);
+					const SpriteType& newType = getType(newTypeIndex);
 
-				u32 oldTypeIndex = batch.getSpriteTypeIndex(id);
-				u32 newTypeIndex = typeBuffer.getTypeIndex(sprite.getTypeID());
+					u32 lastGroupID = groups[newType.shaderID].size() - 1;
+					u32 newGroupID = flags & Sprite::GroupDirty ? Math::min(sprite.groupID, lastGroupID) : lastGroupID;
 
-				u32 oldCTID = textureToCompositeID[getType(oldTypeIndex).textureID];
-				u32 newCTID = textureToCompositeID[getType(newTypeIndex).textureID];
+					SpriteGroup& oldGroup = getGroup(oldType.shaderID, sprite.prevGroupID);
+					SpriteGroup& newGroup = getGroup(newType.shaderID, newGroupID);
 
-				batch.setSpriteTypeIndex(id, newTypeIndex);
+					oldGroup.getBatch().purgeSprite(id);
+					newGroup.getBatch().createSprite(id, newTypeIndex, sprite.getPosition(), calculateSpriteTransform(sprite));
 
-				if (oldCTID != newCTID) {
+					u32 oldCTID = textureToCompositeID[oldType.textureID];
+					u32 newCTID = textureToCompositeID[oldType.textureID];
 
-					group.removeCTReference(oldCTID);
-					group.addCTReference(newCTID);
+					if (oldCTID != newCTID) {
+
+						oldGroup.removeCTReference(oldCTID);
+						newGroup.addCTReference(newCTID);
+
+					}
+
+					sprite.prevTypeID = sprite.typeID;
+					sprite.prevGroupID = sprite.groupID;
+
+				} else if (flags & (Sprite::TranslationDirty | Sprite::TransformDirty)) {
+
+					SpriteBatch& batch = getGroup(getType(sprite.typeID).shaderID, sprite.groupID).getBatch();
+
+					if (flags & Sprite::TranslationDirty) {
+						batch.setSpriteTranslation(id, sprite.getPosition());
+					}
+
+					if (flags & Sprite::TransformDirty) {
+						batch.setSpriteTransform(id, calculateSpriteTransform(sprite));
+					}
 
 				}
 
@@ -116,29 +92,73 @@ void SpriteRenderer::render() {
 	}
 
 	GLE::clear(GLE::Color);
-	GLE::enableBlending();
 
-	shaders->rectangleOutlineShader.start();
-	shaders->uProjectionMatrix.setMat4(projection);
+	//shaders->uProjectionMatrix.setMat4(projection);
 
 	typeBuffer.update();
 	typeBuffer.bind();
 
 	const CTAllocationTable* prevCTAT = &initialCTAllocationTable;
 
-	for (auto& [key, group] : renderGroups) {
+	for (auto& [siid, shader] : shaders) {
 
-		group.prepareCTTable(*prevCTAT);
-		prevCTAT = &group.getCTAllocationTable();
+		std::vector<SpriteGroup>& renderGroups = groups[siid];
 
-		for (const auto& [ctID, slot] : group.getCTBindings()) {
-			textures[ctID].bind(slot);
+		for (SpriteGroup& group : renderGroups) {
+			group.getBatch().synchronize();
 		}
 
-		group.syncData();
+		if (shader.isEnabled()) {
 
-		if (groups[key].isVisible()) {
-			group.render();
+			for (u32 i = 0; i < shader.getStageCount(); i++) {
+
+				if (!shader.preRender(i)) {
+					break;
+				}
+
+				for (SpriteGroup& group : renderGroups) {
+
+					if (shader.hasStageFlag(i, ShaderStage::PipelineFlags::Textures)) {
+
+						group.prepareCTTable(*prevCTAT, true);
+						prevCTAT = &group.getCTAllocationTable();
+
+						for (const auto& [ctID, slot] : group.getCTBindings()) {
+							textures[ctID].bind(slot);
+						}
+
+					}
+
+					if (group.isVisible()) {
+
+						if (shader.hasStageFlag(i, ShaderStage::PipelineFlags::Depth)) {
+							GLE::enableDepthTests();
+						} else {
+							GLE::disableBlending();
+						}
+
+						if (shader.hasStageFlag(i, ShaderStage::PipelineFlags::Blending)) {
+							GLE::enableBlending();
+						} else {
+							GLE::disableBlending();
+						}
+
+						if (shader.hasStageFlag(i, ShaderStage::PipelineFlags::Culling)) {
+							GLE::enableCulling();
+						} else {
+							GLE::disableCulling();
+						}
+
+						group.render();
+
+					}
+
+				}
+
+				shader.postRender(i);
+
+			}
+
 		}
 
 	}
@@ -158,12 +178,14 @@ void SpriteRenderer::setViewport(const Vec2f& lowerLeft, const Vec2f& topRight) 
 
 
 
-Sprite& SpriteRenderer::createSprite(Id64 id, Id32 typeID, Id32 groupID) {
+Sprite& SpriteRenderer::createSprite(Id64 id, Id32 typeID, u32 groupID) {
 
 	Sprite& sprite = sprites.create(id);
 	sprite.id = id;
 	sprite.typeID = typeID;
+	sprite.prevTypeID = typeID;
 	sprite.groupID = groupID;
+	sprite.prevGroupID = groupID;
 
 	return sprite;
 
@@ -196,16 +218,17 @@ void SpriteRenderer::destroySprite(Id64 id) {
 	}
 
 	const Sprite& sprite = getSprite(id);
+	u32 shaderID = getShaderID(sprite);
 
-	RenderGroup& group = renderGroups[getSpriteRenderKey(sprite)];
-
+	SpriteGroup& group = getGroup(shaderID, sprite.getGroupID());
+/*
 	//TODO: If a group has multiple batches, find the one sprite is contained in
 	if (sprite.getFlags() & Sprite::TypeDirty) {
 		group.removeCTReference(group.getBatch().getSpriteTypeIndex(sprite.getID()));
 	} else {
 		group.removeCTReference(getCompositeTextureID(sprite));
 	}
-
+*/
 	group.getBatch().purgeSprite(id);
 	sprites.destroy(id);
 
@@ -217,7 +240,6 @@ void SpriteRenderer::destroyAllSprites() {
 
 	sprites.clear();
 	groups.clear();
-	renderGroups.clear();
 
 }
 
@@ -236,10 +258,49 @@ void SpriteRenderer::createType(Id32 id, Id32 textureID, const Vec2f& size, cons
 	const CompositeTexture& ct = textures[ctID];
 	CompositeTexture::TextureData texData = ct.getTextureData(textureID);
 
+	u32 shaderID = Spring::baseShaderID;
+
+	if (outline == SpriteOutline::Polygon) {
+		shaderID |= Spring::polygonalBit;
+	}
+
+	if (texData.hasAlpha) {
+		shaderID |= Spring::transparencyBit;
+	}
+
+	if (!isShaderRegistered(shaderID)) {
+		loadStandardShaders();
+	}
+
+	createType(id, shaderID, textureID, size, origin, uvBase, uvScale, outline, polygon);
+
 	Vec2f newUvBase = uvBase + Vec2f(texData.x, texData.y) / ct.getSize();
 	Vec2f newUvScale = uvScale * Vec2f(texData.width, texData.height) / ct.getSize();
 
-	const SpriteType& type = factory.create(id, textureID, size, origin, newUvBase, newUvScale, outline, polygon);
+	const SpriteType& type = factory.create(id, shaderID, textureID, size, origin, newUvBase, newUvScale, outline, polygon);
+	typeBuffer.addType(id, type, ctID, texData.arrayIndex);
+
+}
+
+
+
+void SpriteRenderer::createType(Id32 id, u32 shaderID, Id32 textureID, const Vec2f& size) {
+	createType(id, shaderID, textureID, size, Vec2f(0));
+}
+
+
+
+void SpriteRenderer::createType(Id32 id, u32 shaderID, Id32 textureID, const Vec2f& size, const Vec2f& origin, const Vec2f& uvBase, const Vec2f& uvScale, SpriteOutline outline, const std::span<const u8>& polygon) {
+
+	u32 ctID = textureToCompositeID[textureID];
+
+	const CompositeTexture& ct = textures[ctID];
+	CompositeTexture::TextureData texData = ct.getTextureData(textureID);
+
+	Vec2f newUvBase = uvBase + Vec2f(texData.x, texData.y) / ct.getSize();
+	Vec2f newUvScale = uvScale * Vec2f(texData.width, texData.height) / ct.getSize();
+
+	const SpriteType& type = factory.create(id, shaderID, textureID, size, origin, newUvBase, newUvScale, outline, polygon);
 	typeBuffer.addType(id, type, ctID, texData.arrayIndex);
 
 }
@@ -273,40 +334,94 @@ void SpriteRenderer::loadTextureSet(const TextureSet& set) {
 
 
 
-void SpriteRenderer::showGroup(Id32 groupID) {
-	groups[groupID].show();
+void SpriteRenderer::showGroup(u32 shaderID, u32 groupID) {
+	getGroup(shaderID, groupID).show();
 }
 
 
 
-void SpriteRenderer::hideGroup(Id32 groupID) {
-	groups[groupID].hide();
+void SpriteRenderer::hideGroup(u32 shaderID, u32 groupID) {
+	getGroup(shaderID, groupID).hide();
 }
 
 
 
-void SpriteRenderer::setGroupVisibility(Id32 groupID, bool visible) {
-	groups[groupID].setVisibility(visible);
+void SpriteRenderer::setGroupVisibility(u32 shaderID, u32 groupID, bool visible) {
+	getGroup(shaderID, groupID).setVisibility(visible);
 }
 
 
 
-void SpriteRenderer::toggleGroupVisibility(Id32 groupID) {
-	groups[groupID].toggleVisibility();
+void SpriteRenderer::toggleGroupVisibility(u32 shaderID, u32 groupID) {
+	getGroup(shaderID, groupID).toggleVisibility();
 }
 
 
 
-bool SpriteRenderer::isGroupVisible(Id32 groupID) const {
+bool SpriteRenderer::isGroupVisible(u32 shaderID, u32 groupID) const {
+	return getGroup(shaderID, groupID).isVisible();
+}
 
-	auto it = groups.find(groupID);
 
-	if (it != groups.end()) {
-		return it->second.isVisible();
+
+void SpriteRenderer::setGroupCount(u32 shaderID, u32 count) {
+	groups[shaderID].resize(count);
+}
+
+
+
+void SpriteRenderer::registerShader(const SpringShader& shader) {
+
+	u32 shaderID = shader.getInvocationID();
+
+	if (shaders.contains(shaderID)) {
+		Log::warn("Sprite Renderer", "Failed to register shader %d: ID already in use", shaderID);
+		return;
 	}
 
-	return true;
+	shaders.try_emplace(shaderID, shader);
+	groups.emplace(shaderID, std::vector<SpriteGroup> { SpriteGroup() });
 
+}
+
+
+
+void SpriteRenderer::unregisterShader(u32 shaderID) {
+
+	auto shIt = shaders.find(shaderID);
+
+	if (shIt == shaders.end()) {
+		Log::warn("Sprite Renderer", "Failed to unregister shader %d: ID not found", shaderID);
+		return;
+	}
+
+	shaders.erase(shIt);
+	groups.erase(shaderID);
+
+}
+
+
+
+bool SpriteRenderer::isShaderRegistered(u32 shaderID) {
+	return shaders.contains(shaderID);
+}
+
+
+
+void SpriteRenderer::enableShader(u32 shaderID) {
+	getShader(shaderID).enable();
+}
+
+
+
+void SpriteRenderer::disableShader(u32 shaderID) {
+	getShader(shaderID).disable();
+}
+
+
+
+bool SpriteRenderer::isShaderEnabled(u32 shaderID) const {
+	return getShader(shaderID).isEnabled();
 }
 
 
@@ -317,8 +432,49 @@ u32 SpriteRenderer::activeSpriteCount() const noexcept {
 
 
 
-u64 SpriteRenderer::getSpriteRenderKey(const Sprite& sprite) const {
-	return sprite.getGroupID();
+ShaderPool& SpriteRenderer::getShaderPool() {
+	return shaderPool;
+}
+
+
+
+void SpriteRenderer::loadStandardShaders() {
+
+	ShaderStage stage(shaderPool.get("@/shaders/spring/spring_rect_opaque.vs", "@/shaders/spring/spring_rect_opaque.fs"), ShaderStage::PipelineFlags::Textures | ShaderStage::PipelineFlags::Culling);
+	SpringShader shader(stage, Spring::baseShaderID);
+
+	registerShader(shader);
+
+}
+
+
+
+SpriteGroup& SpriteRenderer::getGroup(u32 shaderID, u32 groupID) {
+	return groups[shaderID][groupID];
+}
+
+
+
+const SpriteGroup& SpriteRenderer::getGroup(u32 shaderID, u32 groupID) const {
+	return groups.find(shaderID)->second[groupID];
+}
+
+
+
+SpringShader& SpriteRenderer::getShader(u32 shaderID) {
+	return shaders[shaderID];
+}
+
+
+
+const SpringShader& SpriteRenderer::getShader(u32 shaderID) const {
+	return shaders.find(shaderID)->second;
+}
+
+
+
+u32 SpriteRenderer::getShaderID(const Sprite& sprite) const {
+	return getType(sprite.getTypeID()).shaderID;
 }
 
 
