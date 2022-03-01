@@ -57,7 +57,7 @@ void SpriteRenderer::render() {
 					newGroup.getBatch().createSprite(id, newTypeIndex, sprite.getPosition(), calculateSpriteTransform(sprite));
 
 					u32 oldCTID = textureToCompositeID[oldType.textureID];
-					u32 newCTID = textureToCompositeID[oldType.textureID];
+					u32 newCTID = textureToCompositeID[newType.textureID];
 
 					if (oldCTID != newCTID) {
 
@@ -218,18 +218,15 @@ void SpriteRenderer::destroySprite(Id64 id) {
 	}
 
 	const Sprite& sprite = getSprite(id);
-	u32 shaderID = getShaderID(sprite);
+	const SpriteType& type = getType(sprite.prevTypeID);
 
-	SpriteGroup& group = getGroup(shaderID, sprite.getGroupID());
-/*
-	//TODO: If a group has multiple batches, find the one sprite is contained in
-	if (sprite.getFlags() & Sprite::TypeDirty) {
-		group.removeCTReference(group.getBatch().getSpriteTypeIndex(sprite.getID()));
-	} else {
-		group.removeCTReference(getCompositeTextureID(sprite));
-	}
-*/
+	u32 shaderID = type.shaderID;
+	u32 ctID = textureToCompositeID[type.textureID];
+
+	SpriteGroup& group = getGroup(shaderID, sprite.prevGroupID);
+	group.removeCTReference(ctID);
 	group.getBatch().purgeSprite(id);
+
 	sprites.destroy(id);
 
 }
@@ -239,7 +236,10 @@ void SpriteRenderer::destroySprite(Id64 id) {
 void SpriteRenderer::destroyAllSprites() {
 
 	sprites.clear();
-	groups.clear();
+
+	for (auto& [shaderID, groupList] : groups) {
+		groupList = { SpriteGroup() };
+	}
 
 }
 
