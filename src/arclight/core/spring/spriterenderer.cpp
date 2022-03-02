@@ -22,9 +22,11 @@ void SpriteRenderer::initialize() {
 	sharedBuffer.create();
 
 	ShaderStage stage(shaderPool.get("@/shaders/spring/spring_rect_opaque.vs", "@/shaders/spring/spring_rect_opaque.fs"), ShaderStage::PipelineFlags::Textures | ShaderStage::PipelineFlags::Culling);
-	SpringShader shader(stage, Spring::baseShaderID);
+	SpringShader shader(stage);
 
-	registerShader(shader);
+	registerShader(Spring::baseShaderID, shader);
+
+	setViewport(Vec2f(-1, -1), Vec2f(1, 1));
 
 }
 
@@ -53,12 +55,16 @@ void SpriteRenderer::render() {
 				group.getBatch().createSprite(id, sprite.typeID, sprite.getPosition(), calculateSpriteTransform(sprite));
 				group.addCTReference(getCompositeTextureID(sprite));
 
+				sprite.prevTypeID = sprite.typeID;
+				sprite.prevGroupID = sprite.groupID;
+				sprite.prevShaderID = sprite.shaderID;
+
 			} else if (flags & (Sprite::ShaderDirty | Sprite::GroupDirty) && (sprite.prevGroupID != sprite.groupID || sprite.prevShaderID != sprite.shaderID)) {
 
 				u32 newGroupSize = groups[sprite.shaderID].size();
 				u32 newGroupID = newGroupSize - 1;
 
-				if (flags & Sprite::GroupDirty && sprite.groupID <= newGroupID) {
+				if ((flags & Sprite::GroupDirty) && sprite.groupID <= newGroupID) {
 					newGroupID = sprite.groupID;
 				}
 
@@ -74,7 +80,8 @@ void SpriteRenderer::render() {
 				oldGroup.removeCTReference(oldCTID);
 				newGroup.addCTReference(newCTID);
 
-				sprite.prevGroupID = sprite.groupID;
+				sprite.prevTypeID = sprite.typeID;
+				sprite.prevGroupID = newGroupID;
 				sprite.prevShaderID = sprite.shaderID;
 
 			} else {
@@ -364,9 +371,7 @@ void SpriteRenderer::setGroupCount(u32 shaderID, u32 count) {
 
 
 
-void SpriteRenderer::registerShader(const SpringShader& shader) {
-
-	u32 shaderID = shader.getInvocationID();
+void SpriteRenderer::registerShader(u32 shaderID, const SpringShader& shader) {
 
 	if (shaders.contains(shaderID)) {
 		Log::warn("Spring", "Failed to register shader %d: ID already in use", shaderID);

@@ -67,12 +67,22 @@ public:
 	void setGroupCount(u32 shaderID, u32 count);
 
 	//Shader functions
-	void registerShader(const SpringShader& shader);
+	void registerShader(u32 shaderID, const SpringShader& shader);
 	void unregisterShader(u32 shaderID);
 	bool isShaderRegistered(u32 shaderID);
 	void enableShader(u32 shaderID);
 	void disableShader(u32 shaderID);
 	bool isShaderEnabled(u32 shaderID) const;
+
+	//Visitor
+	template<class Func>
+	void spriteExecute(Func&& func) requires Invocable<Func, Sprite&> {
+
+		for (Sprite& sprite : sprites) {
+			func(sprite);
+		}
+
+	}
 
 	u32 activeSpriteCount() const noexcept;
 

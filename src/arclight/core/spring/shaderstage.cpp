@@ -35,13 +35,13 @@ bool ShaderStage::onPreRender() {
 		return false;
 	}
 
-	if (preRenderCallback && !preRenderCallback()) {
-		return false;
-	}
-
 	shaderProgram->program.start();
 
-	return true;
+	if (preRenderCallback) {
+		return preRenderCallback();
+	} else {
+		return true;
+	}
 
 }
 

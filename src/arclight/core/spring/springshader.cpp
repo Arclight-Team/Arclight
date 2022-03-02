@@ -34,12 +34,6 @@ void SpringShader::postRender(u32 stage) {
 
 
 
-u32 SpringShader::getInvocationID() const {
-	return invocationID;
-}
-
-
-
 u32 SpringShader::getStageCount() const {
 	return stages.size();
 }
