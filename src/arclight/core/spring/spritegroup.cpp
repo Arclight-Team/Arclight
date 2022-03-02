@@ -11,6 +11,15 @@
 
 
 
+SpriteGroup::SpriteGroup() : visible(true), ctUpdate(true) {
+
+	batch.create();
+	ctGroupTableBuffer.create();
+
+}
+
+
+
 SpriteBatch& SpriteGroup::getBatch() {
 	return batch;
 }
@@ -84,7 +93,7 @@ void SpriteGroup::prepareCTTable(const CTAllocationTable& prev, bool forceRecalc
 	}
 
 	if (ctReferences.size() > prev.size()) {
-		Log::warn("Sprite Group", "Cannot allocate %d group CTs, requested %d", ctReferences.size(), prev.size());
+		Log::warn("Spring", "Cannot allocate %d group CTs, requested %d", ctReferences.size(), prev.size());
 	}
 
 	ctBindings.clear();
@@ -154,7 +163,11 @@ void SpriteGroup::syncData() {
 
 void SpriteGroup::render() {
 
-	ctGroupTableBuffer.bind();
-	batch.render();
+	if (ctGroupTableBuffer.getTableSize()) {
+
+		ctGroupTableBuffer.bind();
+		batch.render();
+
+	}
 
 }

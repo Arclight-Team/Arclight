@@ -23,4 +23,9 @@ namespace Spring {
 	constexpr u32 polygonalBit = 0x00000100;
 	constexpr u32 transparencyBit = 0x00000200;
 
+	constexpr u32 sharedBufferBinding = 0;
+	constexpr u32 ctTableBufferBinding = 1;
+
+	constexpr u32 typeBufferBinding = 0;
+
 }

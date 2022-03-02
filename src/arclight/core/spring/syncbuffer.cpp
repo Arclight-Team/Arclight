@@ -33,11 +33,22 @@ SizeT SyncBuffer::size() const noexcept {
 void SyncBuffer::resize(SizeT newSize) {
 
 	SizeT prevSize = buffer.size();
-	SizeT offset = Math::min(prevSize, newSize);
-	SizeT endOffset = Math::max(prevSize, newSize);
+
+	if (newSize >= prevSize) {
+
+		updateBounds(prevSize, newSize - prevSize);
+
+	} else {
+
+		if (updateStart >= newSize) {
+			finishUpdate();
+		} else if (updateEnd > newSize) {
+			updateEnd = newSize;
+		}
+
+	}
 
 	buffer.resize(newSize);
-	updateBounds(offset, endOffset - offset);
 
 }
 

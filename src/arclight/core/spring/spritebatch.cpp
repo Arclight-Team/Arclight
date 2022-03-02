@@ -67,8 +67,12 @@ struct SpriteBatchData {
 
 
 
-SpriteBatch::SpriteBatch() {
-	data = std::make_shared<SpriteBatchData>();
+void SpriteBatch::create() {
+
+	if (!data) {
+		data = std::make_shared<SpriteBatchData>();
+	}
+
 }
 
 
@@ -160,7 +164,6 @@ void SpriteBatch::synchronize() {
 	}
 
 	GLE::VertexBuffer& matrixVbo = data->matrixVbo;
-
 	matrixVbo.bind();
 
 	if (matrixVbo.getSize() < buffer.size()) {

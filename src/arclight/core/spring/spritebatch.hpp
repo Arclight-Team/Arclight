@@ -20,7 +20,7 @@ class SpriteBatch {
 
 public:
 
-	SpriteBatch();
+	void create();
 
 	void createSprite(u64 id, u32 typeIndex, const Vec2f& translation, const Mat2f& transform);
 	void setSpriteTranslation(u64 id, const Vec2f& translation);

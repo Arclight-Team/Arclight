@@ -23,7 +23,7 @@ class SpriteGroup {
 
 public:
 
-	SpriteGroup() : visible(true), ctUpdate(true) {}
+	SpriteGroup();
 
 	SpriteBatch& getBatch();
 	const SpriteBatch& getBatch() const;

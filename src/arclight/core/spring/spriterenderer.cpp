@@ -16,7 +16,17 @@
 
 
 
-SpriteRenderer::SpriteRenderer() {}
+void SpriteRenderer::initialize() {
+
+	typeBuffer.create();
+	sharedBuffer.create();
+
+	ShaderStage stage(shaderPool.get("@/shaders/spring/spring_rect_opaque.vs", "@/shaders/spring/spring_rect_opaque.fs"), ShaderStage::PipelineFlags::Textures | ShaderStage::PipelineFlags::Culling);
+	SpringShader shader(stage, Spring::baseShaderID);
+
+	registerShader(shader);
+
+}
 
 
 
@@ -24,6 +34,9 @@ void SpriteRenderer::render() {
 
 	Profiler p;
 	p.start();
+
+	sharedBuffer.update();
+	sharedBuffer.bind();
 
 	for (Sprite& sprite : sprites) {
 
@@ -35,43 +48,62 @@ void SpriteRenderer::render() {
 
 			if (flags & Sprite::Created) {
 
-				getGroup(getShaderID(sprite), sprite.groupID).getBatch().createSprite(id, sprite.typeID, sprite.getPosition(), calculateSpriteTransform(sprite));
+				SpriteGroup& group = getGroup(sprite.shaderID, sprite.groupID);
+
+				group.getBatch().createSprite(id, sprite.typeID, sprite.getPosition(), calculateSpriteTransform(sprite));
+				group.addCTReference(getCompositeTextureID(sprite));
+
+			} else if (flags & (Sprite::ShaderDirty | Sprite::GroupDirty) && (sprite.prevGroupID != sprite.groupID || sprite.prevShaderID != sprite.shaderID)) {
+
+				u32 newGroupSize = groups[sprite.shaderID].size();
+				u32 newGroupID = newGroupSize - 1;
+
+				if (flags & Sprite::GroupDirty && sprite.groupID <= newGroupID) {
+					newGroupID = sprite.groupID;
+				}
+
+				SpriteGroup& oldGroup = getGroup(sprite.prevShaderID, sprite.prevGroupID);
+				SpriteGroup& newGroup = getGroup(sprite.shaderID, newGroupID);
+
+				oldGroup.getBatch().purgeSprite(id);
+				newGroup.getBatch().createSprite(id, sprite.typeID, sprite.position, calculateSpriteTransform(sprite));
+
+				u32 oldCTID = textureToCompositeID[getType(sprite.prevTypeID).textureID];
+				u32 newCTID = textureToCompositeID[getType(sprite.typeID).textureID];
+
+				oldGroup.removeCTReference(oldCTID);
+				newGroup.addCTReference(newCTID);
+
+				sprite.prevGroupID = sprite.groupID;
+				sprite.prevShaderID = sprite.shaderID;
 
 			} else {
 
-				if (flags & (Sprite::TypeDirty | Sprite::GroupDirty)) {
+				if (flags & Sprite::TypeDirty) {
 
-					u32 oldTypeIndex = sprite.prevTypeID;
-					u32 newTypeIndex = sprite.getTypeID();
-
-					const SpriteType& oldType = getType(oldTypeIndex);
-					const SpriteType& newType = getType(newTypeIndex);
-
-					u32 lastGroupID = groups[newType.shaderID].size() - 1;
-					u32 newGroupID = flags & Sprite::GroupDirty ? Math::min(sprite.groupID, lastGroupID) : lastGroupID;
-
-					SpriteGroup& oldGroup = getGroup(oldType.shaderID, sprite.prevGroupID);
-					SpriteGroup& newGroup = getGroup(newType.shaderID, newGroupID);
-
-					oldGroup.getBatch().purgeSprite(id);
-					newGroup.getBatch().createSprite(id, newTypeIndex, sprite.getPosition(), calculateSpriteTransform(sprite));
+					const SpriteType& oldType = getType(sprite.prevTypeID);
+					const SpriteType& newType = getType(sprite.typeID);
 
 					u32 oldCTID = textureToCompositeID[oldType.textureID];
 					u32 newCTID = textureToCompositeID[newType.textureID];
 
+					SpriteGroup& group = getGroup(sprite.shaderID, sprite.groupID);
+					group.getBatch().setSpriteTypeIndex(id, sprite.typeID);
+
 					if (oldCTID != newCTID) {
 
-						oldGroup.removeCTReference(oldCTID);
-						newGroup.addCTReference(newCTID);
+						group.removeCTReference(oldCTID);
+						group.addCTReference(newCTID);
 
 					}
 
 					sprite.prevTypeID = sprite.typeID;
-					sprite.prevGroupID = sprite.groupID;
 
-				} else if (flags & (Sprite::TranslationDirty | Sprite::TransformDirty)) {
+				}
 
-					SpriteBatch& batch = getGroup(getType(sprite.typeID).shaderID, sprite.groupID).getBatch();
+				if (flags & (Sprite::TranslationDirty | Sprite::TransformDirty)) {
+
+					SpriteBatch& batch = getGroup(sprite.shaderID, sprite.groupID).getBatch();
 
 					if (flags & Sprite::TranslationDirty) {
 						batch.setSpriteTranslation(id, sprite.getPosition());
@@ -93,8 +125,6 @@ void SpriteRenderer::render() {
 
 	GLE::clear(GLE::Color);
 
-	//shaders->uProjectionMatrix.setMat4(projection);
-
 	typeBuffer.update();
 	typeBuffer.bind();
 
@@ -105,7 +135,7 @@ void SpriteRenderer::render() {
 		std::vector<SpriteGroup>& renderGroups = groups[siid];
 
 		for (SpriteGroup& group : renderGroups) {
-			group.getBatch().synchronize();
+			group.syncData();
 		}
 
 		if (shader.isEnabled()) {
@@ -174,18 +204,22 @@ void SpriteRenderer::setViewport(const Vec2f& lowerLeft, const Vec2f& topRight) 
 	viewport = RectF::fromPoints(lowerLeft, topRight);
 	recalculateProjection();
 
+	sharedBuffer.setProjection(projection);
+
 }
 
 
 
-Sprite& SpriteRenderer::createSprite(Id64 id, Id32 typeID, u32 groupID) {
+Sprite& SpriteRenderer::createSprite(Id64 id, Id32 typeID, u32 groupID, u32 shaderID) {
 
 	Sprite& sprite = sprites.create(id);
 	sprite.id = id;
 	sprite.typeID = typeID;
-	sprite.prevTypeID = typeID;
 	sprite.groupID = groupID;
+	sprite.shaderID = shaderID;
+	sprite.prevTypeID = typeID;
 	sprite.prevGroupID = groupID;
+	sprite.prevShaderID = shaderID;
 
 	return sprite;
 
@@ -220,10 +254,9 @@ void SpriteRenderer::destroySprite(Id64 id) {
 	const Sprite& sprite = getSprite(id);
 	const SpriteType& type = getType(sprite.prevTypeID);
 
-	u32 shaderID = type.shaderID;
 	u32 ctID = textureToCompositeID[type.textureID];
 
-	SpriteGroup& group = getGroup(shaderID, sprite.prevGroupID);
+	SpriteGroup& group = getGroup(sprite.prevShaderID, sprite.prevGroupID);
 	group.removeCTReference(ctID);
 	group.getBatch().purgeSprite(id);
 
@@ -258,49 +291,10 @@ void SpriteRenderer::createType(Id32 id, Id32 textureID, const Vec2f& size, cons
 	const CompositeTexture& ct = textures[ctID];
 	CompositeTexture::TextureData texData = ct.getTextureData(textureID);
 
-	u32 shaderID = Spring::baseShaderID;
-
-	if (outline == SpriteOutline::Polygon) {
-		shaderID |= Spring::polygonalBit;
-	}
-
-	if (texData.hasAlpha) {
-		shaderID |= Spring::transparencyBit;
-	}
-
-	if (!isShaderRegistered(shaderID)) {
-		loadStandardShaders();
-	}
-
-	createType(id, shaderID, textureID, size, origin, uvBase, uvScale, outline, polygon);
-
 	Vec2f newUvBase = uvBase + Vec2f(texData.x, texData.y) / ct.getSize();
 	Vec2f newUvScale = uvScale * Vec2f(texData.width, texData.height) / ct.getSize();
 
-	const SpriteType& type = factory.create(id, shaderID, textureID, size, origin, newUvBase, newUvScale, outline, polygon);
-	typeBuffer.addType(id, type, ctID, texData.arrayIndex);
-
-}
-
-
-
-void SpriteRenderer::createType(Id32 id, u32 shaderID, Id32 textureID, const Vec2f& size) {
-	createType(id, shaderID, textureID, size, Vec2f(0));
-}
-
-
-
-void SpriteRenderer::createType(Id32 id, u32 shaderID, Id32 textureID, const Vec2f& size, const Vec2f& origin, const Vec2f& uvBase, const Vec2f& uvScale, SpriteOutline outline, const std::span<const u8>& polygon) {
-
-	u32 ctID = textureToCompositeID[textureID];
-
-	const CompositeTexture& ct = textures[ctID];
-	CompositeTexture::TextureData texData = ct.getTextureData(textureID);
-
-	Vec2f newUvBase = uvBase + Vec2f(texData.x, texData.y) / ct.getSize();
-	Vec2f newUvScale = uvScale * Vec2f(texData.width, texData.height) / ct.getSize();
-
-	const SpriteType& type = factory.create(id, shaderID, textureID, size, origin, newUvBase, newUvScale, outline, polygon);
+	const SpriteType& type = factory.create(id, textureID, size, origin, newUvBase, newUvScale, outline, polygon);
 	typeBuffer.addType(id, type, ctID, texData.arrayIndex);
 
 }
@@ -375,7 +369,7 @@ void SpriteRenderer::registerShader(const SpringShader& shader) {
 	u32 shaderID = shader.getInvocationID();
 
 	if (shaders.contains(shaderID)) {
-		Log::warn("Sprite Renderer", "Failed to register shader %d: ID already in use", shaderID);
+		Log::warn("Spring", "Failed to register shader %d: ID already in use", shaderID);
 		return;
 	}
 
@@ -391,7 +385,7 @@ void SpriteRenderer::unregisterShader(u32 shaderID) {
 	auto shIt = shaders.find(shaderID);
 
 	if (shIt == shaders.end()) {
-		Log::warn("Sprite Renderer", "Failed to unregister shader %d: ID not found", shaderID);
+		Log::warn("Spring", "Failed to unregister shader %d: ID not found", shaderID);
 		return;
 	}
 
@@ -438,17 +432,6 @@ ShaderPool& SpriteRenderer::getShaderPool() {
 
 
 
-void SpriteRenderer::loadStandardShaders() {
-
-	ShaderStage stage(shaderPool.get("@/shaders/spring/spring_rect_opaque.vs", "@/shaders/spring/spring_rect_opaque.fs"), ShaderStage::PipelineFlags::Textures | ShaderStage::PipelineFlags::Culling);
-	SpringShader shader(stage, Spring::baseShaderID);
-
-	registerShader(shader);
-
-}
-
-
-
 SpriteGroup& SpriteRenderer::getGroup(u32 shaderID, u32 groupID) {
 	return groups[shaderID][groupID];
 }
@@ -469,12 +452,6 @@ SpringShader& SpriteRenderer::getShader(u32 shaderID) {
 
 const SpringShader& SpriteRenderer::getShader(u32 shaderID) const {
 	return shaders.find(shaderID)->second;
-}
-
-
-
-u32 SpriteRenderer::getShaderID(const Sprite& sprite) const {
-	return getType(sprite.getTypeID()).shaderID;
 }
 
 

@@ -22,11 +22,10 @@ enum class SpriteOutline {
 
 struct SpriteType {
 
-	constexpr SpriteType() noexcept : SpriteType(0, 0, Vec2f{}, Vec2f(1), Vec2f{}, Vec2f(1), SpriteOutline::Rectangle) {}
-	constexpr SpriteType(u32 shader, u32 texture, const Vec2f& origin, const Vec2f& size, const Vec2f& uvBase, const Vec2f& uvScale, SpriteOutline outline, const std::span<const u8>& data = {}) noexcept
-		: shaderID(shader), textureID(texture), origin(origin), size(size), uvBase(uvBase), uvScale(uvScale), outline(outline), polygon(data) {}
+	constexpr SpriteType() noexcept : SpriteType(0, Vec2f{}, Vec2f(1), Vec2f{}, Vec2f(1), SpriteOutline::Rectangle) {}
+	constexpr SpriteType(u32 texture, const Vec2f& origin, const Vec2f& size, const Vec2f& uvBase, const Vec2f& uvScale, SpriteOutline outline, const std::span<const u8>& data = {}) noexcept
+		: textureID(texture), origin(origin), size(size), uvBase(uvBase), uvScale(uvScale), outline(outline), polygon(data) {}
 
-	u32 shaderID;
 	u32 textureID;
 	Vec2f origin;
 	Vec2f size;

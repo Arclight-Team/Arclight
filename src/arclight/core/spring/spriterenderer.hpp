@@ -16,9 +16,10 @@
 #include "spritegroup.hpp"
 #include "spritefactory.hpp"
 #include "spritetypebuffer.hpp"
+#include "shaderpool.hpp"
+#include "sharedbuffer.hpp"
 
 #include "math/rectangle.hpp"
-#include "shaderpool.hpp"
 
 #include <map>
 #include <memory>
@@ -32,15 +33,15 @@ class SpriteRenderer {
 
 public:
 
-	SpriteRenderer();
+	SpriteRenderer() = default;
 
-	void preload();
+	void initialize();
 	void render();
 
 	void setViewport(const Vec2f& lowerLeft, const Vec2f& topRight);
 
 	//Sprite functions
-	Sprite& createSprite(Id64 id, Id32 typeID, u32 groupID = 0);
+	Sprite& createSprite(Id64 id, Id32 typeID, u32 groupID = 0, u32 shaderID = Spring::baseShaderID);
 	Sprite& getSprite(Id64 id);
 	const Sprite& getSprite(Id64 id) const;
 	bool containsSprite(Id64 id) const;
@@ -50,8 +51,6 @@ public:
 	//Type functions
 	void createType(Id32 id, Id32 textureID, const Vec2f& size);
 	void createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const Vec2f& uvBase = Vec2f(0), const Vec2f& uvScale = Vec2f(1), SpriteOutline outline = SpriteOutline::Rectangle, const std::span<const u8>& polygon = {});
-	void createType(Id32 id, u32 shaderID, Id32 textureID, const Vec2f& size);
-	void createType(Id32 id, u32 shaderID, Id32 textureID, const Vec2f& size, const Vec2f& origin, const Vec2f& uvBase = Vec2f(0), const Vec2f& uvScale = Vec2f(1), SpriteOutline outline = SpriteOutline::Rectangle, const std::span<const u8>& polygon = {});
 	bool hasType(Id32 id) const;
 	const SpriteType& getType(Id32 id) const;
 
@@ -81,15 +80,12 @@ public:
 
 private:
 
-	void loadStandardShaders();
-
 	SpriteGroup& getGroup(u32 shaderID, u32 groupID);
 	const SpriteGroup& getGroup(u32 shaderID, u32 groupID) const;
 
 	SpringShader& getShader(u32 shaderID);
 	const SpringShader& getShader(u32 shaderID) const;
 
-	u32 getShaderID(const Sprite& sprite) const;
 	u32 getCompositeTextureID(const Sprite& sprite) const;
 
 	Mat2f calculateSpriteTransform(const Sprite& sprite) const;
@@ -104,6 +100,7 @@ private:
 	SpriteArray sprites;
 
 	SpriteTypeBuffer typeBuffer;
+	SharedBuffer sharedBuffer;
 
 	ShaderPool shaderPool;
 
