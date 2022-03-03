@@ -7,6 +7,7 @@
  */
 
 #include "ctgrouptablebuffer.hpp"
+#include "spring.hpp"
 #include "render/gle/gle.hpp"
 
 
@@ -31,8 +32,12 @@ struct CTGroupData {
 
 
 
-CTGroupTableBuffer::CTGroupTableBuffer() {
-    data = std::make_shared<CTGroupData>();
+void CTGroupTableBuffer::create() {
+
+	if (!data) {
+		data = std::make_shared<CTGroupData>();
+	}
+
 }
 
 
@@ -90,7 +95,7 @@ void CTGroupTableBuffer::update() {
 void CTGroupTableBuffer::bind() {
 
     GLE::UniformBuffer& ubo = data->tableUBO;
-    ubo.bindRange(0, 0, buffer.size());
+    ubo.bindRange(Spring::ctTableBufferBinding, 0, buffer.size());
 
 }
 

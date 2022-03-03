@@ -18,7 +18,7 @@ class CTGroupTableBuffer {
 
 public:
 
-    CTGroupTableBuffer();
+    void create();
 
     void setTableSize(u32 size);
     void setSlot(u32 ctID, u32 slot);

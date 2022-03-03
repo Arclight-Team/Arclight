@@ -11,30 +11,68 @@
 
 
 
+static inline bool depthState = false;
+static inline bool cullState = false;
+static inline bool blendState = false;
+
+constexpr static void checkAndEnable(bool& state, u32 value) {
+
+	if (!state) {
+
+		glEnable(value);
+		state = true;
+
+	}
+
+}
+
+constexpr static void checkAndDisable(bool& state, u32 value) {
+
+	if (state) {
+
+		glDisable(value);
+		state = false;
+
+	}
+
+}
+
 GLE_BEGIN
 
 
 
 void enableDepthTests() {
-	glEnable(GL_DEPTH_TEST);
+	checkAndEnable(depthState, GL_DEPTH_TEST);
 }
 
 
 
 void disableDepthTests() {
-	glDisable(GL_DEPTH_TEST);
+	checkAndDisable(depthState, GL_DEPTH_TEST);
 }
 
 
 
 void enableCulling() {
-	glEnable(GL_CULL_FACE);
+	checkAndEnable(cullState, GL_CULL_FACE);
 }
 
 
 
 void disableCulling() {
-	glDisable(GL_CULL_FACE);
+	checkAndDisable(cullState, GL_CULL_FACE);
+}
+
+
+
+void enableBlending() {
+	checkAndEnable(blendState, GL_BLEND);
+}
+
+
+
+void disableBlending() {
+	checkAndDisable(blendState, GL_BLEND);
 }
 
 
