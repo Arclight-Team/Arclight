@@ -39,6 +39,8 @@ public:
 	void syncData();
 	void render();
 
+	u32 size() const;
+
 	constexpr bool isVisible() const { return visible; }
 
 	constexpr void show() { visible = true; }

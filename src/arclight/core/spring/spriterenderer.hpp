@@ -11,7 +11,7 @@
 #include "compositetexture.hpp"
 #include "spring.hpp"
 #include "springshader.hpp"
-#include "spritearray.hpp"
+#include "sprite.hpp"
 #include "spritebatch.hpp"
 #include "spritegroup.hpp"
 #include "spritefactory.hpp"
@@ -20,6 +20,7 @@
 #include "sharedbuffer.hpp"
 
 #include "math/rectangle.hpp"
+#include "stdext/arraymap.hpp"
 
 #include <map>
 #include <memory>
@@ -84,6 +85,19 @@ public:
 
 	}
 
+	template<class Func>
+	void groupExecute(u32 shaderID, u32 groupID, Func&& func) requires Invocable<Func, Sprite&> {
+
+		for (Sprite& sprite : sprites) {
+
+			if (sprite.prevShaderID == shaderID && sprite.prevGroupID == groupID) {
+				func(sprite);
+			}
+
+		}
+
+	}
+
 	u32 activeSpriteCount() const noexcept;
 
 	ShaderPool& getShaderPool();
@@ -107,7 +121,7 @@ private:
 	inline static const CTAllocationTable initialCTAllocationTable = std::vector<u32>(Spring::textureSlots, Spring::unusedCTSlot);
 
 	SpriteFactory factory;
-	SpriteArray sprites;
+	ArrayMap<u64, Sprite> sprites;
 
 	SpriteTypeBuffer typeBuffer;
 	SharedBuffer sharedBuffer;

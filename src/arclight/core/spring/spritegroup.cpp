@@ -171,3 +171,9 @@ void SpriteGroup::render() {
 	}
 
 }
+
+
+
+u32 SpriteGroup::size() const {
+	return batch.getBatchSize();
+}
