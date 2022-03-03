@@ -29,7 +29,7 @@
 
 /*
 	Defines ARC_UNREACHABLE
-	Issues a hint to the compiler that the given codepath is never reachable,
+	Issues a hint to the compiler that the given codepath is never reachable
 */
 #ifdef ARC_COMPILER_MSVC
 	#define ARC_UNREACHABLE	__assume(false);
