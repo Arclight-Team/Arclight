@@ -581,9 +581,9 @@ template<Pixel P>
 class Colors
 {
 
-	using PixelT = PixelType<P>::Type;
-	using ColorT = PixelT::ColorType;
-	using Format = PixelT::Format;
+	using PixelT = typename PixelType<P>::Type;
+	using ColorT = typename PixelT::ColorType;
+	using Format = typename PixelT::Format;
 	
 	constexpr static PixelT construct(float r, float g, float b, float a) {
 

@@ -67,13 +67,13 @@ public:
 
 	}
 
-	constexpr void setRawData(const std::span<u8>& src, u64 startPixel = 0) {
+	constexpr void setRawData(const std::span<const u8>& src, u64 startPixel = 0) {
 
 		SizeT pixels = data.size() / PixelBytes;
 		arc_assert(startPixel + pixels <= data.size(), "Cannot copy pixel data to smaller image");
 
 		for(SizeT i = 0; i < pixels; i++) {
-			data[i + startPixel] = Format(src.subspan(i * PixelBytes, PixelBytes));
+			data[i + startPixel] = PixelType(src.subspan(i * PixelBytes, PixelBytes));
 		}
 
 	}

@@ -61,11 +61,15 @@ public:
 		return size() - position();
 	}
 
-protected:
-
 	constexpr ByteType* head() const noexcept {
 		return stream.data() + cursor;
 	}
+
+	constexpr BinaryStream<Const> substream(u64 size) const noexcept {
+		return BinaryStream<Const>(stream.subspan(cursor, size));
+	}
+
+protected:
 
 	std::span<ByteType> stream;
 	u64 cursor;

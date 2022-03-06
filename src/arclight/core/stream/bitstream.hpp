@@ -61,8 +61,6 @@ public:
 		return size() - position();
 	}
 
-protected:
-
 	constexpr ByteType* head() const noexcept {
 		return stream.data() + cursor / 8;
 	}
@@ -70,6 +68,12 @@ protected:
 	constexpr u32 headOffset() const noexcept {
 		return cursor % 8;
 	}
+
+	constexpr BitStream<Const> substream(u64 size) const noexcept {
+		return BitStream<Const>(stream.subspan(cursor, size));
+	}
+
+protected:
 
 	StreamType stream;
 	u64 cursor;
