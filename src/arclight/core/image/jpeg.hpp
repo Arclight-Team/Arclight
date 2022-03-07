@@ -54,6 +54,7 @@ namespace JPEG {
 		constexpr u16 SOF14 = 0xFFCE;
 		constexpr u16 SOF15 = 0xFFCF;
 		constexpr u16 DHT = 0xFFC4;
+		constexpr u16 SOS = 0xFFDA;
 
 	};
 
@@ -96,17 +97,39 @@ namespace JPEG {
 
 	};
 
-	
-	using QuantizationTable = std::array<u32, 64>;
+	struct ImageComponent {
+
+		constexpr ImageComponent() noexcept : component(0), dcTableID(0), acTableID(0) {}
+
+		u8 component;
+		u8 dcTableID;
+		u8 acTableID;
+
+	};
+
+	struct Scan {
+
+		constexpr Scan() noexcept : spectralStart(0), spectralEnd(0), approximationHigh(0), approximationLow(0) {}
+
+		std::vector<ImageComponent> imageComponents;
+		u32 spectralStart;
+		u32 spectralEnd;
+		u32 approximationHigh;
+		u32 approximationLow;
+
+	};
+
+
+	using QuantizationTable = std::vector<u32>;
+	using HuffmanTable = std::vector<u8>;
 
 	struct DecodingContext {
 
-		DecodingContext() {
-			quantizationTables.resize(4);
-		}
-
-		std::vector<QuantizationTable> quantizationTables;
+		Scan scan;
 		Frame frame;
+		HuffmanTable dcHuffmanTables[4];
+		HuffmanTable acHuffmanTables[4];
+		QuantizationTable quantizationTables[4];
 
 	};
 
@@ -148,10 +171,13 @@ namespace JPEG {
 
 	}
 
-
 	void dispatchHuffmanTable(DecodingContext& context, BinaryReader& reader);
 	void dispatchQuantizationTable(DecodingContext& context, BinaryReader& reader);
 	void dispatchFrameHeader(DecodingContext& context, BinaryReader& reader);
+	void dispatchScanHeader(DecodingContext& context, BinaryReader& reader);
+
+	SizeT calculateScanSize(const BinaryReader& reader);
+	void scan(const DecodingContext& context, BinaryReader reader);
 
 
 	template<Pixel P>
@@ -199,8 +225,7 @@ namespace JPEG {
 			}
 
 			if (!stringValid) {
-				Log::error("JPEG Loader", "Bad APP0 type string");
-				return Image<P>();
+				throw JPEGDecoderException("Bad APP0 type string");
 			}
 
 			if (app0StringCompare(app0String, jfifString)) {
@@ -371,6 +396,17 @@ namespace JPEG {
 					dispatchHuffmanTable(context, reader);
 					break;
 
+				case Markers::SOS:
+					{
+						dispatchScanHeader(context, reader);
+
+						SizeT scanSize = calculateScanSize(reader);
+						scan(context, reader.substream(scanSize));
+
+						reader.seek(scanSize);
+					}
+					break;
+
 				default:
 					//Log::error("JPEG Loader", "Unknown marker 0x%X", marker);
 					break;
@@ -397,27 +433,87 @@ namespace JPEG {
 
 		u16 length = verifySegmentLength(reader);
 
-		if (length < 3) {
-			throw JPEGDecoderException("[DHT] Bad table size");
-		}
-
 		FrameType frameType = context.frame.type;
 
-		u8 settings = reader.read<u8>();
+		//Setting + L1-16
+		u32 offset = 19;
+		u32 count = 0;
 
-		u8 type = settings & 0x0F;
-		u8 id = settings >> 4;
+		do {
 
-		if (type > 1 || (frameType == FrameType::Lossless && type != 0)) {
-			throw JPEGDecoderException("[DHT] Illegal table class");
-		}
+			if (length < offset) {
+				throw JPEGDecoderException("[DHT] Bad table length");
+			}
 
-		if (id > 3 || (frameType == FrameType::Baseline && id > 1)) {
-			throw JPEGDecoderException("[DHT] Illegal table ID");
-		}
+			u8 settings = reader.read<u8>();
+
+			u8 type = settings >> 4;
+			u8 id = settings & 0xF;
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", "[DHT] Class: %d, ID: %d", type, id);
+			Log::info("JPEG Loader", "[DHT] Class: %d, ID: %d", type, id);
+#endif
+
+			if (type > 1 || id > 3) {
+				throw JPEGDecoderException("[DHT] Bad table settings");
+			}
+
+			std::array<u8, 16> codeCounts;
+			u32 totalCodeCount = 0;
+			u32 highestLength = 1;
+
+			for (u32 i = 0; i < 16; i++) {
+
+				u8 codeCount = reader.read<u8>();
+
+				codeCounts[i] = codeCount;
+				totalCodeCount += codeCount;
+
+				if (codeCount) {
+					highestLength = i;
+				}
+
+			}
+
+			offset += totalCodeCount;
+
+			if (length < offset) {
+				throw JPEGDecoderException("[DHT] Bad table length");
+			}
+
+			HuffmanTable& table = type == 0 ? context.dcHuffmanTables[id] : context.acHuffmanTables[id];
+
+			std::vector<u8> symbols(totalCodeCount);
+			reader.read(std::span {table.data(), table.size()});
+
+			table.resize(2 << highestLength);
+
+			u32 index = 0;
+			u32 code = 0;
+
+			//For each code length
+			for (u32 i = 0; i < 16; i++, code <<= 1) {
+
+				//For each code
+				for (u32 j = 0; j < codeCounts[i]; j++, code++) {
+
+					u32 curIndex = index++;
+
+					//Fill fast huffman table
+					for (u32 k = code; k < table.size(); k += 2 << i) {
+						table[k] = symbols[curIndex];
+					}
+
+				}
+
+			}
+
+			count++;
+
+		} while (offset != length);
+
+#ifdef ARC_IMAGE_DEBUG
+		Log::info("JPEG Loader", "[DHT] Tables read: %d", count);
 #endif
 
 	}
@@ -439,38 +535,35 @@ namespace JPEG {
 
 		u16 length = verifySegmentLength(reader);
 
-		u32 count = 0;
 		u32 offset = 2;
+		u32 count = 0;
 
 		do {
 
 			if (length < offset + 1) {
-				Log::error("JPEG Loader", "[DQT] Bad table length");
-				return;
+				throw JPEGDecoderException("[DQT] Bad table length");
 			}
 
-			//TODO: Pq in sequential baseline DCT must be 0
 			u8 setting = reader.read<u8>();
 			u8 precision = setting >> 4;
-			u8 destination = setting & 0x0F;
+			u8 id = setting & 0xF;
 
 #ifdef ARC_IMAGE_DEBUG
-			Log::info("JPEG Loader", std::string("[DQT] Table %d, ") + (precision ? "16 bit" : "8 bit"), destination);
+			Log::info("JPEG Loader", std::string("[DQT] Table %d, ") + (precision ? "16 bit" : "8 bit"), id);
 #endif
 
-			if (precision > 1 || destination > 3) {
-				Log::error("JPEG Loader", "[DQT] Illegal quantization setting 0x%X", setting);
-				return;
+			if (precision > 1 || id > 3) {
+				throw JPEGDecoderException("[DQT] Illegal quantization setting 0x%X", setting);
 			}
 
 			offset += 65 + precision * 64;
 
 			if (length < offset) {
-				Log::error("JPEG Loader", "[DQT] Table too small");
-				return;
+				throw JPEGDecoderException("[DQT] Table too small");
 			}
 
-			QuantizationTable& table = context.quantizationTables[destination];
+			QuantizationTable& table = context.quantizationTables[id];
+			table.resize(64);
 
 			if (precision) {
 				dispatchQuantizationTableSingle<u16>(table, reader);
@@ -568,7 +661,7 @@ namespace JPEG {
 			u8 s = reader.read<u8>();
 			u8 q = reader.read<u8>();
 
-			Component component(s & 0x0F, s >> 4, q);
+			Component component(s >> 4, s & 0xF, q);
 
 #ifdef ARC_IMAGE_DEBUG
 			Log::info("JPEG Loader", "[SOF] Component: %d, SX: %d, SY: %d, QTableIndex: %d", id, component.sx, component.sy, q);
@@ -585,6 +678,142 @@ namespace JPEG {
 			frame.components.emplace(id, component);
 
 		}
+
+	}
+
+
+
+	void dispatchScanHeader(DecodingContext& context, BinaryReader& reader) {
+
+		u16 length = verifySegmentLength(reader);
+
+		if (length < 3) {
+			throw JPEGDecoderException("[SOS] Bad length");
+		}
+
+		u8 components = reader.read<u8>();
+
+#ifdef ARC_IMAGE_DEBUG
+		Log::info("JPEG Loader", "[SOS] Images: %d", components);
+#endif
+
+		if (!Math::inRange(components, 1, 4)) {
+			throw JPEGDecoderException("[SOS] Illegal component count");
+		}
+
+		if (length < components * 2 + 6) {
+			throw JPEGDecoderException("[SOS] Bad length");
+		}
+
+		Scan& scan = context.scan;
+		Frame& frame = context.frame;
+		FrameType frameType = frame.type;
+
+		u32 samplingSum = 0;
+
+		for (u32 i = 0; i < components; i++) {
+
+			ImageComponent imgComp;
+			imgComp.component = reader.read<u8>();
+
+			u8 ids = reader.read<u8>();
+			imgComp.dcTableID = ids >> 4;
+			imgComp.acTableID = ids & 0xF;
+
+			scan.imageComponents.emplace_back(imgComp);
+
+#ifdef ARC_IMAGE_DEBUG
+			Log::info("JPEG Loader", "[SOS] Component %d: ID: %d, DCID: %d, ACID: %d", i + 1, imgComp.component, imgComp.dcTableID, imgComp.acTableID);
+#endif
+
+			if (!frame.components.contains(imgComp.component)) {
+				throw JPEGDecoderException("[SOS] No frame component found matching scan component index");
+			}
+
+			Component& c = frame.components[imgComp.component];
+			samplingSum += c.sx * c.sy;
+
+			if (imgComp.dcTableID > 3 || (frameType == FrameType::Baseline && imgComp.dcTableID > 1)) {
+				throw JPEGDecoderException("[SOS] Illegal DC table ID");
+			}
+
+			if (imgComp.dcTableID > 3 || (frameType == FrameType::Baseline && imgComp.dcTableID > 1) || (frameType == FrameType::Lossless && imgComp.dcTableID)) {
+				throw JPEGDecoderException("[SOS] Illegal AC table ID");
+			}
+
+		}
+
+		if (samplingSum > 10) {
+			throw JPEGDecoderException("[SOS] Sampling condition not satisfied");
+		}
+
+		scan.spectralStart = reader.read<u8>();
+		scan.spectralEnd = reader.read<u8>();
+
+		u8 approx = reader.read<u8>();
+		scan.approximationHigh = approx >> 4;
+		scan.approximationLow = approx & 0xF;
+
+#ifdef ARC_IMAGE_DEBUG
+		Log::info("JPEG Loader", "[SOS] SStart: %d, SEnd: %d, ApproxHigh: %d, ApproxLow: %d", scan.spectralStart, scan.spectralEnd, scan.approximationHigh, scan.approximationLow);
+#endif
+
+		switch (frameType) {
+
+			case FrameType::Baseline:
+			case FrameType::ExtendedSequential:
+
+				if (scan.spectralStart != 0 || scan.spectralEnd != 63 || scan.approximationHigh != 0 || scan.approximationLow != 0) {
+					throw JPEGDecoderException("[SOS] Bad scan settings");
+				}
+
+				break;
+
+			case FrameType::Progressive:
+
+				if (scan.spectralStart > 63 || scan.spectralEnd > 63 || scan.spectralStart > scan.spectralEnd
+					|| (!scan.spectralStart && scan.spectralEnd) || scan.approximationHigh > 13 || scan.approximationLow > 13) {
+					throw JPEGDecoderException("[SOS] Bad scan settings");
+				}
+
+				break;
+
+			case FrameType::Lossless:
+
+				if (scan.spectralStart > 7 || scan.spectralEnd || scan.approximationHigh || scan.approximationLow > 15) {
+					throw JPEGDecoderException("[SOS] Bad scan settings");
+				}
+
+				break;
+
+		}
+
+	}
+
+
+
+	SizeT calculateScanSize(const BinaryReader& reader) {
+
+		const u8* data = reader.head();
+		SizeT maxSize = reader.remainingSize();
+
+		for (SizeT i = 0; i < maxSize; i++) {
+
+			if (data[i] == 0xFF && (i + 1) < maxSize && data[i + 1] != 0) {
+				return i;
+			}
+
+		}
+
+		return maxSize;
+
+	}
+
+
+
+	void scan(const DecodingContext& context, BinaryReader reader) {
+
+		//Start scan decoding
 
 	}
 

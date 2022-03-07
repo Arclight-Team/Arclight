@@ -39,4 +39,8 @@ public:
 
 	}
 
+	constexpr BitWriter substream(SizeT size) const noexcept {
+		return BitWriter(stream.subspan(cursor, size));
+	}
+
 };

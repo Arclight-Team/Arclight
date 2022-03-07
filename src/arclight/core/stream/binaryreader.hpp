@@ -46,6 +46,10 @@ public:
 
 	}
 
+	constexpr BinaryReader substream(SizeT size) const noexcept {
+		return BinaryReader(stream.subspan(cursor, size));
+	}
+
 private:
 
 	bool convert;

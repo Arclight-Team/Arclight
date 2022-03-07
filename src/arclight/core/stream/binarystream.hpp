@@ -34,7 +34,7 @@ public:
 
 	}
 
-	constexpr void seekTo(u64 n) noexcept {
+	constexpr void seekTo(SizeT n) noexcept {
 
 		arc_assert(n <= size(), "Attempted to seek out of bounds");
 		cursor = n;
@@ -49,15 +49,15 @@ public:
 		return stream;
 	}
 
-	constexpr u64 position() const noexcept {
+	constexpr SizeT position() const noexcept {
 		return cursor;
 	}
 
-	constexpr u64 size() const noexcept {
+	constexpr SizeT size() const noexcept {
 		return stream.size();
 	}
 
-	constexpr u64 remainingSize() const noexcept {
+	constexpr SizeT remainingSize() const noexcept {
 		return size() - position();
 	}
 
@@ -65,13 +65,9 @@ public:
 		return stream.data() + cursor;
 	}
 
-	constexpr BinaryStream<Const> substream(u64 size) const noexcept {
-		return BinaryStream<Const>(stream.subspan(cursor, size));
-	}
-
 protected:
 
 	std::span<ByteType> stream;
-	u64 cursor;
+	SizeT cursor;
 
 };
