@@ -163,7 +163,7 @@ public:
 
 			reset();
 
-		} else if (*this != other) {
+		} else if (this != &other) {
 
 			//We must destruct the old object first
 			reset();
