@@ -18,6 +18,8 @@ class Rectangle {
 
 public:
 
+	using Type = A;
+
 	constexpr Rectangle() : Rectangle(0, 0, 0, 0) {}
 	constexpr Rectangle(const Vec2<A>& pos, const Vec2<A>& size) : Rectangle(pos.x, pos.y, size.x, size.y) {}
 
@@ -192,7 +194,16 @@ public:
 
 	template<Arithmetic B>
 	constexpr bool intersects(const Rectangle<B>& other) const {
-		return !(getEndX() <= other.x || x >= other.getEndX() || getEndY() <= other.y || y >= other.getEndY());
+
+		Vec2<A> s1 = getPosition();
+		Vec2<A> e1 = getEndpoint();
+		Vec2<B> s2 = other.getPosition();
+		Vec2<B> e2 = other.getEndpoint();
+
+		return
+			s2.x < e1.x && e2.x > s1.x &&
+			s2.y < e1.y && e2.y > s1.y;
+
 	}
 
 	constexpr A perimeter() const {
@@ -205,6 +216,21 @@ public:
 
 	constexpr bool contains(const Vec2<A>& point) const {
 		return point.x >= x && point.x <= getEndX() && point.y >= y && point.y <= getEndY();
+	}
+
+	// Checks if the rectangle contains another rectangle
+	template<Arithmetic B>
+	constexpr bool contains(const Rectangle<B>& other) const {
+		
+		Vec2<A> s1 = getPosition();
+		Vec2<A> e1 = getEndpoint();
+		Vec2<B> s2 = other.getPosition();
+		Vec2<B> e2 = other.getEndpoint();
+
+		return
+			s2.x > s1.x && e1.x > e2.x &&
+			s2.y > s1.y && e1.y > e2.y;
+
 	}
 
 	template<Arithmetic B>
