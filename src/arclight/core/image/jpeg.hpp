@@ -121,7 +121,7 @@ namespace JPEG {
 
 
 	using QuantizationTable = std::vector<u32>;
-	using HuffmanTable = std::vector<u8>;
+	using HuffmanTable = std::vector<std::pair<u8, u8>>;
 
 	struct DecodingContext {
 
@@ -433,8 +433,6 @@ namespace JPEG {
 
 		u16 length = verifySegmentLength(reader);
 
-		FrameType frameType = context.frame.type;
-
 		//Setting + L1-16
 		u32 offset = 19;
 		u32 count = 0;
@@ -484,7 +482,7 @@ namespace JPEG {
 			HuffmanTable& table = type == 0 ? context.dcHuffmanTables[id] : context.acHuffmanTables[id];
 
 			std::vector<u8> symbols(totalCodeCount);
-			reader.read(std::span {table.data(), table.size()});
+			reader.read(std::span {symbols.data(), symbols.size()});
 
 			table.resize(2 << highestLength);
 
@@ -492,19 +490,26 @@ namespace JPEG {
 			u32 code = 0;
 
 			//For each code length
-			for (u32 i = 0; i < 16; i++, code <<= 1) {
+			for (u32 i = 0; i < 16; i++) {
 
 				//For each code
-				for (u32 j = 0; j < codeCounts[i]; j++, code++) {
+				for (u32 j = 0; j < codeCounts[i]; j++) {
 
 					u32 curIndex = index++;
 
+					//Fast huffman code must be reversed
+					u32 startCode = Bits::reverse(code) >> (31 - i);
+
 					//Fill fast huffman table
-					for (u32 k = code; k < table.size(); k += 2 << i) {
-						table[k] = symbols[curIndex];
+					for (u32 k = startCode; k < table.size(); k += 1 << i) {
+						table[k] = {symbols[curIndex], i + 1};
 					}
 
+					code++;
+
 				}
+
+				code <<= 1;
 
 			}
 
@@ -741,6 +746,14 @@ namespace JPEG {
 				throw JPEGDecoderException("[SOS] Illegal AC table ID");
 			}
 
+			if (context.dcHuffmanTables[imgComp.dcTableID].empty() || context.acHuffmanTables[imgComp.acTableID].empty()) {
+				throw JPEGDecoderException("[SOS] Huffman table not installed");
+			}
+
+			if (context.quantizationTables[c.qIndex].empty()) {
+				throw JPEGDecoderException("[SOS] Quantization table not installed");
+			}
+
 		}
 
 		if (samplingSum > 10) {
@@ -814,6 +827,73 @@ namespace JPEG {
 	void scan(const DecodingContext& context, BinaryReader reader) {
 
 		//Start scan decoding
+		if (context.frame.type != FrameType::Baseline) {
+			Log::error("JPEG Decoder", "Decoder can only decode baseline JPEG");
+			return;
+		}
+
+		if (!reader.size()) {
+			throw JPEGDecoderException("Scan empty");
+		}
+
+		const Scan& scan = context.scan;
+		const HuffmanTable& dcHuffmanTable = context.dcHuffmanTables[scan.imageComponents[0].dcTableID];
+		const HuffmanTable& acHuffmanTable = context.dcHuffmanTables[scan.imageComponents[0].acTableID];
+
+		ArcDebug() << "In size:" << reader.size();
+
+		Profiler profiler;
+		profiler.start();
+
+		std::vector<u8> output;
+		output.reserve(reader.size() * 4);
+
+		u32 maxLength = Bits::ctz(dcHuffmanTable.size());
+
+		u32 word = 0;
+		bool active = true;
+		i32 activeLength = 0;
+
+		while (active || activeLength > 0) {
+
+			//Saturate stream
+			if (activeLength < 16) {
+
+				u32 fetchCount = 2 - activeLength / 8;
+
+				for (u32 j = 0; j < Math::min(fetchCount, reader.remainingSize()); j++) {
+
+					u8 byte = reader.read<u8>();
+
+					//Skip trailing 'escape zero'
+					//Safe because the pre-scan stopped at the first non-zero FF-sequence
+					if (byte == 0xFF) {
+						reader.seek(1);
+					}
+
+					word |= Bits::reverse(byte) << activeLength;
+					activeLength += 8;
+
+				}
+
+				if (!reader.remainingSize()) {
+					active = false;
+				}
+
+			}
+
+			u32 index = Bits::mask(word, 0, maxLength);
+			auto result = dcHuffmanTable[index];
+
+			output.emplace_back(result.first);
+
+			word >>= result.second;
+			activeLength -= result.second;
+
+		}
+
+		profiler.stop("Huffman");
+		ArcDebug() << "Out size:" << output.size();
 
 	}
 
