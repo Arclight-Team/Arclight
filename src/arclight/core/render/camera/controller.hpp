@@ -39,6 +39,6 @@ public:
 
 protected:
 
-	InputContext* inputContext;
+	InputContext* inputContext{};
 
 };
