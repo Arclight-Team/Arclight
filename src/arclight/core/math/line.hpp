@@ -21,6 +21,8 @@ class Line {
 
 public:
 
+	using Type = F;
+
 	constexpr Line() : Line(Vec2<F>(), Vec2<F>()) {}
 
 	template<Arithmetic A, Arithmetic B>
@@ -112,7 +114,7 @@ public:
 		return Math::equal(derivative(), line.derivative()) && Math::equal(yOffset(), line.yOffset());
 	}
 
-	constexpr bool operator=(const Line<F>& line) const {
+	constexpr bool operator==(const Line<F>& line) const {
 		return equal(line);
 	}
 

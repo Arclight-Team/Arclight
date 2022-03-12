@@ -245,16 +245,6 @@ void InputContext::registerAction(u32 stateID, KeyAction action) {
 		for (u32 i = 0; i < trigger.getKeyCount(); i++) {
 
 			const auto& actions = keyMap.equal_range(trigger.getKey(i));
-
-			for (auto it = actions.first; it != actions.second; it++) {
-
-				if (actionBindings[it->second].first.getKeyCount() <= trigger.getKeyCount()) {
-					keyMap.emplace_hint(it, trigger.getKey(i), action);
-					return;
-				}
-
-			}
-
 			keyMap.emplace_hint(actions.second, trigger.getKey(i), action);
 
 		}
@@ -408,13 +398,13 @@ bool InputContext::onKeyEvent(const KeyEvent& event, const std::vector<KeyState>
 
 		auto& keyMap = inputStates[currentState].keyLookup;
 		const auto& actions = keyMap.equal_range(key);
-	
+
 		for (auto it = actions.first; it != actions.second; it++) {
 
 			const KeyTrigger& trigger = getActionBinding(it->second);
 
 			if(triggerCompare(keyStates, trigger, event)){
-			
+
 				if (handler.actionListener(it->second)) {
 					consumed = true;
 					break;

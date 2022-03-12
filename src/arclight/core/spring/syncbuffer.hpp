@@ -20,7 +20,7 @@
 
 class SyncBuffer {
 
-	using Buffer = std::vector<u8, AlignedAllocator<u8, 16>>;
+	using Buffer = std::vector<u8, AlignedAllocator<u8, 32>>;
 
 public:
 

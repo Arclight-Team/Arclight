@@ -312,6 +312,12 @@ namespace Math {
 		return a % b;
 	}
 
+	template<Float F>
+	ARC_CMATH_CONSTEXPR F fract(F v) {
+		[[maybe_unused]] F f;
+		return std::modf(v, &f);
+	}
+
 	template<Arithmetic A>
 	ARC_CMATH_CONSTEXPR auto exp(A exponent) {
 		return A(std::exp(exponent));
@@ -415,6 +421,11 @@ namespace Math {
 		return x & ~(alignment - 1);
 	}
 
+
+	template<Float F>
+	constexpr F triangle(F x) noexcept {
+		return abs(mod(x - 1, 2.0f) - 1);
+	}
 
 
 	enum class ConstantType {

@@ -68,6 +68,50 @@ namespace __Detail {
 }
 
 
+static void GLAPIENTRY debugCallback(u32 source, u32 type, u32 id, u32 severity, i32 length, const char* message, [[maybe_unused]] const void* userParam) {
+
+	std::string typeString;
+
+	switch (type) {
+
+		case GL_DEBUG_TYPE_ERROR:               typeString = "Error";               break;
+		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeString = "Deprecated";          break;
+		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  typeString = "Undefined behaviour"; break;
+		case GL_DEBUG_TYPE_PORTABILITY:         typeString = "Portability issue";   break;
+		case GL_DEBUG_TYPE_PERFORMANCE:         typeString = "Performance issue";   break;
+		case GL_DEBUG_TYPE_MARKER:              typeString = "Marker";              break;
+		case GL_DEBUG_TYPE_PUSH_GROUP:          typeString = "Group pushed";        break;
+		case GL_DEBUG_TYPE_POP_GROUP:           typeString = "Group popped";        break;
+		case GL_DEBUG_TYPE_OTHER:               typeString = "Debug";               break;
+
+		default:
+			arc_force_assert("Illegal type");
+
+	}
+
+	switch (severity) {
+
+		case GL_DEBUG_SEVERITY_LOW:
+		case GL_DEBUG_SEVERITY_MEDIUM:
+			GLE::warn(typeString + ": " + std::string(message, length));
+			break;
+
+		case GL_DEBUG_SEVERITY_HIGH:
+			GLE::error(typeString + ": " + std::string(message, length));
+			break;
+
+		case GL_DEBUG_SEVERITY_NOTIFICATION:
+			GLE::info(typeString + ": " + std::string(message, length));
+			break;
+
+		default:
+			arc_force_assert("Illegal severity");
+
+	}
+
+}
+
+
 namespace Core {
 
 	bool init() {
@@ -90,6 +134,10 @@ namespace Core {
 
 		__Detail::openglContextVersion = majorVersion << 8 | minorVersion;
 		__Detail::openglDebugContext = flags & GL_CONTEXT_FLAG_DEBUG_BIT;
+
+		if (__Detail::openglDebugContext) {
+			glDebugMessageCallback(debugCallback, nullptr);
+		}
 
 		GLE::info("OpenGL %d.%d context set up", majorVersion, minorVersion);
 		GLE::info("Debug context %s", (__Detail::openglDebugContext ? "enabled" : "disabled"));

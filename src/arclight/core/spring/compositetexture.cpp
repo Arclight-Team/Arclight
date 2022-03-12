@@ -73,6 +73,12 @@ u32 CompositeTexture::getHeight() const noexcept {
 
 
 
+Vec2ui CompositeTexture::getSize() const noexcept {
+	return { width, height };
+}
+
+
+
 u32 CompositeTexture::getTextureCount() const noexcept {
 	return textures.size();
 }
@@ -95,20 +101,20 @@ CompositeTexture CompositeTexture::loadAndComposite(const TextureSet& set, Type 
 
 	try {
 
-		const std::unordered_map<u32, Path>& paths = set.getTexturePaths();
+		const std::unordered_map<u32, TextureLoadData>& loadData = set.getTexturePaths();
 		std::unordered_map<u32, TextureData> textures;
 
 		u32 maxWidth = 0;
 		u32 maxHeight = 0;
 
-		for(const auto&[id, path] : paths) {
+		for(const auto& [id, data] : loadData) {
 
-			Image image = BMP::loadBitmap<Pixel::RGBA8>(path);
+			Image image = BMP::loadBitmap<Pixel::RGBA8>(data.path);
 
 			maxWidth = Math::max(image.getWidth(), maxWidth);
 			maxHeight = Math::max(image.getHeight(), maxHeight);
 
-			textures.emplace(id, TextureData(image.getWidth(), image.getHeight(), std::move(image)));
+			textures.emplace(id, TextureData(0, 0, image.getWidth(), image.getHeight(), data.hasAlpha, std::move(image)));
 
 		}
 

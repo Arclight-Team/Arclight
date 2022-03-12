@@ -22,7 +22,7 @@ class SpriteTypeBuffer {
 
 public:
 
-	SpriteTypeBuffer();
+	void create();
 
 	void addType(u32 typeID, const SpriteType& type, u32 ctID, u32 texID);
 	void setTypeData(u32 typeID, const SpriteType& type, u32 ctID, u32 texID);

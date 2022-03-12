@@ -14,33 +14,24 @@
 
 
 
-struct SpriteOutline {
-
-	enum class Type {
-		Rectangle,
-		Polygon
-	};
-
-	constexpr SpriteOutline() : uvBase(Vec2f(0)), uvScale(Vec2f(1)), type(Type::Rectangle) {}
-	constexpr SpriteOutline(const Vec2f& base, const Vec2f& scale, Type type, const std::span<const u8>& data = {}) : uvBase(base), uvScale(scale), type(type), polygon(data) {}
-
-	Vec2f uvBase;
-	Vec2f uvScale;
-	Type type;
-	std::span<const u8> polygon;
-
+enum class SpriteOutline {
+	Rectangle,
+	Polygon
 };
-
 
 
 struct SpriteType {
 
-	constexpr SpriteType() noexcept : textureID(0), size(Vec2f(1)) {}
-	constexpr SpriteType(u32 texture, const Vec2f& origin, const Vec2f& size, const SpriteOutline& outline) noexcept : textureID(texture), origin(origin), size(size), outline(outline) {}
+	constexpr SpriteType() noexcept : SpriteType(0, Vec2f{}, Vec2f(1), Vec2f{}, Vec2f(1), SpriteOutline::Rectangle) {}
+	constexpr SpriteType(u32 texture, const Vec2f& origin, const Vec2f& size, const Vec2f& uvBase, const Vec2f& uvScale, SpriteOutline outline, const std::span<const u8>& data = {}) noexcept
+		: textureID(texture), origin(origin), size(size), uvBase(uvBase), uvScale(uvScale), outline(outline), polygon(data) {}
 
 	u32 textureID;
 	Vec2f origin;
 	Vec2f size;
+	Vec2f uvBase;
+	Vec2f uvScale;
 	SpriteOutline outline;
+	std::span<const u8> polygon;
 
 };

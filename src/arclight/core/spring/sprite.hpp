@@ -18,7 +18,7 @@ class Sprite : private SpringObject {
 
 public:
 
-	constexpr Sprite() noexcept : typeID(-1), rotation(0), scale(1, 1) { allDirty(); }
+	constexpr Sprite() noexcept : typeID(-1), rotation(0), scale(1, 1) { setFlags(Created); }
 
 	//Getters
 	constexpr float getX() const noexcept { return position.x; }
@@ -35,9 +35,11 @@ public:
 	constexpr u64 getID() const noexcept { return id; }
 	constexpr u32 getTypeID() const noexcept { return typeID; }
 	constexpr u32 getGroupID() const noexcept { return groupID; }
+	constexpr u32 getShaderID() const noexcept { return shaderID; }
 
-	constexpr void setGroupID(u32 id) noexcept { groupID = id; groupDirty(); }
 	constexpr void setTypeID(u32 id) noexcept { typeID = id; typeDirty(); }
+	constexpr void setGroupID(u32 id) noexcept { groupID = id; groupDirty(); }
+	constexpr void setShaderID(u32 id) noexcept { shaderID = id; shaderDirty(); }
 
 	//Setters
 	constexpr void setX(float x) noexcept { position.x = x; translationDirty(); }
@@ -58,24 +60,30 @@ private:
 
 	friend class SpriteRenderer;
 
-	constexpr void transformDirty() noexcept { setFlags(getFlags() | Dirty | TransformDirty); }
-	constexpr void translationDirty() noexcept { setFlags(getFlags() | Dirty | TranslationDirty); }
-	constexpr void groupDirty() noexcept { setFlags(getFlags() | Dirty | GroupDirty); }
-	constexpr void typeDirty() noexcept { setFlags(getFlags() | Dirty | TypeDirty); }
+	constexpr void transformDirty() noexcept { setFlags(getFlags() | TransformDirty); }
+	constexpr void translationDirty() noexcept { setFlags(getFlags() | TranslationDirty); }
+	constexpr void groupDirty() noexcept { setFlags(getFlags() | GroupDirty); }
+	constexpr void typeDirty() noexcept { setFlags(getFlags() | TypeDirty); }
+	constexpr void shaderDirty() noexcept { setFlags(getFlags() | ShaderDirty); }
 	constexpr void allDirty() noexcept { setFlags(All); }
 
 	enum Flags {
-		Dirty = 0x1,
+		Created = 0x1,
 		TransformDirty = 0x2,
 		TranslationDirty = 0x4,
-		GroupDirty = 0x10,
-		TypeDirty = 0x20,
-		All = Dirty | TransformDirty | TranslationDirty | GroupDirty | TypeDirty
+		GroupDirty = 0x8,
+		TypeDirty = 0x10,
+		ShaderDirty = 0x10,
+		All = TransformDirty | TranslationDirty | GroupDirty | TypeDirty | ShaderDirty
 	};
 
 	u64 id;
 	u32 typeID;
 	u32 groupID;
+	u32 shaderID;
+	u32 prevTypeID;
+	u32 prevGroupID;
+	u32 prevShaderID;
 
 	Vec2f position;
 	float rotation;

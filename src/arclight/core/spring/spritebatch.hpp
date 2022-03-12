@@ -20,14 +20,12 @@ class SpriteBatch {
 
 public:
 
-	SpriteBatch();
+	void create();
 
-	void createSprite(u64 id, const Vec2f& translation, const Mat2f& transform, u32 typeIndex);
+	void createSprite(u64 id, u32 typeIndex, const Vec2f& translation, const Mat2f& transform);
 	void setSpriteTranslation(u64 id, const Vec2f& translation);
 	void setSpriteTransform(u64 id, const Mat2f& transform);
 	void setSpriteTypeIndex(u64 id, u32 typeIndex);
-
-	u32 getSpriteTypeIndex(u64 id) const;
 
 	void purgeSprite(u64 id);
 	void synchronize();
@@ -41,9 +39,6 @@ private:
 	constexpr static u32 transformOffset = 0;
 	constexpr static u32 translationOffset = 16;
 	constexpr static u32 typeIndexOffset = 24;
-
-	static void vectorDecay(const Vec2f& vector, const std::span<u8>& dest);
-	static void matrixDecay(const Mat2f& matrix, const std::span<u8>& dest);
 
 	std::shared_ptr<class SpriteBatchData> data;
 

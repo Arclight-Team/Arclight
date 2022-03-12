@@ -9,8 +9,7 @@
 #pragma once
 
 #include "camera.hpp"
-#include "input/keytrigger.hpp"
-#include "input/keydefs.hpp"
+#include "controller.hpp"
 
 
 
@@ -35,7 +34,8 @@ struct ArcballCameraInputConfig
 };
 
 
-class ArcballCamera
+
+class ArcballCamera : public CameraController
 {
 public:
 
@@ -56,9 +56,9 @@ public:
 
 	void update();
 
-	void setupInputContext(InputContext& context, u32 firstAction, u32 contextState = 0);
+	void setupInputContext(InputContext& context, u32 firstAction);
 	void setupInputHandler(InputHandler& handler);
-
+		
 	bool actionListener(KeyAction action);
 	bool cursorListener(double x, double y);
 	bool scrollListener(double y);
@@ -70,7 +70,11 @@ public:
 	constexpr Vec3f getPosition() {
 		return position * distance;
 	}
-	
+
+	constexpr float getDistance() {
+		return distance;
+	}
+
 	constexpr Vec3f getTarget() {
 		return {};
 	}

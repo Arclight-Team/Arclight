@@ -187,3 +187,18 @@ concept BaseType = !PointerType<T> && !ReferenceType<T> && !MemberPointerType<T>
 
 template<class T>
 concept NestedType = __ConceptDetail::NestedType<T>::Value;
+
+template<class F, class... A>
+concept Invocable = std::is_invocable_v<F, A...>;
+
+template<class F, class R>
+concept Returns = Invocable<F> && Equal<std::invoke_result_t<F>, R>;
+
+template<class T>
+concept Shape = requires(T s) { s.area(); };
+
+template<class T>
+concept Shape3D = Shape<T> && requires(T s) { s.volume(); };
+
+template<class T>
+concept Shape2D = Shape<T> && !Shape3D<T>;

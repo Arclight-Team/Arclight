@@ -67,13 +67,17 @@ struct SpriteBatchData {
 
 
 
-SpriteBatch::SpriteBatch() {
-	data = std::make_shared<SpriteBatchData>();
+void SpriteBatch::create() {
+
+	if (!data) {
+		data = std::make_shared<SpriteBatchData>();
+	}
+
 }
 
 
 
-void SpriteBatch::createSprite(u64 id, const Vec2f& translation, const Mat2f& transform, u32 typeIndex) {
+void SpriteBatch::createSprite(u64 id, u32 typeIndex, const Vec2f& translation, const Mat2f& transform) {
 
 	SizeT offset = buffer.size();
 
@@ -122,15 +126,6 @@ void SpriteBatch::setSpriteTypeIndex(u64 id, u32 typeIndex) {
 
 
 
-u32 SpriteBatch::getSpriteTypeIndex(u64 id) const {
-
-	arc_assert(offsets.contains(id), "Illegal sprite batch query");
-	return Bits::assemble<u32>(buffer.data() + offsets.find(id)->second + typeIndexOffset);
-
-}
-
-
-
 void SpriteBatch::purgeSprite(u64 id) {
 
 	auto it = offsets.find(id);
@@ -139,12 +134,20 @@ void SpriteBatch::purgeSprite(u64 id) {
 
 		SizeT offset = it->second;
 		SizeT lastOffset = buffer.size() - dataSize;
-		u64 lastSprite = ids[lastOffset];
 
-		buffer.write(offset, {&buffer[lastOffset], dataSize});
+		if (offset != lastOffset) {
+
+			u64 lastSprite = ids[lastOffset];
+
+			buffer.write(offset, {&buffer[lastOffset], dataSize});
+
+			ids[offset] = lastSprite;
+			offsets[lastSprite] = offset;
+
+		}
 
 		ids.erase(lastOffset);
-		offsets.erase(lastSprite);
+		offsets.erase(id);
 
 		buffer.resize(lastOffset);
 
@@ -161,7 +164,6 @@ void SpriteBatch::synchronize() {
 	}
 
 	GLE::VertexBuffer& matrixVbo = data->matrixVbo;
-
 	matrixVbo.bind();
 
 	if (matrixVbo.getSize() < buffer.size()) {

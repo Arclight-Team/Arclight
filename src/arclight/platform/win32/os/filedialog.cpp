@@ -132,6 +132,20 @@ void FileDialog::setInitialFilename(const std::string& filename) {
 
 
 
+void FileDialog::setDefaultExtension(const std::string& ext) {
+
+	if (!handle) {
+		return;
+	}
+
+	if (!SUCCEEDED(handle->dialog->SetDefaultExtension(std::wstring(ext.begin(), ext.end()).c_str()))) {
+		Log::error("File Dialog", "Failed to set default extension");
+	}
+
+}
+
+
+
 void FileDialog::setOptions(Options options) {
 	this->options = options;
 }
@@ -151,6 +165,7 @@ void FileDialog::setFileFilters(const std::vector<FileFilter>& filters, SizeT se
 	std::vector<std::wstring> wideStrings;
 	std::vector<COMDLG_FILTERSPEC> convertedFilter;
 
+	wideStrings.reserve(filters.size() * 2);
 	convertedFilter.reserve(filters.size());
 
 	for(const FileFilter& filter : filters) {
@@ -197,12 +212,20 @@ Path FileDialog::getSelectedItem() const {
 
 	if (SUCCEEDED(handle->dialog->GetResult(&item))) {
 
-		PWSTR itemPath = nullptr;
+		IShellItem* parentItem = nullptr;
 
-		if(SUCCEEDED(item->GetDisplayName(SIGDN_FILESYSPATH, &itemPath))) {
+		if (SUCCEEDED(item->GetParent(&parentItem))) {
 
-			p = Path(itemPath);
-			CoTaskMemFree(itemPath);
+			PWSTR parentPath = nullptr;
+
+			if(SUCCEEDED(item->GetDisplayName(SIGDN_FILESYSPATH, &parentPath))) {
+
+				p = Path(parentPath);
+				CoTaskMemFree(parentPath);
+
+			}
+
+			parentItem->Release();
 
 		}
 
@@ -336,19 +359,19 @@ bool FileDialog::show() {
 
 
 Path FileDialog::getOpenFilePath(const std::string& title, const Path& dir, const std::vector<FileFilter>& filters, SizeT selected, Options options) {
-	return showAndReturnItem(Type::Open, title, dir, filters, selected, options);
+	return showAndReturnItem(Type::Open, title, dir, "", filters, selected, options);
 }
 
 
 
 Path FileDialog::getSelectedDirectory(const std::string& title, const Path& dir, const std::vector<FileFilter>& filters, SizeT selected, Options options) {
-	return showAndReturnItem(Type::SelectFolder, title, dir, filters, selected, options);
+	return showAndReturnItem(Type::SelectFolder, title, dir, "", filters, selected, options);
 }
 
 
 
-Path FileDialog::getSaveFilePath(const std::string& title, const Path& dir, const std::vector<FileFilter>& filters, SizeT selected, Options options) {
-	return showAndReturnItem(Type::Save, title, dir, filters, selected, options);
+Path FileDialog::getSaveFilePath(const std::string& title, const Path& dir, const std::string& defaultExtension, const std::vector<FileFilter>& filters, SizeT selected, Options options) {
+	return showAndReturnItem(Type::Save, title, dir, defaultExtension, filters, selected, options);
 }
 
 
@@ -365,7 +388,7 @@ std::vector<Path> FileDialog::getSelectedDirectories(const std::string& title, c
 
 
 
-Path FileDialog::showAndReturnItem(Type type, const std::string& title, const Path& dir, const std::vector<FileFilter>& filters, SizeT selected, Options options) {
+Path FileDialog::showAndReturnItem(Type type, const std::string& title, const Path& dir, const std::string& defaultExt, const std::vector<FileFilter>& filters, SizeT selected, Options options) {
 
 	FileDialog dialog(type);
 
@@ -379,6 +402,10 @@ Path FileDialog::showAndReturnItem(Type type, const std::string& title, const Pa
 
 	if (!filters.empty()) {
 		dialog.setFileFilters(filters, selected);
+	}
+
+	if (!defaultExt.empty()) {
+		dialog.setDefaultExtension(defaultExt);
 	}
 
 	dialog.setOptions(options & ~Options::MultiSelect);

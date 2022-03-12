@@ -8,15 +8,19 @@
 
 #pragma once
 
-#include "spring.hpp"
 #include "compositetexture.hpp"
-#include "spritearray.hpp"
+#include "spring.hpp"
+#include "springshader.hpp"
+#include "sprite.hpp"
 #include "spritebatch.hpp"
 #include "spritegroup.hpp"
 #include "spritefactory.hpp"
 #include "spritetypebuffer.hpp"
+#include "shaderpool.hpp"
+#include "sharedbuffer.hpp"
+
 #include "math/rectangle.hpp"
-#include "rendergroup.hpp"
+#include "stdext/arraymap.hpp"
 
 #include <map>
 #include <memory>
@@ -30,23 +34,24 @@ class SpriteRenderer {
 
 public:
 
-	SpriteRenderer();
+	SpriteRenderer() = default;
 
-	void preload();
+	void initialize();
 	void render();
 
 	void setViewport(const Vec2f& lowerLeft, const Vec2f& topRight);
 
 	//Sprite functions
-	Sprite& createSprite(Id64 id, Id32 typeID, Id32 groupID = 0);
+	Sprite& createSprite(Id64 id, Id32 typeID, u32 groupID = 0, u32 shaderID = Spring::baseShaderID);
 	Sprite& getSprite(Id64 id);
 	const Sprite& getSprite(Id64 id) const;
 	bool containsSprite(Id64 id) const;
 	void destroySprite(Id64 id);
+	void destroyAllSprites();
 
 	//Type functions
 	void createType(Id32 id, Id32 textureID, const Vec2f& size);
-	void createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline = SpriteOutline());
+	void createType(Id32 id, Id32 textureID, const Vec2f& size, const Vec2f& origin, const Vec2f& uvBase = Vec2f(0), const Vec2f& uvScale = Vec2f(1), SpriteOutline outline = SpriteOutline::Rectangle, const std::span<const u8>& polygon = {});
 	bool hasType(Id32 id) const;
 	const SpriteType& getType(Id32 id) const;
 
@@ -54,17 +59,57 @@ public:
 	void loadTextureSet(const TextureSet& set);
 
 	//Group functions
-	void showGroup(Id32 groupID);
-	void hideGroup(Id32 groupID);
-	void setGroupVisibility(Id32 groupID, bool visible);
-	void toggleGroupVisibility(Id32 groupID);
-	bool isGroupVisible(Id32 groupID) const;
+	void showGroup(u32 shaderID, u32 groupID);
+	void hideGroup(u32 shaderID, u32 groupID);
+	void setGroupVisibility(u32 shaderID, u32 groupID, bool visible);
+	void toggleGroupVisibility(u32 shaderID, u32 groupID);
+	bool isGroupVisible(u32 shaderID, u32 groupID) const;
+
+	void setGroupCount(u32 shaderID, u32 count);
+
+	//Shader functions
+	void registerShader(u32 shaderID, const SpringShader& shader);
+	void unregisterShader(u32 shaderID);
+	bool isShaderRegistered(u32 shaderID);
+	void enableShader(u32 shaderID);
+	void disableShader(u32 shaderID);
+	bool isShaderEnabled(u32 shaderID) const;
+
+	//Visitor
+	template<class Func>
+	void spriteExecute(Func&& func) requires Invocable<Func, Sprite&> {
+
+		for (Sprite& sprite : sprites) {
+			func(sprite);
+		}
+
+	}
+
+	template<class Func>
+	void groupExecute(u32 shaderID, u32 groupID, Func&& func) requires Invocable<Func, Sprite&> {
+
+		for (Sprite& sprite : sprites) {
+
+			if (sprite.prevShaderID == shaderID && sprite.prevGroupID == groupID) {
+				func(sprite);
+			}
+
+		}
+
+	}
 
 	u32 activeSpriteCount() const noexcept;
 
+	ShaderPool& getShaderPool();
+
 private:
 
-	u64 getSpriteRenderKey(const Sprite& sprite) const;
+	SpriteGroup& getGroup(u32 shaderID, u32 groupID);
+	const SpriteGroup& getGroup(u32 shaderID, u32 groupID) const;
+
+	SpringShader& getShader(u32 shaderID);
+	const SpringShader& getShader(u32 shaderID) const;
+
 	u32 getCompositeTextureID(const Sprite& sprite) const;
 
 	Mat2f calculateSpriteTransform(const Sprite& sprite) const;
@@ -76,16 +121,18 @@ private:
 	inline static const CTAllocationTable initialCTAllocationTable = std::vector<u32>(Spring::textureSlots, Spring::unusedCTSlot);
 
 	SpriteFactory factory;
-	SpriteArray sprites;
-
-	std::shared_ptr<class SpriteRendererShaders> shaders;
+	ArrayMap<u64, Sprite> sprites;
 
 	SpriteTypeBuffer typeBuffer;
-	std::map<u32, SpriteGroup> groups;
-	std::map<u64, RenderGroup> renderGroups;
+	SharedBuffer sharedBuffer;
+
+	ShaderPool shaderPool;
+
+	std::unordered_map<u32, std::vector<SpriteGroup>> groups;   //ShaderID -> Group
+	std::map<u32, SpringShader> shaders;                        //ShaderID -> Shader
 
 	std::vector<CompositeTexture> textures;
-	std::unordered_map<u32, u32> textureToCompositeID;
+	std::unordered_map<u32, u32> textureToCompositeID;          //TexID -> CTID
 
 	RectF viewport;          //The scene's viewport rect
 	Mat4f projection;

@@ -17,21 +17,31 @@
 
 
 
+struct TextureLoadData {
+
+	Id32 id;
+	Path path;
+	bool hasAlpha;
+
+};
+
+
+
 class TextureSet {
 
 public:
 
 	bool isAdded(Id32 id) const;
 
-	bool add(Id32 id, const Path& path);
-	bool add(const std::vector<std::pair<Id32, Path>>& files);
+	bool add(Id32 id, const Path& path, bool hasAlpha);
+	bool add(const std::vector<TextureLoadData>& textures);
 
 	void clear();
 
-	const std::unordered_map<u32, Path>& getTexturePaths() const;
+	const std::unordered_map<u32, TextureLoadData>& getTexturePaths() const;
 
 private:
 
-	std::unordered_map<u32, Path> texturePaths;
+	std::unordered_map<u32, TextureLoadData> texturePaths;
 
 };

@@ -8,6 +8,7 @@
 
 #include "spritetypebuffer.hpp"
 #include "spritetype.hpp"
+#include "spring.hpp"
 #include "util/assert.hpp"
 #include "util/bits.hpp"
 #include "render/gle/gle.hpp"
@@ -21,7 +22,6 @@ struct SpriteTypeBufferData {
 		typeSSBO.create();
 		typeSSBO.bind();
 		typeSSBO.allocate(2048, GLE::BufferAccess::DynamicDraw);
-		typeSSBO.bindRange(0, 0, typeSSBO.getSize());
 
 	}
 
@@ -35,10 +35,13 @@ struct SpriteTypeBufferData {
 
 
 
-SpriteTypeBuffer::SpriteTypeBuffer() {
-	data = std::make_shared<SpriteTypeBufferData>();
-}
+void SpriteTypeBuffer::create() {
 
+	if (!data) {
+		data = std::make_shared<SpriteTypeBufferData>();
+	}
+
+}
 
 
 void SpriteTypeBuffer::addType(u32 typeID, const SpriteType& type, u32 ctID, u32 texID) {
@@ -58,8 +61,8 @@ void SpriteTypeBuffer::setTypeData(u32 typeID, const SpriteType& type, u32 ctID,
 	SizeT offset = typeMap[typeID] * typeDataSize;
 
 	buffer.write(offset + 0, type.origin);
-	buffer.write(offset + 8, type.outline.uvBase);
-	buffer.write(offset + 16, type.outline.uvScale);
+	buffer.write(offset + 8, type.uvBase);
+	buffer.write(offset + 16, type.uvScale);
 	buffer.write(offset + 24, ctID);
 	buffer.write(offset + 28, texID);
 
@@ -115,6 +118,6 @@ void SpriteTypeBuffer::update() {
 void SpriteTypeBuffer::bind() {
 
 	GLE::ShaderStorageBuffer& ssbo = data->typeSSBO;
-	ssbo.bindRange(0, 0, buffer.size());
+	ssbo.bindRange(Spring::typeBufferBinding, 0, buffer.size());
 
 }

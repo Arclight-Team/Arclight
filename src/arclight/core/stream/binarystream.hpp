@@ -41,11 +41,11 @@ public:
 
 	}
 
-	constexpr void setStream(const std::span<const u8>& stream) noexcept {
+	constexpr void setStream(const std::span<ByteType>& stream) noexcept {
 		this->stream = stream;
 	}
 
-	constexpr std::span<const u8> getStream() const noexcept {
+	constexpr std::span<ByteType> getStream() const noexcept {
 		return stream;
 	}
 

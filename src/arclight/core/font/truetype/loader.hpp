@@ -10,12 +10,13 @@
 
 #include "truetype.hpp"
 
+#include <span>
 
-class InputStream;
+
 
 namespace TrueType {
 
-	Font loadFont(InputStream& stream);
-	std::vector<Font> loadFontCollection(InputStream& stream);
+	Font loadFont(const std::span<const u8>& data);
+	std::vector<Font> loadFontCollection(const std::span<const u8>& data);
 
 }

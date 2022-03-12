@@ -20,8 +20,8 @@ class SpriteFactory {
 
 public:
 
-	const SpriteType& create(u32 id, u32 textureID, const Vec2f& size, const Vec2f& origin, const SpriteOutline& outline) {
-		return spriteTypes.try_emplace(id, textureID, origin, size, outline).first->second;
+	const SpriteType& create(u32 id, u32 textureID, const Vec2f& size, const Vec2f& origin, const Vec2f& uvBase, const Vec2f& uvScale, SpriteOutline outline, const std::span<const u8>& polygon) {
+		return spriteTypes.try_emplace(id, textureID, origin, size, uvBase, uvScale, outline, polygon).first->second;
 	}
 
 	bool contains(u32 id) const;
@@ -32,7 +32,6 @@ public:
 
 private:
 
-	constexpr static SpriteType defaultSpriteType;
 	std::unordered_map<u32, SpriteType> spriteTypes;
 
 };
