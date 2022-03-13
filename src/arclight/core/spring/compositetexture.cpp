@@ -10,9 +10,8 @@
 #include "textureset.hpp"
 #include "filesystem/file.hpp"
 #include "filesystem/path.hpp"
-#include "image/bmp.hpp"
-#include "image/image.hpp"
 #include "render/gle/gle.hpp"
+#include "image/imageio.hpp"
 
 
 
@@ -109,7 +108,7 @@ CompositeTexture CompositeTexture::loadAndComposite(const TextureSet& set, Type 
 
 		for(const auto& [id, data] : loadData) {
 
-			Image image = BMP::loadBitmap<Pixel::RGBA8>(data.path);
+			Image image = ImageIO::load<Pixel::RGBA8, BitmapDecoder>(data.path);
 
 			maxWidth = Math::max(image.getWidth(), maxWidth);
 			maxHeight = Math::max(image.getHeight(), maxHeight);

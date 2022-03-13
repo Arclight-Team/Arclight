@@ -6,7 +6,7 @@
  *	 image.inl
  */
 
-#include "image.hpp"
+#include "util/assert.hpp"
 
 
 
@@ -328,35 +328,6 @@ Image<Q> Image<P>::convert() const {
 
 
 template<Pixel P>
-template<ImageDecoder Decoder, class... Args>
-Image<P> Image<P>::load(const Path& path, Args&&... args) {
-	return load<Decoder, Args...>(loadFile(path), std::forward<Args>(args)...);
-}
-
-template<Pixel P>
-template<ImageDecoder Decoder, class... Args>
-Image<P> Image<P>::load(const std::span<const u8>& bytes, Args&&... args) {
-	return decode<Decoder, Args...>(bytes, std::forward<Args>(args)...).template getImage<P>();
-}
-
-template<Pixel P>
-template<ImageDecoder Decoder, class... Args>
-Decoder Image<P>::decode(const Path& path, Args&&... args) {
-	return decode<Decoder, Args...>(loadFile(path), std::forward<Args>(args)...);
-}
-
-template<Pixel P>
-template<ImageDecoder Decoder, class... Args>
-Decoder Image<P>::decode(const std::span<const u8>& bytes, Args&&... args) {
-
-	Decoder decoder(std::forward<Args>(args)...);
-	decoder.decode(bytes);
-
-	return decoder;
-
-}
-
-template<Pixel P>
 RawImage Image<P>::makeRaw(const Image& image) {
 
 	std::vector<u8> rawData(image.getImageBuffer().size_bytes());
@@ -367,28 +338,32 @@ RawImage Image<P>::makeRaw(const Image& image) {
 }
 
 template<Pixel P>
-Image<P> Image<P>::fromRaw(const RawImage& image) {
+Image<P> Image<P>::fromRaw(const RawImage& image, bool allowConversion) {
 
-	if (image.getFormat() != P) {
-		throw ImageException("Bad image cast");
+	if (allowConversion) {
+
+		switch (image.getFormat()) {
+
+			case Pixel::BGR5:  return Image<Pixel::BGR5>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
+			case Pixel::RGB5:  return Image<Pixel::RGB5>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
+			case Pixel::BGR8:  return Image<Pixel::BGR8>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
+			case Pixel::RGB8:  return Image<Pixel::RGB8>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
+			case Pixel::RGBA8: return Image<Pixel::RGBA8>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
+			case Pixel::ABGR8: return Image<Pixel::ABGR8>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
+			case Pixel::BGRA8: return Image<Pixel::BGRA8>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
+			case Pixel::ARGB8: return Image<Pixel::ARGB8>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
+			default: ARC_UNREACHABLE;
+
+		}
+
+	} else {
+
+		if (image.getFormat() != P) {
+			throw ImageException("Bad image cast");
+		}
+
+		return Image<P>(image.getWidth(), image.getHeight(), image.getRawBuffer());
+
 	}
-
-	return Image<P>(image.getWidth(), image.getHeight(), image.getRawBuffer());
-
-}
-
-template<Pixel P>
-std::vector<u8> Image<P>::loadFile(const Path& path) {
-
-	File file(path);
-
-	if (!file.open()) {
-		throw ImageException("Failed to open file " + path.toString());
-	}
-
-	std::vector<u8> data = file.readAll();
-	file.close();
-
-	return data;
 
 }

@@ -533,55 +533,25 @@ struct PixelARGB8 : public PixelStorage<Pixel::ARGB8, u8> {
 
 
 
-template<Pixel P>
-struct PixelType {};
+template<Pixel P> struct _PixelType {};
+template<> struct _PixelType<Pixel::RGB5> { using Type = PixelRGB5; };
+template<> struct _PixelType<Pixel::BGR5> { using Type = PixelBGR5; };
+template<> struct _PixelType<Pixel::RGB8> { using Type = PixelRGB8; };
+template<> struct _PixelType<Pixel::BGR8> { using Type = PixelBGR8; };
+template<> struct _PixelType<Pixel::RGBA8> { using Type = PixelRGBA8; };
+template<> struct _PixelType<Pixel::ABGR8> { using Type = PixelABGR8; };
+template<> struct _PixelType<Pixel::BGRA8> { using Type = PixelBGRA8; };
+template<> struct _PixelType<Pixel::ARGB8> { using Type = PixelARGB8; };
 
-template<>
-struct PixelType<Pixel::RGB5> {
-	using Type = PixelRGB5;
-};
+template<Pixel P> using PixelType = typename _PixelType<P>::Type;
 
-template<>
-struct PixelType<Pixel::BGR5> {
-	using Type = PixelBGR5;
-};
-
-template<>
-struct PixelType<Pixel::RGB8> {
-	using Type = PixelRGB8;
-};
-
-template<>
-struct PixelType<Pixel::BGR8> {
-	using Type = PixelBGR8;
-};
-
-template<>
-struct PixelType<Pixel::RGBA8> {
-	using Type = PixelRGBA8;
-};
-
-template<>
-struct PixelType<Pixel::ABGR8> {
-	using Type = PixelABGR8;
-};
-
-template<>
-struct PixelType<Pixel::BGRA8> {
-	using Type = PixelBGRA8;
-};
-
-template<>
-struct PixelType<Pixel::ARGB8> {
-	using Type = PixelARGB8;
-};
 
 
 template<Pixel P>
 class Colors
 {
 
-	using PixelT = typename PixelType<P>::Type;
+	using PixelT = PixelType<P>;
 	using ColorT = typename PixelT::ColorType;
 	using Format = typename PixelT::Format;
 	
@@ -656,7 +626,7 @@ public:
 
 		using SrcFormat = typename U::Format;
 		using DestFormat = PixelFormat<DestPixel>;
-		using DestPixelType = typename PixelType<DestPixel>::Type;
+		using DestPixelType = PixelType<DestPixel>;
 		using SrcType = typename U::PackedT;
 		using DestType = typename DestPixelType::PackedT;
 		using ConvType = TT::Conditional<(sizeof(SrcType) > sizeof(DestType)), SrcType, DestType>;
@@ -692,7 +662,7 @@ public:
 	constexpr static auto convert(T pixel, T redMask, u32 redShift, T greenMask, u32 greenShift, T blueMask, u32 blueShift, T alphaMask = 0, u32 alphaShift = 0) {
 
 		using DestFormat = PixelFormat<DestPixel>;
-		using DestPixelType = typename PixelType<DestPixel>::Type;
+		using DestPixelType = PixelType<DestPixel>;
 		using DestType = typename DestPixelType::PackedT;
 		using ConvType = TT::Conditional<(sizeof(T) > sizeof(DestType)), T, DestType>;
 

@@ -10,18 +10,12 @@
 
 #include "pixel.hpp"
 #include "rawimage.hpp"
-#include "decode/decoder.hpp"
-#include "filesystem/file.hpp"
-#include "math/math.hpp"
 #include "math/vector.hpp"
 #include "math/rectangle.hpp"
-#include "util/assert.hpp"
 #include "types.hpp"
-#include "util/bool.hpp"
 
 #include <vector>
 #include <span>
-#include <array>
 
 
 
@@ -80,16 +74,9 @@ public:
 	template<Pixel Q> Image<Q> convert() const;
 
 	static RawImage makeRaw(const Image& image);
-	static Image fromRaw(const RawImage& image);
-
-	template<ImageDecoder Decoder, class... Args> static Image load(const Path& path, Args&&... args);
-	template<ImageDecoder Decoder, class... Args> static Image load(const std::span<const u8>& bytes, Args&&... args);
-	template<ImageDecoder Decoder, class... Args> static Decoder decode(const Path& path, Args&&... args);
-	template<ImageDecoder Decoder, class... Args> static Decoder decode(const std::span<const u8>& bytes, Args&&... args);
+	static Image fromRaw(const RawImage& image, bool allowConversion = true);
 
 private:
-
-	static std::vector<u8> loadFile(const Path& path);
 
 	u32 width;
 	u32 height;

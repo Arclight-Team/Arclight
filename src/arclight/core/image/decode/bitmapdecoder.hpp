@@ -30,29 +30,7 @@ public:
 			throw ImageDecoderException("Bad image decode");
 		}
 
-		switch (bitmap.compression) {
-
-			case Bitmap::Compression::RLE4:
-			case Bitmap::Compression::RLE8:
-			case Bitmap::Compression::Masked:
-				return Image<Pixel::BGRA8>::fromRaw(bitmap.image).convert<P>();
-
-			case Bitmap::Compression::None:
-
-				if (bitmap.bitsPerPixel < 16 || bitmap.bitsPerPixel == 32) {
-					return Image<Pixel::BGRA8>::fromRaw(bitmap.image).convert<P>();
-				} else if (bitmap.bitsPerPixel == 24) {
-					return Image<Pixel::BGR8>::fromRaw(bitmap.image).convert<P>();
-				} else {
-					return Image<Pixel::BGR5>::fromRaw(bitmap.image).convert<P>();
-				}
-
-				break;
-
-			default:
-				ARC_UNREACHABLE;
-
-		}
+		return Image<P>::fromRaw(bitmap.image);
 
 	}
 

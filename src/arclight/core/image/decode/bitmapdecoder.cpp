@@ -7,6 +7,7 @@
  */
 
 #include "bitmapdecoder.hpp"
+#include "util/bool.hpp"
 
 
 
