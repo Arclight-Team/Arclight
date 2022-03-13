@@ -22,19 +22,19 @@ namespace ImageIO {
 
 	}
 
-	template<Pixel P>
-	Image<P> load(const Path& path) {
+	template<ImageDecoder Decoder, class... Args>
+	Decoder decode(const std::span<const u8>& bytes, Args&&... args) {
 
-		std::string ext = path.getExtension();
+		Decoder decoder(std::forward<Args>(args)...);
+		decoder.decode(bytes);
 
-		if (ext == ".bmp") {
-			return load<P, BitmapDecoder>(path);
-		} else if (Bool::any(ext, ".jpg", ".jpeg", ".jfif")) {
+		return decoder;
 
-		}
-
-		throw ImageException("Unknown image file format");
-
+	}
+	
+	template<ImageDecoder Decoder, class... Args>
+	Decoder decode(const Path& path, Args&&... args) {
+		return decode<Decoder, Args...>(Detail::loadFile(path), std::forward<Args>(args)...);
 	}
 
 	template<Pixel P, ImageDecoder Decoder, class... Args>
@@ -47,18 +47,18 @@ namespace ImageIO {
 		return load<P, Decoder, Args...>(Detail::loadFile(path), std::forward<Args>(args)...);
 	}
 
-	template<ImageDecoder Decoder, class... Args>
-	Decoder decode(const Path& path, Args&&... args) {
-		return decode<Decoder, Args...>(Detail::loadFile(path), std::forward<Args>(args)...);
-	}
+	template<Pixel P>
+	Image<P> load(const Path& path) {
 
-	template<ImageDecoder Decoder, class... Args>
-	Decoder decode(const std::span<const u8>& bytes, Args&&... args) {
+		std::string ext = path.getExtension();
 
-		Decoder decoder(std::forward<Args>(args)...);
-		decoder.decode(bytes);
+		if (ext == ".bmp") {
+			return load<P, BitmapDecoder>(path);
+		} else if (Bool::any(ext, ".jpg", ".jpeg", ".jfif")) {
 
-		return decoder;
+		}
+
+		throw ImageException("Unknown image file format");
 
 	}
 

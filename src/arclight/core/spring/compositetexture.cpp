@@ -108,7 +108,7 @@ CompositeTexture CompositeTexture::loadAndComposite(const TextureSet& set, Type 
 
 		for(const auto& [id, data] : loadData) {
 
-			Image image = ImageIO::load<Pixel::RGBA8, BitmapDecoder>(data.path);
+			Image image = ImageIO::load<Pixel::RGBA8>(data.path);
 
 			maxWidth = Math::max(image.getWidth(), maxWidth);
 			maxHeight = Math::max(image.getHeight(), maxHeight);
