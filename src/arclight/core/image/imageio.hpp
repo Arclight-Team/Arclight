@@ -10,6 +10,7 @@
 
 #include "image.hpp"
 #include "decode/bitmapdecoder.hpp"
+#include "decode/jpegdecoder.hpp"
 #include "util/bool.hpp"
 
 
@@ -31,7 +32,7 @@ namespace ImageIO {
 		return decoder;
 
 	}
-	
+
 	template<ImageDecoder Decoder, class... Args>
 	Decoder decode(const Path& path, Args&&... args) {
 		return decode<Decoder, Args...>(Detail::loadFile(path), std::forward<Args>(args)...);
@@ -55,7 +56,7 @@ namespace ImageIO {
 		if (ext == ".bmp") {
 			return load<P, BitmapDecoder>(path);
 		} else if (Bool::any(ext, ".jpg", ".jpeg", ".jfif")) {
-
+			return load<P, JPEGDecoder>(path);
 		}
 
 		throw ImageException("Unknown image file format");

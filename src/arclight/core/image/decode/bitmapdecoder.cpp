@@ -11,6 +11,104 @@
 
 
 
+void BitmapDecoder::decode(std::span<const u8> data) {
+
+	validDecode = false;
+
+	reader = BinaryReader(data, ByteOrder::Little);
+
+	SizeT dataOffset = parseHeader();
+	parseInfoHeader();
+
+
+	//Color reading
+	switch(bitmap.compression) {
+
+		case Bitmap::Compression::None:
+		{
+
+			if (bitmap.bitsPerPixel >= 16) {
+
+				//Direct
+				reader.seekTo(dataOffset);
+				decodeDirect();
+
+			} else {
+
+				//Palette
+				if(bitmap.bitsPerPixel == 0) {
+					throw ImageDecoderException("Bits per pixel cannot be 0 for non JPEG/PNG images");
+				}
+
+				loadPalette();
+
+				reader.seekTo(dataOffset);
+
+				decodeIndexed();
+
+			}
+
+		}
+		break;
+
+		case Bitmap::Compression::RLE4:
+		case Bitmap::Compression::RLE8:
+		{
+
+			//Run-Length encoded
+			if (bitmap.topDown) {
+				throw ImageDecoderException("Run-Length encoded bitmap cannot be top-down");
+			}
+
+			loadPalette();
+
+			reader.seekTo(dataOffset);
+
+			decodeRLE();
+
+		}
+		break;
+
+		case Bitmap::Compression::Masked:
+		{
+
+			if (Bool::none(bitmap.bitsPerPixel, 16, 32)) {
+				throw ImageDecoderException("Masked bitmaps must be 16bpp or 32bpp");
+			}
+
+			if (bitmap.version == Bitmap::Version::Info) {
+
+				if (reader.remainingSize() < 12) {
+					throw ImageDecoderException("Stream size too small");
+				}
+
+				bitmap.redMask = reader.read<u32>();
+				bitmap.greenMask = reader.read<u32>();
+				bitmap.blueMask = reader.read<u32>();
+				bitmap.alphaMask = 0;
+
+			}
+
+			reader.seekTo(dataOffset);
+
+			decodeMasked();
+
+		}
+		break;
+
+		case Bitmap::Compression::JPEG:
+		case Bitmap::Compression::PNG:
+		default:
+			break;
+
+	}
+
+	validDecode = true;
+
+}
+
+
+
 SizeT BitmapDecoder::parseHeader() {
 
 	if (reader.remainingSize() < 14) {
@@ -579,103 +677,5 @@ void BitmapDecoder::decodeMasked() {
 	} else {
 		loadData.template operator()<32>();
 	}
-
-}
-
-
-
-void BitmapDecoder::decode(std::span<const u8> data) {
-
-	validDecode = false;
-
-	reader = BinaryReader(data, ByteOrder::Little);
-
-	SizeT dataOffset = parseHeader();
-	parseInfoHeader();
-
-
-	//Color reading
-	switch(bitmap.compression) {
-
-		case Bitmap::Compression::None:
-		{
-
-			if (bitmap.bitsPerPixel >= 16) {
-
-				//Direct
-				reader.seekTo(dataOffset);
-				decodeDirect();
-
-			} else {
-
-				//Palette
-				if(bitmap.bitsPerPixel == 0) {
-					throw ImageDecoderException("Bits per pixel cannot be 0 for non JPEG/PNG images");
-				}
-
-				loadPalette();
-
-				reader.seekTo(dataOffset);
-
-				decodeIndexed();
-
-			}
-
-		}
-		break;
-
-		case Bitmap::Compression::RLE4:
-		case Bitmap::Compression::RLE8:
-		{
-
-			//Run-Length encoded
-			if (bitmap.topDown) {
-				throw ImageDecoderException("Run-Length encoded bitmap cannot be top-down");
-			}
-
-			loadPalette();
-
-			reader.seekTo(dataOffset);
-
-			decodeRLE();
-
-		}
-		break;
-
-		case Bitmap::Compression::Masked:
-		{
-
-			if (Bool::none(bitmap.bitsPerPixel, 16, 32)) {
-				throw ImageDecoderException("Masked bitmaps must be 16bpp or 32bpp");
-			}
-
-			if (bitmap.version == Bitmap::Version::Info) {
-
-				if (reader.remainingSize() < 12) {
-					throw ImageDecoderException("Stream size too small");
-				}
-
-				bitmap.redMask = reader.read<u32>();
-				bitmap.greenMask = reader.read<u32>();
-				bitmap.blueMask = reader.read<u32>();
-				bitmap.alphaMask = 0;
-
-			}
-
-			reader.seekTo(dataOffset);
-
-			decodeMasked();
-
-		}
-		break;
-
-		case Bitmap::Compression::JPEG:
-		case Bitmap::Compression::PNG:
-		default:
-			break;
-
-	}
-
-	validDecode = true;
 
 }

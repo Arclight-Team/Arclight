@@ -24,16 +24,34 @@ public:
 
 
 	template<Arithmetic T>
-	constexpr T read() noexcept {
+	constexpr T peek() noexcept {
 
 		T t = Bits::assemble<T>(head());
-		seek(sizeof(T));
 
 		if (convert) {
 			t = Bits::swap(t);
 		}
 
 		return t;
+
+	}
+
+	template<Arithmetic T>
+	constexpr void peek(const std::span<T>& dest) noexcept {
+
+		for (SizeT i = 0; i < dest.size(); i++) {
+			dest[i] = peek<T>();
+		}
+
+	}
+
+	template<Arithmetic T>
+	constexpr T read() noexcept {
+
+		T x = peek<T>();
+		seek(sizeof(T));
+
+		return x;
 
 	}
 

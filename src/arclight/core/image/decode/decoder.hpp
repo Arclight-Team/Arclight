@@ -8,8 +8,10 @@
 
 #pragma once
 
+#include "types.hpp"
 #include "util/concepts.hpp"
 
+#include <span>
 #include <stdexcept>
 
 
@@ -17,7 +19,9 @@
 class IImageDecoder {};
 
 template<class T>
-concept ImageDecoder = BaseOf<IImageDecoder, T>;
+concept ImageDecoder = BaseOf<IImageDecoder, T> && requires (T&& t, std::span<const u8>&& s) {
+	t.decode(s);
+};
 
 
 
