@@ -13,12 +13,27 @@
 #include "util/typetraits.hpp"
 
 
+template<Arithmetic T>
+class Vec2;
 
 template<Arithmetic T>
 class Vec3;
 
 template<Arithmetic T>
 class Vec4;
+
+
+template<class T>
+concept Vector = TT::IsAnyOf<T, Vec2<typename T::Type>, Vec3<typename T::Type>, Vec4<typename T::Type>>;
+
+template<class T>
+concept FloatVector = Vector<T> && Float<typename T::Type>;
+
+template<class T>
+concept IntegerVector = Vector<T> && Integer<typename T::Type>;
+
+template<class T>
+concept IntegralVector = Vector<T> && Integral<typename T::Type>;
 
 
 template<Arithmetic T>
@@ -173,6 +188,10 @@ public:
 
 	constexpr bool isNull() const {
 		return Math::isZero(x) && Math::isZero(y);
+	}
+
+	constexpr bool anyNegative() const {
+		return Math::less(x, 0) || Math::less(y, 0);
 	}
 
 	constexpr void normalize() {
@@ -386,6 +405,10 @@ public:
 
 	constexpr bool isNull() const {
 		return Math::isZero(x) && Math::isZero(y) && Math::isZero(z);
+	}
+
+	constexpr bool anyNegative() const {
+		return Math::less(x, 0) || Math::less(y, 0) || Math::less(z, 0);
 	}
 
 	constexpr void normalize() {
@@ -617,6 +640,10 @@ public:
 		return Math::isZero(x) && Math::isZero(y) && Math::isZero(z) && Math::isZero(w);
 	}
 
+	constexpr bool anyNegative() const {
+		return Math::less(x, 0) || Math::less(y, 0) || Math::less(z, 0) || Math::less(w, 0);
+	}
+
 	constexpr void normalize() {
 		divide(length());
 	}
@@ -660,11 +687,6 @@ public:
 	T x, y, z, w;
 
 };
-
-
-
-template<class T>
-concept Vector = TT::IsAnyOf<T, Vec2<typename T::Type>, Vec3<typename T::Type>, Vec4<typename T::Type>>;
 
 
 
@@ -717,14 +739,147 @@ constexpr auto operator/(A a, B b) {
 	return ax;
 }
 
+template<IntegralVector A, class B> requires(Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+constexpr A operator&(A a, const B& b) {
+
+	for (u32 i = 0; i < A::Size; i++) {
+		if constexpr (IntegralVector<B>) {
+			a[i] &= b[i];
+		} else {
+			a[i] &= b;
+		}
+	}
+
+	return a;
+
+}
+
+template<IntegralVector A, class B> requires(Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+constexpr A operator|(A a, const B& b) {
+
+	for (u32 i = 0; i < A::Size; i++) {
+		if constexpr (IntegralVector<B>) {
+			a[i] |= b[i];
+		} else {
+			a[i] |= b;
+		}
+	}
+
+	return a;
+
+}
+
+template<IntegralVector A, class B> requires(Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+constexpr A operator^(A a, const B& b) {
+
+	for (u32 i = 0; i < A::Size; i++) {
+		if constexpr (IntegralVector<B>) {
+			a[i] ^= b[i];
+		} else {
+			a[i] ^= b;
+		}
+	}
+
+	return a;
+
+}
+
+template<IntegralVector A, class B> requires(Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+constexpr A operator&=(A a, const B& b) {
+	return a & b;
+}
+
+template<IntegralVector A, class B> requires(Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+constexpr A operator|=(A a, const B& b) {
+	return a & b;
+}
+
+template<IntegralVector A, class B> requires(Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+constexpr A operator^=(A a, const B& b) {
+	return a & b;
+}
+
+template<IntegralVector A>
+constexpr A operator~(A a) {
+
+	for (u32 i = 0; i < A::Size; i++) {
+		a[i] = ~a[i];
+	}
+
+	return a;
+
+}
+
 
 
 namespace Math {
 
-	template<Vector V, class Factor = decltype(std::declval<typename V::Type>() * std::declval<float>())>
-	constexpr auto lerp(V start, V end, Factor factor) {
+	template<Vector V, Arithmetic Factor>
+	constexpr V lerp(V start, V end, Factor factor) {
 		return start + factor * (end - start);
 	}
+
+	template<Vector V>
+	constexpr V floor(V vec) {
+
+		V ret;
+
+		for (u32 i = 0; i < V::Size; i++) {
+			ret[i] = Math::floor(vec[i]);
+		}
+
+		return ret;
+	}
+
+	template<Vector V>
+	constexpr V ceil(V vec) {
+
+		V ret;
+
+		for (u32 i = 0; i < V::Size; i++) {
+			ret[i] = Math::ceil(vec[i]);
+		}
+
+		return ret;
+	}
+
+	template<Vector V>
+	constexpr V trunc(V vec) {
+
+		V ret;
+
+		for (u32 i = 0; i < V::Size; i++) {
+			ret[i] = Math::trunc(vec[i]);
+		}
+
+		return ret;
+	}
+
+	template<Vector V>
+	constexpr V round(V vec) {
+
+		V ret;
+
+		for (u32 i = 0; i < V::Size; i++) {
+			ret[i] = Math::round(vec[i]);
+		}
+
+		return ret;
+	}
+
+	template<Vector V>
+	constexpr V abs(V vec) {
+
+		V ret;
+
+		for (u32 i = 0; i < V::Size; i++) {
+			ret[i] = Math::abs(vec[i]);
+		}
+
+		return ret;
+	}
+
+
 
 }
 
