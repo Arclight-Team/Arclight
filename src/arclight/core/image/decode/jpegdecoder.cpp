@@ -66,6 +66,10 @@ void JPEGDecoder::decode(std::span<const u8> data) {
 				parseApplicationSegment0();
 				break;
 
+			case Markers::APP1:
+				parseApplicationSegment1();
+				break;
+
 			case Markers::DQT:
 				parseQuantizationTable();
 				break;
@@ -274,6 +278,17 @@ void JPEGDecoder::parseApplicationSegment0() {
 		reader.seekTo(segmentEnd);
 
 	}
+
+}
+
+
+
+void JPEGDecoder::parseApplicationSegment1() {
+
+	u16 length = verifySegmentLength();
+	reader.seek(length - 2);
+
+	//TODO: Parse Exif segment
 
 }
 
@@ -701,11 +716,12 @@ void JPEGDecoder::decodeScan() {
 
 		scan.mcuDataUnits += blocksPerMCU;
 
-		u32 mcusX = (component.width + multipleX - 1) / multipleX;
-		u32 mcusY = (component.height + multipleY - 1) / multipleY;
-
 		if (!scan.totalMCUs) {
-			scan.totalMCUs = mcusX * mcusY;
+
+			scan.mcusX = (component.width + multipleX - 1) / multipleX;
+			scan.mcusY = (component.height + multipleY - 1) / multipleY;
+			scan.totalMCUs = scan.mcusX * scan.mcusY;
+
 		}
 
 		component.dcLength = Bits::ctz(component.dcTable.size());
@@ -720,6 +736,9 @@ void JPEGDecoder::decodeScan() {
 		throw ImageDecoderException("Too many data units in MCU");
 	}
 
+	Profiler p;
+	p.start();
+
 	if (restartEnabled) {
 
 		ArcDebug() << "Restart enabled";
@@ -730,16 +749,21 @@ void JPEGDecoder::decodeScan() {
 
 	}
 
+/*
 	for (ImageComponent& component : scan.imageComponents) {
 
 		for (u32 i = 0; i < component.blockData.size() / 64; i++) {
 
-			ArcDebug() << std::span{component.blockData.data() + i * 64, 64};
+			for (u32 j = 0; j < 8; j++) {
+
+				ArcDebug() << std::span{component.blockData.data() + i * 64 + j * 8, 8};
+
+			}
 
 		}
 
 	}
-
+*/
 }
 
 
@@ -762,6 +786,7 @@ void JPEGDecoder::decodeImage() {
 				for (u32 sy = 0; sy < component.samplesY; sy++, component.dataUnit++) {
 
 					decodeBlock(component);
+					applyIDCT(component, currentMCU);
 
 				}
 
@@ -800,7 +825,7 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 
 		i32 dc = component.prediction + difference;
 		component.prediction = dc;
-		component.blockData[baseDataOffset] = dc;
+		component.blockData[baseDataOffset] = dc * i32(component.qTable[0]);
 	}
 
 
@@ -857,7 +882,8 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 
 			}
 
-			component.blockData[baseDataOffset + coefficient] = ac;
+			u32 dezigzagIndex = dezigzagTable[coefficient];
+			component.blockData[baseDataOffset + dezigzagIndex] = ac * i32(component.qTable[dezigzagIndex]);
 			coefficient++;
 
 		}
@@ -865,6 +891,52 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 	}
 
 }
+
+
+
+void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, u32 mcu) {
+
+	SizeT blockOffset = component.dataUnit * 64;
+
+	u32 dataIndex = component.dataUnit % (component.samplesX * component.samplesY);
+	u32 baseX = ((mcu % scan.mcusX) * component.samplesX + dataIndex % component.samplesX) * 8;
+	u32 baseY = ((mcu / scan.mcusX) * component.samplesY + dataIndex / component.samplesX) * 8;
+
+	u32 countX = Math::min(component.width - baseX, 8);
+	u32 countY = Math::min(component.height - baseY, 8);
+
+	for (u32 y = 0; y < countY; y++) {
+
+		for (u32 x = 0; x < countX; x++) {
+
+			float v = 0.5f * component.blockData[blockOffset];
+
+			//i == 0
+			for (u32 j = 1; j < 8; j++) {
+				v += component.blockData[blockOffset + j] * Math::cos((2 * x + 1) * j * Math::pi / 16.0f);
+			}
+
+			//i == [1; 7]
+			for (u32 i = 1; i < 8; i++) {
+
+				for (u32 j = 0; j < 8; j++) {
+
+					v += component.blockData[blockOffset + i * 8 + j] * Math::cos((2 * x + 1) * j * Math::pi / 16.0f) * Math::cos((2 * y + 1) * i * Math::pi / 16.0f);
+
+				}
+
+			}
+
+			v *= 0.25f;
+
+			component.imageData[(baseY + y) * component.width + baseX + x] = v;
+
+		}
+
+	}
+
+}
+
 
 
 

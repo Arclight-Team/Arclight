@@ -41,6 +41,7 @@ namespace JPEG {
 		constexpr u16 DQT = 0xFFDB;
 		constexpr u16 DRI = 0xFFDD;
 		constexpr u16 APP0 = 0xFFE0;
+		constexpr u16 APP1 = 0xFFE1;
 
 	};
 
@@ -56,7 +57,7 @@ namespace JPEG {
 		Arithmetic
 	};
 
-	constexpr u32 zigzagTable[64] = {
+	constexpr u32 dezigzagTable[64] = {
 	    0,  1,  8, 16,  9,  2,  3, 10,
 	   17, 24, 32, 25, 18, 11,  4,  5,
 	   12, 19, 26, 33, 40, 48, 41, 34,
@@ -113,14 +114,14 @@ namespace JPEG {
 		i32 prediction;
 		u32 dcLength, acLength;
 		u32 dataUnit;
-		std::vector<i32> blockData;
-		std::vector<i32> imageData;
+		std::vector<float> blockData;
+		std::vector<float> imageData;
 
 	};
 
 	struct Scan {
 
-		constexpr Scan() noexcept : spectralStart(0), spectralEnd(0), approximationHigh(0), approximationLow(0), maxSamplesX(0), maxSamplesY(0), mcuDataUnits(0), totalMCUs(0) {}
+		constexpr Scan() noexcept : spectralStart(0), spectralEnd(0), approximationHigh(0), approximationLow(0), maxSamplesX(0), maxSamplesY(0), mcuDataUnits(0), totalMCUs(0), mcusX(0), mcusY(0) {}
 
 		std::vector<ImageComponent> imageComponents;
 		u32 spectralStart;
@@ -130,6 +131,7 @@ namespace JPEG {
 
 		u32 maxSamplesX, maxSamplesY;
 		u32 mcuDataUnits;
+		u32 mcusX, mcusY;
 		u32 totalMCUs;
 
 	};
