@@ -18,12 +18,8 @@ public:
 	using NoiseBase<PerlinNoise>::sample;
 
 
-	template<bool Negative, Float F, Arithmetic A>
+	template<Float F, Arithmetic A>
 	F sample(F point, A frequency) const {
-
-		if constexpr (!Negative) {
-			arc_assert(point < Zero, "Attempted to generate perlin noise from unsupported negative point")
-		}
 
 		point *= frequency;
 
@@ -34,14 +30,7 @@ public:
 		ip &= hashMask;
 
 		auto dot = [&](F offset) {
-
-			if constexpr (Negative) {
-				F absP = Math::abs(ip + offset);
-				return grad1D[hash(absP) & grad1DMask] * (p - offset);
-			} else {
-				return grad1D[hash(ip + offset) & grad1DMask] * (p - offset);
-			}
-
+			return grad1D[hash(ip + offset) & grad1DMask] * (p - offset);
 		};
 
 		F step = interpolate(p);
@@ -50,12 +39,8 @@ public:
 
 	}
 
-	template<bool Negative = false, FloatVector V, Arithmetic A> requires(V::Size == 2)
+	template<FloatVector V, Arithmetic A> requires(V::Size == 2)
 	typename V::Type sample(V point, A frequency) const {
-
-		if constexpr (!Negative) {
-			arc_assert(!point.anyNegative(), "Attempted to generate perlin noise from unsupported negative point")
-		}
 
 		using F = typename V::Type;
 		using Vi = Vec2i;
@@ -70,14 +55,7 @@ public:
 		ip &= hashMask;
 
 		auto dot = [&](const Vui& offset) {
-
-			if constexpr (Negative) {
-				Vui absP = Math::abs(Vi(ip + offset));
-				return grad2D[hash(absP) & grad2DMask].dot(p - offset);
-			} else {
-				return grad2D[hash(ip + offset) & grad2DMask].dot(p - offset);
-			}
-
+			return grad2D[hash(ip + offset) & grad2DMask].dot(p - offset);
 		};
 
 		V step = interpolate(p);
@@ -89,12 +67,8 @@ public:
 
 	}
 
-	template<bool Negative = false, FloatVector V, Arithmetic A> requires(V::Size == 3)
+	template<FloatVector V, Arithmetic A> requires(V::Size == 3)
 	typename V::Type sample(V point, A frequency) const {
-
-		if constexpr (!Negative) {
-			arc_assert(!point.anyNegative(), "Attempted to generate perlin noise from unsupported negative point")
-		}
 
 		using F = typename V::Type;
 		using Vi = Vec3i;
@@ -109,14 +83,7 @@ public:
 		ip &= hashMask;
 
 		auto dot = [&](const Vui& offset) {
-
-			if constexpr (Negative) {
-				Vui absP = Math::abs(Vi(ip + offset));
-				return grad3D[hash(absP) & grad3DMask].dot(p - offset);
-			} else {
-				return grad3D[hash(ip + offset) & grad3DMask].dot(p - offset);
-			}
-
+			return grad3D[hash(ip + offset) & grad3DMask].dot(p - offset);
 		};
 
 		V step = interpolate(p);
@@ -133,12 +100,8 @@ public:
 
 	}
 
-	template<bool Negative = false, FloatVector V, Arithmetic A> requires(V::Size == 4)
+	template<FloatVector V, Arithmetic A> requires(V::Size == 4)
 	typename V::Type sample(V point, A frequency) const {
-
-		if constexpr (!Negative) {
-			arc_assert(!point.anyNegative(), "Attempted to generate perlin noise from unsupported negative point")
-		}
 
 		using F = typename V::Type;
 		using Vi = Vec4i;
@@ -153,14 +116,7 @@ public:
 		ip &= hashMask;
 
 		auto dot = [&](const Vui& offset) {
-
-			if constexpr (Negative) {
-				Vui absP = Math::abs(Vi(ip + offset));
-				return grad4D[hash(absP) & grad4DMask].dot(p - offset);
-			} else {
-				return grad4D[hash(ip + offset) & grad4DMask].dot(p - offset);
-			}
-
+			return grad4D[hash(ip + offset) & grad4DMask].dot(p - offset);
 		};
 
 		V step = interpolate(p);

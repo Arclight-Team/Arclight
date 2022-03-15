@@ -18,20 +18,14 @@ public:
 	using NoiseBase<WorleyNoise>::sample;
 
 
-	template<bool Negative = false, Float F, Arithmetic A>
+	template<Float F, Arithmetic A>
 	F sample(F point, A frequency) const {
-
-		if constexpr (!Negative) {
-			arc_assert(point < Zero, "Attempted to generate worley noise from unsupported negative point")
-		}
 
 		point *= frequency;
 
 		i32 ip = Math::floor(point);
 
 		F p = point - ip;
-
-		constexpr F offsets[] = {-1, 0, 1};
 
 		F sample = 2;
 
@@ -51,12 +45,8 @@ public:
 
 	}
 
-	template<bool Negative = false, FloatVector V, Arithmetic A> requires(V::Size == 2)
+	template<FloatVector V, Arithmetic A> requires(V::Size == 2)
 	typename V::Type sample(V point, A frequency) const {
-
-		if constexpr (!Negative) {
-			arc_assert(!point.anyNegative(), "Attempted to generate worley noise from unsupported negative point")
-		}
 
 		using F = typename V::Type;
 		using Vi = Vec2i;
@@ -86,12 +76,8 @@ public:
 
 	}
 
-	template<bool Negative = false, FloatVector V, Arithmetic A> requires(V::Size == 3)
+	template<FloatVector V, Arithmetic A> requires(V::Size == 3)
 	typename V::Type sample(V point, A frequency) const {
-
-		if constexpr (!Negative) {
-			arc_assert(!point.anyNegative(), "Attempted to generate worley noise from unsupported negative point")
-		}
 
 		using F = typename V::Type;
 		using Vi = Vec3i;
@@ -121,12 +107,8 @@ public:
 
 	}
 
-	template<bool Negative = false, FloatVector V, Arithmetic A> requires(V::Size == 4)
+	template<FloatVector V, Arithmetic A> requires(V::Size == 4)
 	typename V::Type sample(V point, A frequency) const {
-
-		if constexpr (!Negative) {
-			arc_assert(!point.anyNegative(), "Attempted to generate worley noise from unsupported negative point")
-		}
 
 		using F = typename V::Type;
 		using Vi = Vec4i;

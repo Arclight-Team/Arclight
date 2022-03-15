@@ -34,7 +34,7 @@ public:
 	}
 
 
-	template<bool Negative = false, class T, Arithmetic A, Arithmetic L, Arithmetic P> requires(Float<T> || FloatVector<T>)
+	template<class T, Arithmetic A, Arithmetic L, Arithmetic P> requires(Float<T> || FloatVector<T>)
 	auto sample(T point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
 
 		arc_assert(octaves >= 1, "Octaves count cannot be 0");
@@ -46,7 +46,7 @@ public:
 		F range = 1;
 
 		for (u32 i = 0; i < octaves; i++) {
-			noise += static_cast<const Derived*>(this)->sample<Negative>(point, frequency) * scale;
+			noise += static_cast<const Derived*>(this)->sample(point, frequency) * scale;
 			frequency *= lacunarity;
 			scale *= persistence;
 			range += scale;
@@ -113,15 +113,15 @@ protected:
 	}
 
 	constexpr u32 hash(const Vec2ui& vec) const {
-		return p[hash(vec.x) + vec.y & hashMask];
+		return p[hash(vec.x) + vec.y];
 	}
 
 	constexpr u32 hash(const Vec3ui& vec) const {
-		return p[hash(vec.toVec2()) + vec.z & hashMask];
+		return p[hash(vec.toVec2()) + vec.z];
 	}
 
 	constexpr u32 hash(const Vec4ui& vec) const {
-		return p[hash(vec.toVec3()) + vec.w & hashMask];
+		return p[hash(vec.toVec3()) + vec.w];
 	}
 
 private:

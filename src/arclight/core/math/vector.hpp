@@ -785,18 +785,18 @@ constexpr A operator^(A a, const B& b) {
 }
 
 template<IntegralVector A, class B> requires(Integral<B> || (IntegralVector<B> && A::Size == B::Size))
-constexpr A operator&=(A a, const B& b) {
-	return a & b;
+constexpr void operator&=(A& a, const B& b) {
+	a = a & b;
 }
 
 template<IntegralVector A, class B> requires(Integral<B> || (IntegralVector<B> && A::Size == B::Size))
-constexpr A operator|=(A a, const B& b) {
-	return a & b;
+constexpr void operator|=(A& a, const B& b) {
+	a = a | b;
 }
 
 template<IntegralVector A, class B> requires(Integral<B> || (IntegralVector<B> && A::Size == B::Size))
-constexpr A operator^=(A a, const B& b) {
-	return a & b;
+constexpr void operator^=(A& a, const B& b) {
+	a = a ^ b;
 }
 
 template<IntegralVector A>

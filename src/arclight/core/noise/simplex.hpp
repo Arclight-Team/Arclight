@@ -18,12 +18,8 @@ public:
 	using NoiseBase<SimplexNoise>::sample;
 
 
-	template<bool Negative = false, Float F, Arithmetic A>
+	template<Float F, Arithmetic A>
 	F sample(F point, A frequency) const {
-
-		if constexpr (!Negative) {
-			arc_assert(point < Zero, "Attempted to generate simplex noise from unsupported negative point")
-		}
 
 		point *= frequency;
 
@@ -36,10 +32,6 @@ public:
 		auto part = [&](const u32& offset) {
 
 			i32 ofsP = ip + offset;
-
-			if constexpr (Negative) {
-				ofsP = Math::abs(ofsP);
-			}
 
 			F dot = grad1D[hash(ofsP) & grad1DMask] * (p - offset);
 
@@ -55,12 +47,8 @@ public:
 
 	}
 
-	template<bool Negative = false, FloatVector V, Arithmetic A> requires(V::Size == 2)
+	template<FloatVector V, Arithmetic A> requires(V::Size == 2)
 	typename V::Type sample(V point, A frequency) const {
-
-		if constexpr (!Negative) {
-			arc_assert(!point.anyNegative(), "Attempted to generate simplex noise from unsupported negative point")
-		}
 
 		using F = typename V::Type;
 		using Vi = Vec2i;
@@ -75,7 +63,7 @@ public:
 		V skewed = point + V(skew);
 
 		Vi ip = Math::floor(skewed);
-		ip &= hashMask;
+		Vui hashP = ip & hashMask;
 
 		auto part = [&](const Vui& offset) {
 
@@ -84,11 +72,7 @@ public:
 			F unskew = (ofsP.x + ofsP.y) * toTriangle;
 			V unskewed = point - ofsP + V(unskew);
 
-			if constexpr (Negative) {
-				ofsP = Math::abs(ofsP);
-			}
-
-			F dot = grad2D[hash(ofsP) & grad2DMask].dot(unskewed);
+			F dot = grad2D[hash(hashP + offset) & grad2DMask].dot(unskewed);
 
 			return dot * falloff(unskewed, 0.5);
 
@@ -110,12 +94,8 @@ public:
 
 	}
 
-	template<bool Negative = false, FloatVector V, Arithmetic A> requires(V::Size == 3)
+	template<FloatVector V, Arithmetic A> requires(V::Size == 3)
 	typename V::Type sample(V point, A frequency) const {
-
-		if constexpr (!Negative) {
-			arc_assert(!point.anyNegative(), "Attempted to generate simplex noise from unsupported negative point")
-		}
 
 		using F = typename V::Type;
 		using Vi = Vec3i;
@@ -130,7 +110,7 @@ public:
 		V skewed = point + V(skew);
 
 		Vi ip = Math::floor(skewed);
-		ip &= hashMask;
+		Vui hashP = ip & hashMask;
 
 		auto part = [&](const Vui& offset) {
 
@@ -139,11 +119,7 @@ public:
 			F unskew = (ofsP.x + ofsP.y + ofsP.z) * toTetrahedron;
 			V unskewed = point - ofsP + V(unskew);
 
-			if constexpr (Negative) {
-				ofsP = Math::abs(ofsP);
-			}
-
-			F dot = grad3D[hash(ofsP) & grad3DMask].dot(unskewed);
+			F dot = grad3D[hash(hashP + offset) & grad3DMask].dot(unskewed);
 
 			return dot * falloff(unskewed, 0.5);
 
@@ -191,12 +167,8 @@ public:
 
 	}
 
-	template<bool Negative = false, FloatVector V, Arithmetic A> requires(V::Size == 4)
+	template<FloatVector V, Arithmetic A> requires(V::Size == 4)
 	typename V::Type sample(V point, A frequency) const {
-
-		if constexpr (!Negative) {
-			arc_assert(!point.anyNegative(), "Attempted to generate simplex noise from unsupported negative point")
-		}
 
 		using F = typename V::Type;
 		using Vi = Vec4i;
@@ -211,7 +183,7 @@ public:
 		V skewed = point + V(skew);
 
 		Vi ip = Math::floor(skewed);
-		ip &= hashMask;
+		Vui hashP = ip & hashMask;
 
 		auto part = [&](const Vui& offset) {
 
@@ -220,11 +192,7 @@ public:
 			F unskew = (ofsP.x + ofsP.y + ofsP.z + ofsP.w) * to5Cell;
 			V unskewed = point - ofsP + V(unskew);
 
-			if constexpr (Negative) {
-				ofsP = Math::abs(ofsP);
-			}
-
-			F dot = grad4D[hash(ofsP) & grad4DMask].dot(unskewed);
+			F dot = grad4D[hash(hashP + offset) & grad4DMask].dot(unskewed);
 
 			return dot * falloff(unskewed, 0.5);
 

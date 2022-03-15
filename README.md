@@ -32,6 +32,7 @@ The following features have been fully implemented:
 - Advanced input management
 - Image manipulation library (+ BMP loading)
 - Mathematics (Vectors, Matrices, Quaternions, Beziers, Fading and more)
+- Noise library (Perlin, Simplex and Worley up to 4D)
 - Logging & Debugging
 - Timing utilities
 - Stream readers/writers
@@ -57,7 +58,6 @@ Following features are being worked on/are planned:
 - Physics engine
 - Advanced imaging formats (GIF/PNG/JPEG)
 - Full font render engine with TTF/OTF support
-- Noise library (extension to imaging)
 - OS information query
 - Full 3D render engine
 
