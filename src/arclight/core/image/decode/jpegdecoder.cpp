@@ -1077,14 +1077,14 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 		i32 c7 = b1 + b6;
 
 		//Stage 4: Final output, block-to-image transform
-		outData[i * component.width + 0] = (c3 + c6) >> fixScaleShift;
-		outData[i * component.width + 1] = (c1 + b6) >> fixScaleShift;
-		outData[i * component.width + 2] = (c2 + c5) >> fixScaleShift;
-		outData[i * component.width + 3] = (c4 + c7) >> fixScaleShift;
-		outData[i * component.width + 4] = (c4 - c7) >> fixScaleShift;
-		outData[i * component.width + 5] = (c2 - c5) >> fixScaleShift;
-		outData[i * component.width + 6] = (c1 - b6) >> fixScaleShift;
-		outData[i * component.width + 7] = (c3 - c6) >> fixScaleShift;
+		outData[i * component.width + 0] = ((c3 + c6) >> fixScaleShift) + 128;
+		outData[i * component.width + 1] = ((c1 + b6) >> fixScaleShift) + 128;
+		outData[i * component.width + 2] = ((c2 + c5) >> fixScaleShift) + 128;
+		outData[i * component.width + 3] = ((c4 + c7) >> fixScaleShift) + 128;
+		outData[i * component.width + 4] = ((c4 - c7) >> fixScaleShift) + 128;
+		outData[i * component.width + 5] = ((c2 - c5) >> fixScaleShift) + 128;
+		outData[i * component.width + 6] = ((c1 - b6) >> fixScaleShift) + 128;
+		outData[i * component.width + 7] = ((c3 - c6) >> fixScaleShift) + 128;
 
 	}
 
@@ -1100,21 +1100,30 @@ void JPEGDecoder::blendAndUpsample() {
 	SizeT offset = 0;
 	const i32* imgData[3] = {scan.imageComponents[0].imageData.data(), scan.imageComponents[1].imageData.data(), scan.imageComponents[2].imageData.data()};
 
+	ARC_PROFILE_START(CoreBlend)
+
 	for (u32 i = 0; i < target.getHeight(); i++) {
 
 		for (u32 j = 0; j < target.getWidth(); j++) {
 
 			//YCbCr to RGB
-			Vec3i ycbcr(imgData[0][offset] + 128, imgData[1][offset], imgData[2][offset]);
-			Vec3i rgb(ycbcr.x + ((ycbcr.z * 183763) >> 17), ycbcr.x - ((ycbcr.y * 1443411) >> 22) - ((ycbcr.z * 5990607) >> 23), ycbcr.x + ((ycbcr.y * 3629) >> 11));
+			i32 y = imgData[0][offset];
+			i32 cb = imgData[1][offset] - 128;
+			i32 cr = imgData[2][offset] - 128;
 
-			target.setPixel(j, i, PixelRGB8(Math::clamp(rgb.x, 0, 255), Math::clamp(rgb.y, 0, 255), Math::clamp(rgb.z, 0, 255)));
+			i32 r = y + ((cr * 183763) >> 17);
+			i32 g = y - ((cb * 1443411) >> 22) - ((cr * 5990607) >> 23);
+			i32 b = y + ((cb * 3629) >> 11);
+
+			target.setPixel(j, i, PixelRGB8(Math::clamp(r, 0, 255), Math::clamp(g, 0, 255), Math::clamp(b, 0, 255)));
 
 			offset++;
 
 		}
 
 	}
+
+	ARC_PROFILE_STOP(CoreBlend)
 
 	image = Image<Pixel::RGB8>::makeRaw(target);
 
