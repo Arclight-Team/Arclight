@@ -35,21 +35,23 @@ public:
 
 
 	template<class T, Arithmetic A, Arithmetic L, Arithmetic P> requires(Float<T> || FloatVector<T>)
-	auto sample(T point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
+	constexpr auto sample(T point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
 
 		arc_assert(octaves >= 1, "Octaves count cannot be 0");
 
 		using F = TT::CommonArithmeticType<T>;
 
-		F noise = 0;
+		const auto& derived = *static_cast<const Derived*>(this);
+
+		F noise = derived.sample(point, frequency);
 		F scale = 1;
 		F range = 1;
 
-		for (u32 i = 0; i < octaves; i++) {
-			noise += static_cast<const Derived*>(this)->sample(point, frequency) * scale;
+		for (u32 i = 1; i < octaves; i++) {
 			frequency *= lacunarity;
 			scale *= persistence;
 			range += scale;
+			noise += derived.sample(point, frequency) * scale;
 		}
 
 		return noise / range;
@@ -110,6 +112,18 @@ protected:
 
 	constexpr u32 hash(u32 x) const {
 		return p[x];
+	}
+
+	constexpr u32 hash(u32 x, u32 y) const {
+		return p[hash(x) + y];
+	}
+
+	constexpr u32 hash(u32 x, u32 y, u32 z) const {
+		return p[hash(x, y) + z];
+	}
+
+	constexpr u32 hash(u32 x, u32 y, u32 z, u32 w) const {
+		return p[hash(x, y, z) + w];
 	}
 
 	constexpr u32 hash(const Vec2ui& vec) const {
