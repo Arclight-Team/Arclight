@@ -14,6 +14,60 @@
 using namespace JPEG;
 
 
+constexpr static u32 fixScaleShift = 10;
+constexpr static u32 fixMultiplyShift = 10;
+
+constexpr static std::array<i32, 64> scaleFactors = []() {
+
+	std::array<i32, 64> a {};
+
+	constexpr long double x0 = 0.3535533905932737622004221810524245196424179688442370182941699344L; //1 / (2 * sqrt(2))
+	constexpr long double x1 = 0.4499881115682078523192547704709441977690008637064224926177235580L; //cos(7 * pi / 16) / (2 * sin(3 * pi / 8) - sqrt(2))
+	constexpr long double x2 = 0.6532814824381882639283215867135935767918805941746347637744491834L; //cos(pi / 8) / sqrt(2)
+	constexpr long double x3 = 0.2548977895520795844709699019939219568413092459544676848632214685L; //cos(5 * pi / 16) / (2 * cos(3 * pi / 8) + sqrt(2))
+	constexpr long double x4 = 0.3535533905932737622004221810524245196424179688442370182941699344L; //1 / (2 * sqrt(2))
+	constexpr long double x5 = 1.2814577238707530893980431480888499545075616756936724560638481482L; //cos(3 * pi / 16) / (-2 * cos(3 * pi / 8) + sqrt(2))
+	constexpr long double x6 = 0.2705980500730984921998616026831947100305360316890077223406485478L; //cos(3 * pi / 8) / sqrt(2)
+	constexpr long double x7 = 0.3006724434675226402718609119546109175336279448003363610609320596L; //cos(pi / 16) / (2 * sin(3 * pi / 8) + sqrt(2))
+
+	constexpr long double scale[64] = {
+		x0 * x0, x0 * x1, x0 * x2, x0 * x3, x0 * x4, x0 * x5, x0 * x6, x0 * x7,
+		x1 * x0, x1 * x1, x1 * x2, x1 * x3, x1 * x4, x1 * x5, x1 * x6, x1 * x7,
+		x2 * x0, x2 * x1, x2 * x2, x2 * x3, x2 * x4, x2 * x5, x2 * x6, x2 * x7,
+		x3 * x0, x3 * x1, x3 * x2, x3 * x3, x3 * x4, x3 * x5, x3 * x6, x3 * x7,
+		x4 * x0, x4 * x1, x4 * x2, x4 * x3, x4 * x4, x4 * x5, x4 * x6, x4 * x7,
+		x5 * x0, x5 * x1, x5 * x2, x5 * x3, x5 * x4, x5 * x5, x5 * x6, x5 * x7,
+		x6 * x0, x6 * x1, x6 * x2, x6 * x3, x6 * x4, x6 * x5, x6 * x6, x6 * x7,
+		x7 * x0, x7 * x1, x7 * x2, x7 * x3, x7 * x4, x7 * x5, x7 * x6, x7 * x7,
+	};
+
+	for (u32 i = 0; i < 64; i++) {
+		a[i] = i32(scale[i] * (1 << fixScaleShift) + 0.5);
+	}
+
+	return a;
+
+}();
+
+constexpr static std::array<i32, 3> multiplyConstants = []() {
+
+	std::array<i32, 3> a {};
+
+	constexpr long double x[3] = {
+		0.7071067811865475244008443621048490392848359376884740365883398689L,    //cos(pi / 4)
+		0.3826834323650897717284599840303988667613445624856270414338006356L,    //cos(3 * pi / 8)
+		0.9238795325112867561281831893967882868224166258636424861150977312L     //sin(3 * pi / 8)
+	};
+
+	for (u32 i = 0; i < 3; i++) {
+		a[i] = i32(x[i] * (1 << fixMultiplyShift) + 0.5);
+	}
+
+	return a;
+
+}();
+
+
 constexpr static bool app0StringCompare(const u8* a, const u8* b) noexcept {
 
 	while (true) {
@@ -425,7 +479,7 @@ void JPEGDecoder::parseQuantizationTable() {
 			QuantizationTable& table = quantizationTables[tableID];
 
 			for (u32 i = 0; i < 64; i++) {
-				table[i] = reader.read<T>();
+				table[i] = static_cast<i32>(reader.read<T>()) * scaleFactors[i];
 			}
 
 		};
@@ -736,9 +790,6 @@ void JPEGDecoder::decodeScan() {
 		throw ImageDecoderException("Too many data units in MCU");
 	}
 
-	Profiler p;
-	p.start();
-
 	if (restartEnabled) {
 
 		ArcDebug() << "Restart enabled";
@@ -749,21 +800,8 @@ void JPEGDecoder::decodeScan() {
 
 	}
 
-/*
-	for (ImageComponent& component : scan.imageComponents) {
+	blendAndUpsample();
 
-		for (u32 i = 0; i < component.blockData.size() / 64; i++) {
-
-			for (u32 j = 0; j < 8; j++) {
-
-				ArcDebug() << std::span{component.blockData.data() + i * 64 + j * 8, 8};
-
-			}
-
-		}
-
-	}
-*/
 }
 
 
@@ -784,9 +822,44 @@ void JPEGDecoder::decodeImage() {
 			for (u32 sx = 0; sx < component.samplesX; sx++) {
 
 				for (u32 sy = 0; sy < component.samplesY; sy++, component.dataUnit++) {
-
 					decodeBlock(component);
-					applyIDCT(component, currentMCU);
+				}
+
+			}
+
+		}
+
+	}
+
+	for (ImageComponent& component : scan.imageComponents) {
+
+		u32 block = 0;
+
+		for (u32 i = 0; i < scan.totalMCUs; i++) {
+
+			SizeT mcuBaseX = (i % scan.mcusX) * component.samplesX * 8;
+			SizeT mcuBaseY = (i / scan.mcusX) * component.samplesY * 8;
+
+			for (u32 sy = 0; sy < component.samplesY; sy++) {
+
+				SizeT baseY = mcuBaseY + sy * 8;
+
+				for (u32 sx = 0; sx < component.samplesX; sx++) {
+
+					SizeT baseX = mcuBaseX + sx * 8;
+
+					if (baseX + 8 >= component.width) {
+						block++;
+						break;
+					}
+
+					if (baseY + 8 >= component.height) {
+						block++;
+						break;
+					}
+
+					applyIDCT(component, block * 64, baseY * component.width + baseX);
+					block++;
 
 				}
 
@@ -825,7 +898,7 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 
 		i32 dc = component.prediction + difference;
 		component.prediction = dc;
-		component.blockData[baseDataOffset] = dc * i32(component.qTable[0]);
+		component.blockData[baseDataOffset] = dc * component.qTable[0];
 	}
 
 
@@ -882,8 +955,8 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 
 			}
 
-			u32 dezigzagIndex = dezigzagTable[coefficient];
-			component.blockData[baseDataOffset + dezigzagIndex] = ac * i32(component.qTable[dezigzagIndex]);
+			u32 dezigzagIndex = dezigzagTableTransposed[coefficient];
+			component.blockData[baseDataOffset + dezigzagIndex] = ac * component.qTable[dezigzagIndex];
 			coefficient++;
 
 		}
@@ -894,49 +967,158 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 
 
 
-void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, u32 mcu) {
+void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, SizeT imageBase) {
 
-	SizeT blockOffset = component.dataUnit * 64;
+	i32* inData = &component.blockData[blockBase];
+	i32* outData = &component.imageData[imageBase];
 
-	u32 dataIndex = component.dataUnit % (component.samplesX * component.samplesY);
-	u32 baseX = ((mcu % scan.mcusX) * component.samplesX + dataIndex % component.samplesX) * 8;
-	u32 baseY = ((mcu / scan.mcusX) * component.samplesY + dataIndex / component.samplesX) * 8;
+	i32 buffer[64];
 
-	u32 countX = Math::min(component.width - baseX, 8);
-	u32 countY = Math::min(component.height - baseY, 8);
+	//First pass
+	for (u32 i = 0; i < 8; i++) {
 
-	for (u32 y = 0; y < countY; y++) {
+		u32 k = i * 8;
 
-		for (u32 x = 0; x < countX; x++) {
+		if (inData[k + 1] == inData[k + 2] == inData[k + 3] == inData[k + 4] == inData[k + 5] == inData[k + 6] == inData[k + 7] == inData[k]) {
 
-			float v = 0.5f * component.blockData[blockOffset];
-
-			//i == 0
-			for (u32 j = 1; j < 8; j++) {
-				v += component.blockData[blockOffset + j] * Math::cos((2 * x + 1) * j * Math::pi / 16.0f);
+			for (u32 j = 0; j < 8; j++) {
+				buffer[j * 8 + i] = inData[k];
 			}
 
-			//i == [1; 7]
-			for (u32 i = 1; i < 8; i++) {
-
-				for (u32 j = 0; j < 8; j++) {
-
-					v += component.blockData[blockOffset + i * 8 + j] * Math::cos((2 * x + 1) * j * Math::pi / 16.0f) * Math::cos((2 * y + 1) * i * Math::pi / 16.0f);
-
-				}
-
-			}
-
-			v *= 0.25f;
-
-			component.imageData[(baseY + y) * component.width + baseX + x] = v;
+			continue;
 
 		}
+
+		//Stage 1: Pre-multiplication stage
+		i32 a0 = inData[k + 0] + inData[k + 4];
+		i32 a1 = inData[k + 0] - inData[k + 4];
+		i32 a2 = inData[k + 2] - inData[k + 6];
+		i32 a3 = inData[k + 2] + inData[k + 6];
+		i32 a4 = inData[k + 1] + inData[k + 7];
+		i32 a5 = inData[k + 1] - inData[k + 7];
+		i32 a6 = inData[k + 5] - inData[k + 3];
+		i32 a7 = inData[k + 5] + inData[k + 3];
+
+		i32 a8 = a6 - a4;
+		i32 a9 = a6 + a4;
+
+		//Stage 2: Multiplication + Post-addition
+		i32 b0 = (a3 * multiplyConstants[0]) >> fixMultiplyShift;
+		i32 b1 = (a8 * multiplyConstants[0]) >> fixMultiplyShift;
+		i32 b2 = (a7 * multiplyConstants[1]) >> fixMultiplyShift;
+		i32 b3 = (a5 * multiplyConstants[1]) >> fixMultiplyShift;
+		i32 b4 = (a7 * multiplyConstants[2]) >> fixMultiplyShift;
+		i32 b5 = (a5 * multiplyConstants[2]) >> fixMultiplyShift;
+
+		i32 b6 = b5 - b2;
+		i32 b7 = b4 + b3;
+
+		//Stage 3: Post-merge
+		i32 c0 = a2 - b0;
+		i32 c1 = a1 + c0;
+		i32 c2 = a1 - c0;
+		i32 c3 = a0 + b0;
+		i32 c4 = a0 - b0;
+
+		i32 c5 = a9 - b7;
+		i32 c6 = b7 - b1;
+		i32 c7 = b1 + b6;
+
+		//Stage 4: Transposed output
+		buffer[8 * 0 + i] = c3 + c6;
+		buffer[8 * 1 + i] = c1 + b6;
+		buffer[8 * 2 + i] = c2 + c5;
+		buffer[8 * 3 + i] = c4 + c7;
+		buffer[8 * 4 + i] = c4 - c7;
+		buffer[8 * 5 + i] = c2 - c5;
+		buffer[8 * 6 + i] = c1 - b6;
+		buffer[8 * 7 + i] = c3 - c6;
+
+	}
+
+	//Second pass
+	for (u32 i = 0; i < 8; i++) {
+
+		u32 k = i * 8;
+
+		//Stage 1: Pre-multiplication stage
+		i32 a0 = buffer[k + 0] + buffer[k + 4];
+		i32 a1 = buffer[k + 0] - buffer[k + 4];
+		i32 a2 = buffer[k + 2] - buffer[k + 6];
+		i32 a3 = buffer[k + 2] + buffer[k + 6];
+		i32 a4 = buffer[k + 1] + buffer[k + 7];
+		i32 a5 = buffer[k + 1] - buffer[k + 7];
+		i32 a6 = buffer[k + 5] - buffer[k + 3];
+		i32 a7 = buffer[k + 5] + buffer[k + 3];
+
+		i32 a8 = a6 - a4;
+		i32 a9 = a6 + a4;
+
+		//Stage 2: Multiplication + Post-addition
+		i32 b0 = (a3 * multiplyConstants[0]) >> fixMultiplyShift;
+		i32 b1 = (a8 * multiplyConstants[0]) >> fixMultiplyShift;
+		i32 b2 = (a7 * multiplyConstants[1]) >> fixMultiplyShift;
+		i32 b3 = (a5 * multiplyConstants[1]) >> fixMultiplyShift;
+		i32 b4 = (a7 * multiplyConstants[2]) >> fixMultiplyShift;
+		i32 b5 = (a5 * multiplyConstants[2]) >> fixMultiplyShift;
+
+		i32 b6 = b5 - b2;
+		i32 b7 = b4 + b3;
+
+		//Stage 3: Post-merge
+		i32 c0 = a2 - b0;
+		i32 c1 = a1 + c0;
+		i32 c2 = a1 - c0;
+		i32 c3 = a0 + b0;
+		i32 c4 = a0 - b0;
+
+		i32 c5 = a9 - b7;
+		i32 c6 = b7 - b1;
+		i32 c7 = b1 + b6;
+
+		//Stage 4: Final output, block-to-image transform
+		outData[i * component.width + 0] = (c3 + c6) >> fixScaleShift;
+		outData[i * component.width + 1] = (c1 + b6) >> fixScaleShift;
+		outData[i * component.width + 2] = (c2 + c5) >> fixScaleShift;
+		outData[i * component.width + 3] = (c4 + c7) >> fixScaleShift;
+		outData[i * component.width + 4] = (c4 - c7) >> fixScaleShift;
+		outData[i * component.width + 5] = (c2 - c5) >> fixScaleShift;
+		outData[i * component.width + 6] = (c1 - b6) >> fixScaleShift;
+		outData[i * component.width + 7] = (c3 - c6) >> fixScaleShift;
 
 	}
 
 }
 
+
+
+void JPEGDecoder::blendAndUpsample() {
+
+	const JPEG::ImageComponent& component = scan.imageComponents[0];
+	Image<Pixel::RGB8> target(component.width, component.height);
+
+	SizeT offset = 0;
+	const i32* imgData[3] = {scan.imageComponents[0].imageData.data(), scan.imageComponents[1].imageData.data(), scan.imageComponents[2].imageData.data()};
+
+	for (u32 i = 0; i < target.getHeight(); i++) {
+
+		for (u32 j = 0; j < target.getWidth(); j++) {
+
+			//YCbCr to RGB
+			Vec3i ycbcr(imgData[0][offset] + 128, imgData[1][offset], imgData[2][offset]);
+			Vec3i rgb(ycbcr.x + ((ycbcr.z * 183763) >> 17), ycbcr.x - ((ycbcr.y * 1443411) >> 22) - ((ycbcr.z * 5990607) >> 23), ycbcr.x + ((ycbcr.y * 3629) >> 11));
+
+			target.setPixel(j, i, PixelRGB8(Math::clamp(rgb.x, 0, 255), Math::clamp(rgb.y, 0, 255), Math::clamp(rgb.z, 0, 255)));
+
+			offset++;
+
+		}
+
+	}
+
+	image = Image<Pixel::RGB8>::makeRaw(target);
+
+}
 
 
 

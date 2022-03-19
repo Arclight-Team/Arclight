@@ -13,6 +13,8 @@
 #include "image/image.hpp"
 #include "stream/binaryreader.hpp"
 #include "math/matrix.hpp"
+#include "debug.hpp"
+#include "time/profiler.hpp"
 
 
 class JPEGDecoder : public IImageDecoder {
@@ -30,27 +32,7 @@ public:
 			throw ImageDecoderException("Bad image decode");
 		}
 
-		const JPEG::ImageComponent& component = scan.imageComponents[0];
-		Image<P> image(component.width, component.height);
-
-		constexpr Mat3f transform(1, 0, 1.402, 1, -0.344136, -0.714136, 1, 1.772, 0);
-
-		for (u32 i = 0; i < image.getHeight(); i++) {
-
-			for (u32 j = 0; j < image.getWidth(); j++) {
-
-				SizeT offset = i * image.getWidth() + j;
-				//Vec3i rgb = transform * (Vec3f(scan.imageComponents[0].imageData[offset], scan.imageComponents[1].imageData[offset], scan.imageComponents[2].imageData[offset]) + Vec3f(0, 128, 128));
-				//image.setPixel(j, i, Image<P>::PixelType((rgb.x & 0xFF) << 16 | (rgb.y & 0xFF) << 8 | (rgb.z & 0xFF)));
-				image.setPixel(j, i, Image<P>::PixelType(component.imageData[offset]));
-
-			}
-
-		}
-
-		image.flipY();
-
-		return image;
+		return Image<P>::fromRaw(image);
 
 	}
 
@@ -87,7 +69,8 @@ private:
 	void decodeImage();
 	void decodeBlock(JPEG::ImageComponent& component);
 
-	void applyIDCT(JPEG::ImageComponent& component, u32 mcu);
+	void applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, SizeT imageBase);
+	void blendAndUpsample();
 
 	u16 verifySegmentLength();
 
@@ -104,5 +87,6 @@ private:
 	bool validDecode;
 
 	DecodingBuffer decodingBuffer;
+	RawImage image;
 
 };

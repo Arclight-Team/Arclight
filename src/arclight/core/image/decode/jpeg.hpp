@@ -58,20 +58,31 @@ namespace JPEG {
 	};
 
 	constexpr u32 dezigzagTable[64] = {
-	    0,  1,  8, 16,  9,  2,  3, 10,
-	   17, 24, 32, 25, 18, 11,  4,  5,
-	   12, 19, 26, 33, 40, 48, 41, 34,
-	   27, 20, 13,  6,  7, 14, 21, 28,
-	   35, 42, 49, 56, 57, 50, 43, 36,
-	   29, 22, 15, 23, 30, 37, 44, 51,
-	   58, 59, 52, 45, 38, 31, 39, 46,
-	   53, 60, 61, 54, 47, 55, 62, 63
+		 0,  1,  8, 16,  9,  2,  3, 10,
+		17, 24, 32, 25, 18, 11,  4,  5,
+		12, 19, 26, 33, 40, 48, 41, 34,
+		27, 20, 13,  6,  7, 14, 21, 28,
+		35, 42, 49, 56, 57, 50, 43, 36,
+		29, 22, 15, 23, 30, 37, 44, 51,
+		58, 59, 52, 45, 38, 31, 39, 46,
+		53, 60, 61, 54, 47, 55, 62, 63
+	};
+
+	constexpr u32 dezigzagTableTransposed[64] = {
+		 0,  8,  1,  2,  9, 16, 24, 17,
+		10,  3,  4, 11, 18, 25, 32, 40,
+		33, 26, 19, 12,  5,  6, 13, 20,
+		27, 34, 41, 48, 56, 49, 42, 35,
+		28, 21, 14,  7, 15, 22, 29, 36,
+		43, 50, 57, 58, 51, 44, 37, 30,
+		23, 31, 38, 45, 52, 59, 60, 53,
+		46, 39, 47, 54, 61, 62, 55, 63
 	};
 
 	constexpr u8 jfifString[5] = {0x4A, 0x46, 0x49, 0x46, 0x00};
 	constexpr u8 jfxxString[5] = {0x4A, 0x46, 0x58, 0x58, 0x00};
 
-	using QuantizationTable = std::array<u32, 64>;
+	using QuantizationTable = std::array<i32, 64>;
 	using HuffmanTable = std::vector<std::pair<u8, u8>>;
 
 	struct FrameComponent {
@@ -114,8 +125,8 @@ namespace JPEG {
 		i32 prediction;
 		u32 dcLength, acLength;
 		u32 dataUnit;
-		std::vector<float> blockData;
-		std::vector<float> imageData;
+		std::vector<i32> blockData;
+		std::vector<i32> imageData;
 
 	};
 
