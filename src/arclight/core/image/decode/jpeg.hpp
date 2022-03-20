@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "memory/alignedallocator.hpp"
 #include "types.hpp"
 
 #include <array>
@@ -125,8 +126,8 @@ namespace JPEG {
 		i32 prediction;
 		u32 dcLength, acLength;
 		u32 dataUnit;
-		std::vector<i32> blockData;
-		std::vector<i32> imageData;
+		std::vector<i32, AlignedAllocator<i32, 16>> blockData;
+		std::vector<i32, AlignedAllocator<i32, 16>> imageData;
 
 	};
 

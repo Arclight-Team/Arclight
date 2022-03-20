@@ -8,6 +8,7 @@
 
 #include "jpegdecoder.hpp"
 #include "time/profiler.hpp"
+#include "arcintrinsic.hpp"
 #include "debug.hpp"
 
 
@@ -831,6 +832,8 @@ void JPEGDecoder::decodeImage() {
 
 	}
 
+	ARC_PROFILE_START(IDCT)
+
 	for (ImageComponent& component : scan.imageComponents) {
 
 		u32 block = 0;
@@ -848,12 +851,12 @@ void JPEGDecoder::decodeImage() {
 
 					SizeT baseX = mcuBaseX + sx * 8;
 
-					if (baseX + 8 >= component.width) {
+					if (baseX + 8 > component.width) {
 						block++;
 						break;
 					}
 
-					if (baseY + 8 >= component.height) {
+					if (baseY + 8 > component.height) {
 						block++;
 						break;
 					}
@@ -868,6 +871,8 @@ void JPEGDecoder::decodeImage() {
 		}
 
 	}
+
+	ARC_PROFILE_STOP(IDCT)
 
 }
 
@@ -956,6 +961,7 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 			}
 
 			u32 dezigzagIndex = dezigzagTableTransposed[coefficient];
+
 			component.blockData[baseDataOffset + dezigzagIndex] = ac * component.qTable[dezigzagIndex];
 			coefficient++;
 
@@ -969,8 +975,165 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 
 void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, SizeT imageBase) {
 
-	i32* inData = &component.blockData[blockBase];
+	const i32* inData = &component.blockData[blockBase];    //Aligned to 16 bytes
 	i32* outData = &component.imageData[imageBase];
+
+#ifdef ARC_VECTORIZE_X86_SSE4_1     //pmulld requires SSE4.1, possible improvement through optimized shifts + adds?
+
+	const __m128i* inVec = reinterpret_cast<const __m128i*>(inData);
+
+	__m128i bufVec[16];
+
+	__m128i m0 = _mm_set1_epi32(multiplyConstants[0]);
+	__m128i m1 = _mm_set1_epi32(multiplyConstants[1]);
+	__m128i m2 = _mm_set1_epi32(multiplyConstants[2]);
+	__m128i m3 = _mm_set1_epi32(128);
+
+	__m128i* outVec[8];
+
+	for (u32 i = 0; i < 8; i++) {
+		outVec[i] = reinterpret_cast<__m128i*>(outData + component.width * i);
+	}
+
+	/*
+	 *  This algorithm is based on the scalar version, unrolled 4 times
+	 *  Taking the same shortcut as in the scalar version is slower since all
+	 *  input vectors need to take it, which happens only very rarely.
+	 */
+	for (u32 i = 0; i < 2; i++) {
+
+		__m128i in0 = _mm_load_si128(inVec + i +  0);
+		__m128i in1 = _mm_load_si128(inVec + i +  2);
+		__m128i in2 = _mm_load_si128(inVec + i +  4);
+		__m128i in3 = _mm_load_si128(inVec + i +  6);
+		__m128i in4 = _mm_load_si128(inVec + i +  8);
+		__m128i in5 = _mm_load_si128(inVec + i + 10);
+		__m128i in6 = _mm_load_si128(inVec + i + 12);
+		__m128i in7 = _mm_load_si128(inVec + i + 14);
+
+		__m128i a0 = _mm_add_epi32(in0, in4);
+		__m128i a1 = _mm_sub_epi32(in0, in4);
+		__m128i a2 = _mm_sub_epi32(in2, in6);
+		__m128i a3 = _mm_add_epi32(in2, in6);
+		__m128i a4 = _mm_add_epi32(in1, in7);
+		__m128i a5 = _mm_sub_epi32(in1, in7);
+		__m128i a6 = _mm_sub_epi32(in5, in3);
+		__m128i a7 = _mm_add_epi32(in5, in3);
+		__m128i a8 = _mm_sub_epi32(a6, a4);
+		__m128i a9 = _mm_add_epi32(a6, a4);
+
+		__m128i b0 = _mm_srai_epi32(_mm_mullo_epi32(a3, m0), fixMultiplyShift);
+		__m128i b1 = _mm_srai_epi32(_mm_mullo_epi32(a8, m0), fixMultiplyShift);
+		__m128i b2 = _mm_srai_epi32(_mm_mullo_epi32(a7, m1), fixMultiplyShift);
+		__m128i b3 = _mm_srai_epi32(_mm_mullo_epi32(a5, m1), fixMultiplyShift);
+		__m128i b4 = _mm_srai_epi32(_mm_mullo_epi32(a7, m2), fixMultiplyShift);
+		__m128i b5 = _mm_srai_epi32(_mm_mullo_epi32(a5, m2), fixMultiplyShift);
+
+		__m128i b6 = _mm_add_epi32(b3, b4);
+		__m128i b7 = _mm_sub_epi32(a2, b0);
+
+		__m128i c0 = _mm_add_epi32(a0, b0);
+		__m128i c1 = _mm_add_epi32(a1, b7);
+		__m128i c2 = _mm_sub_epi32(a1, b7);
+		__m128i c3 = _mm_sub_epi32(a0, b0);
+		__m128i c4 = _mm_sub_epi32(b6, b1);
+		__m128i c5 = _mm_sub_epi32(b5, b2);
+		__m128i c6 = _mm_sub_epi32(a9, b6);
+		__m128i c7 = _mm_add_epi32(b1, c5);
+
+		__m128i d0 = _mm_add_epi32(c0, c4);
+		__m128i d1 = _mm_add_epi32(c1, c5);
+		__m128i d2 = _mm_add_epi32(c2, c6);
+		__m128i d3 = _mm_add_epi32(c3, c7);
+		__m128i d4 = _mm_sub_epi32(c3, c7);
+		__m128i d5 = _mm_sub_epi32(c2, c6);
+		__m128i d6 = _mm_sub_epi32(c1, c5);
+		__m128i d7 = _mm_sub_epi32(c0, c4);
+
+		//Transpose
+		__m128i e0 = _mm_unpacklo_epi32(d0, d1);
+		__m128i e1 = _mm_unpacklo_epi32(d2, d3);
+		__m128i e2 = _mm_unpackhi_epi32(d0, d1);
+		__m128i e3 = _mm_unpackhi_epi32(d2, d3);
+		__m128i e4 = _mm_unpacklo_epi32(d4, d5);
+		__m128i e5 = _mm_unpacklo_epi32(d6, d7);
+		__m128i e6 = _mm_unpackhi_epi32(d4, d5);
+		__m128i e7 = _mm_unpackhi_epi32(d6, d7);
+
+		_mm_store_si128(bufVec + i * 8 + 0, _mm_shuffle_epi32(_mm_unpacklo_epi32(e0, e1), 0xD8));
+		_mm_store_si128(bufVec + i * 8 + 2, _mm_shuffle_epi32(_mm_unpackhi_epi32(e0, e1), 0xD8));
+		_mm_store_si128(bufVec + i * 8 + 4, _mm_shuffle_epi32(_mm_unpacklo_epi32(e2, e3), 0xD8));
+		_mm_store_si128(bufVec + i * 8 + 6, _mm_shuffle_epi32(_mm_unpackhi_epi32(e2, e3), 0xD8));
+		_mm_store_si128(bufVec + i * 8 + 1, _mm_shuffle_epi32(_mm_unpacklo_epi32(e4, e5), 0xD8));
+		_mm_store_si128(bufVec + i * 8 + 3, _mm_shuffle_epi32(_mm_unpackhi_epi32(e4, e5), 0xD8));
+		_mm_store_si128(bufVec + i * 8 + 5, _mm_shuffle_epi32(_mm_unpacklo_epi32(e6, e7), 0xD8));
+		_mm_store_si128(bufVec + i * 8 + 7, _mm_shuffle_epi32(_mm_unpackhi_epi32(e6, e7), 0xD8));
+
+	}
+
+	for (u32 i = 0; i < 2; i++) {
+
+		__m128i in0 = _mm_load_si128(bufVec + i +  0);
+		__m128i in1 = _mm_load_si128(bufVec + i +  2);
+		__m128i in2 = _mm_load_si128(bufVec + i +  4);
+		__m128i in3 = _mm_load_si128(bufVec + i +  6);
+		__m128i in4 = _mm_load_si128(bufVec + i +  8);
+		__m128i in5 = _mm_load_si128(bufVec + i + 10);
+		__m128i in6 = _mm_load_si128(bufVec + i + 12);
+		__m128i in7 = _mm_load_si128(bufVec + i + 14);
+
+		__m128i a0 = _mm_add_epi32(in0, in4);
+		__m128i a1 = _mm_sub_epi32(in0, in4);
+		__m128i a2 = _mm_sub_epi32(in2, in6);
+		__m128i a3 = _mm_add_epi32(in2, in6);
+		__m128i a4 = _mm_add_epi32(in1, in7);
+		__m128i a5 = _mm_sub_epi32(in1, in7);
+		__m128i a6 = _mm_sub_epi32(in5, in3);
+		__m128i a7 = _mm_add_epi32(in5, in3);
+		__m128i a8 = _mm_sub_epi32(a6, a4);
+		__m128i a9 = _mm_add_epi32(a6, a4);
+
+		__m128i b0 = _mm_srai_epi32(_mm_mullo_epi32(a3, m0), fixMultiplyShift);
+		__m128i b1 = _mm_srai_epi32(_mm_mullo_epi32(a8, m0), fixMultiplyShift);
+		__m128i b2 = _mm_srai_epi32(_mm_mullo_epi32(a7, m1), fixMultiplyShift);
+		__m128i b3 = _mm_srai_epi32(_mm_mullo_epi32(a5, m1), fixMultiplyShift);
+		__m128i b4 = _mm_srai_epi32(_mm_mullo_epi32(a7, m2), fixMultiplyShift);
+		__m128i b5 = _mm_srai_epi32(_mm_mullo_epi32(a5, m2), fixMultiplyShift);
+
+		__m128i b6 = _mm_add_epi32(b3, b4);
+		__m128i b7 = _mm_sub_epi32(a2, b0);
+
+		__m128i c0 = _mm_add_epi32(a0, b0);
+		__m128i c1 = _mm_add_epi32(a1, b7);
+		__m128i c2 = _mm_sub_epi32(a1, b7);
+		__m128i c3 = _mm_sub_epi32(a0, b0);
+		__m128i c4 = _mm_sub_epi32(b6, b1);
+		__m128i c5 = _mm_sub_epi32(b5, b2);
+		__m128i c6 = _mm_sub_epi32(a9, b6);
+		__m128i c7 = _mm_add_epi32(b1, c5);
+
+		__m128i d0 = _mm_add_epi32(c0, c4);
+		__m128i d1 = _mm_add_epi32(c1, c5);
+		__m128i d2 = _mm_add_epi32(c2, c6);
+		__m128i d3 = _mm_add_epi32(c3, c7);
+		__m128i d4 = _mm_sub_epi32(c3, c7);
+		__m128i d5 = _mm_sub_epi32(c2, c6);
+		__m128i d6 = _mm_sub_epi32(c1, c5);
+		__m128i d7 = _mm_sub_epi32(c0, c4);
+
+		//Untransposed thanks to transposed dezigzag
+		_mm_storeu_si128(outVec[0] + i, _mm_add_epi32(_mm_srai_epi32(d0, fixScaleShift), m3));
+		_mm_storeu_si128(outVec[1] + i, _mm_add_epi32(_mm_srai_epi32(d1, fixScaleShift), m3));
+		_mm_storeu_si128(outVec[2] + i, _mm_add_epi32(_mm_srai_epi32(d2, fixScaleShift), m3));
+		_mm_storeu_si128(outVec[3] + i, _mm_add_epi32(_mm_srai_epi32(d3, fixScaleShift), m3));
+		_mm_storeu_si128(outVec[4] + i, _mm_add_epi32(_mm_srai_epi32(d4, fixScaleShift), m3));
+		_mm_storeu_si128(outVec[5] + i, _mm_add_epi32(_mm_srai_epi32(d5, fixScaleShift), m3));
+		_mm_storeu_si128(outVec[6] + i, _mm_add_epi32(_mm_srai_epi32(d6, fixScaleShift), m3));
+		_mm_storeu_si128(outVec[7] + i, _mm_add_epi32(_mm_srai_epi32(d7, fixScaleShift), m3));
+
+	}
+
+#else
 
 	i32 buffer[64];
 
@@ -1002,7 +1165,7 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 		i32 a8 = a6 - a4;
 		i32 a9 = a6 + a4;
 
-		//Stage 2: Multiplication + Post-addition
+		//Stage 2: Multiplication
 		i32 b0 = (a3 * multiplyConstants[0]) >> fixMultiplyShift;
 		i32 b1 = (a8 * multiplyConstants[0]) >> fixMultiplyShift;
 		i32 b2 = (a7 * multiplyConstants[1]) >> fixMultiplyShift;
@@ -1010,29 +1173,29 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 		i32 b4 = (a7 * multiplyConstants[2]) >> fixMultiplyShift;
 		i32 b5 = (a5 * multiplyConstants[2]) >> fixMultiplyShift;
 
-		i32 b6 = b5 - b2;
-		i32 b7 = b4 + b3;
+		i32 b6 = b4 + b3;
+		i32 b7 = a2 - b0;
 
 		//Stage 3: Post-merge
-		i32 c0 = a2 - b0;
-		i32 c1 = a1 + c0;
-		i32 c2 = a1 - c0;
-		i32 c3 = a0 + b0;
-		i32 c4 = a0 - b0;
+		i32 c0 = a0 + b0;
+		i32 c1 = a1 + b7;
+		i32 c2 = a1 - b7;
+		i32 c3 = a0 - b0;
 
-		i32 c5 = a9 - b7;
-		i32 c6 = b7 - b1;
-		i32 c7 = b1 + b6;
+		i32 c4 = b6 - b1;
+		i32 c5 = b5 - b2;
+		i32 c6 = a9 - b6;
+		i32 c7 = b1 + c5;
 
 		//Stage 4: Transposed output
-		buffer[8 * 0 + i] = c3 + c6;
-		buffer[8 * 1 + i] = c1 + b6;
-		buffer[8 * 2 + i] = c2 + c5;
-		buffer[8 * 3 + i] = c4 + c7;
-		buffer[8 * 4 + i] = c4 - c7;
-		buffer[8 * 5 + i] = c2 - c5;
-		buffer[8 * 6 + i] = c1 - b6;
-		buffer[8 * 7 + i] = c3 - c6;
+		buffer[8 * 0 + i] = c0 + c4;
+		buffer[8 * 1 + i] = c1 + c5;
+		buffer[8 * 2 + i] = c2 + c6;
+		buffer[8 * 3 + i] = c3 + c7;
+		buffer[8 * 4 + i] = c3 - c7;
+		buffer[8 * 5 + i] = c2 - c6;
+		buffer[8 * 6 + i] = c1 - c5;
+		buffer[8 * 7 + i] = c0 - c4;
 
 	}
 
@@ -1054,7 +1217,7 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 		i32 a8 = a6 - a4;
 		i32 a9 = a6 + a4;
 
-		//Stage 2: Multiplication + Post-addition
+		//Stage 2: Multiplication
 		i32 b0 = (a3 * multiplyConstants[0]) >> fixMultiplyShift;
 		i32 b1 = (a8 * multiplyConstants[0]) >> fixMultiplyShift;
 		i32 b2 = (a7 * multiplyConstants[1]) >> fixMultiplyShift;
@@ -1062,31 +1225,33 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 		i32 b4 = (a7 * multiplyConstants[2]) >> fixMultiplyShift;
 		i32 b5 = (a5 * multiplyConstants[2]) >> fixMultiplyShift;
 
-		i32 b6 = b5 - b2;
-		i32 b7 = b4 + b3;
+		i32 b6 = b4 + b3;
+		i32 b7 = a2 - b0;
 
 		//Stage 3: Post-merge
-		i32 c0 = a2 - b0;
-		i32 c1 = a1 + c0;
-		i32 c2 = a1 - c0;
-		i32 c3 = a0 + b0;
-		i32 c4 = a0 - b0;
+		i32 c0 = a0 + b0;
+		i32 c1 = a1 + b7;
+		i32 c2 = a1 - b7;
+		i32 c3 = a0 - b0;
 
-		i32 c5 = a9 - b7;
-		i32 c6 = b7 - b1;
-		i32 c7 = b1 + b6;
+		i32 c4 = b6 - b1;
+		i32 c5 = b5 - b2;
+		i32 c6 = a9 - b6;
+		i32 c7 = b1 + c5;
 
 		//Stage 4: Final output, block-to-image transform
-		outData[i * component.width + 0] = ((c3 + c6) >> fixScaleShift) + 128;
-		outData[i * component.width + 1] = ((c1 + b6) >> fixScaleShift) + 128;
-		outData[i * component.width + 2] = ((c2 + c5) >> fixScaleShift) + 128;
-		outData[i * component.width + 3] = ((c4 + c7) >> fixScaleShift) + 128;
-		outData[i * component.width + 4] = ((c4 - c7) >> fixScaleShift) + 128;
-		outData[i * component.width + 5] = ((c2 - c5) >> fixScaleShift) + 128;
-		outData[i * component.width + 6] = ((c1 - b6) >> fixScaleShift) + 128;
-		outData[i * component.width + 7] = ((c3 - c6) >> fixScaleShift) + 128;
+		outData[i * component.width + 0] = ((c0 + c4) >> fixScaleShift) + 128;
+		outData[i * component.width + 1] = ((c1 + c5) >> fixScaleShift) + 128;
+		outData[i * component.width + 2] = ((c2 + c6) >> fixScaleShift) + 128;
+		outData[i * component.width + 3] = ((c3 + c7) >> fixScaleShift) + 128;
+		outData[i * component.width + 4] = ((c3 - c7) >> fixScaleShift) + 128;
+		outData[i * component.width + 5] = ((c2 - c6) >> fixScaleShift) + 128;
+		outData[i * component.width + 6] = ((c1 - c5) >> fixScaleShift) + 128;
+		outData[i * component.width + 7] = ((c0 - c4) >> fixScaleShift) + 128;
 
 	}
+
+#endif
 
 }
 
