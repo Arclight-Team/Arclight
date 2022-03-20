@@ -978,7 +978,172 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 	const i32* inData = &component.blockData[blockBase];    //Aligned to 16 bytes
 	i32* outData = &component.imageData[imageBase];
 
-#ifdef ARC_VECTORIZE_X86_SSE4_1     //pmulld requires SSE4.1, possible improvement through optimized shifts + adds?
+#ifdef ARC_VECTORIZE_X86_AVX2
+
+	const __m256i* inVec = reinterpret_cast<const __m256i*>(inData);
+
+	__m256i bufVec[8];
+
+	__m256i m0 = _mm256_set1_epi32(multiplyConstants[0]);
+	__m256i m1 = _mm256_set1_epi32(multiplyConstants[1]);
+	__m256i m2 = _mm256_set1_epi32(multiplyConstants[2]);
+	__m256i m3 = _mm256_set1_epi32(128);
+
+	__m256i* outVec[8];
+
+	for (u32 i = 0; i < 8; i++) {
+		outVec[i] = reinterpret_cast<__m256i*>(outData + component.width * i);
+	}
+
+	/*
+	 *  This algorithm is based on the scalar version, unrolled 8 times
+	 */
+	{
+		__m256i in0 = _mm256_load_si256(inVec + 0);
+		__m256i in1 = _mm256_load_si256(inVec + 1);
+		__m256i in2 = _mm256_load_si256(inVec + 2);
+		__m256i in3 = _mm256_load_si256(inVec + 3);
+		__m256i in4 = _mm256_load_si256(inVec + 4);
+		__m256i in5 = _mm256_load_si256(inVec + 5);
+		__m256i in6 = _mm256_load_si256(inVec + 6);
+		__m256i in7 = _mm256_load_si256(inVec + 7);
+
+		__m256i a0 = _mm256_add_epi32(in0, in4);
+		__m256i a1 = _mm256_sub_epi32(in0, in4);
+		__m256i a2 = _mm256_sub_epi32(in2, in6);
+		__m256i a3 = _mm256_add_epi32(in2, in6);
+		__m256i a4 = _mm256_add_epi32(in1, in7);
+		__m256i a5 = _mm256_sub_epi32(in1, in7);
+		__m256i a6 = _mm256_sub_epi32(in5, in3);
+		__m256i a7 = _mm256_add_epi32(in5, in3);
+		__m256i a8 = _mm256_sub_epi32(a6, a4);
+		__m256i a9 = _mm256_add_epi32(a6, a4);
+
+		__m256i b0 = _mm256_srai_epi32(_mm256_mullo_epi32(a3, m0), fixMultiplyShift);
+		__m256i b1 = _mm256_srai_epi32(_mm256_mullo_epi32(a8, m0), fixMultiplyShift);
+		__m256i b2 = _mm256_srai_epi32(_mm256_mullo_epi32(a7, m1), fixMultiplyShift);
+		__m256i b3 = _mm256_srai_epi32(_mm256_mullo_epi32(a5, m1), fixMultiplyShift);
+		__m256i b4 = _mm256_srai_epi32(_mm256_mullo_epi32(a7, m2), fixMultiplyShift);
+		__m256i b5 = _mm256_srai_epi32(_mm256_mullo_epi32(a5, m2), fixMultiplyShift);
+		__m256i b6 = _mm256_add_epi32(b3, b4);
+		__m256i b7 = _mm256_sub_epi32(a2, b0);
+
+		__m256i c0 = _mm256_add_epi32(a0, b0);
+		__m256i c1 = _mm256_add_epi32(a1, b7);
+		__m256i c2 = _mm256_sub_epi32(a1, b7);
+		__m256i c3 = _mm256_sub_epi32(a0, b0);
+		__m256i c4 = _mm256_sub_epi32(b6, b1);
+		__m256i c5 = _mm256_sub_epi32(b5, b2);
+		__m256i c6 = _mm256_sub_epi32(a9, b6);
+		__m256i c7 = _mm256_add_epi32(b1, c5);
+
+		__m256i d0 = _mm256_add_epi32(c0, c4);
+		__m256i d1 = _mm256_add_epi32(c1, c5);
+		__m256i d2 = _mm256_add_epi32(c2, c6);
+		__m256i d3 = _mm256_add_epi32(c3, c7);
+		__m256i d4 = _mm256_sub_epi32(c3, c7);
+		__m256i d5 = _mm256_sub_epi32(c2, c6);
+		__m256i d6 = _mm256_sub_epi32(c1, c5);
+		__m256i d7 = _mm256_sub_epi32(c0, c4);
+
+		//8x8 flat transpose
+		__m256i e0 = _mm256_unpacklo_epi32(d0, d1);     //a0, b0, a1, b1, a4, b4, a5, b5
+		__m256i e1 = _mm256_unpacklo_epi32(d2, d3);     //c0, d0, c1, d1, c4, d4, c5, d5
+		__m256i e2 = _mm256_unpacklo_epi32(d4, d5);     //e0, f0, e1, f1, e4, f4, e5, f5
+		__m256i e3 = _mm256_unpacklo_epi32(d6, d7);     //g0, h0, g1, h1, g4, h4, g5, h5
+		__m256i e4 = _mm256_unpackhi_epi32(d0, d1);     //a2, b2, a3, b3, a6, b6, a7, b7
+		__m256i e5 = _mm256_unpackhi_epi32(d2, d3);     //c2, d2, c3, d3, c6, d6, c7, d7
+		__m256i e6 = _mm256_unpackhi_epi32(d4, d5);     //e2, f2, e3, f3, e6, f6, e7, f7
+		__m256i e7 = _mm256_unpackhi_epi32(d6, d7);     //g2, h2, g3, h3, g6, h6, g7, h7
+
+		__m256i f0 = _mm256_shuffle_epi32(e1, 0x4E);    //c1, d1, c0, d0, c5, d5, c4, d4
+		__m256i f1 = _mm256_shuffle_epi32(e3, 0x4E);    //g1, h1, g0, h0, g5, h5, g4, h4
+		__m256i f2 = _mm256_shuffle_epi32(e5, 0x4E);    //c3, d3, c2, d2, c7, d7, c6, d6
+		__m256i f3 = _mm256_shuffle_epi32(e7, 0x4E);    //g3, h3, g2, h2, g7, h7, g6, h6
+
+		__m256i g0 = _mm256_blend_epi32(e0, f0, 0xCC);  //a0, b0, c0, d0, a4, b4, c4, d4
+		__m256i g1 = _mm256_blend_epi32(e2, f1, 0xCC);  //e0, f0, g0, h0, e4, f4, g4, h4
+		__m256i g2 = _mm256_blend_epi32(e4, f2, 0xCC);  //a2, b2, c2, d2, a6, b6, c6, d6
+		__m256i g3 = _mm256_blend_epi32(e6, f3, 0xCC);  //e2, f2, g2, h2, e6, f6, g6, h6
+		__m256i g4 = _mm256_blend_epi32(e0, f0, 0x33);  //c1, d1, a1, b1, c5, d5, a5, b5
+		__m256i g5 = _mm256_blend_epi32(e2, f1, 0x33);  //g1, h1, e1, f1, g5, h5, e5, f5
+		__m256i g6 = _mm256_blend_epi32(e4, f2, 0x33);  //c3, d3, a3, b3, c7, d7, a7, b7
+		__m256i g7 = _mm256_blend_epi32(e6, f3, 0x33);  //g3, h3, e3, f3, g7, h7, e7, f7
+
+		__m256i h0 = _mm256_shuffle_epi32(g4, 0x4E);    //a1, b1, c1, d1, a5, b5, c5, d5
+		__m256i h1 = _mm256_shuffle_epi32(g5, 0x4E);    //e1, f1, g1, h1, e5, f5, g5, h5
+		__m256i h2 = _mm256_shuffle_epi32(g6, 0x4E);    //a3, b3, c3, d3, a7, b7, c7, d7
+		__m256i h3 = _mm256_shuffle_epi32(g7, 0x4E);    //e3, f3, g3, h3, e7, f7, g7, h7
+
+		_mm256_store_si256(bufVec + 0, _mm256_permute2x128_si256(g0, g1, 0x20));
+		_mm256_store_si256(bufVec + 1, _mm256_permute2x128_si256(h0, h1, 0x20));
+		_mm256_store_si256(bufVec + 2, _mm256_permute2x128_si256(g2, g3, 0x20));
+		_mm256_store_si256(bufVec + 3, _mm256_permute2x128_si256(h2, h3, 0x20));
+		_mm256_store_si256(bufVec + 4, _mm256_permute2x128_si256(g0, g1, 0x31));
+		_mm256_store_si256(bufVec + 5, _mm256_permute2x128_si256(h0, h1, 0x31));
+		_mm256_store_si256(bufVec + 6, _mm256_permute2x128_si256(g2, g3, 0x31));
+		_mm256_store_si256(bufVec + 7, _mm256_permute2x128_si256(h2, h3, 0x31));
+	}
+
+	{
+		__m256i in0 = _mm256_load_si256(bufVec + 0);
+		__m256i in1 = _mm256_load_si256(bufVec + 1);
+		__m256i in2 = _mm256_load_si256(bufVec + 2);
+		__m256i in3 = _mm256_load_si256(bufVec + 3);
+		__m256i in4 = _mm256_load_si256(bufVec + 4);
+		__m256i in5 = _mm256_load_si256(bufVec + 5);
+		__m256i in6 = _mm256_load_si256(bufVec + 6);
+		__m256i in7 = _mm256_load_si256(bufVec + 7);
+
+		__m256i a0 = _mm256_add_epi32(in0, in4);
+		__m256i a1 = _mm256_sub_epi32(in0, in4);
+		__m256i a2 = _mm256_sub_epi32(in2, in6);
+		__m256i a3 = _mm256_add_epi32(in2, in6);
+		__m256i a4 = _mm256_add_epi32(in1, in7);
+		__m256i a5 = _mm256_sub_epi32(in1, in7);
+		__m256i a6 = _mm256_sub_epi32(in5, in3);
+		__m256i a7 = _mm256_add_epi32(in5, in3);
+		__m256i a8 = _mm256_sub_epi32(a6, a4);
+		__m256i a9 = _mm256_add_epi32(a6, a4);
+
+		__m256i b0 = _mm256_srai_epi32(_mm256_mullo_epi32(a3, m0), fixMultiplyShift);
+		__m256i b1 = _mm256_srai_epi32(_mm256_mullo_epi32(a8, m0), fixMultiplyShift);
+		__m256i b2 = _mm256_srai_epi32(_mm256_mullo_epi32(a7, m1), fixMultiplyShift);
+		__m256i b3 = _mm256_srai_epi32(_mm256_mullo_epi32(a5, m1), fixMultiplyShift);
+		__m256i b4 = _mm256_srai_epi32(_mm256_mullo_epi32(a7, m2), fixMultiplyShift);
+		__m256i b5 = _mm256_srai_epi32(_mm256_mullo_epi32(a5, m2), fixMultiplyShift);
+		__m256i b6 = _mm256_add_epi32(b3, b4);
+		__m256i b7 = _mm256_sub_epi32(a2, b0);
+
+		__m256i c0 = _mm256_add_epi32(a0, b0);
+		__m256i c1 = _mm256_add_epi32(a1, b7);
+		__m256i c2 = _mm256_sub_epi32(a1, b7);
+		__m256i c3 = _mm256_sub_epi32(a0, b0);
+		__m256i c4 = _mm256_sub_epi32(b6, b1);
+		__m256i c5 = _mm256_sub_epi32(b5, b2);
+		__m256i c6 = _mm256_sub_epi32(a9, b6);
+		__m256i c7 = _mm256_add_epi32(b1, c5);
+
+		__m256i d0 = _mm256_add_epi32(c0, c4);
+		__m256i d1 = _mm256_add_epi32(c1, c5);
+		__m256i d2 = _mm256_add_epi32(c2, c6);
+		__m256i d3 = _mm256_add_epi32(c3, c7);
+		__m256i d4 = _mm256_sub_epi32(c3, c7);
+		__m256i d5 = _mm256_sub_epi32(c2, c6);
+		__m256i d6 = _mm256_sub_epi32(c1, c5);
+		__m256i d7 = _mm256_sub_epi32(c0, c4);
+
+		_mm256_storeu_si256(outVec[0], _mm256_add_epi32(_mm256_srai_epi32(d0, fixScaleShift), m3));
+		_mm256_storeu_si256(outVec[1], _mm256_add_epi32(_mm256_srai_epi32(d1, fixScaleShift), m3));
+		_mm256_storeu_si256(outVec[2], _mm256_add_epi32(_mm256_srai_epi32(d2, fixScaleShift), m3));
+		_mm256_storeu_si256(outVec[3], _mm256_add_epi32(_mm256_srai_epi32(d3, fixScaleShift), m3));
+		_mm256_storeu_si256(outVec[4], _mm256_add_epi32(_mm256_srai_epi32(d4, fixScaleShift), m3));
+		_mm256_storeu_si256(outVec[5], _mm256_add_epi32(_mm256_srai_epi32(d5, fixScaleShift), m3));
+		_mm256_storeu_si256(outVec[6], _mm256_add_epi32(_mm256_srai_epi32(d6, fixScaleShift), m3));
+		_mm256_storeu_si256(outVec[7], _mm256_add_epi32(_mm256_srai_epi32(d7, fixScaleShift), m3));
+	}
+
+#elif defined(ARC_VECTORIZE_X86_SSE4_1)     //pmulld requires SSE4.1, possible improvement through optimized shifts + adds?
 
 	const __m128i* inVec = reinterpret_cast<const __m128i*>(inData);
 
@@ -1028,7 +1193,6 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 		__m128i b3 = _mm_srai_epi32(_mm_mullo_epi32(a5, m1), fixMultiplyShift);
 		__m128i b4 = _mm_srai_epi32(_mm_mullo_epi32(a7, m2), fixMultiplyShift);
 		__m128i b5 = _mm_srai_epi32(_mm_mullo_epi32(a5, m2), fixMultiplyShift);
-
 		__m128i b6 = _mm_add_epi32(b3, b4);
 		__m128i b7 = _mm_sub_epi32(a2, b0);
 
@@ -1099,7 +1263,6 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 		__m128i b3 = _mm_srai_epi32(_mm_mullo_epi32(a5, m1), fixMultiplyShift);
 		__m128i b4 = _mm_srai_epi32(_mm_mullo_epi32(a7, m2), fixMultiplyShift);
 		__m128i b5 = _mm_srai_epi32(_mm_mullo_epi32(a5, m2), fixMultiplyShift);
-
 		__m128i b6 = _mm_add_epi32(b3, b4);
 		__m128i b7 = _mm_sub_epi32(a2, b0);
 
@@ -1161,7 +1324,6 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 		i32 a5 = inData[k + 1] - inData[k + 7];
 		i32 a6 = inData[k + 5] - inData[k + 3];
 		i32 a7 = inData[k + 5] + inData[k + 3];
-
 		i32 a8 = a6 - a4;
 		i32 a9 = a6 + a4;
 
@@ -1172,7 +1334,6 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 		i32 b3 = (a5 * multiplyConstants[1]) >> fixMultiplyShift;
 		i32 b4 = (a7 * multiplyConstants[2]) >> fixMultiplyShift;
 		i32 b5 = (a5 * multiplyConstants[2]) >> fixMultiplyShift;
-
 		i32 b6 = b4 + b3;
 		i32 b7 = a2 - b0;
 
@@ -1181,7 +1342,6 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 		i32 c1 = a1 + b7;
 		i32 c2 = a1 - b7;
 		i32 c3 = a0 - b0;
-
 		i32 c4 = b6 - b1;
 		i32 c5 = b5 - b2;
 		i32 c6 = a9 - b6;
@@ -1213,7 +1373,6 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 		i32 a5 = buffer[k + 1] - buffer[k + 7];
 		i32 a6 = buffer[k + 5] - buffer[k + 3];
 		i32 a7 = buffer[k + 5] + buffer[k + 3];
-
 		i32 a8 = a6 - a4;
 		i32 a9 = a6 + a4;
 
@@ -1224,7 +1383,6 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 		i32 b3 = (a5 * multiplyConstants[1]) >> fixMultiplyShift;
 		i32 b4 = (a7 * multiplyConstants[2]) >> fixMultiplyShift;
 		i32 b5 = (a5 * multiplyConstants[2]) >> fixMultiplyShift;
-
 		i32 b6 = b4 + b3;
 		i32 b7 = a2 - b0;
 
@@ -1233,7 +1391,6 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 		i32 c1 = a1 + b7;
 		i32 c2 = a1 - b7;
 		i32 c3 = a0 - b0;
-
 		i32 c4 = b6 - b1;
 		i32 c5 = b5 - b2;
 		i32 c6 = a9 - b6;
