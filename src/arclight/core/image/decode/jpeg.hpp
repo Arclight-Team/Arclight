@@ -80,6 +80,17 @@ namespace JPEG {
 		46, 39, 47, 54, 61, 62, 55, 63
 	};
 
+	constexpr u32 zigzagIndexTransposed[64] = {
+		 0,  2,  3,  9, 10, 20, 21, 35,
+		 1,  4,  8, 11, 19, 22, 34, 36,
+		 5,  7, 12, 18, 23, 33, 37, 48,
+		 6, 13, 17, 24, 32, 38, 47, 49,
+		14, 16, 25, 31, 39, 46, 50, 57,
+		15, 26, 30, 40, 45, 51, 56, 58,
+		27, 29, 41, 44, 52, 55, 59, 62,
+		28, 42, 43, 53, 54, 60, 61, 63
+	};
+
 	constexpr u8 jfifString[5] = {0x4A, 0x46, 0x49, 0x46, 0x00};
 	constexpr u8 jfxxString[5] = {0x4A, 0x46, 0x58, 0x58, 0x00};
 
@@ -126,8 +137,8 @@ namespace JPEG {
 		i32 prediction;
 		u32 dcLength, acLength;
 		u32 dataUnit;
-		std::vector<i32, AlignedAllocator<i32, 16>> blockData;
-		std::vector<i32, AlignedAllocator<i32, 16>> imageData;
+		std::vector<i32, AlignedAllocator<i32, 32>> blockData;
+		std::vector<i32> imageData;
 
 	};
 

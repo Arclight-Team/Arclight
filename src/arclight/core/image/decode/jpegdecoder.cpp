@@ -847,16 +847,16 @@ void JPEGDecoder::decodeImage() {
 
 				SizeT baseY = mcuBaseY + sy * 8;
 
+				if (baseY + 8 > component.height) {
+					block++;
+					break;
+				}
+
 				for (u32 sx = 0; sx < component.samplesX; sx++) {
 
 					SizeT baseX = mcuBaseX + sx * 8;
 
 					if (baseX + 8 > component.width) {
-						block++;
-						break;
-					}
-
-					if (baseY + 8 > component.height) {
 						block++;
 						break;
 					}
@@ -898,7 +898,7 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 		i32 difference = 0;
 
 		if (category) {
-			difference = offset >= (1 << (category - 1)) ? static_cast<i32>(offset) : -i32(((1 << category) - 1)) + static_cast<i32>(offset);
+			difference = offset >= (1 << (category - 1)) ? static_cast<i32>(offset) : -i32((1 << category) - 1) + static_cast<i32>(offset);
 		}
 
 		i32 dc = component.prediction + difference;
@@ -950,7 +950,7 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 			coefficient += zeroes;
 
 			//Calculate the AC value
-			i32 ac = offset >= (1 << (category - 1)) ? Bits::cast<i32>(offset) : Bits::cast<i32>(-((1 << category) - 1) + offset);
+			i32 ac = offset >= (1 << (category - 1)) ? static_cast<i32>(offset) : -i32((1 << category) - 1) + static_cast<i32>(offset);
 
 			if (coefficient >= 64) {
 
@@ -961,8 +961,8 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 			}
 
 			u32 dezigzagIndex = dezigzagTableTransposed[coefficient];
+			component.blockData[baseDataOffset + dezigzagIndex] = ac * component.qTable[zigzagIndexTransposed[dezigzagIndex]];
 
-			component.blockData[baseDataOffset + dezigzagIndex] = ac * component.qTable[dezigzagIndex];
 			coefficient++;
 
 		}
@@ -1419,15 +1419,13 @@ void JPEGDecoder::blendAndUpsample() {
 	const JPEG::ImageComponent& component = scan.imageComponents[0];
 	Image<Pixel::RGB8> target(component.width, component.height);
 
-	SizeT offset = 0;
+	const i32* imgData[3] = {scan.imageComponents[0].imageData.data(),
+	                         scan.imageComponents[1].imageData.data(),
+	                         scan.imageComponents[2].imageData.data()};
 
 	ARC_PROFILE_START(CoreBlend)
 
 #ifdef ARC_VECTORIZE_X86_SSE4_1
-
-	const i32* imgData[3] = {scan.imageComponents[0].imageData.data(),
-	                         scan.imageComponents[1].imageData.data(),
-	                         scan.imageComponents[2].imageData.data()};
 
 	SizeT totalPixels = target.getWidth() * target.getHeight();
 	SizeT vectorSize = totalPixels / 16;
@@ -1562,7 +1560,7 @@ void JPEGDecoder::blendAndUpsample() {
 
 #else
 
-	const i32* imgData[3] = {scan.imageComponents[0].imageData.data(), scan.imageComponents[1].imageData.data(), scan.imageComponents[2].imageData.data()};
+	SizeT offset = 0;
 
 	for (u32 i = 0; i < target.getHeight(); i++) {
 
@@ -1576,8 +1574,6 @@ void JPEGDecoder::blendAndUpsample() {
 			i32 r = y + ((cr * 183763) >> 17);
 			i32 g = y - ((cb * 1443411) >> 22) - ((cr * 5990607) >> 23);
 			i32 b = y + ((cb * 3629) >> 11);
-
-			ArcDebug() << r << g << b;
 
 			target.setPixel(j, i, PixelRGB8(Math::clamp(r, 0, 255), Math::clamp(g, 0, 255), Math::clamp(b, 0, 255)));
 
