@@ -15,8 +15,8 @@
 using namespace JPEG;
 
 
-constexpr static u32 fixScaleShift = 12;
-constexpr static u32 fixMultiplyShift = 12;
+constexpr static u32 fixScaleShift = 10;
+constexpr static u32 fixMultiplyShift = 10;
 constexpr static u32 fixTransformShift = 8;
 constexpr static i32 colorBias = 1 << (fixTransformShift - 1);
 
