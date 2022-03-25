@@ -15,8 +15,10 @@
 using namespace JPEG;
 
 
-constexpr static u32 fixScaleShift = 10;
-constexpr static u32 fixMultiplyShift = 10;
+constexpr static u32 fixScaleShift = 12;
+constexpr static u32 fixMultiplyShift = 12;
+constexpr static u32 fixTransformShift = 8;
+constexpr static i32 colorBias = 1 << (fixTransformShift - 1);
 
 constexpr static std::array<i32, 64> scaleFactors = []() {
 
@@ -480,7 +482,7 @@ void JPEGDecoder::parseQuantizationTable() {
 			QuantizationTable& table = quantizationTables[tableID];
 
 			for (u32 i = 0; i < 64; i++) {
-				table[i] = static_cast<i32>(reader.read<T>()) * scaleFactors[i];
+				table[i] = static_cast<i32>(reader.read<T>()) * scaleFactors[dezigzagTable[i]];
 			}
 
 		};
@@ -848,23 +850,39 @@ void JPEGDecoder::decodeImage() {
 				SizeT baseY = mcuBaseY + sy * 8;
 
 				if (baseY + 8 > component.height) {
-					block++;
-					break;
-				}
 
-				for (u32 sx = 0; sx < component.samplesX; sx++) {
+					SizeT h = component.height - baseY;
 
-					SizeT baseX = mcuBaseX + sx * 8;
+					for (u32 sx = 0; sx < component.samplesX; sx++) {
 
-					if (baseX + 8 > component.width) {
-						block++;
-						break;
+						SizeT baseX = mcuBaseX + sx * 8;
+						SizeT w = 8;
+
+						if (baseX + 8 > component.width) {
+							w = component.width - baseX;
+						}
+
+						applyPartialIDCT(component, block * 64, baseY * component.width + baseX, w, h);
+
 					}
 
-					applyIDCT(component, block * 64, baseY * component.width + baseX);
-					block++;
+				} else {
+
+					for (u32 sx = 0; sx < component.samplesX; sx++) {
+
+						SizeT baseX = mcuBaseX + sx * 8;
+
+						if (baseX + 8 > component.width) {
+							applyPartialIDCT(component, block * 64, baseY * component.width + baseX, component.width - baseX, 8);
+						} else {
+							applyIDCT(component, block * 64, baseY * component.width + baseX);
+						}
+
+					}
 
 				}
+
+				block++;
 
 			}
 
@@ -961,10 +979,127 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 			}
 
 			u32 dezigzagIndex = dezigzagTableTransposed[coefficient];
-			blockData[dezigzagIndex] = ac * component.qTable[dezigzagIndex];
+			blockData[dezigzagIndex] = ac * component.qTable[coefficient];
 
 			coefficient++;
 
+		}
+
+	}
+
+}
+
+
+
+template<bool Full>
+constexpr static void scalarIDCT(const i32* inData, i32* outData, SizeT outStride, u32 width, u32 height) {
+
+	i32 buffer[64];
+	SizeT sizeX = Full ? 8 : width;
+	SizeT sizeY = Full ? 8 : height;
+
+	//First pass
+	for (u32 i = 0; i < 8; i++) {
+
+		u32 k = i * 8;
+
+		//Stage 1: Pre-multiplication stage
+		i32 a0 = inData[k + 0] + inData[k + 4];
+		i32 a1 = inData[k + 0] - inData[k + 4];
+		i32 a2 = inData[k + 2] - inData[k + 6];
+		i32 a3 = inData[k + 2] + inData[k + 6];
+		i32 a4 = inData[k + 1] + inData[k + 7];
+		i32 a5 = inData[k + 1] - inData[k + 7];
+		i32 a6 = inData[k + 5] - inData[k + 3];
+		i32 a7 = inData[k + 5] + inData[k + 3];
+		i32 a8 = a6 - a4;
+		i32 a9 = a6 + a4;
+
+		//Stage 2: Multiplication
+		i32 b0 = (a3 * multiplyConstants[0]) >> fixMultiplyShift;
+		i32 b1 = (a8 * multiplyConstants[0]) >> fixMultiplyShift;
+		i32 b2 = (a7 * multiplyConstants[1]) >> fixMultiplyShift;
+		i32 b3 = (a5 * multiplyConstants[1]) >> fixMultiplyShift;
+		i32 b4 = (a7 * multiplyConstants[2]) >> fixMultiplyShift;
+		i32 b5 = (a5 * multiplyConstants[2]) >> fixMultiplyShift;
+		i32 b6 = b5 - b2;
+		i32 b7 = b3 + b4;
+
+		//Stage 3: Post-merge
+		i32 bc = a2 - b0;
+		i32 c0 = a0 + b0;
+		i32 c1 = a1 + bc;
+		i32 c2 = a1 - bc;
+		i32 c3 = a0 - b0;
+		i32 c4 = b1 + b6;
+		i32 c5 = a9 - b7;
+		i32 c6 = b6;
+		i32 c7 = b7 - b1;
+
+		//Stage 4: Transposed output
+		buffer[8 * 0 + i] = c0 + c7;
+		buffer[8 * 1 + i] = c1 + c6;
+		buffer[8 * 2 + i] = c2 + c5;
+		buffer[8 * 3 + i] = c3 + c4;
+		buffer[8 * 4 + i] = c3 - c4;
+		buffer[8 * 5 + i] = c2 - c5;
+		buffer[8 * 6 + i] = c1 - c6;
+		buffer[8 * 7 + i] = c0 - c7;
+
+	}
+
+	i32 tmp[8];
+
+	//Second pass
+	for (u32 i = 0; i < sizeY; i++) {
+
+		u32 k = i * 8;
+
+		//Stage 1: Pre-multiplication stage
+		i32 a0 = buffer[k + 0] + buffer[k + 4];
+		i32 a1 = buffer[k + 0] - buffer[k + 4];
+		i32 a2 = buffer[k + 2] - buffer[k + 6];
+		i32 a3 = buffer[k + 2] + buffer[k + 6];
+		i32 a4 = buffer[k + 1] + buffer[k + 7];
+		i32 a5 = buffer[k + 1] - buffer[k + 7];
+		i32 a6 = buffer[k + 5] - buffer[k + 3];
+		i32 a7 = buffer[k + 5] + buffer[k + 3];
+		i32 a8 = a6 - a4;
+		i32 a9 = a6 + a4;
+
+		//Stage 2: Multiplication
+		i32 b0 = (a3 * multiplyConstants[0]) >> fixMultiplyShift;
+		i32 b1 = (a8 * multiplyConstants[0]) >> fixMultiplyShift;
+		i32 b2 = (a7 * multiplyConstants[1]) >> fixMultiplyShift;
+		i32 b3 = (a5 * multiplyConstants[1]) >> fixMultiplyShift;
+		i32 b4 = (a7 * multiplyConstants[2]) >> fixMultiplyShift;
+		i32 b5 = (a5 * multiplyConstants[2]) >> fixMultiplyShift;
+		i32 b6 = b5 - b2;
+		i32 b7 = b3 + b4;
+
+		//Stage 3: Post-merge
+		i32 bc = a2 - b0;
+		i32 c0 = a0 + b0;
+		i32 c1 = a1 + bc;
+		i32 c2 = a1 - bc;
+		i32 c3 = a0 - b0;
+		i32 c4 = b1 + b6;
+		i32 c5 = a9 - b7;
+		i32 c6 = b6;
+		i32 c7 = b7 - b1;
+
+		//Stage 4: Final output, block-to-image transform
+		tmp[0] = c0 + c7;
+		tmp[1] = c1 + c6;
+		tmp[2] = c2 + c5;
+		tmp[3] = c3 + c4;
+		tmp[4] = c3 - c4;
+		tmp[5] = c2 - c5;
+		tmp[6] = c1 - c6;
+		tmp[7] = c0 - c7;
+
+		for (u32 j = 0; j < sizeX; j++) {
+			outData[outStride * i + j] = (tmp[j] >> (fixScaleShift - fixTransformShift)) + (128 << fixTransformShift);
 		}
 
 	}
@@ -988,7 +1123,7 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 	__m256i m0 = _mm256_set1_epi32(multiplyConstants[0]);
 	__m256i m1 = _mm256_set1_epi32(multiplyConstants[1]);
 	__m256i m2 = _mm256_set1_epi32(multiplyConstants[2]);
-	__m256i m3 = _mm256_set1_epi32(128 << 8);
+	__m256i m3 = _mm256_set1_epi32(128 << fixTransformShift);
 
 	__m256i* outVec[8];
 
@@ -1136,14 +1271,14 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 		__m256i d6 = _mm256_sub_epi32(c1, c6);
 		__m256i d7 = _mm256_sub_epi32(c0, c7);
 
-		_mm256_storeu_si256(outVec[0], _mm256_add_epi32(_mm256_srai_epi32(d0, (fixScaleShift - 8)), m3));
-		_mm256_storeu_si256(outVec[1], _mm256_add_epi32(_mm256_srai_epi32(d1, (fixScaleShift - 8)), m3));
-		_mm256_storeu_si256(outVec[2], _mm256_add_epi32(_mm256_srai_epi32(d2, (fixScaleShift - 8)), m3));
-		_mm256_storeu_si256(outVec[3], _mm256_add_epi32(_mm256_srai_epi32(d3, (fixScaleShift - 8)), m3));
-		_mm256_storeu_si256(outVec[4], _mm256_add_epi32(_mm256_srai_epi32(d4, (fixScaleShift - 8)), m3));
-		_mm256_storeu_si256(outVec[5], _mm256_add_epi32(_mm256_srai_epi32(d5, (fixScaleShift - 8)), m3));
-		_mm256_storeu_si256(outVec[6], _mm256_add_epi32(_mm256_srai_epi32(d6, (fixScaleShift - 8)), m3));
-		_mm256_storeu_si256(outVec[7], _mm256_add_epi32(_mm256_srai_epi32(d7, (fixScaleShift - 8)), m3));
+		_mm256_storeu_si256(outVec[0], _mm256_add_epi32(_mm256_srai_epi32(d0, (fixScaleShift - fixTransformShift)), m3));
+		_mm256_storeu_si256(outVec[1], _mm256_add_epi32(_mm256_srai_epi32(d1, (fixScaleShift - fixTransformShift)), m3));
+		_mm256_storeu_si256(outVec[2], _mm256_add_epi32(_mm256_srai_epi32(d2, (fixScaleShift - fixTransformShift)), m3));
+		_mm256_storeu_si256(outVec[3], _mm256_add_epi32(_mm256_srai_epi32(d3, (fixScaleShift - fixTransformShift)), m3));
+		_mm256_storeu_si256(outVec[4], _mm256_add_epi32(_mm256_srai_epi32(d4, (fixScaleShift - fixTransformShift)), m3));
+		_mm256_storeu_si256(outVec[5], _mm256_add_epi32(_mm256_srai_epi32(d5, (fixScaleShift - fixTransformShift)), m3));
+		_mm256_storeu_si256(outVec[6], _mm256_add_epi32(_mm256_srai_epi32(d6, (fixScaleShift - fixTransformShift)), m3));
+		_mm256_storeu_si256(outVec[7], _mm256_add_epi32(_mm256_srai_epi32(d7, (fixScaleShift - fixTransformShift)), m3));
 	}
 
 #elif defined(ARC_VECTORIZE_X86_SSE4_1)     //pmulld requires SSE4.1, possible improvement through optimized shifts + adds?
@@ -1155,7 +1290,7 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 	__m128i m0 = _mm_set1_epi32(multiplyConstants[0]);
 	__m128i m1 = _mm_set1_epi32(multiplyConstants[1]);
 	__m128i m2 = _mm_set1_epi32(multiplyConstants[2]);
-	__m128i m3 = _mm_set1_epi32(128 << 8);
+	__m128i m3 = _mm_set1_epi32(128 << fixTransformShift);
 
 	__m128i* outVec[8];
 
@@ -1290,123 +1425,29 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 		__m128i d7 = _mm_sub_epi32(c0, c7);
 
 		//Untransposed thanks to transposed dezigzag
-		_mm_storeu_si128(outVec[0] + i, _mm_add_epi32(_mm_srai_epi32(d0, (fixScaleShift - 8)), m3));
-		_mm_storeu_si128(outVec[1] + i, _mm_add_epi32(_mm_srai_epi32(d1, (fixScaleShift - 8)), m3));
-		_mm_storeu_si128(outVec[2] + i, _mm_add_epi32(_mm_srai_epi32(d2, (fixScaleShift - 8)), m3));
-		_mm_storeu_si128(outVec[3] + i, _mm_add_epi32(_mm_srai_epi32(d3, (fixScaleShift - 8)), m3));
-		_mm_storeu_si128(outVec[4] + i, _mm_add_epi32(_mm_srai_epi32(d4, (fixScaleShift - 8)), m3));
-		_mm_storeu_si128(outVec[5] + i, _mm_add_epi32(_mm_srai_epi32(d5, (fixScaleShift - 8)), m3));
-		_mm_storeu_si128(outVec[6] + i, _mm_add_epi32(_mm_srai_epi32(d6, (fixScaleShift - 8)), m3));
-		_mm_storeu_si128(outVec[7] + i, _mm_add_epi32(_mm_srai_epi32(d7, (fixScaleShift - 8)), m3));
+		_mm_storeu_si128(outVec[0] + i, _mm_add_epi32(_mm_srai_epi32(d0, (fixScaleShift - fixTransformShift)), m3));
+		_mm_storeu_si128(outVec[1] + i, _mm_add_epi32(_mm_srai_epi32(d1, (fixScaleShift - fixTransformShift)), m3));
+		_mm_storeu_si128(outVec[2] + i, _mm_add_epi32(_mm_srai_epi32(d2, (fixScaleShift - fixTransformShift)), m3));
+		_mm_storeu_si128(outVec[3] + i, _mm_add_epi32(_mm_srai_epi32(d3, (fixScaleShift - fixTransformShift)), m3));
+		_mm_storeu_si128(outVec[4] + i, _mm_add_epi32(_mm_srai_epi32(d4, (fixScaleShift - fixTransformShift)), m3));
+		_mm_storeu_si128(outVec[5] + i, _mm_add_epi32(_mm_srai_epi32(d5, (fixScaleShift - fixTransformShift)), m3));
+		_mm_storeu_si128(outVec[6] + i, _mm_add_epi32(_mm_srai_epi32(d6, (fixScaleShift - fixTransformShift)), m3));
+		_mm_storeu_si128(outVec[7] + i, _mm_add_epi32(_mm_srai_epi32(d7, (fixScaleShift - fixTransformShift)), m3));
 
 	}
 
 #else
 
-	i32 buffer[64];
-
-	//First pass
-	for (u32 i = 0; i < 8; i++) {
-
-		u32 k = i * 8;
-
-		//Stage 1: Pre-multiplication stage
-		i32 a0 = inData[k + 0] + inData[k + 4];
-		i32 a1 = inData[k + 0] - inData[k + 4];
-		i32 a2 = inData[k + 2] - inData[k + 6];
-		i32 a3 = inData[k + 2] + inData[k + 6];
-		i32 a4 = inData[k + 1] + inData[k + 7];
-		i32 a5 = inData[k + 1] - inData[k + 7];
-		i32 a6 = inData[k + 5] - inData[k + 3];
-		i32 a7 = inData[k + 5] + inData[k + 3];
-		i32 a8 = a6 - a4;
-		i32 a9 = a6 + a4;
-
-		//Stage 2: Multiplication
-		i32 b0 = (a3 * multiplyConstants[0]) >> fixMultiplyShift;
-		i32 b1 = (a8 * multiplyConstants[0]) >> fixMultiplyShift;
-		i32 b2 = (a7 * multiplyConstants[1]) >> fixMultiplyShift;
-		i32 b3 = (a5 * multiplyConstants[1]) >> fixMultiplyShift;
-		i32 b4 = (a7 * multiplyConstants[2]) >> fixMultiplyShift;
-		i32 b5 = (a5 * multiplyConstants[2]) >> fixMultiplyShift;
-		i32 b6 = b5 - b2;
-		i32 b7 = b3 + b4;
-
-		//Stage 3: Post-merge
-		i32 bc = a2 - b0;
-		i32 c0 = a0 + b0;
-		i32 c1 = a1 + bc;
-		i32 c2 = a1 - bc;
-		i32 c3 = a0 - b0;
-		i32 c4 = b1 + b6;
-		i32 c5 = a9 - b7;
-		i32 c6 = b6;
-		i32 c7 = b7 - b1;
-
-		//Stage 4: Transposed output
-		buffer[8 * 0 + i] = c0 + c7;
-		buffer[8 * 1 + i] = c1 + c6;
-		buffer[8 * 2 + i] = c2 + c5;
-		buffer[8 * 3 + i] = c3 + c4;
-		buffer[8 * 4 + i] = c3 - c4;
-		buffer[8 * 5 + i] = c2 - c5;
-		buffer[8 * 6 + i] = c1 - c6;
-		buffer[8 * 7 + i] = c0 - c7;
-
-	}
-
-	//Second pass
-	for (u32 i = 0; i < 8; i++) {
-
-		u32 k = i * 8;
-
-		//Stage 1: Pre-multiplication stage
-		i32 a0 = buffer[k + 0] + buffer[k + 4];
-		i32 a1 = buffer[k + 0] - buffer[k + 4];
-		i32 a2 = buffer[k + 2] - buffer[k + 6];
-		i32 a3 = buffer[k + 2] + buffer[k + 6];
-		i32 a4 = buffer[k + 1] + buffer[k + 7];
-		i32 a5 = buffer[k + 1] - buffer[k + 7];
-		i32 a6 = buffer[k + 5] - buffer[k + 3];
-		i32 a7 = buffer[k + 5] + buffer[k + 3];
-		i32 a8 = a6 - a4;
-		i32 a9 = a6 + a4;
-
-		//Stage 2: Multiplication
-		i32 b0 = (a3 * multiplyConstants[0]) >> fixMultiplyShift;
-		i32 b1 = (a8 * multiplyConstants[0]) >> fixMultiplyShift;
-		i32 b2 = (a7 * multiplyConstants[1]) >> fixMultiplyShift;
-		i32 b3 = (a5 * multiplyConstants[1]) >> fixMultiplyShift;
-		i32 b4 = (a7 * multiplyConstants[2]) >> fixMultiplyShift;
-		i32 b5 = (a5 * multiplyConstants[2]) >> fixMultiplyShift;
-		i32 b6 = b5 - b2;
-		i32 b7 = b3 + b4;
-
-		//Stage 3: Post-merge
-		i32 bc = a2 - b0;
-		i32 c0 = a0 + b0;
-		i32 c1 = a1 + bc;
-		i32 c2 = a1 - bc;
-		i32 c3 = a0 - b0;
-		i32 c4 = b1 + b6;
-		i32 c5 = a9 - b7;
-		i32 c6 = b6;
-		i32 c7 = b7 - b1;
-
-		//Stage 4: Final output, block-to-image transform
-		outData[component.width * i + 0] = ((c0 + c7) >> (fixScaleShift - 8)) + (128 << 8);
-		outData[component.width * i + 1] = ((c1 + c6) >> (fixScaleShift - 8)) + (128 << 8);
-		outData[component.width * i + 2] = ((c2 + c5) >> (fixScaleShift - 8)) + (128 << 8);
-		outData[component.width * i + 3] = ((c3 + c4) >> (fixScaleShift - 8)) + (128 << 8);
-		outData[component.width * i + 4] = ((c3 - c4) >> (fixScaleShift - 8)) + (128 << 8);
-		outData[component.width * i + 5] = ((c2 - c5) >> (fixScaleShift - 8)) + (128 << 8);
-		outData[component.width * i + 6] = ((c1 - c6) >> (fixScaleShift - 8)) + (128 << 8);
-		outData[component.width * i + 7] = ((c0 - c7) >> (fixScaleShift - 8)) + (128 << 8);
-
-	}
+	scalarIDCT<true>(inData, outData, component.width, 8, 8);
 
 #endif
 
+}
+
+
+
+void JPEGDecoder::applyPartialIDCT(JPEG::ImageComponent& component, SizeT blockBase, SizeT imageBase, u32 width, u32 height) {
+	scalarIDCT<false>(&component.blockData[blockBase], &component.imageData[imageBase], component.width, width, height);
 }
 
 
@@ -1433,7 +1474,8 @@ void JPEGDecoder::blendAndUpsample() {
 	__m128i gcb = _mm_set1_epi32(5638);
 	__m128i gcr = _mm_set1_epi32(11700);
 	__m128i bcb = _mm_set1_epi32(29032);
-	__m128i csb = _mm_set1_epi32(128 << 8);
+	__m128i csb = _mm_set1_epi32(128 << fixTransformShift);
+	__m128i bias = _mm_set1_epi32(colorBias);
 
 	__m128i shuf0 = _mm_setr_epi32(0x02010F0B, 0x07060503, 0x0C0A0908, 0x04000E0D);
 	__m128i shuf1 = _mm_setr_epi32(0x01080400, 0x06020905, 0x0B07030A, 0x0D0F0E0C);
@@ -1477,18 +1519,18 @@ void JPEGDecoder::blendAndUpsample() {
 		__m128i gy3 = _mm_srai_epi32(_mm_mullo_epi32(cr3, gcr), 14);
 		__m128i bx3 = _mm_srai_epi32(_mm_mullo_epi32(cb3, bcb), 14);
 
-		__m128i r0 = _mm_srli_epi32(_mm_add_epi32(y0, rx0), 8);
-		__m128i g0 = _mm_srli_epi32(_mm_sub_epi32(_mm_sub_epi32(y0, gx0), gy0), 8);
-		__m128i b0 = _mm_srli_epi32(_mm_add_epi32(y0, bx0), 8);
-		__m128i r1 = _mm_srli_epi32(_mm_add_epi32(y1, rx1), 8);
-		__m128i g1 = _mm_srli_epi32(_mm_sub_epi32(_mm_sub_epi32(y1, gx1), gy1), 8);
-		__m128i b1 = _mm_srli_epi32(_mm_add_epi32(y1, bx1), 8);
-		__m128i r2 = _mm_srli_epi32(_mm_add_epi32(y2, rx2), 8);
-		__m128i g2 = _mm_srli_epi32(_mm_sub_epi32(_mm_sub_epi32(y2, gx2), gy2), 8);
-		__m128i b2 = _mm_srli_epi32(_mm_add_epi32(y2, bx2), 8);
-		__m128i r3 = _mm_srli_epi32(_mm_add_epi32(y3, rx3), 8);
-		__m128i g3 = _mm_srli_epi32(_mm_sub_epi32(_mm_sub_epi32(y3, gx3), gy3), 8);
-		__m128i b3 = _mm_srli_epi32(_mm_add_epi32(y3, bx3), 8);
+		__m128i r0 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y0, rx0), bias), fixTransformShift);
+		__m128i g0 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y0, gx0), gy0), bias), fixTransformShift);
+		__m128i b0 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y0, bx0), bias), fixTransformShift);
+		__m128i r1 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y1, rx1), bias), fixTransformShift);
+		__m128i g1 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y1, gx1), gy1), bias), fixTransformShift);
+		__m128i b1 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y1, bx1), bias), fixTransformShift);
+		__m128i r2 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y2, rx2), bias), fixTransformShift);
+		__m128i g2 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y2, gx2), gy2), bias), fixTransformShift);
+		__m128i b2 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y2, bx2), bias), fixTransformShift);
+		__m128i r3 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y3, rx3), bias), fixTransformShift);
+		__m128i g3 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y3, gx3), gy3), bias), fixTransformShift);
+		__m128i b3 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y3, bx3), bias), fixTransformShift);
 
 		__m128i m0 = _mm_packus_epi32(r0, g0);      //r0, r1, r2, r3, g0, g1, g2, g3
 		__m128i m1 = _mm_packus_epi32(b0, r1);
@@ -1533,16 +1575,16 @@ void JPEGDecoder::blendAndUpsample() {
 
 		//YCbCr to RGB
 		i32 y  = *imgData[0];
-		i32 cb = *imgData[1] - (128 << 8);
-		i32 cr = *imgData[2] - (128 << 8);
+		i32 cb = *imgData[1] - (128 << fixTransformShift);
+		i32 cr = *imgData[2] - (128 << fixTransformShift);
 
 		i32 r = y + ((cr * 22970) >> 14);
 		i32 g = y - ((cb * 5638) >> 14) - ((cr * 11700) >> 14);
 		i32 b = y + ((cb * 29032) >> 14);
 
-		u8 rb = Math::clamp(r >> 8, 0, 255);
-		u8 gb = Math::clamp(g >> 8, 0, 255);
-		u8 bb = Math::clamp(b >> 8, 0, 255);
+		u8 rb = Math::clamp((r + colorBias) >> fixTransformShift, 0, 255);
+		u8 gb = Math::clamp((g + colorBias) >> fixTransformShift, 0, 255);
+		u8 bb = Math::clamp((b + colorBias) >> fixTransformShift, 0, 255);
 
 		targetSclData[0] = rb;
 		targetSclData[1] = gb;
@@ -1566,14 +1608,14 @@ void JPEGDecoder::blendAndUpsample() {
 
 			//YCbCr to RGB
 			i32 y = imgData[0][offset];
-			i32 cb = imgData[1][offset] - (128 << 8);
-			i32 cr = imgData[2][offset] - (128 << 8);
+			i32 cb = imgData[1][offset] - (128 << fixTransformShift);
+			i32 cr = imgData[2][offset] - (128 << fixTransformShift);
 
 			i32 r = y + ((cr * 22970) >> 14);
 			i32 g = y - ((cb * 5638) >> 14) - ((cr * 11700) >> 14);
 			i32 b = y + ((cb * 29032) >> 14);
 
-			target.setPixel(j, i, PixelRGB8(Math::clamp(r >> 8, 0, 255), Math::clamp(g >> 8, 0, 255), Math::clamp(b >> 8, 0, 255)));
+			target.setPixel(j, i, PixelRGB8(Math::clamp((r + colorBias) >> fixTransformShift, 0, 255), Math::clamp((g + colorBias) >> fixTransformShift, 0, 255), Math::clamp((b + colorBias) >> fixTransformShift, 0, 255)));
 
 			offset++;
 

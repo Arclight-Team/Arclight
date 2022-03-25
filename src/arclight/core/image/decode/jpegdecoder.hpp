@@ -70,6 +70,7 @@ private:
 	void decodeBlock(JPEG::ImageComponent& component);
 
 	void applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, SizeT imageBase);
+	void applyPartialIDCT(JPEG::ImageComponent& component, SizeT blockBase, SizeT imageBase, u32 width, u32 height);
 	void blendAndUpsample();
 
 	u16 verifySegmentLength();
