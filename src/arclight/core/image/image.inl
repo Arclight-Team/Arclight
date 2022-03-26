@@ -413,7 +413,7 @@ Image<P> Image<P>::fromRaw(RawImage& image, bool allowConversion) {
 			return createImage();
 		}
 
-		switch (image.getFormat()) {
+		switch (pixelFormat) {
 
 			case Pixel::Grayscale8: return convertImage.template operator()<Pixel::Grayscale8>();
 			case Pixel::BGR5:       return convertImage.template operator()<Pixel::BGR5>();

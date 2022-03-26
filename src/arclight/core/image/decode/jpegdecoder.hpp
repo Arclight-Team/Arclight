@@ -21,7 +21,7 @@ class JPEGDecoder : public IImageDecoder {
 
 public:
 
-	JPEGDecoder() : validDecode(false), restartEnabled(false), decodingBuffer(reader) {}
+	JPEGDecoder() : validDecode(false), restartEnabled(false), decodingBuffer(reader), restartInterval(0) {}
 
 	void decode(std::span<const u8> data);
 

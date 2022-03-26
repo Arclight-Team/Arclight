@@ -1503,6 +1503,53 @@ void JPEGDecoder::blendMonochrome() {
 
 	SizeT offset = 0;
 
+#ifdef ARC_VECTORIZE_X86_SSE4_1
+
+	SizeT totalPixels = target.pixelCount();
+	SizeT vectorSize = totalPixels / 16;
+	SizeT scalarSize = totalPixels % 16;
+
+	__m128i* targetVecData = reinterpret_cast<__m128i*>(target.getImageBuffer().data());
+	const __m128i* vecData = reinterpret_cast<const __m128i*>(component.imageData.data());
+
+	__m128i bias = _mm_set1_epi32(colorBias);
+
+	for (SizeT i = 0; i < vectorSize; i++) {
+
+		__m128i v0 = _mm_load_si128(vecData + 0);
+		__m128i v1 = _mm_load_si128(vecData + 1);
+		__m128i v2 = _mm_load_si128(vecData + 2);
+		__m128i v3 = _mm_load_si128(vecData + 3);
+
+		v0 = _mm_srai_epi32(_mm_add_epi32(v0, bias), fixTransformShift);
+		v1 = _mm_srai_epi32(_mm_add_epi32(v1, bias), fixTransformShift);
+		v2 = _mm_srai_epi32(_mm_add_epi32(v2, bias), fixTransformShift);
+		v3 = _mm_srai_epi32(_mm_add_epi32(v3, bias), fixTransformShift);
+
+		__m128i p0 = _mm_packus_epi32(v0, v1);
+		__m128i p1 = _mm_packus_epi32(v2, v3);
+		__m128i p2 = _mm_packus_epi16(p0, p1);
+
+		_mm_storeu_si128(targetVecData++, p2);
+
+		vecData += 4;
+
+	}
+
+	const i32* imgData = reinterpret_cast<const i32*>(vecData);
+	u8* targetSclData = Bits::toByteArray(targetVecData);
+
+	for (SizeT i = 0; i < scalarSize; i++) {
+
+		*targetSclData = (*imgData + colorBias) >> fixTransformShift;
+
+		targetSclData++;
+		imgData++;
+
+	}
+
+#else
+
 	for (u32 i = 0; i < target.getHeight(); i++) {
 
 		for (u32 j = 0; j < target.getWidth(); j++) {
@@ -1512,6 +1559,8 @@ void JPEGDecoder::blendMonochrome() {
 		}
 
 	}
+
+#endif
 
 	image = target.makeRaw();
 
@@ -1530,7 +1579,7 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 
 #ifdef ARC_VECTORIZE_X86_SSE4_1
 
-	SizeT totalPixels = target.getWidth() * target.getHeight();
+	SizeT totalPixels = target.pixelCount();
 	SizeT vectorSize = totalPixels / 16;
 	SizeT scalarSize = totalPixels % 16;
 
