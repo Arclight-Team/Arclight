@@ -13,6 +13,10 @@
 #include <string>
 
 
+#define ARC_PROFILE_START(x) Profiler __profiler##x; __profiler##x.start();
+#define ARC_PROFILE_STOP(x) __profiler##x.stop(#x);
+
+
 class Profiler {
 
 public:

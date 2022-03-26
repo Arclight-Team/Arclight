@@ -41,4 +41,8 @@ public:
 
 	}
 
+	constexpr BitReader substream(SizeT size) const noexcept {
+		return BitReader(stream.subspan(cursor, size));
+	}
+
 };
