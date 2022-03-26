@@ -58,6 +58,7 @@ void SimpleCamera::update() {
 void SimpleCamera::setupInputContext(InputContext& context, u32 firstAction, u32 contextState) {
 
 	firstActionID = firstAction;
+	inputContext = &context;
 
 	context.addAction(firstAction++, config.moveLeft, true);
 	context.addAction(firstAction++, config.moveRight, true);
@@ -71,11 +72,29 @@ void SimpleCamera::setupInputContext(InputContext& context, u32 firstAction, u32
 	context.addAction(firstAction++, config.speedUp);
 	context.addAction(firstAction++, config.slowDown);
 
+	u32 keyboardID = firstAction;
+
 	context.addAction(firstAction++, config.drag);
 	context.addAction(firstAction++, config.drag, true);
 
+	u32 mouseID = firstAction;
+
+	context.addState(u32(CameraInputMode::Default));
+
 	for (u32 i = firstActionID; i < firstAction; i++) {
-		context.registerAction(contextState, i);
+		context.registerAction(u32(CameraInputMode::Default), i);
+	}
+
+	context.addState(u32(CameraInputMode::Keyboard));
+
+	for (u32 i = firstActionID; i < keyboardID; i++) {
+		context.registerAction(u32(CameraInputMode::Keyboard), i);
+	}
+
+	context.addState(u32(CameraInputMode::Mouse));
+
+	for (u32 i = keyboardID; i < mouseID; i++) {
+		context.registerAction(u32(CameraInputMode::Mouse), i);
 	}
 
 }
@@ -83,18 +102,15 @@ void SimpleCamera::setupInputContext(InputContext& context, u32 firstAction, u32
 void SimpleCamera::setupInputHandler(InputHandler& handler) {
 
 	handler.setActionListener([this](KeyAction action) {
-		actionListener(action);
-		return true;
+		return actionListener(action);
 	});
 
 	handler.setCoActionListener([this](KeyAction action, double) {
-		actionListener(action);
-		return true;
+		return actionListener(action);
 	});
 
 	handler.setCursorListener([this](double x, double y) {
-		cursorListener(x, y);
-		return true;
+		return cursorListener(x, y);
 	});
 
 }

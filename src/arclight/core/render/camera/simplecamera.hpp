@@ -9,8 +9,7 @@
 #pragma once
 
 #include "camera.hpp"
-#include "input/keytrigger.hpp"
-#include "input/keydefs.hpp"
+#include "controller.hpp"
 
 
 
@@ -35,12 +34,13 @@ struct CameraInputConfig
 };
 
 
-class SimpleCamera : public Camera
+class SimpleCamera : public Camera, public CameraController
 {
 public:
 	
 	static constexpr float DefaultMovementSpeed = 0.08;
 	static constexpr float DefaultRotationSpeed = 0.043;
+
 
 	constexpr void setSpeed(float movement = DefaultMovementSpeed, float rotation = DefaultRotationSpeed) {
 		currentSpeed = defaultMovementSpeed = movement;
@@ -51,7 +51,7 @@ public:
 
 	void setupInputContext(InputContext& context, u32 firstAction, u32 contextState = 0);
 	void setupInputHandler(InputHandler& handler);
-	
+		
 	bool actionListener(KeyAction action);
 	bool cursorListener(double x, double y);
 

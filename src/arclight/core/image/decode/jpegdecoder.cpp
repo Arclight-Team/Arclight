@@ -666,7 +666,7 @@ void JPEGDecoder::parseScanHeader() {
 			throw ImageDecoderException("[SOS] Illegal DC table ID");
 		}
 
-		if (dcTableID > 3 || (frame.type == FrameType::Baseline && dcTableID > 1) || (frame.type == FrameType::Lossless && dcTableID)) {
+		if (acTableID > 3 || (frame.type == FrameType::Baseline && acTableID > 1) || (frame.type == FrameType::Lossless && acTableID)) {
 			throw ImageDecoderException("[SOS] Illegal AC table ID");
 		}
 

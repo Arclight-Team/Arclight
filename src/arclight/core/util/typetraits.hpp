@@ -111,29 +111,49 @@ namespace TT {
 			constexpr static bool Value = (std::is_same_v<T, Pack> && ...);
 		};
 
-		template<Float F>
+		template<Arithmetic A>
 		struct ToInteger {
 
-			constexpr static SizeT Size = sizeof(F);
+			constexpr static SizeT Size = sizeof(A);
 
-			using Type =    TT::Conditional<Size == 1, i8,
-							TT::Conditional<Size == 2, i16,
+			using Type =    TT::Conditional<!Float<A>, A,
 							TT::Conditional<Size <= 4, i32,
-							TT::Conditional<Size <= 8, i64, imax>>>>;
+							TT::Conditional<Size <= 8, i64, imax>>>;
 
 		};
 
-		template<Integer I>
+		template<Arithmetic A>
 		struct ToFloat {
 
-			constexpr static SizeT Size = sizeof(I);
+			constexpr static SizeT Size = sizeof(A);
 
-			using Type =	TT::Conditional<Size <= sizeof(float), float,
-							TT::Conditional<Size <= sizeof(double), double, long double>>;
+			using Type =	TT::Conditional<Float<A>, A,
+							TT::Conditional<Size <= sizeof(float), float,
+							TT::Conditional<Size <= sizeof(double), double, long double>>>;
 
 		};
 		template<> struct ToFloat<u64> { using Type = double; };
 		template<> struct ToFloat<i64> { using Type = double; };
+
+		template<class T>
+		concept HasExposedInnerType = requires { T::Type; };
+
+		template<class T>
+		struct CommonArithmeticType {};
+
+		template<class T> requires(HasExposedInnerType<T>)
+		struct CommonArithmeticType<T> {
+
+			using Type = typename T::Type;
+
+		};
+
+		template<Arithmetic T>
+		struct CommonArithmeticType<T> {
+
+			using Type = T;
+
+		};
 
 		template<SizeT Size>
 		struct UnsignedFromSize {
@@ -221,11 +241,11 @@ namespace TT {
 
 
 	/* Converts an Integer type to a roughly equivalent Float type */
-	template<class T>
-	using ToInteger = typename Detail::ToInteger<T>::Type;
+	template<Arithmetic A>
+	using ToInteger = typename Detail::ToInteger<A>::Type;
 
-	template<class T>
-	using ToFloat = typename Detail::ToFloat<T>::Type;
+	template<Arithmetic A>
+	using ToFloat = typename Detail::ToFloat<A>::Type;
 
 
 	/* Defines the corresponding integral type fitting at least the given amount of bytes */
@@ -234,6 +254,11 @@ namespace TT {
 
 	template<SizeT Size>
 	using SignedFromSize = typename Detail::SignedFromSize<Size>::Type;
+
+
+	/* Extracts the arithmetic type from a mathematical construct T or uses the arithmetic type T */
+	template<class T>
+	using CommonArithmeticType = typename Detail::CommonArithmeticType<T>::Type;
 
 
 	/* Specialized traits */
