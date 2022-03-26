@@ -14,15 +14,37 @@ template<Pixel P>
 constexpr Image<P>::Image() : Image(0, 0) {}
 
 template<Pixel P>
-constexpr Image<P>::Image(u32 width, u32 height, const PixelType& pixel) : width(width), height(height) {
-	data.resize(width * height, pixel);
+constexpr Image<P>::Image(u32 width, u32 height, const PixelType& pixel) : width(width), height(height), pixels(std::make_unique<PixelType[]>(width * height)) {
+	std::fill_n(pixels.get(), width * height, pixel);
 }
 
 template<Pixel P>
-constexpr Image<P>::Image(u32 width, u32 height, const std::span<const u8>& sourceData) : width(width), height(height) {
-
-	data.resize(width * height);
+constexpr Image<P>::Image(u32 width, u32 height, const std::span<const u8>& sourceData) : width(width), height(height), pixels(std::make_unique<PixelType[]>(width * height)) {
 	setRawData(sourceData);
+}
+
+template<Pixel P>
+constexpr Image<P>::Image(const Image<P>& image) : width(image.getWidth()), height(image.getHeight()), pixels(std::make_unique<PixelType[]>(width * height)) {
+	std::copy_n(image.pixels.get(), pixelCount(), pixels.get());
+}
+
+template<Pixel P>
+constexpr Image<P>& Image<P>::operator=(const Image<P>& image) {
+
+	if (*this != image) {
+
+		if (pixelCount() != image.pixelCount()) {
+			pixels = std::make_unique<PixelType[]>(image.pixelCount());
+		}
+
+		width = image.getWidth();
+		height = image.getHeight();
+
+		std::copy_n(image.pixels.get(), pixelCount(), pixels.get());
+
+	}
+
+	return *this;
 
 }
 
@@ -31,7 +53,7 @@ constexpr void Image<P>::reset() {
 
 	width = 0;
 	height = 0;
-	data.clear();
+	pixels.reset();
 
 }
 
@@ -42,7 +64,7 @@ constexpr void Image<P>::clear(const PixelType& clearPixel) {
 
 		for(u32 x = 0; x < width; x++) {
 
-			data[y * width + x] = clearPixel;
+			pixels[y * width + x] = clearPixel;
 
 		}
 
@@ -53,10 +75,10 @@ constexpr void Image<P>::clear(const PixelType& clearPixel) {
 template<Pixel P>
 constexpr void Image<P>::setRawData(const std::span<const u8>& src, u64 startPixel) {
 
-	arc_assert(startPixel + src.size() / PixelBytes <= data.size(), "Cannot copy pixel data to smaller image");
+	arc_assert(startPixel + src.size() / PixelBytes <= , "Cannot copy pixel data to smaller image");
 
 	for(SizeT i = 0; i < src.size() / PixelBytes; i++) {
-		data[startPixel + i] = PixelType(src.subspan(i * PixelBytes, PixelBytes));
+		pixels[startPixel + i] = PixelType(src.subspan(i * PixelBytes, PixelBytes));
 	}
 
 }
@@ -73,20 +95,25 @@ constexpr u32 Image<P>::getHeight() const {
 }
 
 template<Pixel P>
+constexpr SizeT Image<P>::pixelCount() const {
+	return width * height;
+}
+
+template<Pixel P>
 constexpr std::span<typename Image<P>::PixelType> Image<P>::getImageBuffer() {
-	return data;
+	return std::span{pixels.get(), pixelCount()};
 }
 
 template<Pixel P>
 constexpr std::span<const typename Image<P>::PixelType> Image<P>::getImageBuffer() const {
-	return data;
+	return std::span{pixels.get(), pixelCount()};
 }
 
 template<Pixel P>
 constexpr void Image<P>::setPixel(u32 x, u32 y, const PixelType& pixel) {
 
 	arc_assert(x < width && y < height, "Pixel access out of bounds");
-	data[y * width + x] = pixel;
+	pixels[y * width + x] = pixel;
 
 }
 
@@ -94,7 +121,7 @@ template<Pixel P>
 constexpr const typename Image<P>::PixelType& Image<P>::getPixel(u32 x, u32 y) const {
 
 	arc_assert(x < width && y < height, "Pixel access out of bounds");
-	return data[y * width + x];
+	return pixels[y * width + x];
 
 }
 
@@ -102,7 +129,7 @@ template<Pixel P>
 constexpr typename Image<P>::PixelType& Image<P>::getPixel(u32 x, u32 y) {
 
 	arc_assert(x < width && y < height, "Pixel access out of bounds");
-	return data[y * width + x];
+	return pixels[y * width + x];
 
 }
 
@@ -134,7 +161,7 @@ constexpr void Image<P>::resize(ImageScaling scaling, u32 w, u32 h) {
 		return;
 	}
 
-	std::vector<PixelType> resizedData(w * h);
+	std::unique_ptr<PixelType[]> resizedPixelData = std::make_unique<PixelType[]>(w * h);
 
 	switch(scaling) {
 
@@ -147,7 +174,7 @@ constexpr void Image<P>::resize(ImageScaling scaling, u32 w, u32 h) {
 				for(u32 x = 0; x < w; x++) {
 
 					u32 cx = static_cast<u32>(Math::floor((x + 0.5) * width / w));
-					resizedData[y * w + x] = getPixel(cx, cy);
+					resizedPixelData[y * w + x] = getPixel(cx, cy);
 
 				}
 
@@ -213,7 +240,7 @@ constexpr void Image<P>::resize(ImageScaling scaling, u32 w, u32 h) {
 #else
 					p.setRGBA(static_cast<u32>(a.x), static_cast<u32>(a.y), static_cast<u32>(a.z), static_cast<u32>(a.w));
 #endif
-					resizedData[y * w + x] = p;
+					resizedPixelData[y * w + x] = p;
 
 				}
 
@@ -229,15 +256,17 @@ constexpr void Image<P>::resize(ImageScaling scaling, u32 w, u32 h) {
 
 	width = w;
 	height = h;
-	data.swap(resizedData);
+	pixels = resizedPixelData;
 
 }
 
 template<Pixel P>
 constexpr void Image<P>::flipY() {
 
+	PixelType* p = pixels.get();
+
 	for(u32 i = 0; i < height / 2; i++) {
-		std::swap_ranges(data.begin() + width * i, data.begin() + width * (i + 1), data.begin() + width * (height - i - 1));
+		std::swap_ranges(p + width * i, p + width * (i + 1), p + width * (height - i - 1));
 	}
 
 }
@@ -246,14 +275,20 @@ template<Pixel P>
 constexpr void Image<P>::copy(Image<P>& destImage, const RectUI& src, const Vec2ui& dest) {
 
 	if (this == &destImage) {
+
 		copy(src, dest);
 		return;
+
 	}
 
 	for (u32 y = 0; y < src.getHeight(); y++) {
+
 		for (u32 x = 0; x < src.getWidth(); x++) {
+
 			destImage.setPixel(dest.x + x, dest.y + y, this->getPixel(src.getX() + x, src.getY() + y));
+
 		}
+
 	}
 
 }
@@ -328,30 +363,64 @@ Image<Q> Image<P>::convert() const {
 
 
 template<Pixel P>
-RawImage Image<P>::makeRaw(const Image& image) {
+RawImage Image<P>::makeRaw() {
 
-	std::vector<u8> rawData(image.getImageBuffer().size_bytes());
-	std::copy_n(Bits::toByteArray(image.getImageBuffer().data()), rawData.size(), rawData.begin());
+	PixelType* releasedPtr = pixels.release();
+	RawImage image(width, height, releasedPtr);
+	reset();
 
-	return RawImage(image.getWidth(), image.getHeight(), P, rawData);
+	return image;
 
 }
 
+
 template<Pixel P>
-Image<P> Image<P>::fromRaw(const RawImage& image, bool allowConversion) {
+Image<P> Image<P>::fromRaw(RawImage& image, bool allowConversion) {
+
+	u32 w = image.getWidth();
+	u32 h = image.getHeight();
+	Pixel pixelFormat = image.getFormat();
+
+	auto createImage = [&]() -> Image<P> {
+
+		Image<P> newImage;
+		newImage.width = w;
+		newImage.height = h;
+		newImage.pixels = std::unique_ptr<PixelType[]>(reinterpret_cast<PixelType*>(image.release().data()));
+
+		return newImage;
+
+	};
+
+	auto convertImage = [&]<Pixel From>() -> Image<P> {
+
+		using Type = ::PixelType<From>;
+
+		Image<From> newImage;
+		newImage.width = w;
+		newImage.height = h;
+		newImage.pixels = std::unique_ptr<Type[]>(reinterpret_cast<Type*>(image.release().data()));
+
+		return newImage.convert<P>();
+
+	};
 
 	if (allowConversion) {
 
+		if (pixelFormat == P) {
+			return createImage();
+		}
+
 		switch (image.getFormat()) {
 
-			case Pixel::BGR5:  return Image<Pixel::BGR5>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
-			case Pixel::RGB5:  return Image<Pixel::RGB5>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
-			case Pixel::BGR8:  return Image<Pixel::BGR8>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
-			case Pixel::RGB8:  return Image<Pixel::RGB8>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
-			case Pixel::RGBA8: return Image<Pixel::RGBA8>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
-			case Pixel::ABGR8: return Image<Pixel::ABGR8>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
-			case Pixel::BGRA8: return Image<Pixel::BGRA8>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
-			case Pixel::ARGB8: return Image<Pixel::ARGB8>(image.getWidth(), image.getHeight(), image.getRawBuffer()).convert<P>();
+			case Pixel::BGR5:  return convertImage.template operator()<Pixel::BGR5>();
+			case Pixel::RGB5:  return convertImage.template operator()<Pixel::RGB5>();
+			case Pixel::BGR8:  return convertImage.template operator()<Pixel::BGR8>();
+			case Pixel::RGB8:  return convertImage.template operator()<Pixel::RGB8>();
+			case Pixel::RGBA8: return convertImage.template operator()<Pixel::RGBA8>();
+			case Pixel::ABGR8: return convertImage.template operator()<Pixel::ABGR8>();
+			case Pixel::BGRA8: return convertImage.template operator()<Pixel::BGRA8>();
+			case Pixel::ARGB8: return convertImage.template operator()<Pixel::ARGB8>();
 			default: ARC_UNREACHABLE;
 
 		}
@@ -362,7 +431,7 @@ Image<P> Image<P>::fromRaw(const RawImage& image, bool allowConversion) {
 			throw ImageException("Bad image cast");
 		}
 
-		return Image<P>(image.getWidth(), image.getHeight(), image.getRawBuffer());
+		return createImage();
 
 	}
 

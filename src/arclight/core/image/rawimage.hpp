@@ -18,9 +18,41 @@ class RawImage {
 
 public:
 
-	constexpr RawImage() : RawImage(0, 0) {}
-	constexpr RawImage(u32 width, u32 height) : RawImage(width, height, Pixel::RGBA8) {}
-	constexpr RawImage(u32 width, u32 height, Pixel format, std::vector<u8> data = {}) : width(width), height(height), format(format), buffer(std::move(data)) {}
+	constexpr RawImage() : width(0), height(0), format(Pixel::RGB8), bufferSize(0) {}
+	constexpr RawImage(u32 width, u32 height) : width(width), height(height), format(Pixel::RGB8), bufferSize(0), buffer(nullptr) {}
+
+	template<class T>
+	inline RawImage(u32 width, u32 height, T* pixels) : width(width), height(height), format(T::PixelType), bufferSize(pixels ? T::Format::BytesPerPixel * width * height : 0), buffer(std::unique_ptr<u8[]>(Bits::toByteArray(pixels))) {}
+
+	inline RawImage(const RawImage& image) : width(image.width), height(image.height), format(image.format), bufferSize(image.bufferSize), buffer(std::make_unique<u8[]>(image.bufferSize)) {
+		std::copy_n(image.buffer.get(), bufferSize, buffer.get());
+	}
+
+	inline RawImage& operator=(const RawImage& image) {
+
+		if (*this != image) {
+
+			SizeT otherSize = image.getRawBuffer().size();
+
+			if (getRawBuffer().size() != otherSize) {
+				buffer = std::make_unique<u8[]>(otherSize);
+			}
+
+			width = image.getWidth();
+			height = image.getHeight();
+			bufferSize = otherSize;
+
+			std::copy_n(image.buffer.get(), bufferSize, buffer.get());
+
+		}
+
+		return *this;
+
+	}
+
+	inline bool operator==(const RawImage& image) const noexcept {
+		return buffer.get() == image.buffer.get();
+	}
 
 	constexpr u32 getWidth() const noexcept {
 		return width;
@@ -35,25 +67,22 @@ public:
 	}
 
 	constexpr bool hasData() const noexcept {
-		return buffer.size();
+		return bufferSize;
 	}
 
-	constexpr std::span<const u8> getRawBuffer() const noexcept {
-		return buffer;
+	inline std::span<const u8> getRawBuffer() const noexcept {
+		return std::span{buffer.get(), bufferSize};
 	}
 
-	constexpr void setWidth(u32 width) noexcept {
-		this->width = width;
-	}
+	inline std::span<u8> release() {
 
-	constexpr void setHeight(u32 height) noexcept {
-		this->height = height;
-	}
+		std::span<u8> data = { buffer.release(), bufferSize };
 
-	constexpr void setData(Pixel pixelFormat, const std::vector<u8>& data) noexcept {
+		width = 0;
+		height = 0;
+		bufferSize = 0;
 
-		format = pixelFormat;
-		buffer = data;
+		return data;
 
 	}
 
@@ -62,6 +91,7 @@ private:
 	u32 width;
 	u32 height;
 	Pixel format;
-	std::vector<u8> buffer;
+	SizeT bufferSize;
+	std::unique_ptr<u8[]> buffer;
 
 };

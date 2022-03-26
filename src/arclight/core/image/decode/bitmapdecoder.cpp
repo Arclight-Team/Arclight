@@ -348,7 +348,7 @@ void BitmapDecoder::decodeDirect() {
 
 		}
 
-		bitmap.image = Image<P>::makeRaw(image);
+		bitmap.image = image.makeRaw();
 
 	};
 
@@ -445,7 +445,7 @@ void BitmapDecoder::decodeIndexed() {
 
 		}
 
-		bitmap.image = Image<Pixel::BGRA8>::makeRaw(image);
+		bitmap.image = image.makeRaw();
 
 	};
 
@@ -602,7 +602,7 @@ void BitmapDecoder::decodeRLE() {
 
 		}
 
-		bitmap.image = Image<Pixel::BGRA8>::makeRaw(image);
+		bitmap.image = image.makeRaw();
 
 	};
 
@@ -668,7 +668,7 @@ void BitmapDecoder::decodeMasked() {
 
 		}
 
-		bitmap.image = Image<Pixel::BGRA8>::makeRaw(image);
+		bitmap.image = image.makeRaw();
 
 	};
 

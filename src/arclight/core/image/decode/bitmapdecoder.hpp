@@ -24,7 +24,7 @@ public:
 	void decode(std::span<const u8> data);
 
 	template<Pixel P>
-	Image<P> getImage() const {
+	Image<P> getImage() {
 
 		if (!validDecode) {
 			throw ImageDecoderException("Bad image decode");

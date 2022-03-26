@@ -26,7 +26,7 @@ public:
 	void decode(std::span<const u8> data);
 
 	template<Pixel P>
-	Image<P> getImage() const {
+	Image<P> getImage() {
 
 		if (!validDecode) {
 			throw ImageDecoderException("Bad image decode");
@@ -69,8 +69,9 @@ private:
 	void decodeImage();
 	void decodeBlock(JPEG::ImageComponent& component);
 
-	void applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, SizeT imageBase);
-	void applyPartialIDCT(JPEG::ImageComponent& component, SizeT blockBase, SizeT imageBase, u32 width, u32 height);
+	static void applyIDCT(JPEG::ImageComponent& component, SizeT imageBase);
+	static void applyPartialIDCT(JPEG::ImageComponent& component, SizeT imageBase, u32 width, u32 height);
+
 	void blendAndUpsample();
 
 	u16 verifySegmentLength();

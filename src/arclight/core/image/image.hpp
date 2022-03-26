@@ -49,6 +49,8 @@ public:
 	constexpr Image(u32 width, u32 height, const PixelType& pixel = PixelType());
 	constexpr Image(u32 width, u32 height, const std::span<const u8>& sourceData);
 
+	constexpr Image(const Image& image);
+	constexpr Image& operator=(const Image& image);
 
 	constexpr void reset();
 	constexpr void clear(const PixelType& clearPixel = PixelType());
@@ -56,6 +58,7 @@ public:
 
 	constexpr u32 getWidth() const;
 	constexpr u32 getHeight() const;
+	constexpr SizeT pixelCount() const;
 
 	constexpr std::span<PixelType> getImageBuffer();
 	constexpr std::span<const PixelType> getImageBuffer() const;
@@ -64,7 +67,7 @@ public:
 	constexpr PixelType& getPixel(u32 x, u32 y);
 	constexpr const PixelType& getPixel(u32 x, u32 y) const;
 
-	template<class Filter, class... Args>void applyFilter(Args&&... args);
+	template<class Filter, class... Args> void applyFilter(Args&&... args);
 
 	constexpr void resize(ImageScaling scaling, u32 w, u32 h = 0);
 	constexpr void flipY();
@@ -73,14 +76,16 @@ public:
 
 	template<Pixel Q> Image<Q> convert() const;
 
-	static RawImage makeRaw(const Image& image);
-	static Image fromRaw(const RawImage& image, bool allowConversion = true);
+	RawImage makeRaw();
+	static Image fromRaw(RawImage& image, bool allowConversion = true);
 
 private:
 
+	template<Pixel P> friend class Image;
+
 	u32 width;
 	u32 height;
-	std::vector<PixelType> data;
+	std::unique_ptr<PixelType[]> pixels;
 
 };
 

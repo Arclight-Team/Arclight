@@ -784,7 +784,6 @@ void JPEGDecoder::decodeScan() {
 		component.dcLength = Bits::ctz(component.dcTable.size());
 		component.acLength = Bits::ctz(component.acTable.size());
 
-		component.blockData.resize(scan.totalMCUs * blocksPerMCU * 64);
 		component.imageData.resize(component.width * component.height);
 
 	}
@@ -811,39 +810,26 @@ void JPEGDecoder::decodeScan() {
 
 void JPEGDecoder::decodeImage() {
 
-	//Reset prediction
+	alignas(32) i32 block[64];
+
+	//Reset prediction and block buffer
 	for (ImageComponent& component : scan.imageComponents) {
+
 		component.prediction = 0;
+		component.block = block;
+
 	}
 
 	decodingBuffer.reset();
+
+	ARC_PROFILE_START(Decode)
 
 	for (u32 currentMCU = 0; currentMCU < scan.totalMCUs; currentMCU++) {
 
 		for (ImageComponent& component : scan.imageComponents) {
 
-			for (u32 sx = 0; sx < component.samplesX; sx++) {
-
-				for (u32 sy = 0; sy < component.samplesY; sy++, component.dataUnit++) {
-					decodeBlock(component);
-				}
-
-			}
-
-		}
-
-	}
-
-	ARC_PROFILE_START(IDCT)
-
-	for (ImageComponent& component : scan.imageComponents) {
-
-		u32 block = 0;
-
-		for (u32 i = 0; i < scan.totalMCUs; i++) {
-
-			SizeT mcuBaseX = (i % scan.mcusX) * component.samplesX * 8;
-			SizeT mcuBaseY = (i / scan.mcusX) * component.samplesY * 8;
+			SizeT mcuBaseX = (currentMCU % scan.mcusX) * component.samplesX * 8;
+			SizeT mcuBaseY = (currentMCU / scan.mcusX) * component.samplesY * 8;
 
 			for (u32 sy = 0; sy < component.samplesY; sy++) {
 
@@ -862,7 +848,8 @@ void JPEGDecoder::decodeImage() {
 							w = component.width - baseX;
 						}
 
-						applyPartialIDCT(component, block * 64, baseY * component.width + baseX, w, h);
+						decodeBlock(component);
+						applyPartialIDCT(component, baseY * component.width + baseX, w, h);
 
 					}
 
@@ -872,17 +859,17 @@ void JPEGDecoder::decodeImage() {
 
 						SizeT baseX = mcuBaseX + sx * 8;
 
+						decodeBlock(component);
+
 						if (baseX + 8 > component.width) {
-							applyPartialIDCT(component, block * 64, baseY * component.width + baseX, component.width - baseX, 8);
+							applyPartialIDCT(component, baseY * component.width + baseX, component.width - baseX, 8);
 						} else {
-							applyIDCT(component, block * 64, baseY * component.width + baseX);
+							applyIDCT(component, baseY * component.width + baseX);
 						}
 
 					}
 
 				}
-
-				block++;
 
 			}
 
@@ -890,7 +877,7 @@ void JPEGDecoder::decodeImage() {
 
 	}
 
-	ARC_PROFILE_STOP(IDCT)
+	ARC_PROFILE_STOP(Decode)
 
 }
 
@@ -898,8 +885,30 @@ void JPEGDecoder::decodeImage() {
 
 void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 
-	SizeT baseDataOffset = component.dataUnit * 64;
-	i32* blockData = component.blockData.data() + baseDataOffset;
+	i32* block = std::assume_aligned<32>(component.block);
+
+	//This really shouldn't be necessary, but MSVC fails to vectorize std::fill_n
+#ifdef ARC_VECTORIZE_X86_AVX2
+
+	__m256i* ptr = reinterpret_cast<__m256i*>(block);
+
+	for (u32 i = 0; i < 8; i++) {
+		_mm256_store_si256(ptr++, _mm256_setzero_si256());
+	}
+
+#elif defined(ARC_VECTORIZE_X86_SSE2)
+
+	__m128i* ptr = reinterpret_cast<__m128i*>(block);
+
+	for (u32 i = 0; i < 16; i++) {
+		_mm_store_si128(ptr++, _mm_setzero_si128());
+	}
+
+#else
+
+	std::fill_n(block, 64, 0);
+
+#endif
 
 	//DC
 	{
@@ -921,7 +930,7 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 
 		i32 dc = component.prediction + difference;
 		component.prediction = dc;
-		blockData[0] = dc * component.qTable[0];
+		block[0] = dc * component.qTable[0];
 	}
 
 
@@ -979,7 +988,7 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 			}
 
 			u32 dezigzagIndex = dezigzagTableTransposed[coefficient];
-			blockData[dezigzagIndex] = ac * component.qTable[coefficient];
+			block[dezigzagIndex] = ac * component.qTable[coefficient];
 
 			coefficient++;
 
@@ -1108,11 +1117,10 @@ constexpr static void scalarIDCT(const i32* inData, i32* outData, SizeT outStrid
 
 
 
-void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, SizeT imageBase) {
+void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT imageBase) {
 
-	const i32* inData = &component.blockData[blockBase];    //Aligned to 16 bytes
+	const i32* inData = component.block;            //Aligned to 32 bytes
 	i32* outData = &component.imageData[imageBase];
-
 
 #ifdef ARC_VECTORIZE_X86_AVX2
 
@@ -1446,8 +1454,8 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT blockBase, Si
 
 
 
-void JPEGDecoder::applyPartialIDCT(JPEG::ImageComponent& component, SizeT blockBase, SizeT imageBase, u32 width, u32 height) {
-	scalarIDCT<false>(&component.blockData[blockBase], &component.imageData[imageBase], component.width, width, height);
+void JPEGDecoder::applyPartialIDCT(JPEG::ImageComponent& component, SizeT imageBase, u32 width, u32 height) {
+	scalarIDCT<false>(component.block, &component.imageData[imageBase], component.width, width, height);
 }
 
 
@@ -1627,7 +1635,7 @@ void JPEGDecoder::blendAndUpsample() {
 
 	ARC_PROFILE_STOP(CoreBlend)
 
-	image = Image<Pixel::RGB8>::makeRaw(target);
+	image = target.makeRaw();
 
 }
 

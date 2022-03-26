@@ -125,7 +125,7 @@ namespace JPEG {
 	struct ImageComponent {
 
 		constexpr ImageComponent(HuffmanTable& dct, HuffmanTable& act, QuantizationTable& qt, u32 sx, u32 sy)
-			: dcTable(dct), acTable(act), qTable(qt), samplesX(sx), samplesY(sy), prediction(0), width(0), height(0), dcLength(0), acLength(0), dataUnit(0) {}
+			: dcTable(dct), acTable(act), qTable(qt), samplesX(sx), samplesY(sy), prediction(0), width(0), height(0), dcLength(0), acLength(0), block(nullptr) {}
 
 		HuffmanTable& dcTable;
 		HuffmanTable& acTable;
@@ -136,8 +136,7 @@ namespace JPEG {
 
 		i32 prediction;
 		u32 dcLength, acLength;
-		u32 dataUnit;
-		std::vector<i32, AlignedAllocator<i32, 32>> blockData;
+		i32* block;
 		std::vector<i32> imageData;
 
 	};
