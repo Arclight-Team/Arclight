@@ -73,6 +73,8 @@ private:
 	static void applyPartialIDCT(JPEG::ImageComponent& component, SizeT imageBase, u32 width, u32 height);
 
 	void blendAndUpsample();
+	void blendMonochrome();
+	void blendAndUpsampleYCbCr();
 
 	u16 verifySegmentLength();
 

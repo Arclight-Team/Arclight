@@ -365,10 +365,13 @@ Image<Q> Image<P>::convert() const {
 template<Pixel P>
 RawImage Image<P>::makeRaw() {
 
+	u32 oldWidth = width;
+	u32 oldHeight = height;
 	PixelType* releasedPtr = pixels.release();
+
 	reset();
 
-	return RawImage(width, height, releasedPtr);
+	return RawImage(oldWidth, oldHeight, releasedPtr);
 
 }
 
@@ -400,7 +403,7 @@ Image<P> Image<P>::fromRaw(RawImage& image, bool allowConversion) {
 		newImage.height = h;
 		newImage.pixels = std::unique_ptr<Type[]>(reinterpret_cast<Type*>(image.release().data()));
 
-		return newImage.convert<P>();
+		return newImage.template convert<P>();
 
 	};
 
@@ -412,14 +415,15 @@ Image<P> Image<P>::fromRaw(RawImage& image, bool allowConversion) {
 
 		switch (image.getFormat()) {
 
-			case Pixel::BGR5:  return convertImage.template operator()<Pixel::BGR5>();
-			case Pixel::RGB5:  return convertImage.template operator()<Pixel::RGB5>();
-			case Pixel::BGR8:  return convertImage.template operator()<Pixel::BGR8>();
-			case Pixel::RGB8:  return convertImage.template operator()<Pixel::RGB8>();
-			case Pixel::RGBA8: return convertImage.template operator()<Pixel::RGBA8>();
-			case Pixel::ABGR8: return convertImage.template operator()<Pixel::ABGR8>();
-			case Pixel::BGRA8: return convertImage.template operator()<Pixel::BGRA8>();
-			case Pixel::ARGB8: return convertImage.template operator()<Pixel::ARGB8>();
+			case Pixel::Grayscale8: return convertImage.template operator()<Pixel::Grayscale8>();
+			case Pixel::BGR5:       return convertImage.template operator()<Pixel::BGR5>();
+			case Pixel::RGB5:       return convertImage.template operator()<Pixel::RGB5>();
+			case Pixel::BGR8:       return convertImage.template operator()<Pixel::BGR8>();
+			case Pixel::RGB8:       return convertImage.template operator()<Pixel::RGB8>();
+			case Pixel::RGBA8:      return convertImage.template operator()<Pixel::RGBA8>();
+			case Pixel::ABGR8:      return convertImage.template operator()<Pixel::ABGR8>();
+			case Pixel::BGRA8:      return convertImage.template operator()<Pixel::BGRA8>();
+			case Pixel::ARGB8:      return convertImage.template operator()<Pixel::ARGB8>();
 			default: ARC_UNREACHABLE;
 
 		}

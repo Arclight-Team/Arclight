@@ -1466,15 +1466,67 @@ void JPEGDecoder::applyPartialIDCT(JPEG::ImageComponent& component, SizeT imageB
 
 void JPEGDecoder::blendAndUpsample() {
 
+	ARC_PROFILE_START(CoreBlend)
+
+	switch (scan.imageComponents.size()) {
+
+		case 1:
+			blendMonochrome();
+			break;
+
+		case 2:
+			break;
+
+		case 3:
+			blendAndUpsampleYCbCr();
+			break;
+
+		case 4:
+			break;
+
+		default:
+			ARC_UNREACHABLE
+
+	}
+
+
+	ARC_PROFILE_STOP(CoreBlend)
+
+}
+
+
+
+void JPEGDecoder::blendMonochrome() {
+
+	const JPEG::ImageComponent& component = scan.imageComponents[0];
+	Image<Pixel::Grayscale8> target(component.width, component.height);
+
+	SizeT offset = 0;
+
+	for (u32 i = 0; i < target.getHeight(); i++) {
+
+		for (u32 j = 0; j < target.getWidth(); j++) {
+
+			target.setPixel(j, i, PixelGrayscale8(Math::clamp((component.imageData[offset++] + colorBias) >> fixTransformShift, 0, 255)));
+
+		}
+
+	}
+
+	image = target.makeRaw();
+
+}
+
+
+
+void JPEGDecoder::blendAndUpsampleYCbCr() {
+
 	const JPEG::ImageComponent& component = scan.imageComponents[0];
 	Image<Pixel::RGB8> target(component.width, component.height);
 
 	const i32* imgData[3] = {scan.imageComponents[0].imageData.data(),
 	                         scan.imageComponents[1].imageData.data(),
 	                         scan.imageComponents[2].imageData.data()};
-
-	ARC_PROFILE_START(CoreBlend)
-
 
 #ifdef ARC_VECTORIZE_X86_SSE4_1
 
@@ -1637,11 +1689,10 @@ void JPEGDecoder::blendAndUpsample() {
 
 #endif
 
-
 	image = target.makeRaw();
-	ARC_PROFILE_STOP(CoreBlend)
 
 }
+
 
 
 

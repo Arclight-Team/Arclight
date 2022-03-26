@@ -22,6 +22,7 @@
 
 //Pixel Types
 enum class Pixel {
+	Grayscale8,
 	BGR5,
 	RGB5,
 	BGR8,
@@ -36,6 +37,23 @@ enum class Pixel {
 //Pixel Formats
 template<Pixel P>
 struct PixelFormat {};
+
+
+template<>
+struct PixelFormat<Pixel::Grayscale8> {
+
+	constexpr static u32 BytesPerPixel = 1;
+	constexpr static u32 Channels = 1;
+	constexpr static u32 RedMask    = 0x000000FF;
+	constexpr static u32 GreenMask  = 0x00000000;
+	constexpr static u32 BlueMask   = 0x00000000;
+	constexpr static u32 AlphaMask  = 0x00000000;
+	constexpr static u32 RedShift   = 0;
+	constexpr static u32 GreenShift = 0;
+	constexpr static u32 BlueShift  = 0;
+	constexpr static u32 AlphaShift = 0;
+
+};
 
 
 template<>
@@ -204,6 +222,10 @@ public:
 
 	constexpr explicit PixelStorage(const PixelT& t) {
 		*this = t;
+	}
+
+	constexpr void setGrayscale(ColorT v) {
+		setRed(v);
 	}
 
 	constexpr void setMonochrome(ColorT v) {
@@ -428,6 +450,19 @@ constexpr auto operator/(PixelStorageType auto a, double f) {
 
 
 
+struct PixelGrayscale8 : public PixelStorage<Pixel::Grayscale8, u8> {
+
+	constexpr PixelGrayscale8() : PixelStorage(0) {}
+
+	constexpr PixelGrayscale8(u8 v) {
+		setGrayscale(v);
+	}
+
+	using PixelStorage::PixelStorage;
+
+};
+
+
 struct PixelRGB5 : public PixelStorage<Pixel::RGB5, u8> {
 
 	constexpr PixelRGB5() : PixelStorage(0) {}
@@ -534,6 +569,7 @@ struct PixelARGB8 : public PixelStorage<Pixel::ARGB8, u8> {
 
 
 template<Pixel P> struct _PixelType {};
+template<> struct _PixelType<Pixel::Grayscale8> { using Type = PixelGrayscale8; };
 template<> struct _PixelType<Pixel::RGB5> { using Type = PixelRGB5; };
 template<> struct _PixelType<Pixel::BGR5> { using Type = PixelBGR5; };
 template<> struct _PixelType<Pixel::RGB8> { using Type = PixelRGB8; };
