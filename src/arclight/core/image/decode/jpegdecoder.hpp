@@ -40,7 +40,7 @@ private:
 
 	struct DecodingBuffer {
 
-		constexpr DecodingBuffer(BinaryReader& reader) : data(0), size(0), empty(false), sink(reader) {}
+		constexpr explicit DecodingBuffer(BinaryReader& reader) : data(0), size(0), empty(false), sink(reader) {}
 
 		void reset();
 		void saturate(u32 reqSize);

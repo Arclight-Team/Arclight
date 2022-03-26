@@ -40,6 +40,7 @@ public:
 
 			width = image.getWidth();
 			height = image.getHeight();
+			format = image.getFormat();
 			bufferSize = otherSize;
 
 			std::copy_n(image.buffer.get(), bufferSize, buffer.get());
