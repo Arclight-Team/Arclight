@@ -75,7 +75,7 @@ constexpr void Image<P>::clear(const PixelType& clearPixel) {
 template<Pixel P>
 constexpr void Image<P>::setRawData(const std::span<const u8>& src, u64 startPixel) {
 
-	arc_assert(startPixel + src.size() / PixelBytes <= , "Cannot copy pixel data to smaller image");
+	arc_assert(startPixel + src.size() / PixelBytes <= pixelCount(), "Cannot copy pixel data to smaller image");
 
 	for(SizeT i = 0; i < src.size() / PixelBytes; i++) {
 		pixels[startPixel + i] = PixelType(src.subspan(i * PixelBytes, PixelBytes));
@@ -366,10 +366,9 @@ template<Pixel P>
 RawImage Image<P>::makeRaw() {
 
 	PixelType* releasedPtr = pixels.release();
-	RawImage image(width, height, releasedPtr);
 	reset();
 
-	return image;
+	return RawImage(width, height, releasedPtr);
 
 }
 

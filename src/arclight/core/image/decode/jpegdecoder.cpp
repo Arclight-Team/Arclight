@@ -761,6 +761,8 @@ void JPEGDecoder::decodeScan() {
 	scan.mcuDataUnits = 0;
 	scan.totalMCUs = 0;
 
+	ARC_PROFILE_START(ScanSetup)
+
 	//Setup component data
 	for (ImageComponent& component : scan.imageComponents) {
 
@@ -787,6 +789,8 @@ void JPEGDecoder::decodeScan() {
 		component.imageData.resize(component.width * component.height);
 
 	}
+
+	ARC_PROFILE_STOP(ScanSetup)
 
 	if (scan.mcuDataUnits > 10) {
 		throw ImageDecoderException("Too many data units in MCU");
@@ -1633,9 +1637,9 @@ void JPEGDecoder::blendAndUpsample() {
 
 #endif
 
-	ARC_PROFILE_STOP(CoreBlend)
 
 	image = target.makeRaw();
+	ARC_PROFILE_STOP(CoreBlend)
 
 }
 
