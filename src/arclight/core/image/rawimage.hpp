@@ -22,7 +22,7 @@ public:
 	constexpr RawImage(u32 width, u32 height) : width(width), height(height), format(Pixel::RGB8), bufferSize(0), buffer(nullptr) {}
 
 	template<class T>
-	inline RawImage(u32 width, u32 height, T* pixels) : width(width), height(height), format(T::PixelType), bufferSize(pixels ? T::Format::BytesPerPixel * width * height : 0), buffer(std::unique_ptr<u8[]>(Bits::toByteArray(pixels))) {}
+	inline RawImage(u32 width, u32 height, T* pixels) : width(width), height(height), format(T::PixelType), bufferSize(pixels ? T::Format::BytesPerPixel * width * height : 0), buffer(Bits::toByteArray(pixels)) {}
 
 	inline RawImage(const RawImage& image) : width(image.width), height(image.height), format(image.format), bufferSize(image.bufferSize), buffer(std::make_unique<u8[]>(image.bufferSize)) {
 		std::copy_n(image.buffer.get(), bufferSize, buffer.get());
@@ -50,6 +50,9 @@ public:
 		return *this;
 
 	}
+
+	RawImage(RawImage&&) = default;
+	RawImage& operator=(RawImage&&) = default;
 
 	inline bool operator==(const RawImage& image) const noexcept {
 		return buffer.get() == image.buffer.get();

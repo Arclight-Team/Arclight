@@ -52,6 +52,9 @@ public:
 	constexpr Image(const Image& image);
 	constexpr Image& operator=(const Image& image);
 
+	constexpr Image(Image&&) = default;
+	constexpr Image& operator=(Image&&) = default;
+
 	constexpr void reset();
 	constexpr void clear(const PixelType& clearPixel = PixelType());
 	constexpr void setRawData(const std::span<const u8>& src, u64 startPixel = 0);

@@ -137,7 +137,7 @@ namespace JPEG {
 		i32 prediction;
 		u32 dcLength, acLength;
 		i32* block;
-		std::vector<i32> imageData;
+		std::vector<i16> imageData;
 
 	};
 

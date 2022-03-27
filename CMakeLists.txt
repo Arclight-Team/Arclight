@@ -87,7 +87,7 @@ project (${PROJECT_NAME})
 
 		foreach(CompilerFlag ${CompilerFlags})
 			string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-			set(${CompilerFlag} "${${CompilerFlag}} /MP /permissive /Zi /utf-8 /arch:AVX2")
+			set(${CompilerFlag} "${${CompilerFlag}} /MP /permissive /Zi /utf-8 /arch:AVX2 /GS-")
 		endforeach()
 
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /MANIFESTUAC:NO")
