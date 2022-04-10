@@ -8,6 +8,7 @@
 
 #include "jpegdecoder.hpp"
 #include "time/profiler.hpp"
+#include "util/bool.hpp"
 #include "arcintrinsic.hpp"
 #include "debug.hpp"
 
@@ -74,6 +75,7 @@ constexpr static std::array<i32, 3> multiplyConstants = []() {
 	return a;
 
 }();
+
 
 
 constexpr static bool app0StringCompare(const u8* a, const u8* b) noexcept {
@@ -1624,189 +1626,267 @@ void JPEGDecoder::blendMonochrome() {
 
 void JPEGDecoder::blendAndUpsampleYCbCr() {
 
+	enum class Subsampling {
+		None,
+		Horizontal,
+		Vertical,
+		Both
+	};
+
 	ARC_PROFILE_START(Blend)
 
-	const JPEG::ImageComponent& component = scan.imageComponents[0];
-	Image<Pixel::RGB8> target(component.width, component.height);
+	auto exec = [this]<Subsampling S>() {
 
-	const i16* imgData[3] = {scan.imageComponents[0].imageData.data(),
-	                         scan.imageComponents[1].imageData.data(),
-	                         scan.imageComponents[2].imageData.data()};
+		const JPEG::ImageComponent& component = scan.imageComponents[0];
+		Image<Pixel::RGB8> target(component.width, component.height);
 
-#ifdef ARC_VECTORIZE_X86_SSE4_1
+		const i16* imgData[3] = {scan.imageComponents[0].imageData.data(),
+								 scan.imageComponents[1].imageData.data(),
+								 scan.imageComponents[2].imageData.data()};
 
-	SizeT totalPixels = target.pixelCount();
-	SizeT vectorSize = totalPixels / 16;
-	SizeT scalarSize = totalPixels % 16;
+	#ifdef ARC_VECTORIZE_X86_SSE4_1
 
-	__m128i rcr = _mm_set1_epi32(22970);
-	__m128i gcb = _mm_set1_epi32(5638);
-	__m128i gcr = _mm_set1_epi32(11700);
-	__m128i bcb = _mm_set1_epi32(29032);
-	__m128i csb = _mm_set1_epi16(128 << fixTransformShift);
-	__m128i bias = _mm_set1_epi32(colorBias);
+		if constexpr (S != Subsampling::None) {
 
-	__m128i shuf0 = _mm_setr_epi32(0x02010F0B, 0x07060503, 0x0C0A0908, 0x04000E0D);
-	__m128i shuf1 = _mm_setr_epi32(0x01080400, 0x06020905, 0x0B07030A, 0x0D0F0E0C);
-	__m128i shuf2 = _mm_setr_epi32(0x030E0502, 0x07040F06, 0x09000B08, 0x0D0A010C);
-	__m128i shuf3 = _mm_setr_epi32(0x03010002, 0x050C0804, 0x0A060D09, 0x0F0B070E);
+			ArcDebug() << "Subsampling not yet vectorized";
+			return;
 
-	__m128i* targetVecData = reinterpret_cast<__m128i*>(target.getImageBuffer().data());
-	const __m128i* vecData[3] = { reinterpret_cast<const __m128i*>(imgData[0]),
-	                              reinterpret_cast<const __m128i*>(imgData[1]),
-	                              reinterpret_cast<const __m128i*>(imgData[2]) };
-
-	for (SizeT i = 0; i < vectorSize; i++) {
-
-		__m128i l0 = _mm_load_si128(vecData[0] + 0);
-		__m128i l1 = _mm_load_si128(vecData[0] + 1);
-		__m128i l2 = _mm_sub_epi16(_mm_load_si128(vecData[1] + 0), csb);
-		__m128i l3 = _mm_sub_epi16(_mm_load_si128(vecData[1] + 1), csb);
-		__m128i l4 = _mm_sub_epi16(_mm_load_si128(vecData[2] + 0), csb);
-		__m128i l5 = _mm_sub_epi16(_mm_load_si128(vecData[2] + 1), csb);
-
-		__m128i y0  = _mm_cvtepi16_epi32(l0);
-		__m128i cb0 = _mm_cvtepi16_epi32(l2);
-		__m128i cr0 = _mm_cvtepi16_epi32(l4);
-		__m128i y1  = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l0, 0x0E));
-		__m128i cb1 = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l2, 0x0E));
-		__m128i cr1 = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l4, 0x0E));
-		__m128i y2  = _mm_cvtepi16_epi32(l1);
-		__m128i cb2 = _mm_cvtepi16_epi32(l3);
-		__m128i cr2 = _mm_cvtepi16_epi32(l5);
-		__m128i y3  = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l1, 0x0E));
-		__m128i cb3 = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l3, 0x0E));
-		__m128i cr3 = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l5, 0x0E));
-
-		__m128i rx0 = _mm_srai_epi32(_mm_mullo_epi32(cr0, rcr), 14);
-		__m128i gx0 = _mm_srai_epi32(_mm_mullo_epi32(cb0, gcb), 14);
-		__m128i gy0 = _mm_srai_epi32(_mm_mullo_epi32(cr0, gcr), 14);
-		__m128i bx0 = _mm_srai_epi32(_mm_mullo_epi32(cb0, bcb), 14);
-		__m128i rx1 = _mm_srai_epi32(_mm_mullo_epi32(cr1, rcr), 14);
-		__m128i gx1 = _mm_srai_epi32(_mm_mullo_epi32(cb1, gcb), 14);
-		__m128i gy1 = _mm_srai_epi32(_mm_mullo_epi32(cr1, gcr), 14);
-		__m128i bx1 = _mm_srai_epi32(_mm_mullo_epi32(cb1, bcb), 14);
-		__m128i rx2 = _mm_srai_epi32(_mm_mullo_epi32(cr2, rcr), 14);
-		__m128i gx2 = _mm_srai_epi32(_mm_mullo_epi32(cb2, gcb), 14);
-		__m128i gy2 = _mm_srai_epi32(_mm_mullo_epi32(cr2, gcr), 14);
-		__m128i bx2 = _mm_srai_epi32(_mm_mullo_epi32(cb2, bcb), 14);
-		__m128i rx3 = _mm_srai_epi32(_mm_mullo_epi32(cr3, rcr), 14);
-		__m128i gx3 = _mm_srai_epi32(_mm_mullo_epi32(cb3, gcb), 14);
-		__m128i gy3 = _mm_srai_epi32(_mm_mullo_epi32(cr3, gcr), 14);
-		__m128i bx3 = _mm_srai_epi32(_mm_mullo_epi32(cb3, bcb), 14);
-
-		__m128i r0 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y0, rx0), bias), fixTransformShift);
-		__m128i g0 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y0, gx0), gy0), bias), fixTransformShift);
-		__m128i b0 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y0, bx0), bias), fixTransformShift);
-		__m128i r1 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y1, rx1), bias), fixTransformShift);
-		__m128i g1 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y1, gx1), gy1), bias), fixTransformShift);
-		__m128i b1 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y1, bx1), bias), fixTransformShift);
-		__m128i r2 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y2, rx2), bias), fixTransformShift);
-		__m128i g2 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y2, gx2), gy2), bias), fixTransformShift);
-		__m128i b2 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y2, bx2), bias), fixTransformShift);
-		__m128i r3 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y3, rx3), bias), fixTransformShift);
-		__m128i g3 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y3, gx3), gy3), bias), fixTransformShift);
-		__m128i b3 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y3, bx3), bias), fixTransformShift);
-
-		__m128i m0 = _mm_packus_epi32(r0, g0);      //r0, r1, r2, r3, g0, g1, g2, g3
-		__m128i m1 = _mm_packus_epi32(b0, r1);
-		__m128i m2 = _mm_packus_epi32(g1, b1);
-		__m128i m3 = _mm_packus_epi32(r2, g2);
-		__m128i m4 = _mm_packus_epi32(b2, r3);
-		__m128i m5 = _mm_packus_epi32(g3, b3);
-
-		__m128i m6 = _mm_packus_epi16(m0, m1);      //r0, r1, r2, r3, g0, g1, g2, g3, b0, b1, b2, b3, r4, r5, [r6, r7]
-		__m128i m7 = _mm_packus_epi16(m2, m3);      //[g4], g5, g6, g7, [b4], b5, b6, b7, r8, r9, rA, [rB], g8, g9, gA, [gB]
-		__m128i m8 = _mm_packus_epi16(m4, m5);      //[b8, b9], bA, bB, rC, rD, rE, rF, gC, gD, gE, gF, bC, bD, bE, bF
-
-		__m128i n0 = _mm_shuffle_epi8(m7, shuf0);                               //rB, gB, g5, g6, g7, b5, b6, b7, r8, r9, rA, g8, g9, gA, g4, b4
-
-		__m128i n1 = _mm_blend_epi16(m6, n0, 0x80);                             //r0, r1, r2, r3, g0, g1, g2, g3, b0, b1, b2, b3, r4, r5, g4, b4
-		__m128i n2 = _mm_blend_epi16(_mm_blend_epi16(n0, m6, 0x80), m8, 0x01);  //b8, b9, g5, g6, g7, b5, b6, b7, r8, r9, rA, g8, g9, gA, r6, r7
-		__m128i n3 = _mm_blend_epi16(m8, n0, 0x01);                             //rB, gB, bA, bB, rC, rD, rE, rF, gC, gD, gE, gF, bC, bD, bE, bF
-
-		__m128i c0 = _mm_shuffle_epi8(n1, shuf1);   //r0, g0, b0, r1, g1, b1, r2, g2, b2, r3, g3, b3, r4, g4, b4, r5
-		__m128i c1 = _mm_shuffle_epi8(n2, shuf2);   //g5, b5, r6, g6, b6, r7, g7, b7, r8, g8, b8, r9, g9, b9, rA, gA
-		__m128i c2 = _mm_shuffle_epi8(n3, shuf3);   //bA, rB, gB, bB, rC, gC, bC, rD, gD, bD, rE, gE, bE, rF, gF, bF
-
-		_mm_storeu_si128(targetVecData + 0, c0);
-		_mm_storeu_si128(targetVecData + 1, c1);
-		_mm_storeu_si128(targetVecData + 2, c2);
-
-		targetVecData += 3;
-
-		for (u32 j = 0; j < 3; j++) {
-			vecData[j] += 2;
 		}
 
-	}
+		SizeT totalPixels = target.pixelCount();
+		SizeT vectorSize = totalPixels / 16;
+		SizeT scalarSize = totalPixels % 16;
 
-	u8* targetSclData = Bits::toByteArray(targetVecData);
+		__m128i rcr = _mm_set1_epi32(22970);
+		__m128i gcb = _mm_set1_epi32(5638);
+		__m128i gcr = _mm_set1_epi32(11700);
+		__m128i bcb = _mm_set1_epi32(29032);
+		__m128i csb = _mm_set1_epi16(128 << fixTransformShift);
+		__m128i bias = _mm_set1_epi32(colorBias);
 
-	for (u32 i = 0; i < 3; i++) {
-		imgData[i] = reinterpret_cast<const i16*>(vecData[i]);
-	}
+		__m128i shuf0 = _mm_setr_epi32(0x02010F0B, 0x07060503, 0x0C0A0908, 0x04000E0D);
+		__m128i shuf1 = _mm_setr_epi32(0x01080400, 0x06020905, 0x0B07030A, 0x0D0F0E0C);
+		__m128i shuf2 = _mm_setr_epi32(0x030E0502, 0x07040F06, 0x09000B08, 0x0D0A010C);
+		__m128i shuf3 = _mm_setr_epi32(0x03010002, 0x050C0804, 0x0A060D09, 0x0F0B070E);
 
-	for (SizeT i = 0; i < scalarSize; i++) {
+		__m128i* targetVecData = reinterpret_cast<__m128i*>(target.getImageBuffer().data());
+		const __m128i* vecData[3] = { reinterpret_cast<const __m128i*>(imgData[0]),
+									  reinterpret_cast<const __m128i*>(imgData[1]),
+									  reinterpret_cast<const __m128i*>(imgData[2]) };
 
-		//YCbCr to RGB
-		i32 y  = *imgData[0];
-		i32 cb = *imgData[1] - (128 << fixTransformShift);
-		i32 cr = *imgData[2] - (128 << fixTransformShift);
+		for (SizeT i = 0; i < vectorSize; i++) {
 
-		i32 r = y + ((cr * 22970) >> 14);
-		i32 g = y - ((cb * 5638) >> 14) - ((cr * 11700) >> 14);
-		i32 b = y + ((cb * 29032) >> 14);
+			__m128i l0 = _mm_load_si128(vecData[0] + 0);
+			__m128i l1 = _mm_load_si128(vecData[0] + 1);
+			__m128i l2 = _mm_sub_epi16(_mm_load_si128(vecData[1] + 0), csb);
+			__m128i l3 = _mm_sub_epi16(_mm_load_si128(vecData[1] + 1), csb);
+			__m128i l4 = _mm_sub_epi16(_mm_load_si128(vecData[2] + 0), csb);
+			__m128i l5 = _mm_sub_epi16(_mm_load_si128(vecData[2] + 1), csb);
 
-		u8 rb = Math::clamp((r + colorBias) >> fixTransformShift, 0, 255);
-		u8 gb = Math::clamp((g + colorBias) >> fixTransformShift, 0, 255);
-		u8 bb = Math::clamp((b + colorBias) >> fixTransformShift, 0, 255);
+			__m128i y0  = _mm_cvtepi16_epi32(l0);
+			__m128i cb0 = _mm_cvtepi16_epi32(l2);
+			__m128i cr0 = _mm_cvtepi16_epi32(l4);
+			__m128i y1  = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l0, 0x0E));
+			__m128i cb1 = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l2, 0x0E));
+			__m128i cr1 = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l4, 0x0E));
+			__m128i y2  = _mm_cvtepi16_epi32(l1);
+			__m128i cb2 = _mm_cvtepi16_epi32(l3);
+			__m128i cr2 = _mm_cvtepi16_epi32(l5);
+			__m128i y3  = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l1, 0x0E));
+			__m128i cb3 = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l3, 0x0E));
+			__m128i cr3 = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l5, 0x0E));
 
-		targetSclData[0] = rb;
-		targetSclData[1] = gb;
-		targetSclData[2] = bb;
+			__m128i rx0 = _mm_srai_epi32(_mm_mullo_epi32(cr0, rcr), 14);
+			__m128i gx0 = _mm_srai_epi32(_mm_mullo_epi32(cb0, gcb), 14);
+			__m128i gy0 = _mm_srai_epi32(_mm_mullo_epi32(cr0, gcr), 14);
+			__m128i bx0 = _mm_srai_epi32(_mm_mullo_epi32(cb0, bcb), 14);
+			__m128i rx1 = _mm_srai_epi32(_mm_mullo_epi32(cr1, rcr), 14);
+			__m128i gx1 = _mm_srai_epi32(_mm_mullo_epi32(cb1, gcb), 14);
+			__m128i gy1 = _mm_srai_epi32(_mm_mullo_epi32(cr1, gcr), 14);
+			__m128i bx1 = _mm_srai_epi32(_mm_mullo_epi32(cb1, bcb), 14);
+			__m128i rx2 = _mm_srai_epi32(_mm_mullo_epi32(cr2, rcr), 14);
+			__m128i gx2 = _mm_srai_epi32(_mm_mullo_epi32(cb2, gcb), 14);
+			__m128i gy2 = _mm_srai_epi32(_mm_mullo_epi32(cr2, gcr), 14);
+			__m128i bx2 = _mm_srai_epi32(_mm_mullo_epi32(cb2, bcb), 14);
+			__m128i rx3 = _mm_srai_epi32(_mm_mullo_epi32(cr3, rcr), 14);
+			__m128i gx3 = _mm_srai_epi32(_mm_mullo_epi32(cb3, gcb), 14);
+			__m128i gy3 = _mm_srai_epi32(_mm_mullo_epi32(cr3, gcr), 14);
+			__m128i bx3 = _mm_srai_epi32(_mm_mullo_epi32(cb3, bcb), 14);
 
-		targetSclData += 3;
+			__m128i r0 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y0, rx0), bias), fixTransformShift);
+			__m128i g0 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y0, gx0), gy0), bias), fixTransformShift);
+			__m128i b0 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y0, bx0), bias), fixTransformShift);
+			__m128i r1 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y1, rx1), bias), fixTransformShift);
+			__m128i g1 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y1, gx1), gy1), bias), fixTransformShift);
+			__m128i b1 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y1, bx1), bias), fixTransformShift);
+			__m128i r2 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y2, rx2), bias), fixTransformShift);
+			__m128i g2 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y2, gx2), gy2), bias), fixTransformShift);
+			__m128i b2 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y2, bx2), bias), fixTransformShift);
+			__m128i r3 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y3, rx3), bias), fixTransformShift);
+			__m128i g3 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y3, gx3), gy3), bias), fixTransformShift);
+			__m128i b3 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y3, bx3), bias), fixTransformShift);
 
-		for (u32 j = 0; j < 3; j++) {
-			imgData[j]++;
+			__m128i m0 = _mm_packus_epi32(r0, g0);      //r0, r1, r2, r3, g0, g1, g2, g3
+			__m128i m1 = _mm_packus_epi32(b0, r1);
+			__m128i m2 = _mm_packus_epi32(g1, b1);
+			__m128i m3 = _mm_packus_epi32(r2, g2);
+			__m128i m4 = _mm_packus_epi32(b2, r3);
+			__m128i m5 = _mm_packus_epi32(g3, b3);
+
+			__m128i m6 = _mm_packus_epi16(m0, m1);      //r0, r1, r2, r3, g0, g1, g2, g3, b0, b1, b2, b3, r4, r5, [r6, r7]
+			__m128i m7 = _mm_packus_epi16(m2, m3);      //[g4], g5, g6, g7, [b4], b5, b6, b7, r8, r9, rA, [rB], g8, g9, gA, [gB]
+			__m128i m8 = _mm_packus_epi16(m4, m5);      //[b8, b9], bA, bB, rC, rD, rE, rF, gC, gD, gE, gF, bC, bD, bE, bF
+
+			__m128i n0 = _mm_shuffle_epi8(m7, shuf0);                               //rB, gB, g5, g6, g7, b5, b6, b7, r8, r9, rA, g8, g9, gA, g4, b4
+
+			__m128i n1 = _mm_blend_epi16(m6, n0, 0x80);                             //r0, r1, r2, r3, g0, g1, g2, g3, b0, b1, b2, b3, r4, r5, g4, b4
+			__m128i n2 = _mm_blend_epi16(_mm_blend_epi16(n0, m6, 0x80), m8, 0x01);  //b8, b9, g5, g6, g7, b5, b6, b7, r8, r9, rA, g8, g9, gA, r6, r7
+			__m128i n3 = _mm_blend_epi16(m8, n0, 0x01);                             //rB, gB, bA, bB, rC, rD, rE, rF, gC, gD, gE, gF, bC, bD, bE, bF
+
+			__m128i c0 = _mm_shuffle_epi8(n1, shuf1);   //r0, g0, b0, r1, g1, b1, r2, g2, b2, r3, g3, b3, r4, g4, b4, r5
+			__m128i c1 = _mm_shuffle_epi8(n2, shuf2);   //g5, b5, r6, g6, b6, r7, g7, b7, r8, g8, b8, r9, g9, b9, rA, gA
+			__m128i c2 = _mm_shuffle_epi8(n3, shuf3);   //bA, rB, gB, bB, rC, gC, bC, rD, gD, bD, rE, gE, bE, rF, gF, bF
+
+			_mm_storeu_si128(targetVecData + 0, c0);
+			_mm_storeu_si128(targetVecData + 1, c1);
+			_mm_storeu_si128(targetVecData + 2, c2);
+
+			targetVecData += 3;
+
+			for (u32 j = 0; j < 3; j++) {
+				vecData[j] += 2;
+			}
+
 		}
 
-	}
+		u8* targetSclData = Bits::toByteArray(targetVecData);
 
-#else
+		for (u32 i = 0; i < 3; i++) {
+			imgData[i] = reinterpret_cast<const i16*>(vecData[i]);
+		}
 
-	SizeT offset = 0;
-
-	for (u32 i = 0; i < target.getHeight(); i++) {
-
-		for (u32 j = 0; j < target.getWidth(); j++) {
+		for (SizeT i = 0; i < scalarSize; i++) {
 
 			//YCbCr to RGB
-			i32 y = imgData[0][offset];
-			i32 cb = imgData[1][offset] - (128 << fixTransformShift);
-			i32 cr = imgData[2][offset] - (128 << fixTransformShift);
+			i32 y  = *imgData[0];
+			i32 cb = *imgData[1] - (128 << fixTransformShift);
+			i32 cr = *imgData[2] - (128 << fixTransformShift);
 
 			i32 r = y + ((cr * 22970) >> 14);
 			i32 g = y - ((cb * 5638) >> 14) - ((cr * 11700) >> 14);
 			i32 b = y + ((cb * 29032) >> 14);
 
-			target.setPixel(j, i, PixelRGB8(Math::clamp((r + colorBias) >> fixTransformShift, 0, 255), Math::clamp((g + colorBias) >> fixTransformShift, 0, 255), Math::clamp((b + colorBias) >> fixTransformShift, 0, 255)));
+			u8 rb = Math::clamp((r + colorBias) >> fixTransformShift, 0, 255);
+			u8 gb = Math::clamp((g + colorBias) >> fixTransformShift, 0, 255);
+			u8 bb = Math::clamp((b + colorBias) >> fixTransformShift, 0, 255);
 
-			offset++;
+			targetSclData[0] = rb;
+			targetSclData[1] = gb;
+			targetSclData[2] = bb;
+
+			targetSclData += 3;
+
+			for (u32 j = 0; j < 3; j++) {
+				imgData[j]++;
+			}
 
 		}
 
-	}
+	#else
 
-#endif
+		SizeT lumaOffset = 0;
+		SizeT chromaBase = 0;
+		SizeT chromaOffset = 0;
+		SizeT chromaAdvance = S == Subsampling::Horizontal ? target.getWidth() : (target.getWidth() + 1) / 2;
+
+		for (u32 i = 0; i < target.getHeight(); i++) {
+
+			for (u32 j = 0; j < target.getWidth(); j++) {
+
+				if constexpr (S == Subsampling::None) {
+					chromaOffset = lumaOffset;
+				} else if constexpr (S == Subsampling::Horizontal) {
+					chromaOffset = chromaBase + j;
+				} else {
+					chromaOffset = chromaBase + j / 2;
+				}
+
+				i32 y = imgData[0][lumaOffset++];
+				i32 cb = imgData[1][chromaOffset] - (128 << fixTransformShift);
+				i32 cr = imgData[2][chromaOffset] - (128 << fixTransformShift);
+
+				i32 r = y + ((cr * 22970) >> 14);
+				i32 g = y - ((cb * 5638) >> 14) - ((cr * 11700) >> 14);
+				i32 b = y + ((cb * 29032) >> 14);
+
+				target.setPixel(j, i, PixelRGB8(Math::clamp((r + colorBias) >> fixTransformShift, 0, 255), Math::clamp((g + colorBias) >> fixTransformShift, 0, 255), Math::clamp((b + colorBias) >> fixTransformShift, 0, 255)));
+
+			}
+
+			if constexpr (Bool::any(S, Subsampling::Horizontal, Subsampling::Both)) {
+
+				if (i & 1) {
+					chromaBase += chromaAdvance;
+				}
+
+			} else if constexpr (S == Subsampling::Vertical) {
+
+				chromaBase += chromaAdvance;
+
+			}
+
+		}
+
+	#endif
+
+		image = target.makeRaw();
+
+	};
+
+	u32 ySamplesX = scan.imageComponents[0].samplesX;
+	u32 ySamplesY = scan.imageComponents[0].samplesY;
+	u32 cbSamplesX = scan.imageComponents[1].samplesX;
+	u32 cbSamplesY = scan.imageComponents[1].samplesY;
+	u32 crSamplesX = scan.imageComponents[2].samplesX;
+	u32 crSamplesY = scan.imageComponents[2].samplesY;
+
+	u32 yArea = ySamplesX * ySamplesY;
+	u32 cbArea = cbSamplesX * cbSamplesY;
+	u32 crArea = crSamplesX * crSamplesY;
+
+	if (Bool::all(yArea, cbArea, crArea, 1)) {
+
+		//No chroma subsampling
+		exec.template operator()<Subsampling::None>();
+
+	} else if (Bool::all(ySamplesX, ySamplesY, 2) && Bool::all(cbArea, crArea, 1)) {
+
+		//Symmetrical chroma subsampling
+		exec.template operator()<Subsampling::Both>();
+
+	} else if (yArea == 2 && Bool::all(cbArea, crArea, 1)) {
+
+		if (ySamplesX == 1) {
+
+			//Horizontally asymmetric chroma subsampling (H > V)
+			exec.template operator()<Subsampling::Horizontal>();
+
+		} else {
+
+			//Vertically asymmetric chroma subsampling (H < V)
+			exec.template operator()<Subsampling::Vertical>();
+
+		}
+
+	} else {
+
+		ArcDebug() << "Subsampling variant not implemented yet";
+
+	}
 
 	ARC_PROFILE_STOP(Blend)
 
-	image = target.makeRaw();
-
 }
-
 
 
 

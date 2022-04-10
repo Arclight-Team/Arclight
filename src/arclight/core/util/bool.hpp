@@ -16,27 +16,27 @@
 
 namespace Bool {
 
-	template<class T, class... Compare> requires ((Equal<TT::RemoveCVRef<T>, TT::RemoveCVRef<Compare>> && ...) || (Convertible<Compare, T> && ...))
+	template<class T, class... Compare> requires ((Equal<TT::RemoveCVRef<T>, TT::RemoveCVRef<Compare>> && ...) || (Convertible<Compare, TT::RemoveCVRef<T>> && ...))
 	constexpr bool any(T obj, Compare&&... comp) noexcept((noexcept(obj != comp) && ...)) {
 		return ((obj == comp) || ...);
 	}
 
-	template<class T, class... Compare> requires ((Equal<TT::RemoveCVRef<T>, TT::RemoveCVRef<Compare>> && ...) || (Convertible<Compare, T> && ...))
+	template<class T, class... Compare> requires ((Equal<TT::RemoveCVRef<T>, TT::RemoveCVRef<Compare>> && ...) || (Convertible<Compare, TT::RemoveCVRef<T>> && ...))
 	constexpr bool none(T obj, Compare&&... comp) noexcept((noexcept(obj != comp) && ...)) {
 		return ((obj != comp) && ...);
 	}
 
-	template<SizeT N, class T, class... Compare> requires ((Equal<TT::RemoveCVRef<T>, TT::RemoveCVRef<Compare>> && ...) || (Convertible<Compare, T> && ...))
+	template<SizeT N, class T, class... Compare> requires ((Equal<TT::RemoveCVRef<T>, TT::RemoveCVRef<Compare>> && ...) || (Convertible<Compare, TT::RemoveCVRef<T>> && ...))
 	constexpr bool n(T obj, Compare&&... comp) noexcept((noexcept(obj != comp) && ...)) {
 		return ((obj == comp) + ...) == N;
 	}
 
-	template<class T, class... Compare> requires ((Equal<TT::RemoveCVRef<T>, TT::RemoveCVRef<Compare>> && ...) || (Convertible<Compare, T> && ...))
+	template<class T, class... Compare> requires ((Equal<TT::RemoveCVRef<T>, TT::RemoveCVRef<Compare>> && ...) || (Convertible<Compare, TT::RemoveCVRef<T>> && ...))
 	constexpr bool one(T&& obj, Compare&&... comp) noexcept((noexcept(obj != comp) && ...)) {
 		return n<1>(std::forward<T>(obj), std::forward<Compare>(comp)...);
 	}
 
-	template<class T, class... Compare> requires ((Equal<TT::RemoveCVRef<T>, TT::RemoveCVRef<Compare>> && ...) || (Convertible<Compare, T> && ...))
+	template<class T, class... Compare> requires ((Equal<TT::RemoveCVRef<T>, TT::RemoveCVRef<Compare>> && ...) || (Convertible<Compare, TT::RemoveCVRef<T>> && ...))
 	constexpr bool all(T&& obj, Compare&&... comp) noexcept((noexcept(obj != comp) && ...)) {
 		return ((obj == comp) && ...);
 	}
