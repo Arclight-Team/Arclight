@@ -256,7 +256,7 @@ constexpr void Image<P>::resize(ImageScaling scaling, u32 w, u32 h) {
 
 	width = w;
 	height = h;
-	pixels = resizedPixelData;
+	pixels = std::move(resizedPixelData);
 
 }
 
