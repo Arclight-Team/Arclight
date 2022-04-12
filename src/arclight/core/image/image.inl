@@ -31,7 +31,7 @@ constexpr Image<P>::Image(const Image<P>& image) : width(image.getWidth()), heig
 template<Pixel P>
 constexpr Image<P>& Image<P>::operator=(const Image<P>& image) {
 
-	if (*this != image) {
+	if (this != &image) {
 
 		if (pixelCount() != image.pixelCount()) {
 			pixels = std::make_unique<PixelType[]>(image.pixelCount());

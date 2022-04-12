@@ -30,7 +30,7 @@ public:
 
 	inline RawImage& operator=(const RawImage& image) {
 
-		if (*this != image) {
+		if (this != &image) {
 
 			SizeT otherSize = image.getRawBuffer().size();
 

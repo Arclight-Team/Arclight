@@ -140,7 +140,7 @@ public:
 			
 			reset();
 
-		} else if (*this != other) {
+		} else if (this != &other) {
 
 			Argument argument;
 			argument.any = this;
