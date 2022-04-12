@@ -114,7 +114,7 @@ void QOIDecoder::decode(std::span<const u8> data) {
 								throw ImageDecoderException("QOI stream size too small");
 							}
 
-							u8 dg = (tag & 0x3f) - 32;
+							u8 dg = (tag & 0x3F) - 32;
 
 							prevP.setGreen(prevP.getGreen() + dg);
 
