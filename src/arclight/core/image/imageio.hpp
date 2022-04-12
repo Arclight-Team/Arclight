@@ -11,6 +11,7 @@
 #include "image.hpp"
 #include "decode/bitmapdecoder.hpp"
 #include "decode/jpegdecoder.hpp"
+#include "decode/qoidecoder.hpp"
 #include "util/bool.hpp"
 
 
@@ -57,7 +58,9 @@ namespace ImageIO {
 			return load<P, BitmapDecoder>(path);
 		} else if (Bool::any(ext, ".jpg", ".jpeg", ".jfif")) {
 			return load<P, JPEGDecoder>(path);
-		}
+		} else if (ext == ".qoi") {
+            return load<P, QOIDecoder>(path);
+        }
 
 		throw ImageException("Unknown image file format");
 
