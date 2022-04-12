@@ -95,7 +95,7 @@ constexpr u32 Image<P>::getHeight() const {
 }
 
 template<Pixel P>
-constexpr SizeT Image<P>::pixelCount() const {
+constexpr u64 Image<P>::pixelCount() const {
 	return width * height;
 }
 

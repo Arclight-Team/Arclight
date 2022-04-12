@@ -7,6 +7,7 @@
  */
 
 #include "qoidecoder.hpp"
+#include "debug.hpp"
 
 
 
@@ -44,6 +45,7 @@ void QOIDecoder::decode(std::span<const u8> data) {
     PixelRGBA8 palette[64];
 
     Image<Pixel::RGBA8> bufImage(width, height);
+	u64 pixelCount = bufImage.pixelCount();
 
     for (u32 y = 0; y < height; y++) {
 
@@ -129,9 +131,46 @@ void QOIDecoder::decode(std::span<const u8> data) {
 
 					case 0b11:
 
+						u32 runLength = tag & 0x3F;
+
+						if (y * width + x + runLength >= pixelCount) {
+							throw ImageDecoderException("QOI too many pixels");
+						}
+
+#ifdef ARC_VECTORIZE_X86_SSE2
+
+						__m128i* data = reinterpret_cast<__m128i*>(&bufImage.getImageBuffer()[width * y + x]);
+
+						runLength++;
+						u32 vectorCount = runLength / 4;
+						u32 scalarCount = runLength % 4;
+
+						__m128i vectorValue = _mm_set1_epi32(prevP.pack());
+
+						for (u32 i = 0; i < vectorCount; i++) {
+							_mm_storeu_si128(data++, vectorValue);
+						}
+
+						u8* scalarData = Bits::toByteArray(data);
+
+						for (u32 i = 0; i < scalarCount; i++) {
+
+							scalarData[i * 4 + 0] = prevP.getRed();
+							scalarData[i * 4 + 1] = prevP.getGreen();
+							scalarData[i * 4 + 2] = prevP.getBlue();
+							scalarData[i * 4 + 3] = prevP.getAlpha();
+
+						}
+
+						u64 sx = x + runLength - 1;
+						y += sx / width;
+						x = sx % width;
+
+#else
+
 		                bufImage.setPixel(x, y, prevP);
 
-		                for (u8 rl = 0; rl < (tag & 0x3F); rl++) {
+		                for (u8 rl = 0; rl < runLength; rl++) {
 
 		                    x++;
 
@@ -142,13 +181,11 @@ void QOIDecoder::decode(std::span<const u8> data) {
 
 		                    }
 
-		                    if (y == height) {
-		                        throw ImageDecoderException("QOI too many pixels");
-		                    }
-
 		                    bufImage.setPixel(x, y, prevP);
 
 		                }
+
+#endif
 
 						break;
 
