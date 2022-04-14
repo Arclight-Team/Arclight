@@ -423,11 +423,11 @@ void JPEGDecoder::parseHuffmanTable() {
 			//For each code
 			for (u32 j = 0; j < codeCounts[i]; j++) {
 
-				//Fast huffman code must be reversed
-				u32 startCode = Bits::reverse(code) >> (31 - i);
+				u32 startCode = code << (highestLength - i);
+				u32 endCode = startCode + (1 << (highestLength - i));
 
 				//Fill fast huffman table
-				for (u32 k = startCode; k < table.size(); k += 2 << i) {
+				for (u32 k = startCode; k < endCode; k++) {
 					table[k] = {symbols[index], i + 1};
 				}
 
@@ -929,24 +929,24 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 		decodingBuffer.consume(result.second);
 
 		u32 category = result.first;
-		u32 rawOffset = decodingBuffer.read(category);
-
-		decodingBuffer.consume(category);
-
-		bool positive = rawOffset & 1;
-		i32 offset = static_cast<i32>(Bits::reverse(rawOffset) >> (32 - category));
-
 		i32 difference = 0;
 
-		if (category < 12) {
-			difference = positive ? offset : coeffBaseDifference[category] + offset;
+		if (category) {
+
+			u32 offset = decodingBuffer.read(category);
+
+			decodingBuffer.consume(category);
+
+			if (category < 12) {
+				difference = offset >= (1 << (category - 1)) ? static_cast<i32>(offset) : coeffBaseDifference[category] + static_cast<i32>(offset);
+			}
+
 		}
 
 		i32 dc = component.prediction + difference;
 		component.prediction = dc;
 		block[0] = dc * component.qTable[0];
 	}
-
 
 	//AC
 	u32 coefficient = 1;
@@ -985,17 +985,14 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 		} else {
 
 			//Extract the AC magnitude
-			u32 rawOffset = decodingBuffer.read(category);
+			u32 offset = decodingBuffer.read(category);
 
 			decodingBuffer.consume(category);
-
-			bool positive = rawOffset & 1;
-			i32 offset = static_cast<i32>(Bits::reverse(rawOffset) >> (32 - category));
 
 			coefficient += zeroes;
 
 			//Calculate the AC value
-			i32 ac = positive ? offset : coeffBaseDifference[category] + offset;
+			i32 ac = offset >= (1 << (category - 1)) ? static_cast<i32>(offset) : coeffBaseDifference[category] + static_cast<i32>(offset);
 
 			if (coefficient >= 64) {
 
@@ -1947,7 +1944,7 @@ void JPEGDecoder::DecodingBuffer::saturate(u32 reqSize) {
 
 			}
 
-			data |= Bits::reverse(byte) << size;
+			data |= byte << (24 - size);
 			size += 8;
 
 		} else {
@@ -1969,7 +1966,7 @@ u32 JPEGDecoder::DecodingBuffer::read(u32 count) {
 		saturate(count);
 	}
 
-	return Bits::mask(data, 0, count);
+	return data >> (32 - count);
 
 }
 
@@ -1978,6 +1975,6 @@ u32 JPEGDecoder::DecodingBuffer::read(u32 count) {
 void JPEGDecoder::DecodingBuffer::consume(u32 count) {
 
 	size -= i32(count);
-	data >>= count;
+	data <<= count;
 
 }
