@@ -12,6 +12,9 @@
 #include "arcintrinsic.hpp"
 #include "debug.hpp"
 
+#include <map>
+
+
 
 using namespace JPEG;
 
@@ -23,6 +26,10 @@ constexpr static i32 colorBias = 1 << (fixTransformShift - 1);
 
 constexpr static i32 coeffBaseDifference[16] = {
 	0, -1, -3, -7, -15, -31, -63, -127, -255, -511, -1023, -2047, 0, 0, 0, 0
+};
+
+constexpr static i32 entropyPositiveBase[16] = {
+	0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 0, 0, 0, 0
 };
 
 
@@ -386,7 +393,7 @@ void JPEGDecoder::parseHuffmanTable() {
 
 		std::array<u8, 16> codeCounts{};
 		u32 totalCodeCount = 0;
-		u32 highestLength = 1;
+		u32 highestLength = 0;
 
 		for (u32 i = 0; i < 16; i++) {
 
@@ -396,7 +403,7 @@ void JPEGDecoder::parseHuffmanTable() {
 			totalCodeCount += codeCount;
 
 			if (codeCount) {
-				highestLength = i;
+				highestLength = i + 1;
 			}
 
 		}
@@ -407,32 +414,87 @@ void JPEGDecoder::parseHuffmanTable() {
 			throw ImageDecoderException("[DHT] Bad table length");
 		}
 
-		HuffmanTable& table = type == 0 ? dcHuffmanTables[id] : acHuffmanTables[id];
+		bool dc = type == 0;
+		HuffmanTable& table = dc ? dcHuffmanTables[id] : acHuffmanTables[id];
+		table.maxLength = highestLength;
 
 		std::vector<u8> symbols(totalCodeCount);
 		reader.read(std::span {symbols.data(), symbols.size()});
 
-		table.resize(2 << highestLength);
+		if (dc) {
+
+			//DC symbols can be greater than 0xB (illegally)
+			//While we can handle up to 0xF, everything above is not covered and needs to be caught
+			for (u8& v : symbols) {
+
+				if (v > 0xF) {
+
+					Log::warn("JPEG Decoder", "Illegal DC symbol 0x%02X, overriding", v);
+					v = 0x0;
+
+				}
+
+			}
+
+		}
+
+		std::fill(table.fastTable.begin(), table.fastTable.end(), HuffmanResult {0xC, 0x1});
 
 		u32 index = 0;
 		u32 code = 0;
+		u32 extLength = highestLength - 8;
+
+		std::map<u8, u8> extMap;
 
 		//For each code length
-		for (u32 i = 0; i < 16; i++) {
+		for (u32 i = 0; i < highestLength; i++) {
 
 			//For each code
-			for (u32 j = 0; j < codeCounts[i]; j++) {
+			for (u32 j = 0; j < codeCounts[i]; j++, code++, index++) {
 
-				u32 startCode = code << (highestLength - i);
-				u32 endCode = startCode + (1 << (highestLength - i));
+				if (i < 8) {
 
-				//Fill fast huffman table
-				for (u32 k = startCode; k < endCode; k++) {
-					table[k] = {symbols[index], i + 1};
+					//Fill FHT
+					u32 startCode = code << (7 - i);
+					u32 endCode = startCode + (1 << (7 - i));
+
+					for (u32 k = startCode; k < endCode; k++) {
+						table.fastTable[k] = {symbols[index], i + 1};
+					}
+
+				} else {
+
+					if (i == 8) {
+
+						//Initialize EHTs
+						for (u32 k = 0; k < table.fastTable.size(); k++) {
+
+							if (table.fastTable[k].first == 0xC) {
+
+								u8 tableIndex = table.extTables.size();
+
+								table.fastTable[k] = {tableIndex, 0xFF};
+								extMap.try_emplace(k, tableIndex);
+								table.extTables.emplace_back(std::vector<HuffmanResult>(2 << extLength, HuffmanResult {0, 1}));
+
+							}
+
+						}
+
+					}
+
+					//Fill EHT
+					u32 fastPrefix = code >> (i - 7);
+					u32 extCode = Bits::mask(code, 0, i - 7);
+
+					u32 startCode = extCode << (extLength + 7 - i);
+					u32 endCode = startCode + (1 << (extLength + 7 - i));
+
+					for (u32 k = startCode; k < endCode; k++) {
+						table.extTables[extMap[fastPrefix]][k] = {symbols[index], i + 1};
+					}
+
 				}
-
-				code++;
-				index++;
 
 			}
 
@@ -768,8 +830,6 @@ void JPEGDecoder::decodeScan() {
 	scan.mcuDataUnits = 0;
 	scan.totalMCUs = 0;
 
-	ARC_PROFILE_START(ScanSetup)
-
 	//Setup component data
 	for (ImageComponent& component : scan.imageComponents) {
 
@@ -790,14 +850,9 @@ void JPEGDecoder::decodeScan() {
 
 		}
 
-		component.dcLength = Bits::ctz(component.dcTable.size());
-		component.acLength = Bits::ctz(component.acTable.size());
-
 		component.imageData.resize(component.width * component.height);
 
 	}
-
-	ARC_PROFILE_STOP(ScanSetup)
 
 	if (scan.mcuDataUnits > 10) {
 		throw ImageDecoderException("Too many data units in MCU");
@@ -832,8 +887,6 @@ void JPEGDecoder::decodeImage() {
 	}
 
 	decodingBuffer.reset();
-
-	ARC_PROFILE_START(Decode)
 
 	for (u32 currentMCU = 0; currentMCU < scan.totalMCUs; currentMCU++) {
 
@@ -888,8 +941,6 @@ void JPEGDecoder::decodeImage() {
 
 	}
 
-	ARC_PROFILE_STOP(Decode)
-
 }
 
 
@@ -923,25 +974,36 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 
 	//DC
 	{
-		u32 index = decodingBuffer.read(component.dcLength);
-		auto result = component.dcTable[index];
+		u32 index = decodingBuffer.read(8);
+		auto result = component.dcTable.fastTable[index];
 
-		decodingBuffer.consume(result.second);
+		if (result.second == 0xFF) {
+
+			decodingBuffer.consume(8);
+
+			u32 extReadCount = component.dcTable.maxLength - 8;
+			result = component.dcTable.extTables[result.first][decodingBuffer.read(extReadCount)];
+			decodingBuffer.consume(result.second - 8);
+
+		} else {
+
+			decodingBuffer.consume(result.second);
+
+		}
 
 		u32 category = result.first;
 		i32 difference = 0;
+		u32 offset = 0;
 
 		if (category) {
 
-			u32 offset = decodingBuffer.read(category);
-
+			offset = decodingBuffer.read(category);
 			decodingBuffer.consume(category);
 
-			if (category < 12) {
-				difference = offset >= (1 << (category - 1)) ? static_cast<i32>(offset) : coeffBaseDifference[category] + static_cast<i32>(offset);
-			}
-
 		}
+
+		difference = offset >= entropyPositiveBase[category] ? static_cast<i32>(offset) : coeffBaseDifference[category] + static_cast<i32>(offset);
+
 
 		i32 dc = component.prediction + difference;
 		component.prediction = dc;
@@ -953,10 +1015,22 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 
 	while (coefficient < 64) {
 
-		u32 index = decodingBuffer.read(component.acLength);
-		auto result = component.acTable[index];
+		u32 index = decodingBuffer.read(8);
+		auto result = component.acTable.fastTable[index];
 
-		decodingBuffer.consume(result.second);
+		if (result.second == 0xFF) {
+
+			decodingBuffer.consume(8);
+
+			u32 extReadCount = component.acTable.maxLength - 8;
+			result = component.acTable.extTables[result.first][decodingBuffer.read(extReadCount)];
+			decodingBuffer.consume(result.second - 8);
+
+		} else {
+
+			decodingBuffer.consume(result.second);
+
+		}
 
 		u8 symbol = result.first;
 		u8 category = symbol & 0xF;
@@ -992,7 +1066,7 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 			coefficient += zeroes;
 
 			//Calculate the AC value
-			i32 ac = offset >= (1 << (category - 1)) ? static_cast<i32>(offset) : coeffBaseDifference[category] + static_cast<i32>(offset);
+			i32 ac = offset >= entropyPositiveBase[category] ? static_cast<i32>(offset) : coeffBaseDifference[category] + static_cast<i32>(offset);
 
 			if (coefficient >= 64) {
 
@@ -1527,8 +1601,6 @@ void JPEGDecoder::applyPartialIDCT(JPEG::ImageComponent& component, SizeT imageB
 
 void JPEGDecoder::blendAndUpsample() {
 
-	ARC_PROFILE_START(CoreBlend)
-
 	switch (scan.imageComponents.size()) {
 
 		case 1:
@@ -1549,9 +1621,6 @@ void JPEGDecoder::blendAndUpsample() {
 			ARC_UNREACHABLE
 
 	}
-
-
-	ARC_PROFILE_STOP(CoreBlend)
 
 }
 
@@ -1629,8 +1698,6 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 		Vertical,
 		Both
 	};
-
-	ARC_PROFILE_START(Blend)
 
 	auto exec = [this]<Subsampling S>() {
 
@@ -1881,8 +1948,6 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 
 	}
 
-	ARC_PROFILE_STOP(Blend)
-
 }
 
 
@@ -1919,11 +1984,14 @@ void JPEGDecoder::DecodingBuffer::reset() {
 
 
 
-void JPEGDecoder::DecodingBuffer::saturate(u32 reqSize) {
+void JPEGDecoder::DecodingBuffer::saturate() {
 
 	arc_assert(reqSize <= 24, "Attempted to over-saturate decoding buffer");
 
-	while (size < reqSize) {
+	u32 count = (32 - size) / 8;
+	u32 buffer = 0;
+
+	for (u32 i = 0; i < count; i++) {
 
 		if (sink.remainingSize()) {
 
@@ -1944,17 +2012,27 @@ void JPEGDecoder::DecodingBuffer::saturate(u32 reqSize) {
 
 			}
 
-			data |= byte << (24 - size);
-			size += 8;
+			buffer <<= 8;
+			buffer |= byte;
 
 		} else {
 
 			empty = true;
-			return;
+			count = i;
+
+			//Nothing has changed
+			if (count == 0) {
+				return;
+			}
 
 		}
 
 	}
+
+	u32 bits = count * 8;
+
+	data |= buffer << (32 - size - bits);
+	size += bits;
 
 }
 
@@ -1962,8 +2040,10 @@ void JPEGDecoder::DecodingBuffer::saturate(u32 reqSize) {
 
 u32 JPEGDecoder::DecodingBuffer::read(u32 count) {
 
+	arc_assert(count <= 24, "Attempted to read more than 24 bits from buffer");
+
 	if (count > size) {
-		saturate(count);
+		saturate();
 	}
 
 	return data >> (32 - count);

@@ -58,7 +58,7 @@ namespace JPEG {
 		Arithmetic
 	};
 
-	constexpr u32 dezigzagTable[64] = {
+	constexpr u8 dezigzagTable[64] = {
 		 0,  1,  8, 16,  9,  2,  3, 10,
 		17, 24, 32, 25, 18, 11,  4,  5,
 		12, 19, 26, 33, 40, 48, 41, 34,
@@ -69,7 +69,7 @@ namespace JPEG {
 		53, 60, 61, 54, 47, 55, 62, 63
 	};
 
-	constexpr u32 dezigzagTableTransposed[64] = {
+	constexpr u8 dezigzagTableTransposed[64] = {
 		 0,  8,  1,  2,  9, 16, 24, 17,
 		10,  3,  4, 11, 18, 25, 32, 40,
 		33, 26, 19, 12,  5,  6, 13, 20,
@@ -80,7 +80,7 @@ namespace JPEG {
 		46, 39, 47, 54, 61, 62, 55, 63
 	};
 
-	constexpr u32 zigzagIndexTransposed[64] = {
+	constexpr u8 zigzagIndexTransposed[64] = {
 		 0,  2,  3,  9, 10, 20, 21, 35,
 		 1,  4,  8, 11, 19, 22, 34, 36,
 		 5,  7, 12, 18, 23, 33, 37, 48,
@@ -95,7 +95,20 @@ namespace JPEG {
 	constexpr u8 jfxxString[5] = {0x4A, 0x46, 0x58, 0x58, 0x00};
 
 	using QuantizationTable = std::array<i32, 64>;
-	using HuffmanTable = std::vector<std::pair<u8, u8>>;
+
+	using HuffmanResult = std::pair<u8, u8>;
+
+	struct HuffmanTable {
+
+		u32 maxLength = 0;
+		std::array<HuffmanResult, 256> fastTable {};
+		std::vector<std::vector<HuffmanResult>> extTables;
+
+		constexpr bool empty() const noexcept {
+			return !maxLength;
+		}
+
+	};
 
 	struct FrameComponent {
 
@@ -125,7 +138,7 @@ namespace JPEG {
 	struct ImageComponent {
 
 		constexpr ImageComponent(HuffmanTable& dct, HuffmanTable& act, QuantizationTable& qt, u32 sx, u32 sy)
-			: dcTable(dct), acTable(act), qTable(qt), samplesX(sx), samplesY(sy), prediction(0), width(0), height(0), dcLength(0), acLength(0), block(nullptr) {}
+			: dcTable(dct), acTable(act), qTable(qt), samplesX(sx), samplesY(sy), prediction(0), width(0), height(0), block(nullptr) {}
 
 		HuffmanTable& dcTable;
 		HuffmanTable& acTable;
@@ -135,7 +148,6 @@ namespace JPEG {
 		u32 width, height;
 
 		i32 prediction;
-		u32 dcLength, acLength;
 		i32* block;
 		std::vector<i16> imageData;
 

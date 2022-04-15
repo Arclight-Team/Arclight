@@ -43,7 +43,7 @@ private:
 		constexpr explicit DecodingBuffer(BinaryReader& reader) : data(0), size(0), empty(false), sink(reader) {}
 
 		void reset();
-		void saturate(u32 reqSize);
+		void saturate();
 		u32 read(u32 count);
 		void consume(u32 count);
 
