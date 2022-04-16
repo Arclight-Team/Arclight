@@ -24,7 +24,7 @@ u32 Window::monitorCount = 0;
 
 
 
-Window::Window() : backupWidth(0), backupHeight(0), windowHandle(nullptr),
+Window::Window() : backupPosition(0), backupSize(0), windowHandle(nullptr),
 	moveFunction(nullptr), resizeFunction(nullptr), stateChangeFunction(nullptr), fbResizeFunction(nullptr), dropFunction(nullptr), cursor(*this) {
 
 	initMonitorCallback();
@@ -169,8 +169,7 @@ bool Window::createFullscreen(const std::string& title, u32 monitorID) {
 		windowHandle->userPtr.window = this;
 		glfwSetWindowUserPointer(windowHandle->handle, static_cast<void*>(&windowHandle->userPtr));
 
-		backupWidth = videoMode->width;
-		backupHeight = videoMode->height;
+		backupSize = { videoMode->width, videoMode->height };
 		enableContext();
 
 		if (!setupGLContext()) {
@@ -210,8 +209,8 @@ void Window::close() {
 	glfwDestroyWindow(windowHandle->handle);
 
 	windowHandle.reset();
-	backupWidth = 0;
-	backupHeight = 0;
+	backupPosition = {};
+	backupSize = {};
 
 }
 
@@ -225,7 +224,7 @@ void Window::setWindowed() {
 		return;
 	}
 
-	glfwSetWindowMonitor(windowHandle->handle, nullptr, 40, 40, backupWidth, backupHeight, GLFW_DONT_CARE);
+	glfwSetWindowMonitor(windowHandle->handle, nullptr, backupPosition.x, backupPosition.y, backupSize.x, backupSize.y, GLFW_DONT_CARE);
 
 }
 
@@ -244,8 +243,8 @@ void Window::setFullscreen(u32 monitorID) {
 		return;
 	}
 
-	backupWidth = getWidth();
-	backupHeight = getHeight();
+	backupPosition = getPosition();
+	backupSize = getSize();
 
 
 	GLFWmonitor* monitor = connectedMonitors[monitorID];
@@ -314,6 +313,27 @@ void Window::setSize(u32 w, u32 h) {
 
 }
 
+
+
+void Window::setCentered() {
+
+	arc_assert(isOpen(), "Tried to center non-existing window");
+
+	GLFWmonitor* monitorHandle = connectedMonitors[getCurrentMonitorID()];
+
+	Vec2i monitorPosition;
+	glfwGetMonitorPos(monitorHandle, &monitorPosition.x, &monitorPosition.y);
+
+	const GLFWvidmode* videoMode = glfwGetVideoMode(monitorHandle);
+
+	Vec2ui windowSize = getSize();
+
+	setPosition(
+		monitorPosition.x + ((videoMode->width - windowSize.x) / 2),
+		monitorPosition.y + ((videoMode->height - windowSize.y) / 2)
+	);
+
+}
 
 
 void Window::setLimits(const Vec2ui& min, const Vec2ui& max) {
@@ -449,7 +469,7 @@ u32 Window::getFramebufferHeight() const {
 
 
 
-u32 Window::getX() const {
+i32 Window::getX() const {
 
 	arc_assert(isOpen(), "Tried to get window x-position for non-existing window");
 
@@ -461,7 +481,7 @@ u32 Window::getX() const {
 
 
 
-u32 Window::getY() const {
+i32 Window::getY() const {
 
 	arc_assert(isOpen(), "Tried to get window y-position for non-existing window");
 
@@ -473,7 +493,7 @@ u32 Window::getY() const {
 
 
 
-Vec2ui Window::getPosition() const {
+Vec2i Window::getPosition() const {
 
 	arc_assert(isOpen(), "Tried to get window position for non-existing window");
 
@@ -783,6 +803,39 @@ bool Window::alwaysOnTop() const {
 
 }
 
+
+u32 Window::getCurrentMonitorID() const {
+
+	arc_assert(isOpen(), "Tried to get the current monitor ID for non-existing window");
+
+	Vec2i windowPosition = getPosition();
+	Vec2ui windowSize = getSize();
+
+	i32 bestOverlap = 0;
+	u32 bestMonitorID;
+
+	for (u32 i = 0; i < monitorCount; i++)
+	{
+		GLFWmonitor* monitor = connectedMonitors[i];
+		const GLFWvidmode* videoMode = glfwGetVideoMode(monitor);
+
+		Vec2i monitorPositon;
+		glfwGetMonitorPos(monitor, &monitorPositon.x, &monitorPositon.y);
+		Vec2ui monitorSize = { videoMode->width, videoMode->height };
+
+		i32 overlap =
+			Math::max(0, Math::min(windowPosition.x + i32(windowSize.x), monitorPositon.x + i32(monitorSize.x)) - Math::max(windowPosition.x, monitorPositon.x)) *
+			Math::max(0, Math::min(windowPosition.y + i32(windowSize.y), monitorPositon.y + i32(monitorSize.y)) - Math::max(windowPosition.y, monitorPositon.y));
+
+		if (bestOverlap < overlap) {
+			bestOverlap = overlap;
+			bestMonitorID = i;
+		}
+	}
+
+	return bestMonitorID;
+
+}
 
 
 u32 Window::getMonitorCount() {

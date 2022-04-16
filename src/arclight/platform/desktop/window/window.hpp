@@ -93,6 +93,8 @@ public:
 	void setSize(const Vec2ui& size);
 	void setSize(u32 w, u32 h);
 
+	void setCentered();
+
 	void setLimits(const Vec2ui& min, const Vec2ui& max);
 	void setLimits(u32 minW, u32 minH, u32 maxW, u32 maxH);
 	void setMinLimits(const Vec2ui& min);
@@ -109,9 +111,9 @@ public:
 	u32 getHeight() const;
 	u32 getFramebufferWidth() const;
 	u32 getFramebufferHeight() const;
-	u32 getX() const;
-	u32 getY() const;
-	Vec2ui getPosition() const;
+	i32 getX() const;
+	i32 getY() const;
+	Vec2i getPosition() const;
 	Vec2ui getSize() const;
 	Vec2ui getFramebufferSize() const;
 
@@ -153,6 +155,8 @@ public:
 	RenderCursor& getRenderCursor();
 	const RenderCursor& getRenderCursor() const;
 
+	u32 getCurrentMonitorID() const;
+
 	static u32 getMonitorCount();
 	static Monitor getMonitor(u32 id);
 	static bool monitorConfigurationChanged();
@@ -183,8 +187,8 @@ private:
 
 	std::shared_ptr<WindowHandle> windowHandle;
 
-	u32 backupWidth;
-	u32 backupHeight;
+	Vec2i backupPosition;
+	Vec2ui backupSize;
 
 	RenderCursor cursor;
 
