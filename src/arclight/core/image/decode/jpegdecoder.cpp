@@ -226,6 +226,18 @@ void JPEGDecoder::decode(std::span<const u8> data) {
 
 
 
+RawImage& JPEGDecoder::getImage() {
+
+	if (!validDecode) {
+		throw ImageDecoderException("Bad image decode");
+	}
+
+	return image;
+
+}
+
+
+
 void JPEGDecoder::parseApplicationSegment0() {
 
 	u16 length = verifySegmentLength();
@@ -856,11 +868,15 @@ void JPEGDecoder::decodeScan() {
 
 	} else {
 
+		ARC_PROFILE_START(Decode)
 		decodeImage();
+		ARC_PROFILE_STOP(Decode)
 
 	}
 
+	ARC_PROFILE_START(Blend)
 	blendAndUpsample();
+	ARC_PROFILE_STOP(Blend)
 
 }
 
@@ -1969,8 +1985,7 @@ void JPEGDecoder::DecodingBuffer::saturate() {
 
 			u8 byte = sink.read<u8>();
 
-			//Skip trailing 'escape zero'
-			//Safe because the pre-scan stopped at the first non-zero FF-sequence
+			//Check for escape sequence
 			if (byte == 0xFF) {
 
 				u8 nextByte = sink.read<u8>();

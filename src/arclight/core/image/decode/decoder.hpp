@@ -9,18 +9,31 @@
 #pragma once
 
 #include "types.hpp"
+#include "image/pixel.hpp"
+#include "image/rawimage.hpp"
 #include "util/concepts.hpp"
+#include "util/typetraits.hpp"
 
 #include <span>
+#include <optional>
 #include <stdexcept>
 
 
 
-class IImageDecoder {};
+class IImageDecoder {
+
+public:
+
+	constexpr explicit IImageDecoder(std::optional<Pixel> reqFormat) noexcept : requestedFormat(reqFormat) {}
+
+	std::optional<Pixel> requestedFormat;
+
+};
 
 template<class T>
 concept ImageDecoder = BaseOf<IImageDecoder, T> && requires (T&& t, std::span<const u8>&& s) {
-	t.decode(s);
+	t.decode(s);                            //Decode function
+	{ t.getImage() } -> Equal<RawImage&>;   //Image retrieval function
 };
 
 

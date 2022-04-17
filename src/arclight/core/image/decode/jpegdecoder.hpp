@@ -17,24 +17,21 @@
 #include "time/profiler.hpp"
 
 
+
 class JPEGDecoder : public IImageDecoder {
 
 public:
 
-	JPEGDecoder() : validDecode(false), restartEnabled(false), decodingBuffer(reader), restartInterval(0) {}
+	explicit JPEGDecoder(std::optional<Pixel> reqFormat) : IImageDecoder(reqFormat), validDecode(false), restartEnabled(false), decodingBuffer(reader), restartInterval(0) {
 
-	void decode(std::span<const u8> data);
-
-	template<Pixel P>
-	Image<P> getImage() {
-
-		if (!validDecode) {
-			throw ImageDecoderException("Bad image decode");
+		for (u32 i = 0; i < 4; i++) {
+			std::fill(quantizationTables[i].begin(), quantizationTables[i].end(), 1);
 		}
 
-		return Image<P>::fromRaw(image);
-
 	}
+
+	void decode(std::span<const u8> data);
+	RawImage& getImage();
 
 private:
 

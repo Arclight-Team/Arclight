@@ -18,8 +18,8 @@ class RawImage {
 
 public:
 
-	constexpr RawImage() : width(0), height(0), format(Pixel::RGB8), bufferSize(0) {}
-	constexpr RawImage(u32 width, u32 height) : width(width), height(height), format(Pixel::RGB8), bufferSize(0), buffer(nullptr) {}
+	constexpr RawImage() noexcept : width(0), height(0), format(Pixel::RGB8), bufferSize(0) {}
+	constexpr RawImage(u32 width, u32 height) noexcept : width(width), height(height), format(Pixel::RGB8), bufferSize(0), buffer(nullptr) {}
 
 	template<class T>
 	inline RawImage(u32 width, u32 height, T* pixels) : width(width), height(height), format(T::PixelType), bufferSize(pixels ? T::Format::BytesPerPixel * width * height : 0), buffer(Bits::toByteArray(pixels)) {}

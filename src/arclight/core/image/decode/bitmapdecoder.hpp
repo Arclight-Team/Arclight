@@ -19,20 +19,10 @@ class BitmapDecoder : public IImageDecoder {
 
 public:
 
-	BitmapDecoder() : validDecode(false) {}
+	constexpr explicit BitmapDecoder(std::optional<Pixel> reqFormat) noexcept : IImageDecoder(reqFormat), validDecode(false) {}
 
 	void decode(std::span<const u8> data);
-
-	template<Pixel P>
-	Image<P> getImage() {
-
-		if (!validDecode) {
-			throw ImageDecoderException("Bad image decode");
-		}
-
-		return Image<P>::fromRaw(bitmap.image);
-
-	}
+	RawImage& getImage();
 
 private:
 

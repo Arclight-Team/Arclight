@@ -109,6 +109,18 @@ void BitmapDecoder::decode(std::span<const u8> data) {
 
 
 
+RawImage& BitmapDecoder::getImage() {
+
+	if (!validDecode) {
+		throw ImageDecoderException("Bad image decode");
+	}
+
+	return bitmap.image;
+
+}
+
+
+
 SizeT BitmapDecoder::parseHeader() {
 
 	if (reader.remainingSize() < 14) {

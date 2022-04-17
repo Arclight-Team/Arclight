@@ -19,20 +19,10 @@ class QOIDecoder : public IImageDecoder {
 
 public:
 
-    QOIDecoder() : validDecode(false) {}
+    constexpr explicit QOIDecoder(std::optional<Pixel> reqFormat) noexcept : IImageDecoder(reqFormat), validDecode(false) {}
 
     void decode(std::span<const u8> data);
-
-    template<Pixel P>
-    Image<P> getImage() {
-
-        if (!validDecode) {
-            throw ImageDecoderException("Bad image decode");
-        }
-
-        return Image<P>::fromRaw(image);
-
-    }
+	RawImage& getImage();
 
 private:
 

@@ -201,3 +201,15 @@ void QOIDecoder::decode(std::span<const u8> data) {
     validDecode = true;
 
 }
+
+
+
+RawImage& QOIDecoder::getImage() {
+
+	if (!validDecode) {
+		throw ImageDecoderException("Bad image decode");
+	}
+
+	return image;
+
+}

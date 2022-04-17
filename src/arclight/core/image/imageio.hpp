@@ -24,10 +24,15 @@ namespace ImageIO {
 
 	}
 
-	template<ImageDecoder Decoder, class... Args>
-	Decoder decode(const std::span<const u8>& bytes, Args&&... args) {
 
-		Decoder decoder(std::forward<Args>(args)...);
+
+	/*
+	 *  Raw decoder functions
+	 */
+	template<ImageDecoder Decoder, class... Args>
+	Decoder decode(const std::span<const u8>& bytes, std::optional<Pixel> reqFormat, Args&&... args) {
+
+		Decoder decoder(reqFormat, std::forward<Args>(args)...);
 		decoder.decode(bytes);
 
 		return decoder;
@@ -35,13 +40,18 @@ namespace ImageIO {
 	}
 
 	template<ImageDecoder Decoder, class... Args>
-	Decoder decode(const Path& path, Args&&... args) {
-		return decode<Decoder, Args...>(Detail::loadFile(path), std::forward<Args>(args)...);
+	Decoder decode(const Path& path, std::optional<Pixel> reqFormat = {}, Args&&... args) {
+		return decode<Decoder, Args...>(Detail::loadFile(path), reqFormat, std::forward<Args>(args)...);
 	}
 
+
+
+	/*
+	 *  Forced format functions
+	 */
 	template<Pixel P, ImageDecoder Decoder, class... Args>
 	Image<P> load(const std::span<const u8>& bytes, Args&&... args) {
-		return decode<Decoder, Args...>(bytes, std::forward<Args>(args)...).template getImage<P>();
+		return Image<P>::fromRaw(decode<Decoder, Args...>(bytes, P, std::forward<Args>(args)...).getImage(), true);
 	}
 
 	template<Pixel P, ImageDecoder Decoder, class... Args>
@@ -49,21 +59,66 @@ namespace ImageIO {
 		return load<P, Decoder, Args...>(Detail::loadFile(path), std::forward<Args>(args)...);
 	}
 
+
+
+	/*
+	 *  Generic format functions
+	 */
+	template<ImageDecoder Decoder, class... Args>
+	RawImage load(const std::span<const u8>& bytes, Args&&... args) {
+		return decode<Decoder, Args...>(bytes, {}, std::forward<Args>(args)...).getImage();
+	}
+
+	template<ImageDecoder Decoder, class... Args>
+	RawImage load(const Path& path, Args&&... args) {
+		return load<Decoder, Args...>(Detail::loadFile(path), std::forward<Args>(args)...);
+	}
+
+
+
+	namespace Detail {
+
+		template<bool Raw, Pixel P = Pixel::RGB8>
+		auto fileLoad(const Path& path) -> TT::Conditional<Raw, RawImage, Image<P>> {
+
+			auto doLoad = []<ImageDecoder Decoder>(const Path& p) {
+
+				if constexpr (Raw) {
+					return load<Decoder>(p);
+				} else {
+					return load<P, Decoder>(p);
+				}
+
+			};
+
+			std::string ext = path.getExtension();
+
+			if (ext == ".bmp") {
+				return doLoad.template operator()<BitmapDecoder>(path);
+			} else if (Bool::any(ext, ".jpg", ".jpeg", ".jfif")) {
+				return doLoad.template operator()<JPEGDecoder>(path);
+			} else if (ext == ".qoi") {
+	            return doLoad.template operator()<QOIDecoder>(path);
+	        }
+
+			throw ImageException("Unknown image file format");
+
+		}
+
+	}
+
+
+
+	/*
+	 *  Auto-detecting format functions
+	 */
 	template<Pixel P>
 	Image<P> load(const Path& path) {
+		return Detail::fileLoad<false, P>(path);
+	}
 
-		std::string ext = path.getExtension();
-
-		if (ext == ".bmp") {
-			return load<P, BitmapDecoder>(path);
-		} else if (Bool::any(ext, ".jpg", ".jpeg", ".jfif")) {
-			return load<P, JPEGDecoder>(path);
-		} else if (ext == ".qoi") {
-            return load<P, QOIDecoder>(path);
-        }
-
-		throw ImageException("Unknown image file format");
-
+	inline RawImage load(const Path& path) {
+		return Detail::fileLoad<true>(path);
 	}
 
 }
