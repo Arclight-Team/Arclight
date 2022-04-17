@@ -35,7 +35,7 @@ public:
 
 
 	template<class T, Arithmetic A, Arithmetic L, Arithmetic P> requires(Float<T> || FloatVector<T>)
-	constexpr auto sample(T point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
+	constexpr auto sample(const T& point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
 
 		arc_assert(octaves >= 1, "Octaves count cannot be 0");
 
@@ -161,3 +161,7 @@ private:
 
 	PermutationT p;
 };
+
+
+template<class T>
+concept NoiseType = BaseOf<NoiseBase<T>, T>;
