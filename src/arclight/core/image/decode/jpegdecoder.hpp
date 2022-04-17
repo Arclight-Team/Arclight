@@ -40,7 +40,7 @@ private:
 
 	struct DecodingBuffer {
 
-		constexpr explicit DecodingBuffer(BinaryReader& reader) : data(0), size(0), empty(false), sink(reader) {}
+		constexpr explicit DecodingBuffer(BinaryReader& reader) : data(0), size(0), end(false), sink(reader) {}
 
 		void reset();
 		void saturate();
@@ -49,7 +49,7 @@ private:
 
 		u32 data;
 		i32 size;
-		bool empty;
+		bool end;
 		BinaryReader& sink;
 
 	};
@@ -62,8 +62,6 @@ private:
 
 	void parseFrameHeader();
 	void parseScanHeader();
-
-	SizeT calculateScanSize();
 
 	void decodeScan();
 	void decodeImage();
