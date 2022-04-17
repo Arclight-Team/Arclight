@@ -12,6 +12,9 @@
 #include "arcintrinsic.hpp"
 #include "debug.hpp"
 
+#include <map>
+
+
 
 using namespace JPEG;
 
@@ -19,10 +22,15 @@ using namespace JPEG;
 constexpr static u32 fixScaleShift = 10;
 constexpr static u32 fixMultiplyShift = 10;
 constexpr static u32 fixTransformShift = 7;
+constexpr static u32 ycbcrShift = 14;
 constexpr static i32 colorBias = 1 << (fixTransformShift - 1);
 
 constexpr static i32 coeffBaseDifference[16] = {
 	0, -1, -3, -7, -15, -31, -63, -127, -255, -511, -1023, -2047, 0, 0, 0, 0
+};
+
+constexpr static i32 entropyPositiveBase[16] = {
+	0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 0, 0, 0, 0
 };
 
 
@@ -70,6 +78,25 @@ constexpr static std::array<i32, 3> multiplyConstants = []() {
 
 	for (u32 i = 0; i < 3; i++) {
 		a[i] = i32(x[i] * (1 << fixMultiplyShift) + 0.5);
+	}
+
+	return a;
+
+}();
+
+constexpr static std::array<i16, 4> ycbcrFactors = []() {
+
+	std::array<i16, 4> a {};
+
+	constexpr long double x[4] = {
+		1.402L,
+		0.3441136L,
+		0.714136L,
+		1.772L
+	};
+
+	for (u32 i = 0; i < 4; i++) {
+		a[i] = i16(x[i] * (1 << ycbcrShift) + 0.5);
 	}
 
 	return a;
@@ -171,16 +198,7 @@ void JPEGDecoder::decode(std::span<const u8> data) {
 			case Markers::SOS:
 				{
 					parseScanHeader();
-
-					SizeT scanSize = calculateScanSize();
-
-					BinaryReader oldReader = reader;
-					reader = reader.substream(scanSize);
-
 					decodeScan();
-
-					reader = oldReader;
-					reader.seek(scanSize);
 				}
 				break;
 
@@ -386,7 +404,7 @@ void JPEGDecoder::parseHuffmanTable() {
 
 		std::array<u8, 16> codeCounts{};
 		u32 totalCodeCount = 0;
-		u32 highestLength = 1;
+		u32 highestLength = 0;
 
 		for (u32 i = 0; i < 16; i++) {
 
@@ -396,7 +414,7 @@ void JPEGDecoder::parseHuffmanTable() {
 			totalCodeCount += codeCount;
 
 			if (codeCount) {
-				highestLength = i;
+				highestLength = i + 1;
 			}
 
 		}
@@ -407,32 +425,87 @@ void JPEGDecoder::parseHuffmanTable() {
 			throw ImageDecoderException("[DHT] Bad table length");
 		}
 
-		HuffmanTable& table = type == 0 ? dcHuffmanTables[id] : acHuffmanTables[id];
+		bool dc = type == 0;
+		HuffmanTable& table = dc ? dcHuffmanTables[id] : acHuffmanTables[id];
+		table.maxLength = highestLength;
 
 		std::vector<u8> symbols(totalCodeCount);
 		reader.read(std::span {symbols.data(), symbols.size()});
 
-		table.resize(2 << highestLength);
+		if (dc) {
+
+			//DC symbols can be greater than 0xB (illegally)
+			//While we can handle up to 0xF, everything above is not covered and needs to be caught
+			for (u8& v : symbols) {
+
+				if (v > 0xF) {
+
+					Log::warn("JPEG Decoder", "Illegal DC symbol 0x%02X, overriding", v);
+					v = 0x0;
+
+				}
+
+			}
+
+		}
+
+		std::fill(table.fastTable.begin(), table.fastTable.end(), HuffmanResult {0xC, 0x1});
 
 		u32 index = 0;
 		u32 code = 0;
+		u32 extLength = highestLength - 8;
+
+		std::map<u8, u8> extMap;
 
 		//For each code length
-		for (u32 i = 0; i < 16; i++) {
+		for (u32 i = 0; i < highestLength; i++) {
 
 			//For each code
-			for (u32 j = 0; j < codeCounts[i]; j++) {
+			for (u32 j = 0; j < codeCounts[i]; j++, code++, index++) {
 
-				//Fast huffman code must be reversed
-				u32 startCode = Bits::reverse(code) >> (31 - i);
+				if (i < 8) {
 
-				//Fill fast huffman table
-				for (u32 k = startCode; k < table.size(); k += 2 << i) {
-					table[k] = {symbols[index], i + 1};
+					//Fill FHT
+					u32 startCode = code << (7 - i);
+					u32 endCode = startCode + (1 << (7 - i));
+
+					for (u32 k = startCode; k < endCode; k++) {
+						table.fastTable[k] = {symbols[index], i + 1};
+					}
+
+				} else {
+
+					if (i == 8) {
+
+						//Initialize EHTs
+						for (u32 k = 0; k < table.fastTable.size(); k++) {
+
+							if (table.fastTable[k].first == 0xC) {
+
+								u8 tableIndex = table.extTables.size();
+
+								table.fastTable[k] = {tableIndex, 0xFF};
+								extMap.try_emplace(k, tableIndex);
+								table.extTables.emplace_back(std::vector<HuffmanResult>(2 << extLength, HuffmanResult {0, 1}));
+
+							}
+
+						}
+
+					}
+
+					//Fill EHT
+					u32 fastPrefix = code >> (i - 7);
+					u32 extCode = Bits::mask(code, 0, i - 7);
+
+					u32 startCode = extCode << (extLength + 7 - i);
+					u32 endCode = startCode + (1 << (extLength + 7 - i));
+
+					for (u32 k = startCode; k < endCode; k++) {
+						table.extTables[extMap[fastPrefix]][k] = {symbols[index], i + 1};
+					}
+
 				}
-
-				code++;
-				index++;
 
 			}
 
@@ -734,25 +807,6 @@ void JPEGDecoder::parseScanHeader() {
 
 
 
-SizeT JPEGDecoder::calculateScanSize() {
-
-	const u8* data = reader.head();
-	SizeT maxSize = reader.remainingSize();
-
-	for (SizeT i = 0; i < maxSize; i++) {
-
-		if (data[i] == 0xFF && (i + 1) < maxSize && data[i + 1] != 0) {
-			return i;
-		}
-
-	}
-
-	return maxSize;
-
-}
-
-
-
 void JPEGDecoder::decodeScan() {
 
 	//Start scan decoding
@@ -767,8 +821,6 @@ void JPEGDecoder::decodeScan() {
 
 	scan.mcuDataUnits = 0;
 	scan.totalMCUs = 0;
-
-	ARC_PROFILE_START(ScanSetup)
 
 	//Setup component data
 	for (ImageComponent& component : scan.imageComponents) {
@@ -790,14 +842,9 @@ void JPEGDecoder::decodeScan() {
 
 		}
 
-		component.dcLength = Bits::ctz(component.dcTable.size());
-		component.acLength = Bits::ctz(component.acTable.size());
-
 		component.imageData.resize(component.width * component.height);
 
 	}
-
-	ARC_PROFILE_STOP(ScanSetup)
 
 	if (scan.mcuDataUnits > 10) {
 		throw ImageDecoderException("Too many data units in MCU");
@@ -833,14 +880,22 @@ void JPEGDecoder::decodeImage() {
 
 	decodingBuffer.reset();
 
-	ARC_PROFILE_START(Decode)
+	SizeT mcuX = 0;
+	SizeT mcuY = 0;
 
-	for (u32 currentMCU = 0; currentMCU < scan.totalMCUs; currentMCU++) {
+	for (u32 currentMCU = 0; currentMCU < scan.totalMCUs; currentMCU++, mcuX++) {
+
+		if (mcuX >= scan.mcusX) {
+
+			mcuX = 0;
+			mcuY++;
+
+		}
 
 		for (ImageComponent& component : scan.imageComponents) {
 
-			SizeT mcuBaseX = (currentMCU % scan.mcusX) * component.samplesX * 8;
-			SizeT mcuBaseY = (currentMCU / scan.mcusX) * component.samplesY * 8;
+			SizeT mcuBaseX = mcuX * component.samplesX * 8;
+			SizeT mcuBaseY = mcuY * component.samplesY * 8;
 
 			for (u32 sy = 0; sy < component.samplesY; sy++) {
 
@@ -888,8 +943,6 @@ void JPEGDecoder::decodeImage() {
 
 	}
 
-	ARC_PROFILE_STOP(Decode)
-
 }
 
 
@@ -923,40 +976,63 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 
 	//DC
 	{
-		u32 index = decodingBuffer.read(component.dcLength);
-		auto result = component.dcTable[index];
+		u32 index = decodingBuffer.read(8);
+		auto result = component.dcTable.fastTable[index];
 
-		decodingBuffer.consume(result.second);
+		if (result.second == 0xFF) {
+
+			decodingBuffer.consume(8);
+
+			u32 extReadCount = component.dcTable.maxLength - 8;
+			result = component.dcTable.extTables[result.first][decodingBuffer.read(extReadCount)];
+			decodingBuffer.consume(result.second - 8);
+
+		} else {
+
+			decodingBuffer.consume(result.second);
+
+		}
 
 		u32 category = result.first;
-		u32 rawOffset = decodingBuffer.read(category);
-
-		decodingBuffer.consume(category);
-
-		bool positive = rawOffset & 1;
-		i32 offset = static_cast<i32>(Bits::reverse(rawOffset) >> (32 - category));
-
 		i32 difference = 0;
+		u32 offset = 0;
 
-		if (category < 12) {
-			difference = positive ? offset : coeffBaseDifference[category] + offset;
+		if (category) {
+
+			offset = decodingBuffer.read(category);
+			decodingBuffer.consume(category);
+
 		}
+
+		difference = offset >= entropyPositiveBase[category] ? static_cast<i32>(offset) : coeffBaseDifference[category] + static_cast<i32>(offset);
+
 
 		i32 dc = component.prediction + difference;
 		component.prediction = dc;
 		block[0] = dc * component.qTable[0];
 	}
 
-
 	//AC
 	u32 coefficient = 1;
 
 	while (coefficient < 64) {
 
-		u32 index = decodingBuffer.read(component.acLength);
-		auto result = component.acTable[index];
+		u32 index = decodingBuffer.read(8);
+		auto result = component.acTable.fastTable[index];
 
-		decodingBuffer.consume(result.second);
+		if (result.second == 0xFF) {
+
+			decodingBuffer.consume(8);
+
+			u32 extReadCount = component.acTable.maxLength - 8;
+			result = component.acTable.extTables[result.first][decodingBuffer.read(extReadCount)];
+			decodingBuffer.consume(result.second - 8);
+
+		} else {
+
+			decodingBuffer.consume(result.second);
+
+		}
 
 		u8 symbol = result.first;
 		u8 category = symbol & 0xF;
@@ -985,17 +1061,14 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 		} else {
 
 			//Extract the AC magnitude
-			u32 rawOffset = decodingBuffer.read(category);
+			u32 offset = decodingBuffer.read(category);
 
 			decodingBuffer.consume(category);
-
-			bool positive = rawOffset & 1;
-			i32 offset = static_cast<i32>(Bits::reverse(rawOffset) >> (32 - category));
 
 			coefficient += zeroes;
 
 			//Calculate the AC value
-			i32 ac = positive ? offset : coeffBaseDifference[category] + offset;
+			i32 ac = offset >= entropyPositiveBase[category] ? static_cast<i32>(offset) : coeffBaseDifference[category] + static_cast<i32>(offset);
 
 			if (coefficient >= 64) {
 
@@ -1530,8 +1603,6 @@ void JPEGDecoder::applyPartialIDCT(JPEG::ImageComponent& component, SizeT imageB
 
 void JPEGDecoder::blendAndUpsample() {
 
-	ARC_PROFILE_START(CoreBlend)
-
 	switch (scan.imageComponents.size()) {
 
 		case 1:
@@ -1552,9 +1623,6 @@ void JPEGDecoder::blendAndUpsample() {
 			ARC_UNREACHABLE
 
 	}
-
-
-	ARC_PROFILE_STOP(CoreBlend)
 
 }
 
@@ -1633,8 +1701,6 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 		Both
 	};
 
-	ARC_PROFILE_START(Blend)
-
 	auto exec = [this]<Subsampling S>() {
 
 		const JPEG::ImageComponent& component = scan.imageComponents[0];
@@ -1657,17 +1723,21 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 		SizeT vectorSize = totalPixels / 16;
 		SizeT scalarSize = totalPixels % 16;
 
-		__m128i rcr = _mm_set1_epi32(22970);
-		__m128i gcb = _mm_set1_epi32(5638);
-		__m128i gcr = _mm_set1_epi32(11700);
-		__m128i bcb = _mm_set1_epi32(29032);
-		__m128i csb = _mm_set1_epi16(128 << fixTransformShift);
-		__m128i bias = _mm_set1_epi32(colorBias);
+		i32 yShift = 15 - ycbcrShift;
+		i32 rgbShift = fixTransformShift + ycbcrShift - 15;
 
-		__m128i shuf0 = _mm_setr_epi32(0x02010F0B, 0x07060503, 0x0C0A0908, 0x04000E0D);
-		__m128i shuf1 = _mm_setr_epi32(0x01080400, 0x06020905, 0x0B07030A, 0x0D0F0E0C);
-		__m128i shuf2 = _mm_setr_epi32(0x030E0502, 0x07040F06, 0x09000B08, 0x0D0A010C);
-		__m128i shuf3 = _mm_setr_epi32(0x03010002, 0x050C0804, 0x0A060D09, 0x0F0B070E);
+		__m128i rcr = _mm_set1_epi16(ycbcrFactors[0]);
+		__m128i gcb = _mm_set1_epi16(ycbcrFactors[1]);
+		__m128i gcr = _mm_set1_epi16(ycbcrFactors[2]);
+		__m128i bcb = _mm_set1_epi16(ycbcrFactors[3]);
+		__m128i csb = _mm_set1_epi16(128 << fixTransformShift);
+		__m128i bias = _mm_set1_epi16(i16(1 << (rgbShift - 1)));
+
+		__m128i shuf0 = _mm_setr_epi32(0x0D070605, 0x01000F0E, 0x08040302, 0x0C0B0A09);
+		__m128i shuf1 = _mm_setr_epi32(0x06050403, 0x0D0C0B07, 0x01000F0E, 0x0A090802);
+		__m128i shuf2 = _mm_setr_epi32(0x010B0600, 0x08020C07, 0x0E09030D, 0x050F0A04);
+		__m128i shuf3 = _mm_setr_epi32(0x01060300, 0x05020704, 0x0B080D0A, 0x0F0C090E);
+		__m128i shuf4 = _mm_setr_epi32(0x0B05000A, 0x020C0601, 0x08030D07, 0x0F09040E);
 
 		__m128i* targetVecData = reinterpret_cast<__m128i*>(target.getImageBuffer().data());
 		const __m128i* vecData[3] = { reinterpret_cast<const __m128i*>(imgData[0]),
@@ -1676,76 +1746,43 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 
 		for (SizeT i = 0; i < vectorSize; i++) {
 
-			__m128i l0 = _mm_load_si128(vecData[0] + 0);
-			__m128i l1 = _mm_load_si128(vecData[0] + 1);
+			__m128i l0 = _mm_srai_epi16(_mm_load_si128(vecData[0] + 0), yShift);
+			__m128i l1 = _mm_srai_epi16(_mm_load_si128(vecData[0] + 1), yShift);
 			__m128i l2 = _mm_sub_epi16(_mm_load_si128(vecData[1] + 0), csb);
 			__m128i l3 = _mm_sub_epi16(_mm_load_si128(vecData[1] + 1), csb);
 			__m128i l4 = _mm_sub_epi16(_mm_load_si128(vecData[2] + 0), csb);
 			__m128i l5 = _mm_sub_epi16(_mm_load_si128(vecData[2] + 1), csb);
 
-			__m128i y0  = _mm_cvtepi16_epi32(l0);
-			__m128i cb0 = _mm_cvtepi16_epi32(l2);
-			__m128i cr0 = _mm_cvtepi16_epi32(l4);
-			__m128i y1  = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l0, 0x0E));
-			__m128i cb1 = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l2, 0x0E));
-			__m128i cr1 = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l4, 0x0E));
-			__m128i y2  = _mm_cvtepi16_epi32(l1);
-			__m128i cb2 = _mm_cvtepi16_epi32(l3);
-			__m128i cr2 = _mm_cvtepi16_epi32(l5);
-			__m128i y3  = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l1, 0x0E));
-			__m128i cb3 = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l3, 0x0E));
-			__m128i cr3 = _mm_cvtepi16_epi32(_mm_shuffle_epi32(l5, 0x0E));
+			__m128i rx0 = _mm_mulhrs_epi16(l4, rcr);
+			__m128i gx0 = _mm_mulhrs_epi16(l2, gcb);
+			__m128i gy0 = _mm_mulhrs_epi16(l4, gcr);
+			__m128i bx0 = _mm_mulhrs_epi16(l2, bcb);
+			__m128i rx1 = _mm_mulhrs_epi16(l5, rcr);
+			__m128i gx1 = _mm_mulhrs_epi16(l3, gcb);
+			__m128i gy1 = _mm_mulhrs_epi16(l5, gcr);
+			__m128i bx1 = _mm_mulhrs_epi16(l3, bcb);
 
-			__m128i rx0 = _mm_srai_epi32(_mm_mullo_epi32(cr0, rcr), 14);
-			__m128i gx0 = _mm_srai_epi32(_mm_mullo_epi32(cb0, gcb), 14);
-			__m128i gy0 = _mm_srai_epi32(_mm_mullo_epi32(cr0, gcr), 14);
-			__m128i bx0 = _mm_srai_epi32(_mm_mullo_epi32(cb0, bcb), 14);
-			__m128i rx1 = _mm_srai_epi32(_mm_mullo_epi32(cr1, rcr), 14);
-			__m128i gx1 = _mm_srai_epi32(_mm_mullo_epi32(cb1, gcb), 14);
-			__m128i gy1 = _mm_srai_epi32(_mm_mullo_epi32(cr1, gcr), 14);
-			__m128i bx1 = _mm_srai_epi32(_mm_mullo_epi32(cb1, bcb), 14);
-			__m128i rx2 = _mm_srai_epi32(_mm_mullo_epi32(cr2, rcr), 14);
-			__m128i gx2 = _mm_srai_epi32(_mm_mullo_epi32(cb2, gcb), 14);
-			__m128i gy2 = _mm_srai_epi32(_mm_mullo_epi32(cr2, gcr), 14);
-			__m128i bx2 = _mm_srai_epi32(_mm_mullo_epi32(cb2, bcb), 14);
-			__m128i rx3 = _mm_srai_epi32(_mm_mullo_epi32(cr3, rcr), 14);
-			__m128i gx3 = _mm_srai_epi32(_mm_mullo_epi32(cb3, gcb), 14);
-			__m128i gy3 = _mm_srai_epi32(_mm_mullo_epi32(cr3, gcr), 14);
-			__m128i bx3 = _mm_srai_epi32(_mm_mullo_epi32(cb3, bcb), 14);
+			__m128i r0 = _mm_srai_epi16(_mm_add_epi16(_mm_add_epi16(l0, rx0), bias), rgbShift);
+			__m128i g0 = _mm_srai_epi16(_mm_add_epi16(_mm_sub_epi16(_mm_sub_epi16(l0, gx0), gy0), bias), rgbShift);
+			__m128i b0 = _mm_srai_epi16(_mm_add_epi16(_mm_add_epi16(l0, bx0), bias), rgbShift);
+			__m128i r1 = _mm_srai_epi16(_mm_add_epi16(_mm_add_epi16(l1, rx1), bias), rgbShift);
+			__m128i g1 = _mm_srai_epi16(_mm_add_epi16(_mm_sub_epi16(_mm_sub_epi16(l1, gx1), gy1), bias), rgbShift);
+			__m128i b1 = _mm_srai_epi16(_mm_add_epi16(_mm_add_epi16(l1, bx1), bias), rgbShift);
 
-			__m128i r0 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y0, rx0), bias), fixTransformShift);
-			__m128i g0 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y0, gx0), gy0), bias), fixTransformShift);
-			__m128i b0 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y0, bx0), bias), fixTransformShift);
-			__m128i r1 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y1, rx1), bias), fixTransformShift);
-			__m128i g1 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y1, gx1), gy1), bias), fixTransformShift);
-			__m128i b1 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y1, bx1), bias), fixTransformShift);
-			__m128i r2 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y2, rx2), bias), fixTransformShift);
-			__m128i g2 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y2, gx2), gy2), bias), fixTransformShift);
-			__m128i b2 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y2, bx2), bias), fixTransformShift);
-			__m128i r3 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y3, rx3), bias), fixTransformShift);
-			__m128i g3 = _mm_srai_epi32(_mm_add_epi32(_mm_sub_epi32(_mm_sub_epi32(y3, gx3), gy3), bias), fixTransformShift);
-			__m128i b3 = _mm_srai_epi32(_mm_add_epi32(_mm_add_epi32(y3, bx3), bias), fixTransformShift);
+			__m128i m6 = _mm_packus_epi16(g0, b0);      //g0, g1, g2, g3, g4, [g5, g6, g7], b0, b1, b2, b3, b4, [b5, b6, b7]
+			__m128i m7 = _mm_packus_epi16(r0, b1);      //[r0, r1, r2, r3, r4, r5], r6, r7, b8, b9, [bA, bB, bC, bD, bE, bF]
+			__m128i m8 = _mm_packus_epi16(r1, g1);      //[r8, r9, rA], rB, rC, rD, rE, rF, [g8, g9, gA], gB, gC, gD, gE, gF
 
-			__m128i m0 = _mm_packus_epi32(r0, g0);      //r0, r1, r2, r3, g0, g1, g2, g3
-			__m128i m1 = _mm_packus_epi32(b0, r1);
-			__m128i m2 = _mm_packus_epi32(g1, b1);
-			__m128i m3 = _mm_packus_epi32(r2, g2);
-			__m128i m4 = _mm_packus_epi32(b2, r3);
-			__m128i m5 = _mm_packus_epi32(g3, b3);
+			__m128i n0 = _mm_shuffle_epi8(m6, shuf0);   //[g5, g6, g7, b5, b6, b7], g0, g1, g2, g3, g4, b0, b1, b2, b3, b4
+			__m128i n1 = _mm_shuffle_epi8(m8, shuf1);   //rB, rC, rD, rE, rF, gB, gC, gD, gE, gF, [r8, r9, rA, g8, g9, gA]
 
-			__m128i m6 = _mm_packus_epi16(m0, m1);      //r0, r1, r2, r3, g0, g1, g2, g3, b0, b1, b2, b3, r4, r5, [r6, r7]
-			__m128i m7 = _mm_packus_epi16(m2, m3);      //[g4], g5, g6, g7, [b4], b5, b6, b7, r8, r9, rA, [rB], g8, g9, gA, [gB]
-			__m128i m8 = _mm_packus_epi16(m4, m5);      //[b8, b9], bA, bB, rC, rD, rE, rF, gC, gD, gE, gF, bC, bD, bE, bF
+			__m128i n2 = _mm_blend_epi16(n0, m7, 0x07);                             //r0, r1, r2, r3, r4, r5, g0, g1, g2, g3, g4, b0, b1, b2, b3, b4
+			__m128i n3 = _mm_blend_epi16(_mm_blend_epi16(m7, n0, 0x07), n1, 0xE0);  //g5, g6, g7, b5, b6, b7, r6, r7, b8, b9, r8, r9, rA, g8, g9, gA
+			__m128i n4 = _mm_blend_epi16(n1, m7, 0xE0);                             //rB, rC, rD, rE, rF, gB, gC, gD, gE, gF, bA, bB, bC, bD, bE, bF
 
-			__m128i n0 = _mm_shuffle_epi8(m7, shuf0);                               //rB, gB, g5, g6, g7, b5, b6, b7, r8, r9, rA, g8, g9, gA, g4, b4
-
-			__m128i n1 = _mm_blend_epi16(m6, n0, 0x80);                             //r0, r1, r2, r3, g0, g1, g2, g3, b0, b1, b2, b3, r4, r5, g4, b4
-			__m128i n2 = _mm_blend_epi16(_mm_blend_epi16(n0, m6, 0x80), m8, 0x01);  //b8, b9, g5, g6, g7, b5, b6, b7, r8, r9, rA, g8, g9, gA, r6, r7
-			__m128i n3 = _mm_blend_epi16(m8, n0, 0x01);                             //rB, gB, bA, bB, rC, rD, rE, rF, gC, gD, gE, gF, bC, bD, bE, bF
-
-			__m128i c0 = _mm_shuffle_epi8(n1, shuf1);   //r0, g0, b0, r1, g1, b1, r2, g2, b2, r3, g3, b3, r4, g4, b4, r5
-			__m128i c1 = _mm_shuffle_epi8(n2, shuf2);   //g5, b5, r6, g6, b6, r7, g7, b7, r8, g8, b8, r9, g9, b9, rA, gA
-			__m128i c2 = _mm_shuffle_epi8(n3, shuf3);   //bA, rB, gB, bB, rC, gC, bC, rD, gD, bD, rE, gE, bE, rF, gF, bF
+			__m128i c0 = _mm_shuffle_epi8(n2, shuf2);   //r0, g0, b0, r1, g1, b1, r2, g2, b2, r3, g3, b3, r4, g4, b4, r5
+			__m128i c1 = _mm_shuffle_epi8(n3, shuf3);   //g5, b5, r6, g6, b6, r7, g7, b7, r8, g8, b8, r9, g9, b9, rA, gA
+			__m128i c2 = _mm_shuffle_epi8(n4, shuf4);   //bA, rB, gB, bB, rC, gC, bC, rD, gD, bD, rE, gE, bE, rF, gF, bF
 
 			_mm_storeu_si128(targetVecData + 0, c0);
 			_mm_storeu_si128(targetVecData + 1, c1);
@@ -1772,9 +1809,9 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 			i32 cb = *imgData[1] - (128 << fixTransformShift);
 			i32 cr = *imgData[2] - (128 << fixTransformShift);
 
-			i32 r = y + ((cr * 22970) >> 14);
-			i32 g = y - ((cb * 5638) >> 14) - ((cr * 11700) >> 14);
-			i32 b = y + ((cb * 29032) >> 14);
+			i32 r = y + ((cr * ycbcrFactors[0]) >> ycbcrShift);
+			i32 g = y - ((cb * ycbcrFactors[1]) >> ycbcrShift) - ((cr * ycbcrFactors[2]) >> ycbcrShift);
+			i32 b = y + ((cb * ycbcrFactors[3]) >> ycbcrShift);
 
 			u8 rb = Math::clamp((r + colorBias) >> fixTransformShift, 0, 255);
 			u8 gb = Math::clamp((g + colorBias) >> fixTransformShift, 0, 255);
@@ -1815,9 +1852,9 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 				i32 cb = imgData[1][chromaOffset] - (128 << fixTransformShift);
 				i32 cr = imgData[2][chromaOffset] - (128 << fixTransformShift);
 
-				i32 r = y + ((cr * 22970) >> 14);
-				i32 g = y - ((cb * 5638) >> 14) - ((cr * 11700) >> 14);
-				i32 b = y + ((cb * 29032) >> 14);
+				i32 r = y + ((cr * ycbcrFactors[0]) >> ycbcrShift);
+				i32 g = y - ((cb * ycbcrFactors[1]) >> ycbcrShift) - ((cr * ycbcrFactors[2]) >> ycbcrShift);
+				i32 b = y + ((cb * ycbcrFactors[3]) >> ycbcrShift);
 
 				target.setPixel(j, i, PixelRGB8(Math::clamp((r + colorBias) >> fixTransformShift, 0, 255), Math::clamp((g + colorBias) >> fixTransformShift, 0, 255), Math::clamp((b + colorBias) >> fixTransformShift, 0, 255)));
 
@@ -1884,8 +1921,6 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 
 	}
 
-	ARC_PROFILE_STOP(Blend)
-
 }
 
 
@@ -1916,17 +1951,19 @@ void JPEGDecoder::DecodingBuffer::reset() {
 
 	data = 0;
 	size = 0;
-	empty = false;
+	end = false;
 
 }
 
 
 
-void JPEGDecoder::DecodingBuffer::saturate(u32 reqSize) {
+void JPEGDecoder::DecodingBuffer::saturate() {
 
 	arc_assert(reqSize <= 24, "Attempted to over-saturate decoding buffer");
 
-	while (size < reqSize) {
+	u32 count = (32 - size) / 8;
+
+	for (u32 i = 0; i < count; i++) {
 
 		if (sink.remainingSize()) {
 
@@ -1942,17 +1979,21 @@ void JPEGDecoder::DecodingBuffer::saturate(u32 reqSize) {
 
 					//Marker found, must be restart interval
 					//TODO
+					sink.seek(-2);
+					end = true;
+
+					return;
 
 				}
 
 			}
 
-			data |= Bits::reverse(byte) << size;
+			data |= byte << (32 - size - 8);
 			size += 8;
 
 		} else {
 
-			empty = true;
+			end = true;
 			return;
 
 		}
@@ -1965,11 +2006,13 @@ void JPEGDecoder::DecodingBuffer::saturate(u32 reqSize) {
 
 u32 JPEGDecoder::DecodingBuffer::read(u32 count) {
 
+	arc_assert(count <= 24, "Attempted to read more than 24 bits from buffer");
+
 	if (count > size) {
-		saturate(count);
+		saturate();
 	}
 
-	return Bits::mask(data, 0, count);
+	return data >> (32 - count);
 
 }
 
@@ -1978,6 +2021,6 @@ u32 JPEGDecoder::DecodingBuffer::read(u32 count) {
 void JPEGDecoder::DecodingBuffer::consume(u32 count) {
 
 	size -= i32(count);
-	data >>= count;
+	data <<= count;
 
 }
