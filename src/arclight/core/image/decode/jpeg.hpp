@@ -94,19 +94,51 @@ namespace JPEG {
 	constexpr u8 jfifString[5] = {0x4A, 0x46, 0x49, 0x46, 0x00};
 	constexpr u8 jfxxString[5] = {0x4A, 0x46, 0x58, 0x58, 0x00};
 
-	using QuantizationTable = std::array<i32, 64>;
+
+	struct QuantizationTable {
+
+		std::array<i32, 64> data;
+		bool hasData;
+
+		QuantizationTable() { reset(); }
+
+		constexpr bool empty() const noexcept {
+			return !hasData;
+		}
+
+		void reset() {
+
+			std::fill(data.begin(), data.end(), 0);
+			hasData = false;
+
+		}
+
+	};
+
 
 	using HuffmanResult = std::pair<u8, u8>;
 
 	struct HuffmanTable {
 
-		u32 maxLength = 0;
-		std::array<HuffmanResult, 256> fastTable {};
-		std::vector<std::vector<HuffmanResult>> extTables;
+		constexpr static HuffmanResult defaultHuffmanResult = {0xC, 0x1};
+
+		HuffmanTable() { reset(); }
 
 		constexpr bool empty() const noexcept {
 			return !maxLength;
 		}
+
+		void reset() {
+
+			maxLength = 0;
+			std::fill(fastTable.begin(), fastTable.end(), defaultHuffmanResult);
+			extTables.clear();
+
+		}
+
+		u32 maxLength;
+		std::array<HuffmanResult, 256> fastTable;
+		std::vector<std::vector<HuffmanResult>> extTables;
 
 	};
 

@@ -7,10 +7,11 @@
  */
 
 #include "jpegdecoder.hpp"
-#include "time/profiler.hpp"
-#include "util/bool.hpp"
 #include "arcintrinsic.hpp"
 #include "debug.hpp"
+#include "time/profiler.hpp"
+#include "util/bool.hpp"
+#include "util/assert.hpp"
 
 #include <map>
 
@@ -198,6 +199,7 @@ void JPEGDecoder::decode(std::span<const u8> data) {
 			case Markers::SOS:
 				{
 					parseScanHeader();
+					resolveTargetFormat();
 					decodeScan();
 				}
 				break;
@@ -221,18 +223,6 @@ void JPEGDecoder::decode(std::span<const u8> data) {
 
 
 	validDecode = true;
-
-}
-
-
-
-RawImage& JPEGDecoder::getImage() {
-
-	if (!validDecode) {
-		throw ImageDecoderException("Bad image decode");
-	}
-
-	return image;
 
 }
 
@@ -438,7 +428,13 @@ void JPEGDecoder::parseHuffmanTable() {
 		}
 
 		bool dc = type == 0;
+
 		HuffmanTable& table = dc ? dcHuffmanTables[id] : acHuffmanTables[id];
+
+		if (!table.empty()) {
+			table.reset();
+		}
+
 		table.maxLength = highestLength;
 
 		std::vector<u8> symbols(totalCodeCount);
@@ -461,11 +457,10 @@ void JPEGDecoder::parseHuffmanTable() {
 
 		}
 
-		std::fill(table.fastTable.begin(), table.fastTable.end(), HuffmanResult {0xC, 0x1});
-
 		u32 index = 0;
 		u32 code = 0;
 		u32 extLength = highestLength - 8;
+		bool extGenerated = false;
 
 		std::map<u8, u8> extMap;
 
@@ -487,12 +482,12 @@ void JPEGDecoder::parseHuffmanTable() {
 
 				} else {
 
-					if (i == 8) {
+					if (!extGenerated) {
 
 						//Initialize EHTs
 						for (u32 k = 0; k < table.fastTable.size(); k++) {
 
-							if (table.fastTable[k].first == 0xC) {
+							if (table.fastTable[k].first == HuffmanTable::defaultHuffmanResult.first) {
 
 								u8 tableIndex = table.extTables.size();
 
@@ -503,6 +498,8 @@ void JPEGDecoder::parseHuffmanTable() {
 							}
 
 						}
+
+						extGenerated = true;
 
 					}
 
@@ -571,10 +568,12 @@ void JPEGDecoder::parseQuantizationTable() {
 		auto loadQTable = [this](u32 tableID, auto size) {
 
 			using T = decltype(size);
+
 			QuantizationTable& table = quantizationTables[tableID];
+			table.hasData = true;
 
 			for (u32 i = 0; i < 64; i++) {
-				table[i] = static_cast<i32>(reader.read<T>()) * scaleFactors[dezigzagTable[i]];
+				table.data[i] = static_cast<i32>(reader.read<T>()) * scaleFactors[dezigzagTable[i]];
 			}
 
 		};
@@ -762,7 +761,7 @@ void JPEGDecoder::parseScanHeader() {
 			throw ImageDecoderException("[SOS] Illegal AC table ID");
 		}
 
-		if (dcHuffmanTables[dcTableID].empty() || acHuffmanTables[acTableID].empty()) {
+		if (frame.type != FrameType::Progressive && (dcHuffmanTables[dcTableID].empty() || acHuffmanTables[acTableID].empty())) {
 			throw ImageDecoderException("[SOS] Huffman table not installed");
 		}
 
@@ -803,6 +802,28 @@ void JPEGDecoder::parseScanHeader() {
 				throw ImageDecoderException("[SOS] Bad scan settings");
 			}
 
+			if (scan.spectralStart != 0 && components > 1) {
+				throw ImageDecoderException("[SOS] Progressive AC scan can only cover one component at a time");
+			}
+
+			if (scan.spectralStart == 0) {
+
+				for (const ImageComponent& component : scan.imageComponents) {
+
+					if (component.dcTable.empty()) {
+						throw ImageDecoderException("[SOS] Progressive DC huffman table is empty");
+					}
+
+				}
+
+			} else {
+
+				if (scan.imageComponents[0].acTable.empty()) {
+					throw ImageDecoderException("[SOS] Progressive AC huffman table is empty");
+				}
+
+			}
+
 			break;
 
 		case FrameType::Lossless:
@@ -819,11 +840,58 @@ void JPEGDecoder::parseScanHeader() {
 
 
 
+void JPEGDecoder::resolveTargetFormat() {
+
+	//TODO: Finish this list
+	if (autoDetectFormat()) {
+
+		switch (scan.imageComponents.size()) {
+
+			case 1:
+				baseFormat = Pixel::Grayscale8;
+				break;
+
+			case 3:
+				baseFormat = Pixel::RGB8;
+				break;
+
+			default:
+				ArcDebug() << "Unknown format";
+				break;
+
+		}
+
+	} else {
+
+		Pixel format = requestedFormat.value();
+
+		switch (scan.imageComponents.size()) {
+
+			case 1:
+				baseFormat = Pixel::Grayscale8;
+				break;
+
+			case 3:
+				baseFormat = Pixel::RGB8;
+				break;
+
+			default:
+				ArcDebug() << "Unknown format";
+				break;
+
+		}
+
+	}
+
+}
+
+
+
 void JPEGDecoder::decodeScan() {
 
 	//Start scan decoding
-	if (frame.type != FrameType::Baseline) {
-		Log::error("JPEG Decoder", "Decoder can only decode baseline JPEG");
+	if (frame.type == FrameType::Lossless) {
+		Log::error("JPEG Decoder", "Cannot decode lossless JPEG");
 		return;
 	}
 
@@ -868,15 +936,11 @@ void JPEGDecoder::decodeScan() {
 
 	} else {
 
-		ARC_PROFILE_START(Decode)
 		decodeImage();
-		ARC_PROFILE_STOP(Decode)
 
 	}
 
-	ARC_PROFILE_START(Blend)
 	blendAndUpsample();
-	ARC_PROFILE_STOP(Blend)
 
 }
 
@@ -1025,7 +1089,7 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 
 		i32 dc = component.prediction + difference;
 		component.prediction = dc;
-		block[0] = dc * component.qTable[0];
+		block[0] = dc * component.qTable.data[0];
 	}
 
 	//AC
@@ -1095,7 +1159,7 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 			}
 
 			u32 dezigzagIndex = dezigzagTableTransposed[coefficient];
-			block[dezigzagIndex] = ac * component.qTable[coefficient];
+			block[dezigzagIndex] = ac * component.qTable.data[coefficient];
 
 			coefficient++;
 
@@ -1975,8 +2039,6 @@ void JPEGDecoder::DecodingBuffer::reset() {
 
 void JPEGDecoder::DecodingBuffer::saturate() {
 
-	arc_assert(reqSize <= 24, "Attempted to over-saturate decoding buffer");
-
 	u32 count = (32 - size) / 8;
 
 	for (u32 i = 0; i < count; i++) {
@@ -1985,7 +2047,8 @@ void JPEGDecoder::DecodingBuffer::saturate() {
 
 			u8 byte = sink.read<u8>();
 
-			//Check for escape sequence
+			//Skip trailing 'escape zero'
+			//Safe because the pre-scan stopped at the first non-zero FF-sequence
 			if (byte == 0xFF) {
 
 				u8 nextByte = sink.read<u8>();

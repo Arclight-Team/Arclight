@@ -17,18 +17,11 @@
 #include "time/profiler.hpp"
 
 
-
 class JPEGDecoder : public IImageDecoder {
 
 public:
 
-	explicit JPEGDecoder(std::optional<Pixel> reqFormat) : IImageDecoder(reqFormat), validDecode(false), restartEnabled(false), decodingBuffer(reader), restartInterval(0) {
-
-		for (u32 i = 0; i < 4; i++) {
-			std::fill(quantizationTables[i].begin(), quantizationTables[i].end(), 1);
-		}
-
-	}
+	explicit JPEGDecoder(std::optional<Pixel> reqFormat) : IImageDecoder(reqFormat), validDecode(false), restartEnabled(false), decodingBuffer(reader), restartInterval(0) {}
 
 	void decode(std::span<const u8> data);
 	RawImage& getImage();
@@ -60,6 +53,8 @@ private:
 	void parseFrameHeader();
 	void parseScanHeader();
 
+	void resolveTargetFormat();
+
 	void decodeScan();
 	void decodeImage();
 	void decodeBlock(JPEG::ImageComponent& component);
@@ -72,6 +67,8 @@ private:
 	void blendAndUpsampleYCbCr();
 
 	u16 verifySegmentLength();
+
+	Pixel baseFormat;
 
 	JPEG::Scan scan;
 	JPEG::Frame frame;
