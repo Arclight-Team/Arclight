@@ -221,6 +221,7 @@ void JPEGDecoder::decode(std::span<const u8> data) {
 
 	}
 
+	blendAndUpsample();
 
 	validDecode = true;
 
@@ -703,10 +704,10 @@ void JPEGDecoder::parseFrameHeader() {
 		FrameComponent component(s >> 4, s & 0xF, q);
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", "[SOF] Component: %d, SX: %d, SY: %d, QTableIndex: %d", id, component.sx, component.sy, q);
+		Log::info("JPEG Loader", "[SOF] Component: %d, SX: %d, SY: %d, QTableIndex: %d", id, component.samplesX, component.samplesY, q);
 #endif
 
-		if (!Math::inRange(component.sx, 1, 4) || !Math::inRange(component.sy, 1, 4) || q > 3 || (frame.type == FrameType::Lossless && q != 0)) {
+		if (!Math::inRange(component.samplesX, 1, 4) || !Math::inRange(component.samplesY, 1, 4) || q > 3 || (frame.type == FrameType::Lossless && q != 0)) {
 			throw ImageDecoderException("[SOF] Bad component data");
 		}
 
@@ -716,6 +717,12 @@ void JPEGDecoder::parseFrameHeader() {
 
 		frame.components.emplace(id, component);
 
+	}
+
+	//Frame type capability check (TODO: Remove after lossless is implemented)
+	if (frame.type == FrameType::Lossless) {
+		Log::error("JPEG Decoder", "Cannot decode lossless JPEG");
+		return;
 	}
 
 }
@@ -762,8 +769,8 @@ void JPEGDecoder::parseScanHeader() {
 
 		FrameComponent& frameComponent = frame.components[componentID];
 
-		scan.maxSamplesX = Math::max(scan.maxSamplesX, frameComponent.sx);
-		scan.maxSamplesY = Math::max(scan.maxSamplesY, frameComponent.sy);
+		scan.maxSamplesX = Math::max(scan.maxSamplesX, frameComponent.samplesX);
+		scan.maxSamplesY = Math::max(scan.maxSamplesY, frameComponent.samplesY);
 
 		if (dcTableID > 3 || (frame.type == FrameType::Baseline && dcTableID > 1)) {
 			throw ImageDecoderException("[SOS] Illegal DC table ID");
@@ -781,7 +788,7 @@ void JPEGDecoder::parseScanHeader() {
 			throw ImageDecoderException("[SOS] Quantization table not installed");
 		}
 
-		scan.imageComponents.emplace_back(dcHuffmanTables[dcTableID], acHuffmanTables[acTableID], quantizationTables[frameComponent.qID], frameComponent.sx, frameComponent.sy);
+		scan.scanComponents.emplace_back(dcHuffmanTables[dcTableID], acHuffmanTables[acTableID], quantizationTables[frameComponent.qID], frameComponent);
 
 	}
 
@@ -820,7 +827,7 @@ void JPEGDecoder::parseScanHeader() {
 
 			if (scan.spectralStart == 0) {
 
-				for (const ImageComponent& component : scan.imageComponents) {
+				for (const ScanComponent& component : scan.scanComponents) {
 
 					if (component.dcTable.empty()) {
 						throw ImageDecoderException("[SOS] Progressive DC huffman table is empty");
@@ -830,7 +837,7 @@ void JPEGDecoder::parseScanHeader() {
 
 			} else {
 
-				if (scan.imageComponents[0].acTable.empty()) {
+				if (scan.scanComponents[0].acTable.empty()) {
 					throw ImageDecoderException("[SOS] Progressive AC huffman table is empty");
 				}
 
@@ -848,6 +855,44 @@ void JPEGDecoder::parseScanHeader() {
 
 	}
 
+	bool calcMCUs = true;
+	scan.mcuDataUnits = 0;
+
+	//Setup component data
+	for (ScanComponent& scanComponent : scan.scanComponents) {
+
+		FrameComponent& frameComponent = scanComponent.frameComponent;
+
+		frameComponent.width = (frame.samples * frameComponent.samplesX + scan.maxSamplesX - 1) / scan.maxSamplesX;
+		frameComponent.height = (frame.lines * frameComponent.samplesY + scan.maxSamplesY - 1) / scan.maxSamplesY;
+
+		u32 multipleX = frameComponent.samplesX * 8;
+		u32 multipleY = frameComponent.samplesY * 8;
+		u32 blocksPerMCU = frameComponent.samplesX * frameComponent.samplesY;
+
+		scan.mcuDataUnits += blocksPerMCU;
+
+		if (calcMCUs) {
+
+			scan.mcusX = (frameComponent.width + multipleX - 1) / multipleX;
+			scan.mcusY = (frameComponent.height + multipleY - 1) / multipleY;
+			scan.totalMCUs = scan.mcusX * scan.mcusY;
+			calcMCUs = false;
+
+		}
+
+		if (frame.type == FrameType::Progressive) {
+			frameComponent.progressiveBuffer.resize(scan.mcusX * scan.mcusY * 64);
+		}
+
+		frameComponent.imageData.resize(frameComponent.width * frameComponent.height);
+
+	}
+
+	if (scan.mcuDataUnits > 10) {
+		throw ImageDecoderException("Too many data units in MCU");
+	}
+
 }
 
 
@@ -857,7 +902,7 @@ void JPEGDecoder::resolveTargetFormat() {
 	//TODO: Finish this list
 	if (autoDetectFormat()) {
 
-		switch (scan.imageComponents.size()) {
+		switch (scan.scanComponents.size()) {
 
 			case 1:
 				baseFormat = Pixel::Grayscale8;
@@ -877,7 +922,7 @@ void JPEGDecoder::resolveTargetFormat() {
 
 		Pixel format = requestedFormat.value();
 
-		switch (scan.imageComponents.size()) {
+		switch (scan.scanComponents.size()) {
 
 			case 1:
 				baseFormat = Pixel::Grayscale8;
@@ -901,47 +946,11 @@ void JPEGDecoder::resolveTargetFormat() {
 
 void JPEGDecoder::decodeScan() {
 
-	//Start scan decoding
-	if (frame.type == FrameType::Lossless) {
-		Log::error("JPEG Decoder", "Cannot decode lossless JPEG");
-		return;
-	}
-
 	if (!reader.size()) {
 		throw ImageDecoderException("Scan empty");
 	}
 
-	scan.mcuDataUnits = 0;
-	scan.totalMCUs = 0;
-
-	//Setup component data
-	for (ImageComponent& component : scan.imageComponents) {
-
-		component.width = (frame.samples * component.samplesX + scan.maxSamplesX - 1) / scan.maxSamplesX;
-		component.height = (frame.lines * component.samplesY + scan.maxSamplesY - 1) / scan.maxSamplesY;
-
-		u32 multipleX = component.samplesX * 8;
-		u32 multipleY = component.samplesY * 8;
-		u32 blocksPerMCU = component.samplesX * component.samplesY;
-
-		scan.mcuDataUnits += blocksPerMCU;
-
-		if (!scan.totalMCUs) {
-
-			scan.mcusX = (component.width + multipleX - 1) / multipleX;
-			scan.mcusY = (component.height + multipleY - 1) / multipleY;
-			scan.totalMCUs = scan.mcusX * scan.mcusY;
-
-		}
-
-		component.imageData.resize(component.width * component.height);
-
-	}
-
-	if (scan.mcuDataUnits > 10) {
-		throw ImageDecoderException("Too many data units in MCU");
-	}
-
+	//Start scan decoding
 	if (restartEnabled) {
 
 		ArcDebug() << "Restart enabled";
@@ -952,39 +961,20 @@ void JPEGDecoder::decodeScan() {
 
 	}
 
-	blendAndUpsample();
-
 }
 
 
 
 void JPEGDecoder::decodeImage() {
 
-	alignas(32) i32 block[64];
+	auto doDecode = [this]<bool Progressive, bool Interleave>() {
 
-	//Reset prediction and block buffer
-	for (ImageComponent& component : scan.imageComponents) {
+		SizeT mcuX = 0;
+		SizeT mcuY = 0;
 
-		component.prediction = 0;
-		component.block = block;
+		auto innerDecode = [&](ScanComponent& scanComponent) {
 
-	}
-
-	decodingBuffer.reset();
-
-	SizeT mcuX = 0;
-	SizeT mcuY = 0;
-
-	for (u32 currentMCU = 0; currentMCU < scan.totalMCUs; currentMCU++, mcuX++) {
-
-		if (mcuX >= scan.mcusX) {
-
-			mcuX = 0;
-			mcuY++;
-
-		}
-
-		for (ImageComponent& component : scan.imageComponents) {
+			FrameComponent& component = scanComponent.frameComponent;
 
 			SizeT mcuBaseX = mcuX * component.samplesX * 8;
 			SizeT mcuBaseY = mcuY * component.samplesY * 8;
@@ -1006,8 +996,8 @@ void JPEGDecoder::decodeImage() {
 							w = component.width - baseX;
 						}
 
-						decodeBlock(component);
-						applyPartialIDCT(component, baseY * component.width + baseX, w, h);
+						decodeBlock(scanComponent);
+						applyPartialIDCT(scanComponent, baseY * component.width + baseX, w, h);
 
 					}
 
@@ -1017,12 +1007,12 @@ void JPEGDecoder::decodeImage() {
 
 						SizeT baseX = mcuBaseX + sx * 8;
 
-						decodeBlock(component);
+						decodeBlock(scanComponent);
 
 						if (baseX + 8 > component.width) {
-							applyPartialIDCT(component, baseY * component.width + baseX, component.width - baseX, 8);
+							applyPartialIDCT(scanComponent, baseY * component.width + baseX, component.width - baseX, 8);
 						} else {
-							applyIDCT(component, baseY * component.width + baseX);
+							applyIDCT(scanComponent, baseY * component.width + baseX);
 						}
 
 					}
@@ -1031,15 +1021,83 @@ void JPEGDecoder::decodeImage() {
 
 			}
 
+		};
+
+		for (u32 currentMCU = 0; currentMCU < scan.totalMCUs; currentMCU++, mcuX++) {
+
+			if (mcuX >= scan.mcusX) {
+
+				mcuX = 0;
+				mcuY++;
+
+			}
+
+			if constexpr (Interleave) {
+
+				for (ScanComponent& scanComponent : scan.scanComponents) {
+					innerDecode(scanComponent);
+				}
+
+			} else {
+
+				innerDecode(scan.scanComponents[0]);
+
+			}
+
+		}
+
+	};
+
+	decodingBuffer.reset();
+
+	if (frame.type == FrameType::Baseline || frame.type == FrameType::ExtendedSequential) {
+
+		alignas(32) i32 block[64];
+
+		//Reset prediction and block buffer
+		for (ScanComponent& component : scan.scanComponents) {
+
+			component.prediction = 0;
+			component.block = block;
+
+		}
+
+		if (scan.scanComponents.size() > 1) {
+			doDecode.template operator()<false, true>();
+		} else {
+			doDecode.template operator()<false, false>();
+		}
+
+	} else if (frame.type == FrameType::Progressive) {
+
+		bool dcProgression = scan.spectralStart == 0;
+
+		//Reset prediction
+		for (ScanComponent& component : scan.scanComponents) {
+
+			FrameComponent& frameComponent = component.frameComponent;
+
+			if (dcProgression && frameComponent.progression != 0) {
+				throw ImageDecoderException("DC progression after AC progression");
+			}
+
+			component.prediction = 0;
+
+		}
+
+		if (scan.scanComponents.size() > 1) {
+			doDecode.template operator()<true, true>();
+		} else {
+			doDecode.template operator()<true, false>();
 		}
 
 	}
 
-}
+};
 
 
 
-void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
+void JPEGDecoder::decodeBlock(JPEG::ScanComponent& component) {
 
 	i32* block = std::assume_aligned<32>(component.block);
 
@@ -1183,6 +1241,12 @@ void JPEGDecoder::decodeBlock(JPEG::ImageComponent& component) {
 
 
 
+void JPEGDecoder::decodeProgressiveDCBlock(JPEG::ScanComponent& component) {
+
+}
+
+
+
 template<bool Full>
 constexpr static void scalarIDCT(const i32* inData, i16* outData, SizeT outStride, u32 width, u32 height) {
 
@@ -1300,10 +1364,10 @@ constexpr static void scalarIDCT(const i32* inData, i16* outData, SizeT outStrid
 
 
 
-void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT imageBase) {
+void JPEGDecoder::applyIDCT(JPEG::ScanComponent& component, SizeT imageBase) {
 
 	const i32* inData = component.block;            //Aligned to 32 bytes
-	i16* outData = &component.imageData[imageBase];
+	i16* outData = &component.frameComponent.imageData[imageBase];
 
 #ifdef ARC_VECTORIZE_X86_AVX2
 
@@ -1321,7 +1385,7 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT imageBase) {
 	__int64* outVec[8];
 
 	for (u32 i = 0; i < 8; i++) {
-		outVec[i] = reinterpret_cast<__int64*>(outData + component.width * i - (i & 1) * 8);
+		outVec[i] = reinterpret_cast<__int64*>(outData + component.frameComponent.width * i - (i & 1) * 8);
 	}
 
 	/*
@@ -1687,15 +1751,15 @@ void JPEGDecoder::applyIDCT(JPEG::ImageComponent& component, SizeT imageBase) {
 
 
 
-void JPEGDecoder::applyPartialIDCT(JPEG::ImageComponent& component, SizeT imageBase, u32 width, u32 height) {
-	scalarIDCT<false>(component.block, &component.imageData[imageBase], component.width, width, height);
+void JPEGDecoder::applyPartialIDCT(JPEG::ScanComponent& component, SizeT imageBase, u32 width, u32 height) {
+	scalarIDCT<false>(component.block, &component.frameComponent.imageData[imageBase], component.frameComponent.width, width, height);
 }
 
 
 
 void JPEGDecoder::blendAndUpsample() {
 
-	switch (scan.imageComponents.size()) {
+	switch (scan.scanComponents.size()) {
 
 		case 1:
 			blendMonochrome();
@@ -1722,8 +1786,10 @@ void JPEGDecoder::blendAndUpsample() {
 
 void JPEGDecoder::blendMonochrome() {
 
-	const JPEG::ImageComponent& component = scan.imageComponents[0];
-	Image<Pixel::Grayscale8> target(component.width, component.height);
+	const JPEG::ScanComponent& component = scan.scanComponents[0];
+	const JPEG::FrameComponent& frameComponent = component.frameComponent;
+
+	Image<Pixel::Grayscale8> target(frameComponent.width, frameComponent.height);
 
 	SizeT offset = 0;
 
@@ -1734,7 +1800,7 @@ void JPEGDecoder::blendMonochrome() {
 	SizeT scalarSize = totalPixels % 16;
 
 	__m128i* targetVecData = reinterpret_cast<__m128i*>(target.getImageBuffer().data());
-	const __m128i* vecData = reinterpret_cast<const __m128i*>(component.imageData.data());
+	const __m128i* vecData = reinterpret_cast<const __m128i*>(frameComponent.imageData.data());
 
 	__m128i bias = _mm_set1_epi16(colorBias);
 
@@ -1795,12 +1861,14 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 
 	auto exec = [this]<Subsampling S>() {
 
-		const JPEG::ImageComponent& component = scan.imageComponents[0];
-		Image<Pixel::RGB8> target(component.width, component.height);
+		const JPEG::ScanComponent& component = scan.scanComponents[0];
+		const JPEG::FrameComponent& frameComponent = component.frameComponent;
 
-		const i16* imgData[3] = {scan.imageComponents[0].imageData.data(),
-								 scan.imageComponents[1].imageData.data(),
-								 scan.imageComponents[2].imageData.data()};
+		Image<Pixel::RGB8> target(frameComponent.width, frameComponent.height);
+
+		const i16* imgData[3] = {scan.scanComponents[0].frameComponent.imageData.data(),
+								 scan.scanComponents[1].frameComponent.imageData.data(),
+								 scan.scanComponents[2].frameComponent.imageData.data()};
 
 	#ifdef ARC_VECTORIZE_X86_SSE4_1
 
@@ -1972,12 +2040,12 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 
 	};
 
-	u32 ySamplesX = scan.imageComponents[0].samplesX;
-	u32 ySamplesY = scan.imageComponents[0].samplesY;
-	u32 cbSamplesX = scan.imageComponents[1].samplesX;
-	u32 cbSamplesY = scan.imageComponents[1].samplesY;
-	u32 crSamplesX = scan.imageComponents[2].samplesX;
-	u32 crSamplesY = scan.imageComponents[2].samplesY;
+	u32 ySamplesX = scan.scanComponents[0].frameComponent.samplesX;
+	u32 ySamplesY = scan.scanComponents[0].frameComponent.samplesY;
+	u32 cbSamplesX = scan.scanComponents[1].frameComponent.samplesX;
+	u32 cbSamplesY = scan.scanComponents[1].frameComponent.samplesY;
+	u32 crSamplesX = scan.scanComponents[2].frameComponent.samplesX;
+	u32 crSamplesY = scan.scanComponents[2].frameComponent.samplesY;
 
 	u32 yArea = ySamplesX * ySamplesY;
 	u32 cbArea = cbSamplesX * cbSamplesY;

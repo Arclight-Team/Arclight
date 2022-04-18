@@ -145,9 +145,17 @@ namespace JPEG {
 	struct FrameComponent {
 
 		constexpr FrameComponent() noexcept : FrameComponent(0, 0, 0) {}
-		constexpr FrameComponent(u8 sx, u8 sy, u8 q) noexcept : sx(sx), sy(sy), qID(q) {}
+		constexpr FrameComponent(u32 sx, u32 sy, u32 qTableID) noexcept : samplesX(sx), samplesY(sy), qID(qTableID), width(0), height(0), progression(0) {}
 
-		u8 sx, sy, qID;
+		u32 samplesX, samplesY;
+		u32 qID;
+
+		u32 width, height;
+
+		u32 progression;
+		std::vector<i32> progressiveBuffer;
+		std::vector<i16> imageData;
+
 
 	};
 
@@ -167,21 +175,18 @@ namespace JPEG {
 
 	};
 
-	struct ImageComponent {
+	struct ScanComponent {
 
-		constexpr ImageComponent(HuffmanTable& dct, HuffmanTable& act, QuantizationTable& qt, u32 sx, u32 sy)
-			: dcTable(dct), acTable(act), qTable(qt), samplesX(sx), samplesY(sy), prediction(0), width(0), height(0), block(nullptr) {}
+		constexpr ScanComponent(HuffmanTable& dct, HuffmanTable& act, QuantizationTable& qt, FrameComponent& component)
+			: dcTable(dct), acTable(act), qTable(qt), frameComponent(component), prediction(0), block(nullptr) {}
 
 		HuffmanTable& dcTable;
 		HuffmanTable& acTable;
 		QuantizationTable& qTable;
-
-		u32 samplesX, samplesY;
-		u32 width, height;
+		FrameComponent& frameComponent;
 
 		i32 prediction;
 		i32* block;
-		std::vector<i16> imageData;
 
 	};
 
@@ -189,7 +194,7 @@ namespace JPEG {
 
 		constexpr Scan() noexcept : spectralStart(0), spectralEnd(0), approximationHigh(0), approximationLow(0), maxSamplesX(0), maxSamplesY(0), mcuDataUnits(0), totalMCUs(0), mcusX(0), mcusY(0) {}
 
-		std::vector<ImageComponent> imageComponents;
+		std::vector<ScanComponent> scanComponents;
 		u32 spectralStart;
 		u32 spectralEnd;
 		u32 approximationHigh;
@@ -199,6 +204,12 @@ namespace JPEG {
 		u32 mcuDataUnits;
 		u32 mcusX, mcusY;
 		u32 totalMCUs;
+
+	};
+
+	struct Progression {
+
+
 
 	};
 

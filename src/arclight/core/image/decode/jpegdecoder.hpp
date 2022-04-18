@@ -57,10 +57,11 @@ private:
 
 	void decodeScan();
 	void decodeImage();
-	void decodeBlock(JPEG::ImageComponent& component);
+	void decodeBlock(JPEG::ScanComponent& component);
+	void decodeProgressiveDCBlock(JPEG::ScanComponent& component);
 
-	static void applyIDCT(JPEG::ImageComponent& component, SizeT imageBase);
-	static void applyPartialIDCT(JPEG::ImageComponent& component, SizeT imageBase, u32 width, u32 height);
+	static void applyIDCT(JPEG::ScanComponent& component, SizeT imageBase);
+	static void applyPartialIDCT(JPEG::ScanComponent& component, SizeT imageBase, u32 width, u32 height);
 
 	void blendAndUpsample();
 	void blendMonochrome();
