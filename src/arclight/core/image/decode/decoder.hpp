@@ -26,6 +26,12 @@ public:
 
 	constexpr explicit IImageDecoder(std::optional<Pixel> reqFormat) noexcept : requestedFormat(reqFormat) {}
 
+	constexpr bool autoDetectFormat() const noexcept {
+		return !requestedFormat.has_value();
+	}
+
+protected:
+
 	std::optional<Pixel> requestedFormat;
 
 };

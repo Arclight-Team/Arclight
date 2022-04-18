@@ -228,6 +228,18 @@ void JPEGDecoder::decode(std::span<const u8> data) {
 
 
 
+RawImage& JPEGDecoder::getImage() {
+
+	if (!validDecode) {
+		throw ImageDecoderException("Bad image decode");
+	}
+
+	return image;
+
+}
+
+
+
 void JPEGDecoder::parseApplicationSegment0() {
 
 	u16 length = verifySegmentLength();
