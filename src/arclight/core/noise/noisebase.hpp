@@ -151,7 +151,7 @@ private:
 
 	}
 
-	static constexpr u32 defaultSeed = 0;
+	static constexpr u32 defaultSeed = 0xA6C;
 
 	inline static const PermutationT defaultPermutation = generate(defaultSeed);
 
