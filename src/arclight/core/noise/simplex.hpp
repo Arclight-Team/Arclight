@@ -11,12 +11,9 @@
 #include "noisebase.hpp"
 
 
-class SimplexNoise : public NoiseBase<SimplexNoise> {
+class SimplexNoiseImpl : public NoiseBase {
 
 public:
-
-	using NoiseBase<SimplexNoise>::sample;
-
 
 	template<Float F, Arithmetic A>
 	F sample(F point, A frequency) const {
@@ -332,6 +329,11 @@ public:
 
 	}
 
+	template<class T, Arithmetic A, Arithmetic L, Arithmetic P> requires(Float<T> || FloatVector<T>)
+	constexpr auto sample(const T& point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
+		return fractalSample([this](T p, A f) constexpr { return sample(p, f); }, point, frequency, octaves, lacunarity, persistence);
+	}
+
 private:
 
 	template<class T, Arithmetic B> requires(Float<T> || FloatVector<T>)
@@ -361,3 +363,5 @@ private:
 	}
 
 };
+
+using SimplexNoise = SimplexNoiseImpl;

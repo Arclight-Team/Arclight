@@ -6,6 +6,7 @@
  *	 noisemix.hpp
  */
 
+#pragma once
 
 #include "noisebase.hpp"
 
@@ -159,4 +160,5 @@ public:
 private:
 
 	std::tuple<Types...> types;
+
 };

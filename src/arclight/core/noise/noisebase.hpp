@@ -16,7 +16,6 @@
 #include <array>
 
 
-template<class Derived>
 class NoiseBase {
 
 public:
@@ -33,17 +32,16 @@ public:
 		permutate(rd());
 	}
 
+protected:
 
-	template<class T, Arithmetic A, Arithmetic L, Arithmetic P> requires(Float<T> || FloatVector<T>)
-	constexpr auto sample(const T& point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
+	template<class T, Arithmetic A, Arithmetic L, Arithmetic P, Invocable<T, A> Func> requires(Float<T> || FloatVector<T>)
+	static constexpr auto fractalSample(Func func, const T& point, A frequency, u32 octaves, L lacunarity, P persistence) -> TT::CommonArithmeticType<T> {
 
 		arc_assert(octaves >= 1, "Octaves count cannot be 0");
 
 		using F = TT::CommonArithmeticType<T>;
 
-		const auto& derived = *static_cast<const Derived*>(this);
-
-		F noise = derived.sample(point, frequency);
+		F noise = func(point, frequency);
 		F scale = 1;
 		F range = 1;
 
@@ -51,14 +49,12 @@ public:
 			frequency *= lacunarity;
 			scale *= persistence;
 			range += scale;
-			noise += derived.sample(point, frequency) * scale;
+			noise += func(point, frequency) * scale;
 		}
 
 		return noise / range;
 
 	}
-
-protected:
 
 	static constexpr u32 grad1DMask = 0x1;
 	static constexpr u32 grad2DMask = 0x7;
@@ -164,4 +160,4 @@ private:
 
 
 template<class T>
-concept NoiseType = BaseOf<NoiseBase<T>, T>;
+concept NoiseType = BaseOf<NoiseBase, T>;
