@@ -30,43 +30,82 @@ The following features have been fully implemented:
 - Full window support (including Cursor + opt. Animations)
 - OpenGL 3D rendering backend GLE
 - Advanced input management
-- Image manipulation library (+ BMP loading)
-- Mathematics (Vectors, Matrices, Quaternions, Beziers, Fading and more)
-- Noise library (Perlin, Simplex and Worley up to 4D)
+- Image manipulation library, with full .bmp support, baseline JPEG
+- Mathematics (Vectors, Matrices, Quaternions, etc.)
+- Fastest C++20 Noise library for Perlin, Simplex and Worley noise up to 4D
 - Logging & Debugging
 - Timing utilities
-- Stream readers/writers
+- Byte/Bit readers/writers
 - Unicode conversion support
 - Compile-time encryption/hashing (DES, TripleDES, MD5, SHAx)
 - Additional containers/extensions to std (BitSpan, OptionalRef, improved Any)
+- Sound backend ASX
 - XML parser
 - Filesystem library
-- System classes (FileDialog, MessageBox, Notifications)
+- OS classes: FileDialog, MessageBox, Notifications, Process
 - Type traits + Concepts
 - Configuration & Platform macros
 - Optional runtime for easier setup
+- Windows manifest skeleton
 - Actor-Component-System (ACS)
 
-Following features are being worked on/are planned:
-- Unified code examples
+Following features are being worked on:
 - Spring, our 2D Sprite Engine
-- Command-line argument parser
+- Image formats: png, non-baseline JPEG, gif
 - UnicodeString
-- Compression algorithms (+ DEFLATE)
-- Encryption algorithms
+- Compression algorithms
+- Encryption algorithms such as AES and Blowfish/Twofish
 - Arclight Sound System (AS2)
-- Physics engine
-- Advanced imaging formats (GIF/PNG/JPEG)
+- Network management
 - Full font render engine with TTF/OTF support
+- Noise editor for optimized noise execution
+- SSE/AVX acceleration of vectorizable functions
+- `constexpr` Math
+
+Planned features:
+- Physics engine
 - OS information query
 - Full 3D render engine
+- Unified code examples
+- Command-line argument parser
+- Image encoding
+- Video streaming
+
+## Dependencies
+Due to our handcrafted implementations optimized for performance, there is barely any need for external libraries.
+Those that are necessary include:
+- GLFW for Window/Input and the render context
+- GLEW for OpenGL extension management
+- Bullet3 for physics
+- FMOD for AS2
+
+Only those libraries used by a module being built are required to build an application.
+All other dependencies appearing in `CMakeLists.txt` are temporary and will be removed with the first release of Arclight.
+
+## Building
+Arclight is using CMake to build all of its modules. The preliminary buildsystem requires one extra file named `arclight.modules` residing in the Arclight root directory, containing the list of modules to be built. Note that some modules need to be built together.
+
+```
+arclight.input
+arclight.window
+#... add more modules on each line
+```
+
+Libraries go into `lib/LibraryName/`. Then, simply invoke CMake to build all of the requested modules.
+
+## Release
+The first release is expected to be in 2023. Until then, there will be a consistent, intuitive and well-tested API, examples for different use cases and removal of unused dependencies.
+We also plan an easy-to-use build system though Arclight Studio, a tool to manage different aspects of application development with Arclight and C++.
+With the first release the license will be revealed as well.
+
+Arclight will move to C++23 as soon as support improves for major compilers to ensure a modern and future-proof API.
 
 ## Support
 If you want to support this project, feel free to donate as soon as donation is set up.
-If you consider joining our team, contact us through arcayn.arclight@gmail.com. 
+If you consider joining our team, contact us through arcayn.arclight@gmail.com.
 
 ## Credits
 - [Arcayn](https://github.com/Arcaynx) for the project's management
 - [Ed_IT](https://github.com/Ed-1T) for the help as the second head developer
 - [ItzTacos](https://github.com/ItzTacosOfficial) for the logo, testing the code and several additions / fixes
-- [KonPet](https://github.com/KonPet) for the great compression support + PNG management
+- [KonPet](https://github.com/KonPet) and [TheGameratorT](https://github.com/TheGameratorT) for their contributions
