@@ -26,6 +26,7 @@ namespace JPEG {
 		constexpr u16 SOF2 = 0xFFC2;
 		constexpr u16 SOF3 = 0xFFC3;
 		constexpr u16 DHT = 0xFFC4;
+		constexpr u16 DAC = 0xFFCC;
 		constexpr u16 SOF5 = 0xFFC5;
 		constexpr u16 SOF6 = 0xFFC6;
 		constexpr u16 SOF7 = 0xFFC7;
@@ -139,6 +140,24 @@ namespace JPEG {
 		u32 maxLength;
 		std::array<HuffmanResult, 256> fastTable;
 		std::vector<std::vector<HuffmanResult>> extTables;
+
+	};
+
+	struct ArithmeticDCConditioning {
+
+		constexpr ArithmeticDCConditioning() noexcept : l(0), u(0), active(false) {}
+
+		u8 l, u;
+		bool active;
+
+	};
+
+	struct ArithmeticACConditioning {
+
+		constexpr ArithmeticACConditioning() noexcept : kx(1), active(false) {}
+
+		u8 kx;
+		bool active;
 
 	};
 

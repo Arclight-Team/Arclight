@@ -170,6 +170,10 @@ void JPEGDecoder::decode(std::span<const u8> data) {
 				parseHuffmanTable();
 				break;
 
+			case Markers::DAC:
+				parseArithmeticConditioning();
+				break;
+
 			case Markers::DRI:
 				parseRestartInterval();
 				break;
@@ -395,11 +399,14 @@ void JPEGDecoder::parseHuffmanTable() {
 
 	u16 length = verifySegmentLength();
 
-	//Setting + L1-16
-	u32 offset = 19;
+	//Length
+	u32 offset = 2;
 	u32 count = 0;
 
 	do {
+
+		//Setting + L1-16
+		offset += 17;
 
 		if (length < offset) {
 			throw ImageDecoderException("[DHT] Bad table length");
@@ -408,9 +415,10 @@ void JPEGDecoder::parseHuffmanTable() {
 		u8 settings = reader.read<u8>();
 		u8 type = settings >> 4;
 		u8 id = settings & 0xF;
+		bool dc = type == 0;
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", "[DHT] Class: %d, ID: %d", type, id);
+		Log::info("JPEG Loader", "[DHT] Class: %s, ID: %d", dc ? "DC" : "AC", id);
 #endif
 
 		if (type > 1 || id > 3) {
@@ -439,8 +447,6 @@ void JPEGDecoder::parseHuffmanTable() {
 		if (length < offset) {
 			throw ImageDecoderException("[DHT] Bad table length");
 		}
-
-		bool dc = type == 0;
 
 		HuffmanTable& table = dc ? dcHuffmanTables[id] : acHuffmanTables[id];
 
@@ -541,6 +547,76 @@ void JPEGDecoder::parseHuffmanTable() {
 
 #ifdef ARC_IMAGE_DEBUG
 	Log::info("JPEG Loader", "[DHT] Tables read: %d", count);
+#endif
+
+}
+
+
+
+void JPEGDecoder::parseArithmeticConditioning() {
+
+	u16 length = verifySegmentLength();
+
+	//Length
+	u32 offset = 2;
+	u32 count = 0;
+
+	do {
+
+		//Setting + Cs
+		offset += 2;
+
+		if (length < offset) {
+			throw ImageDecoderException("[DAC] Bad table length");
+		}
+
+		u8 settings = reader.read<u8>();
+		u8 type = settings >> 4;
+		u8 id = settings & 0xF;
+		bool dc = type == 0;
+
+#ifdef ARC_IMAGE_DEBUG
+		Log::info("JPEG Loader", "[DAC] Class: %s, ID: %d", dc ? "DC" : "AC", id);
+#endif
+
+		if (type > 1 || id > 3) {
+			throw ImageDecoderException("[DAC] Bad table settings");
+		}
+
+		u8 cs = reader.read<u8>();
+
+		if (dc) {
+
+			u8 u = cs >> 4;
+			u8 l = cs & 0xF;
+
+			if (l > u) {
+				throw ImageDecoderException("[DAC] Bad DC conditioning");
+			}
+
+			ArithmeticDCConditioning& dcc = dcConditioning[id];
+			dcc.u = u;
+			dcc.l = l;
+			dcc.active = true;
+
+		} else {
+
+			if (cs == 0 || cs > 63) {
+				throw ImageDecoderException("[DAC] Bad AC conditioning");
+			}
+
+			ArithmeticACConditioning& acc = acConditioning[id];
+			acc.kx = cs;
+			acc.active = true;
+
+		}
+
+		count++;
+
+	} while (offset != length);
+
+#ifdef ARC_IMAGE_DEBUG
+	Log::info("JPEG Loader", "[DAC] Tables read: %d", count);
 #endif
 
 }
@@ -780,8 +856,14 @@ void JPEGDecoder::parseScanHeader() {
 			throw ImageDecoderException("[SOS] Illegal AC table ID");
 		}
 
-		if (frame.type != FrameType::Progressive && (dcHuffmanTables[dcTableID].empty() || acHuffmanTables[acTableID].empty())) {
-			throw ImageDecoderException("[SOS] Huffman table not installed");
+		if (frame.type != FrameType::Progressive) {
+
+			if (frame.encoding == Encoding::Huffman && (dcHuffmanTables[dcTableID].empty() || acHuffmanTables[acTableID].empty())) {
+				throw ImageDecoderException("[SOS] Huffman table not installed");
+			} else if (frame.encoding == Encoding::Arithmetic && (!dcConditioning[dcTableID].active || !acConditioning[acTableID].active)) {
+				throw ImageDecoderException("[SOS] Arithmetic coder not conditioned");
+			}
+
 		}
 
 		if (quantizationTables[frameComponent.qID].empty()) {

@@ -47,6 +47,7 @@ private:
 	void parseApplicationSegment0();
 	void parseApplicationSegment1();
 	void parseHuffmanTable();
+	void parseArithmeticConditioning();
 	void parseQuantizationTable();
 	void parseRestartInterval();
 
@@ -75,6 +76,8 @@ private:
 	JPEG::Frame frame;
 	JPEG::HuffmanTable dcHuffmanTables[4];
 	JPEG::HuffmanTable acHuffmanTables[4];
+	JPEG::ArithmeticDCConditioning dcConditioning[4];
+	JPEG::ArithmeticACConditioning acConditioning[4];
 	JPEG::QuantizationTable quantizationTables[4];
 
 	bool restartEnabled;
