@@ -1049,7 +1049,17 @@ void JPEGDecoder::decodeScan() {
 
 void JPEGDecoder::decodeImage() {
 
-	auto doDecode = [this]<bool Progressive, bool Interleave>() {
+	auto decodeBlock = [this](ScanComponent& scanComponent, bool Huffman) constexpr {
+
+		if (Huffman) {
+			decodeHuffmanBlock(scanComponent);
+		} else {
+			decodeArithmeticBlock(scanComponent);
+		}
+
+	};
+
+	auto doDecode = [&, this]<bool Progressive, bool Huffman, bool Interleave>() {
 
 		SizeT mcuX = 0;
 		SizeT mcuY = 0;
@@ -1078,7 +1088,7 @@ void JPEGDecoder::decodeImage() {
 							w = component.width - baseX;
 						}
 
-						decodeBlock(scanComponent);
+						decodeBlock(scanComponent, Huffman);
 						applyPartialIDCT(scanComponent, baseY * component.width + baseX, w, h);
 
 					}
@@ -1089,7 +1099,7 @@ void JPEGDecoder::decodeImage() {
 
 						SizeT baseX = mcuBaseX + sx * 8;
 
-						decodeBlock(scanComponent);
+						decodeBlock(scanComponent, Huffman);
 
 						if (baseX + 8 > component.width) {
 							applyPartialIDCT(scanComponent, baseY * component.width + baseX, component.width - baseX, 8);
@@ -1144,10 +1154,22 @@ void JPEGDecoder::decodeImage() {
 
 		}
 
-		if (scan.scanComponents.size() > 1) {
-			doDecode.template operator()<false, true>();
+		if (frame.encoding == Encoding::Huffman) {
+
+			if (scan.scanComponents.size() > 1) {
+				doDecode.template operator()<false, true, true>();
+			} else {
+				doDecode.template operator()<false, true, false>();
+			}
+
 		} else {
-			doDecode.template operator()<false, false>();
+
+			if (scan.scanComponents.size() > 1) {
+				doDecode.template operator()<false, false, true>();
+			} else {
+				doDecode.template operator()<false, false, false>();
+			}
+
 		}
 
 	} else if (frame.type == FrameType::Progressive) {
@@ -1167,10 +1189,22 @@ void JPEGDecoder::decodeImage() {
 
 		}
 
-		if (scan.scanComponents.size() > 1) {
-			doDecode.template operator()<true, true>();
+		if (frame.encoding == Encoding::Huffman) {
+
+			if (scan.scanComponents.size() > 1) {
+				doDecode.template operator()<true, true, true>();
+			} else {
+				doDecode.template operator()<true, true, false>();
+			}
+
 		} else {
-			doDecode.template operator()<true, false>();
+
+			if (scan.scanComponents.size() > 1) {
+				doDecode.template operator()<true, false, true>();
+			} else {
+				doDecode.template operator()<true, false, false>();
+			}
+
 		}
 
 	}
@@ -1179,32 +1213,9 @@ void JPEGDecoder::decodeImage() {
 
 
 
-void JPEGDecoder::decodeBlock(JPEG::ScanComponent& component) {
+void JPEGDecoder::decodeHuffmanBlock(JPEG::ScanComponent& component) {
 
-	i32* block = std::assume_aligned<32>(component.block);
-
-	//This really shouldn't be necessary, but MSVC fails to vectorize std::fill_n
-#ifdef ARC_VECTORIZE_X86_AVX2
-
-	__m256i* ptr = reinterpret_cast<__m256i*>(block);
-
-	for (u32 i = 0; i < 8; i++) {
-		_mm256_store_si256(ptr++, _mm256_setzero_si256());
-	}
-
-#elif defined(ARC_VECTORIZE_X86_SSE2)
-
-	__m128i* ptr = reinterpret_cast<__m128i*>(block);
-
-	for (u32 i = 0; i < 16; i++) {
-		_mm_store_si128(ptr++, _mm_setzero_si128());
-	}
-
-#else
-
-	std::fill_n(block, 64, 0);
-
-#endif
+	i32* block = clearBlockBuffer(component);
 
 	//DC
 	{
@@ -1237,7 +1248,7 @@ void JPEGDecoder::decodeBlock(JPEG::ScanComponent& component) {
 		}
 
 		difference = offset >= entropyPositiveBase[category] ? static_cast<i32>(offset) : coeffBaseDifference[category] + static_cast<i32>(offset);
-
+		ArcDebug() << ArcHex << difference;
 
 		i32 dc = component.prediction + difference;
 		component.prediction = dc;
@@ -1323,7 +1334,48 @@ void JPEGDecoder::decodeBlock(JPEG::ScanComponent& component) {
 
 
 
+void JPEGDecoder::decodeArithmeticBlock(JPEG::ScanComponent& component) {
+
+	i32* block = clearBlockBuffer(component);
+
+}
+
+
+
 void JPEGDecoder::decodeProgressiveDCBlock(JPEG::ScanComponent& component) {
+
+}
+
+
+
+ARC_FORCE_INLINE i32* JPEGDecoder::clearBlockBuffer(JPEG::ScanComponent& component) {
+
+	i32* block = std::assume_aligned<32>(component.block);
+
+	//This really shouldn't be necessary, but MSVC fails to vectorize std::fill_n
+#ifdef ARC_VECTORIZE_X86_AVX2
+
+	__m256i* ptr = reinterpret_cast<__m256i*>(block);
+
+	for (u32 i = 0; i < 8; i++) {
+		_mm256_store_si256(ptr++, _mm256_setzero_si256());
+	}
+
+#elif defined(ARC_VECTORIZE_X86_SSE2)
+
+	__m128i* ptr = reinterpret_cast<__m128i*>(block);
+
+	for (u32 i = 0; i < 16; i++) {
+		_mm_store_si128(ptr++, _mm_setzero_si128());
+	}
+
+#else
+
+	std::fill_n(block, 64, 0);
+
+#endif
+
+	return block;
 
 }
 

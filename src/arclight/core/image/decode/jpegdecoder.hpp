@@ -58,8 +58,11 @@ private:
 
 	void decodeScan();
 	void decodeImage();
-	void decodeBlock(JPEG::ScanComponent& component);
+	void decodeHuffmanBlock(JPEG::ScanComponent& component);
+	void decodeArithmeticBlock(JPEG::ScanComponent& component);
 	void decodeProgressiveDCBlock(JPEG::ScanComponent& component);
+
+	i32* clearBlockBuffer(JPEG::ScanComponent& component);
 
 	static void applyIDCT(JPEG::ScanComponent& component, SizeT imageBase);
 	static void applyPartialIDCT(JPEG::ScanComponent& component, SizeT imageBase, u32 width, u32 height);
