@@ -74,7 +74,7 @@ project (${PROJECT_NAME})
 	else()
 		message("Enabled CPU extensions: none")
 	endif()
-	
+
 
 ######################
 ### COMPILER SETUP ###
@@ -82,16 +82,28 @@ project (${PROJECT_NAME})
 
 	if(MSVC)
 
-		#Link MSVC runtime statically + parallel build
-		set(CompilerFlags CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE)
+		if("avx2" IN_LIST BUILD_CPU_EXTENSIONS)
+			set(MSVC_ARCH_FLAGS "/arch:AVX2")
+		elseif("avx" IN_LIST BUILD_CPU_EXTENSIONS)
+			set(MSVC_ARCH_FLAGS "/arch:AVX")
+		endif()
 
-		foreach(CompilerFlag ${CompilerFlags})
-			string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-			set(${CompilerFlag} "${${CompilerFlag}} /MP /permissive /Zi /utf-8 /arch:AVX2 /GS-")
-		endforeach()
+		set(MSVC_CXX_BASE_FLAGS "${MSVC_ARCH_FLAGS} /MP /permissive /utf-8 /DWIN32 /D_WINDOWS /EHsc")
+		set(MSVC_C_BASE_FLAGS 	"${MSVC_ARCH_FLAGS} /MP /permissive /utf-8 /DWIN32 /D_WINDOWS")
+
+		set(CMAKE_CXX_FLAGS_DEBUG 			"${MSVC_CXX_BASE_FLAGS} /Zi /Ob0 /Od /RTC1")
+		set(CMAKE_CXX_FLAGS_RELEASE 		"${MSVC_CXX_BASE_FLAGS} /GS- /O2 /Ob3 /DNDEBUG")
+		set(CMAKE_CXX_FLAGS_RELWITHDEBINFO 	"${MSVC_CXX_BASE_FLAGS} /GS- /Zi /O2 /Ob3 /DNDEBUG")
+		set(CMAKE_CXX_FLAGS_MINSIZEREL 		"${MSVC_CXX_BASE_FLAGS} /GS- /O1 /Ob1 /DNDEBUG")
+		set(CMAKE_C_FLAGS_DEBUG 			${CMAKE_CXX_FLAGS_DEBUG})
+		set(CMAKE_C_FLAGS_RELEASE 			${CMAKE_CXX_FLAGS_RELEASE})
+		set(CMAKE_C_FLAGS_RELWITHDEBINFO 	${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
+		set(CMAKE_C_FLAGS_MINSIZEREL 		${CMAKE_CXX_FLAGS_MINSIZEREL})
 
 		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /MANIFESTUAC:NO /INCREMENTAL:NO")
+
+		add_compile_options($<$<CONFIG:>:/MT>$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>)
 
 	endif()
 
@@ -285,7 +297,7 @@ project (${PROJECT_NAME})
 
 		if(${ARC_BUILD_IMGUI})
 			add_compile_definitions(ARC_USE_IMGUI=1)
-			
+
 			file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "lib/imgui/source/*.cpp" "lib/imgui/backends/*.cpp")
 			list(APPEND APPLICATION_SOURCES ${SOURCES})
 		else()
@@ -301,11 +313,11 @@ project (${PROJECT_NAME})
 
 	# FMOD for sound
 	if("arclight.sound" IN_LIST MODULE_LIST)
-	
+
 		include_directories("lib/FMOD/include")
-		
+
 		list(APPEND APPLICATION_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/lib/FMOD/fmodL_vc.lib)
-		
+
 		message("\tAdded dependency 'FMOD'")
 
 	endif()
