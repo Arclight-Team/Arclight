@@ -1140,7 +1140,19 @@ void JPEGDecoder::decodeImage() {
 
 	};
 
-	decodingBuffer.reset();
+
+	//Reset encoders
+	if (frame.encoding == Encoding::Huffman) {
+
+		huffmanDecoder.reset();
+
+	} else {
+
+		arithmeticDecoder.reset();
+		arithmeticDecoder.prefetch();
+
+	}
+
 
 	if (frame.type == FrameType::Baseline || frame.type == FrameType::ExtendedSequential) {
 
@@ -1219,36 +1231,17 @@ void JPEGDecoder::decodeHuffmanBlock(JPEG::ScanComponent& component) {
 
 	//DC
 	{
-		u32 index = decodingBuffer.read(8);
-		auto result = component.dcTable.fastTable[index];
-
-		if (result.second == 0xFF) {
-
-			decodingBuffer.consume(8);
-
-			u32 extReadCount = component.dcTable.maxLength - 8;
-			result = component.dcTable.extTables[result.first][decodingBuffer.read(extReadCount)];
-			decodingBuffer.consume(result.second - 8);
-
-		} else {
-
-			decodingBuffer.consume(result.second);
-
-		}
+		HuffmanResult result = huffmanDecoder.decodeDC(component.dcTable);
 
 		u32 category = result.first;
 		i32 difference = 0;
 		u32 offset = 0;
 
 		if (category) {
-
-			offset = decodingBuffer.read(category);
-			decodingBuffer.consume(category);
-
+			offset = huffmanDecoder.decodeOffset(category);
 		}
 
 		difference = offset >= entropyPositiveBase[category] ? static_cast<i32>(offset) : coeffBaseDifference[category] + static_cast<i32>(offset);
-		ArcDebug() << ArcHex << difference;
 
 		i32 dc = component.prediction + difference;
 		component.prediction = dc;
@@ -1260,22 +1253,7 @@ void JPEGDecoder::decodeHuffmanBlock(JPEG::ScanComponent& component) {
 
 	while (coefficient < 64) {
 
-		u32 index = decodingBuffer.read(8);
-		auto result = component.acTable.fastTable[index];
-
-		if (result.second == 0xFF) {
-
-			decodingBuffer.consume(8);
-
-			u32 extReadCount = component.acTable.maxLength - 8;
-			result = component.acTable.extTables[result.first][decodingBuffer.read(extReadCount)];
-			decodingBuffer.consume(result.second - 8);
-
-		} else {
-
-			decodingBuffer.consume(result.second);
-
-		}
+		HuffmanResult result = huffmanDecoder.decodeAC(component.acTable);
 
 		u8 symbol = result.first;
 		u8 category = symbol & 0xF;
@@ -1304,9 +1282,7 @@ void JPEGDecoder::decodeHuffmanBlock(JPEG::ScanComponent& component) {
 		} else {
 
 			//Extract the AC magnitude
-			u32 offset = decodingBuffer.read(category);
-
-			decodingBuffer.consume(category);
+			u32 offset = huffmanDecoder.decodeOffset(category);
 
 			coefficient += zeroes;
 
@@ -2240,53 +2216,42 @@ u16 JPEGDecoder::verifySegmentLength() {
 }
 
 
-
-void JPEGDecoder::DecodingBuffer::reset() {
+void JPEGDecoder::ArithmeticDecoder::reset() {
 
 	data = 0;
 	size = 0;
-	end = false;
+	baseInterval = 0;
+	dcBins.fill({});
+	acBins.fill({});
 
 }
 
 
 
-void JPEGDecoder::DecodingBuffer::saturate() {
+void JPEGDecoder::ArithmeticDecoder::prefetch() {
 
-	u32 count = (32 - size) / 8;
+	for (u32 i = 0; i < 2; i++) {
 
-	for (u32 i = 0; i < count; i++) {
+		if (!sink.remainingSize()) {
+			throw ImageDecoderException("Bad arithmetic stream");
+		}
 
-		if (sink.remainingSize()) {
+		u8 byte = sink.read<u8>();
 
-			u8 byte = sink.read<u8>();
+		if (byte == 0xFF) {
 
-			//Skip trailing 'escape zero'
-			//Safe because the pre-scan stopped at the first non-zero FF-sequence
-			if (byte == 0xFF) {
+			u8 nextByte = 0xFF;
 
-				u8 nextByte = sink.read<u8>();
-
-				if (nextByte != 0) {
-
-					//Marker found, must be restart interval
-					//TODO
-					sink.seek(-2);
-					end = true;
-
-					return;
-
-				}
-
+			if (sink.remainingSize()) {
+				nextByte = sink.read<u8>();
 			}
 
-			data |= byte << (32 - size - 8);
-			size += 8;
+			if (nextByte != 0) {
 
-		} else {
+				//Marker shouldn't appear in the first two bytes
+				throw ImageDecoderException("Bad arithmetic stream");
 
-			end = true;
-			return;
+			}
 
 		}
 
@@ -2296,7 +2261,254 @@ void JPEGDecoder::DecodingBuffer::saturate() {
 
 
 
-u32 JPEGDecoder::DecodingBuffer::read(u32 count) {
+bool JPEGDecoder::ArithmeticDecoder::decodeBin(Bin& bin) {
+
+	u16 lpsEstimate = arithmeticTransitionTable[bin.index].lpsEstimate;
+	baseInterval -= lpsEstimate;
+	bool decision = false;
+
+	u16 currentValue = getValue();
+
+	//True if we're in the MPS
+	if (currentValue < baseInterval) {
+
+		//Check if there is a need to renormalize
+		if (baseInterval < 0x8000) {
+
+			if (baseInterval < lpsEstimate) {
+
+				decision = !bin.mps;
+				lpsTransition(bin);
+
+			} else {
+
+				decision = bin.mps;
+				mpsTransition(bin);
+
+			}
+
+			renormalize();
+
+		} else {
+
+			decision = bin.mps;
+
+		}
+
+	} else {
+
+		//We're in the LPS
+		setValue(currentValue - baseInterval);
+		baseInterval = lpsEstimate;
+
+		if (baseInterval < lpsEstimate) {
+
+			decision = bin.mps;
+			mpsTransition(bin);
+
+		} else {
+
+			decision = !bin.mps;
+			lpsTransition(bin);
+
+		}
+
+		renormalize();
+
+	}
+
+	return true;
+
+}
+
+
+
+void JPEGDecoder::ArithmeticDecoder::mpsTransition(Bin& bin) {
+	bin.index = arithmeticTransitionTable[bin.index].nextMPS;
+}
+
+
+
+void JPEGDecoder::ArithmeticDecoder::lpsTransition(Bin& bin) {
+
+	const ArithmeticStateTransition& ast = arithmeticTransitionTable[bin.index];
+
+	if (ast.exchange) {
+		bin.mps = !bin.mps;
+	}
+
+	bin.index = ast.nextLPS;
+
+}
+
+
+
+void JPEGDecoder::ArithmeticDecoder::renormalize() {
+
+	u32 toShiftIn = Math::min(Bits::ctz(baseInterval), 1);
+
+	if (toShiftIn >= 16) {
+		throw ImageDecoderException("Bad arithmetic stream");
+	}
+
+	baseInterval <<= toShiftIn;
+	data <<= toShiftIn;
+
+	u32 count = (toShiftIn + 7 - size) / 8;
+	u32 newData = 0;
+	u32 byteShift = toShiftIn + 8 - size;
+
+	for (u32 i = 0; i < count; i++) {
+
+		if (!sink.remainingSize()) {
+			break;
+		}
+
+		u8 byte = sink.read<u8>();
+
+		if (byte == 0xFF) {
+
+			if (!sink.remainingSize()) {
+				throw ImageDecoderException("Bad stream end");
+			}
+
+			u8 nextByte = sink.read<u8>();
+
+			if (nextByte != 0) {
+
+				//Marker found, must be restart interval
+				//TODO
+				sink.seek(-2);
+				break;
+
+			}
+
+		}
+
+		newData |= byte << byteShift;
+		byteShift -= 8;
+
+	}
+
+	data |= newData;
+	size = (size + 16 - toShiftIn) % 8;
+
+}
+
+
+
+void JPEGDecoder::HuffmanDecoder::reset() {
+
+	data = 0;
+	size = 0;
+
+}
+
+
+
+HuffmanResult JPEGDecoder::HuffmanDecoder::decodeDC(const JPEG::HuffmanTable& table) {
+
+	u32 index = read(8);
+	HuffmanResult result = table.fastTable[index];
+
+	if (result.second == 0xFF) {
+
+		consume(8);
+
+		u32 extReadCount = table.maxLength - 8;
+		result = table.extTables[result.first][read(extReadCount)];
+		consume(result.second - 8);
+
+	} else {
+
+		consume(result.second);
+
+	}
+
+	return result;
+
+}
+
+
+
+HuffmanResult JPEGDecoder::HuffmanDecoder::decodeAC(const JPEG::HuffmanTable& table) {
+
+	u32 index = read(8);
+	HuffmanResult result = table.fastTable[index];
+
+	if (result.second == 0xFF) {
+
+		consume(8);
+
+		u32 extReadCount = table.maxLength - 8;
+		result = table.extTables[result.first][read(extReadCount)];
+		consume(result.second - 8);
+
+	} else {
+
+		consume(result.second);
+
+	}
+
+	return result;
+
+}
+
+
+
+u32 JPEGDecoder::HuffmanDecoder::decodeOffset(u8 category) {
+
+	u32 offset = read(category);
+	consume(category);
+
+	return offset;
+
+}
+
+
+
+void JPEGDecoder::HuffmanDecoder::saturate() {
+
+	u32 count = (32 - size) / 8;
+
+	for (u32 i = 0; i < count; i++) {
+
+		if (!sink.remainingSize()) {
+			break;
+		}
+
+		u8 byte = sink.read<u8>();
+
+		//Skip trailing 'escape zero'
+		if (byte == 0xFF) {
+
+			if (!sink.remainingSize()) {
+				break;
+			}
+
+			u8 nextByte = sink.read<u8>();
+
+			if (nextByte != 0) {
+
+				//Marker found, must be restart interval
+				//TODO
+				sink.seek(-2);
+				break;
+
+			}
+
+		}
+
+		data |= byte << (32 - size - 8);
+		size += 8;
+
+	}
+
+}
+
+
+
+u32 JPEGDecoder::HuffmanDecoder::read(u32 count) {
 
 	arc_assert(count <= 24, "Attempted to read more than 24 bits from buffer");
 
@@ -2310,7 +2522,7 @@ u32 JPEGDecoder::DecodingBuffer::read(u32 count) {
 
 
 
-void JPEGDecoder::DecodingBuffer::consume(u32 count) {
+void JPEGDecoder::HuffmanDecoder::consume(u32 count) {
 
 	size -= i32(count);
 	data <<= count;

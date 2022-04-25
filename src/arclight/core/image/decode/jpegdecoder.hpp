@@ -21,25 +21,63 @@ class JPEGDecoder : public IImageDecoder {
 
 public:
 
-	explicit JPEGDecoder(std::optional<Pixel> reqFormat) : IImageDecoder(reqFormat), validDecode(false), restartEnabled(false), decodingBuffer(reader), restartInterval(0) {}
+	explicit JPEGDecoder(std::optional<Pixel> reqFormat) : IImageDecoder(reqFormat), baseFormat(Pixel::RGB8), validDecode(false),
+		restartEnabled(false), huffmanDecoder(reader), arithmeticDecoder(reader), restartInterval(0) {}
 
 	void decode(std::span<const u8> data);
 	RawImage& getImage();
 
 private:
 
-	struct DecodingBuffer {
+	struct HuffmanDecoder {
 
-		constexpr explicit DecodingBuffer(BinaryReader& reader) : data(0), size(0), end(false), sink(reader) {}
+		constexpr explicit HuffmanDecoder(BinaryReader& reader) : data(0), size(0), sink(reader) {}
 
 		void reset();
+		JPEG::HuffmanResult decodeDC(const JPEG::HuffmanTable& table);
+		JPEG::HuffmanResult decodeAC(const JPEG::HuffmanTable& table);
+		u32 decodeOffset(u8 category);
+
 		void saturate();
 		u32 read(u32 count);
 		void consume(u32 count);
 
 		u32 data;
 		i32 size;
-		bool end;
+		BinaryReader& sink;
+
+	};
+
+	struct ArithmeticDecoder {
+
+		struct Bin {
+
+			constexpr Bin() : index(0), mps(false) {}
+
+			u32 index;
+			bool mps;
+
+		};
+
+		explicit ArithmeticDecoder(BinaryReader& reader) : sink(reader) { reset(); }
+
+		constexpr u16 getValue() const noexcept { return data >> 16; }
+		constexpr void setValue(u16 value) noexcept { data = (data & 0xFFFF) | (value << 16); }
+
+		void reset();
+		void prefetch();
+		bool decodeBin(Bin& bin);
+		static void mpsTransition(Bin& bin);
+		static void lpsTransition(Bin& bin);
+
+		void renormalize();
+
+		u16 baseInterval;
+		std::array<Bin,  49> dcBins;
+		std::array<Bin, 245> acBins;
+
+		u32 data;
+		u32 size;
 		BinaryReader& sink;
 
 	};
@@ -89,7 +127,9 @@ private:
 	BinaryReader reader;
 	bool validDecode;
 
-	DecodingBuffer decodingBuffer;
+	HuffmanDecoder huffmanDecoder;
+	ArithmeticDecoder arithmeticDecoder;
+
 	RawImage image;
 
 };
