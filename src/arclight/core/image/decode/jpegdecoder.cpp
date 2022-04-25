@@ -1853,7 +1853,7 @@ void JPEGDecoder::applyIDCT(JPEG::ScanComponent& component, SizeT imageBase) {
 
 #else
 
-	scalarIDCT<true>(inData, outData, component.width, 8, 8);
+	scalarIDCT<true>(inData, outData, component.frameComponent.width, 8, 8);
 
 #endif
 
@@ -1946,7 +1946,7 @@ void JPEGDecoder::blendMonochrome() {
 
 		for (u32 j = 0; j < target.getWidth(); j++) {
 
-			target.setPixel(j, i, PixelGrayscale8(Math::clamp((component.imageData[offset++] + colorBias) >> fixTransformShift, 0, 255)));
+			target.setPixel(j, i, PixelGrayscale8(Math::clamp((component.frameComponent.imageData[offset++] + colorBias) >> fixTransformShift, 0, 255)));
 
 		}
 

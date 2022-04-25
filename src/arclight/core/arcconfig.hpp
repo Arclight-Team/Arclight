@@ -48,7 +48,7 @@
 	Vectorized code
 	ARC_VECTORIZE_X86: Vectorize for x86 if targeted
 */
-#define ARC_VECTORIZE_X86
+//#define ARC_VECTORIZE_X86
 
 
 /*
