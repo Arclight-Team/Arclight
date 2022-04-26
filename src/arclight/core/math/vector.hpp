@@ -917,3 +917,21 @@ VECTOR_DEFINE
 #undef VECTOR_DEFINE_N
 #undef VECTOR_DEFINE_ND
 #undef VECTOR_DEFINE_NDTS
+
+template<Arithmetic A>
+Vec2(A)->Vec2<A>;
+
+template<Arithmetic A, Arithmetic B>
+Vec2(A, B)->Vec2<std::common_type_t<A, B>>;
+
+template<Arithmetic A>
+Vec3(A)->Vec3<A>;
+
+template<Arithmetic A, Arithmetic B, Arithmetic C>
+Vec3(A, B, C)->Vec3<std::common_type_t<A, B, C>>;
+
+template<Arithmetic A>
+Vec4(A)->Vec4<A>;
+
+template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
+Vec4(A, B, C, D)->Vec4<std::common_type_t<A, B, C, D>>;
