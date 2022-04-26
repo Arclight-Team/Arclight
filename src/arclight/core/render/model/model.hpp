@@ -11,6 +11,7 @@
 #include "filesystem/path.hpp"
 #include "math/matrix.hpp"
 #include "math/vector.hpp"
+#include "util/bits.hpp"
 #include "types.hpp"
 
 #include <vector>
@@ -41,21 +42,25 @@ namespace arc
 	{
 	public:
 
-		constexpr TextureParser() : data(nullptr), width(0), height(0), channels(0) {}
-		TextureParser(const Path& path, bool flipY = false) : TextureParser() {
-			load(path, flipY);
+		constexpr TextureParser() : data(nullptr), width(0), height(0), channels(0), hdr(false) {}
+		TextureParser(const Path& path, bool flipY = false, bool hdr = false) : TextureParser() {
+			load(path, flipY, hdr);
 		}
 		virtual ~TextureParser() { destroy(); }
 
-		bool load(const Path& path, bool flipY = false) {
+		bool load(const Path& path, bool flipY = false, bool hdr = false) {
 
 			width = 0;
 			height = 0;
 			channels = 0;
+			this->hdr = hdr;
 
 			stbi_set_flip_vertically_on_load(!flipY);
 
-			data = stbi_load(path.getPath().c_str(), &width, &height, &channels, 0);
+			if (hdr)
+				data = Bits::rcast<u8*>(stbi_loadf(path.toString().c_str(), &width, &height, &channels, 0));
+			else
+				data = stbi_load(path.toString().c_str(), &width, &height, &channels, 0);
 
 			if (!isLoaded()) {
 				return false;
@@ -121,18 +126,21 @@ namespace arc
 			switch (channels) {
 
 			case 1:
-				return GLE::ImageFormat::R8;
+				return hdr ? GLE::ImageFormat::R16f : GLE::ImageFormat::R8;
 
 			case 2:
-				return GLE::ImageFormat::RG8;
+				return hdr ? GLE::ImageFormat::RG16f : GLE::ImageFormat::RG8;
 
 			case 3:
-				return srgb ? GLE::ImageFormat::SRGB8 : GLE::ImageFormat::RGB8;
+				return hdr ? GLE::ImageFormat::RGB16f : srgb ? GLE::ImageFormat::SRGB8 : GLE::ImageFormat::RGB8;
 
 			case 4:
-				return srgb ? GLE::ImageFormat::SRGBA8 : GLE::ImageFormat::RGBA8;
+				return hdr ? GLE::ImageFormat::RGBA16f : srgb ? GLE::ImageFormat::SRGBA8 : GLE::ImageFormat::RGBA8;
 
 			}
+
+			arc_force_assert("Invalid channel count");
+			return GLE::ImageFormat::RGBA8;
 
 		}
 
@@ -154,6 +162,9 @@ namespace arc
 
 			}
 
+			arc_force_assert("Invalid channel count");
+			return GLE::TextureSourceFormat::RGBA;
+
 		}
 
 	private:
@@ -162,6 +173,7 @@ namespace arc
 		i32 width;
 		i32 height;
 		i32 channels;
+		bool hdr;
 
 	};
 
@@ -189,7 +201,7 @@ namespace arc
 						Log::error("arcTexture2D", "Invalid texture height (%d) in %s", parser.getHeight(), path.toString().c_str());
 					}
 
-					if (parser.getChannels() < 3 || parser.getChannels() > 4) {
+					if (parser.getChannels() < 1 || parser.getChannels() > 4) {
 						Log::error("arcTexture2D", "Invalid number of channels (%d) in %s", parser.getChannels(), path.toString().c_str());
 					}
 				}
@@ -206,6 +218,58 @@ namespace arc
 			generateMipmaps();
 
 			Log::info("arcTexture2D", "Loaded texture %s", path.toString().c_str());
+
+			return true;
+
+		}
+
+	};
+
+
+	/*
+	* @class TextureHDR 
+	*/
+	class TextureHDR : public GLE::Texture2D
+	{
+	public:
+
+		bool load(const Path& path, bool flipY = false, bool srgb = false) {
+
+			TextureParser parser(path, flipY, true);
+
+			if (!parser.valid()) {
+
+				if (parser.isLoaded()) {
+
+					if (parser.getWidth() <= 0) {
+						Log::error("arcTextureHDR", "Invalid texture width (%d) in %s", parser.getWidth(), path.toString().c_str());
+					}
+
+					if (parser.getHeight() <= 0) {
+						Log::error("arcTextureHDR", "Invalid texture height (%d) in %s", parser.getHeight(), path.toString().c_str());
+					}
+
+					if (parser.getChannels() < 1 || parser.getChannels() > 4) {
+						Log::error("arcTextureHDR", "Invalid number of channels (%d) in %s", parser.getChannels(), path.toString().c_str());
+					}
+				}
+				else {
+					Log::error("arcTextureHDR", "Failed to load texture %s", path.toString().c_str());
+				}
+
+				return false;
+			}
+
+			create();
+			bind();
+			setData(parser.getWidth(), parser.getHeight(), parser.getImageFormat(srgb), parser.getSourceFormat(), GLE::TextureSourceType::Float, parser.getData());
+
+			setWrapU(GLE::TextureWrap::Repeat);
+			setWrapV(GLE::TextureWrap::Repeat);
+			setMinFilter(GLE::TextureFilter::Bilinear, false);
+			setMagFilter(GLE::TextureFilter::Bilinear);
+
+			Log::info("arcTextureHDR", "Loaded texture %s", path.toString().c_str());
 
 			return true;
 
@@ -257,7 +321,7 @@ namespace arc
 
 						Path resPath(path);
 						resPath.append(texPath.C_Str());
-
+						
 						if (!texture.load(resPath, textureFlipY, textureSRGB)) {
 							target.pop_back();
 						}
@@ -268,6 +332,7 @@ namespace arc
 			return true;
 
 		}
+		
 		void destroy() {
 
 			destroyTextures(diffuse);
@@ -302,6 +367,16 @@ namespace arc
 		IMPL_TEXTURE(Lightmap		, lightmap)
 		IMPL_TEXTURE(Reflection		, reflection)
 		IMPL_TEXTURE(BumpMap		, bumpmap)
+
+		struct PBRProps {
+
+			Vec3f albedo = Vec3f(1);
+			float metallic = 0.0f;
+			float roughness = 0.5f;
+			float ao = 1.0f;
+			float alpha = 1.0f;
+
+		} pbr;
 
 	private:
 
@@ -1330,7 +1405,6 @@ namespace arc
 		Path getFilePath() const {
 			return filePath;
 		}
-
 		Path getRootPath() const {
 			return rootPath;
 		}
@@ -1372,8 +1446,8 @@ namespace arc
 			}
 
 #if ARC_DEBUG
-			Log::info("arcModel", "Node tree:");
-			ITreeNodeDumper::dumpNode(nodes.getRoot());
+			//Log::info("arcModel", "Node tree:");
+			//ITreeNodeDumper::dumpNode(nodes.getRoot());
 #endif
 
 			if (!parseMaterials(parser)) {
@@ -1511,6 +1585,7 @@ namespace arc
 #if true
 
 using arcTexture2D			= arc::Texture2D;
+using arcTextureHDR			= arc::TextureHDR;
 using arcMaterial			= arc::Material;
 
 using arcNode				= arc::Node;
