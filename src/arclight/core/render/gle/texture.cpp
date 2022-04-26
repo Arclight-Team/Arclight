@@ -314,7 +314,7 @@ void Texture::disableComparisonMode() {
 
 CubemapFace Texture::getCubemapFace(u32 index) {
 	gle_assert(index < 6, "Invalid cubemap face index %d", index);
-	return static_cast<CubemapFace>(index);
+	return static_cast<CubemapFace>(static_cast<u32>(CubemapFace::PositiveX) + index);
 }
 
 

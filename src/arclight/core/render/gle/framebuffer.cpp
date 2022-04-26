@@ -131,7 +131,7 @@ bool Framebuffer::validate() const {
 
 
 
-void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture) {
+void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture, u32 level) {
 
 	gle_assert(isBound(), "Framebuffer %d has not been bound (attempted to attach texture)", id);
 	gle_assert(texture.isInitialized(), "Texture %d has not been initialized (attempted to attach texture)", id);
@@ -140,13 +140,13 @@ void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture) {
 			   texture.getTextureType() == TextureType::Texture2D ||
 			   texture.getTextureType() == TextureType::MultisampleTexture2D, "Cannot attach layered texture to non-layered framebuffer attachment");
 
-	glFramebufferTexture(GL_FRAMEBUFFER, static_cast<u32>(attachmentIndex), texture.id, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, static_cast<u32>(attachmentIndex), texture.id, level);
 
 }
 
 
 
-void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture, u32 layer) {
+void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture, u32 layer, u32 level) {
 
 	gle_assert(isBound(), "Framebuffer %d has not been bound (attempted to attach texture)", id);
 	gle_assert(texture.isInitialized(), "Texture %d has not been initialized (attempted to attach texture)", id);
@@ -166,7 +166,7 @@ void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture, u32
 				return;
 			}
 
-			glFramebufferTextureLayer(GL_FRAMEBUFFER, static_cast<u32>(attachmentIndex), texture.id, 0, layer);
+			glFramebufferTextureLayer(GL_FRAMEBUFFER, static_cast<u32>(attachmentIndex), texture.id, level, layer);
 			break;
 
 		case TextureType::ArrayTexture1D:
@@ -176,7 +176,7 @@ void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture, u32
 				return;
 			}
 
-			glFramebufferTextureLayer(GL_FRAMEBUFFER, static_cast<u32>(attachmentIndex), texture.id, 0, layer);
+			glFramebufferTextureLayer(GL_FRAMEBUFFER, static_cast<u32>(attachmentIndex), texture.id, level, layer);
 			break;
 
 		case TextureType::CubemapTexture:
@@ -186,8 +186,8 @@ void Framebuffer::attachTexture(u32 attachmentIndex, const Texture& texture, u32
 				return;
 			}
 
-			glFramebufferTexture2D(GL_FRAMEBUFFER, static_cast<u32>(attachmentIndex), static_cast<u32>(Texture::getCubemapFace(layer)), texture.id, 0);
-			break;
+			glFramebufferTexture2D(GL_FRAMEBUFFER, static_cast<u32>(attachmentIndex), static_cast<u32>(Texture::getCubemapFace(layer)), texture.id, level);
+				break;
 
 		default:
 			gle_force_assert("Texture type 0x%04X cannot be attached to framebuffer", static_cast<u32>(texture.getTextureType()));
