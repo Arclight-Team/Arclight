@@ -20,11 +20,11 @@ class NoiseBase {
 
 public:
 
-	NoiseBase() : p(defaultPermutation) {};
+	NoiseBase() : p(defaultP) {};
 
 
 	inline void permutate(u32 seed) {
-		p = generate(seed);
+		p = genPermutation(seed);
 	}
 
 	inline void permutate() {
@@ -62,45 +62,52 @@ protected:
 	static constexpr u32 grad4DMask = 0x1F;
 
 
-	static constexpr float grad1D[2] = {
+	template<class T>
+	static constexpr T gradient;
+
+	template<Float F>
+	static constexpr F gradient<F>[2] = {
 		-1, 1
 	};
 
-	static const inline Vec2f grad2D[8] = {
-		Vec2f( 1, 1).normalized(), Vec2f( 1, 0),
-		Vec2f(-1, 1).normalized(), Vec2f(-1, 0),
-		Vec2f( 1,-1).normalized(), Vec2f( 0, 1),
-		Vec2f(-1,-1).normalized(), Vec2f( 0,-1)
+	template<FloatVector V> requires(V::Size == 2)
+	static inline const V gradient<V>[8] = {
+		V( 1, 1).normalized(), V( 1, 0),
+		V(-1, 1).normalized(), V(-1, 0),
+		V( 1,-1).normalized(), V( 0, 1),
+		V(-1,-1).normalized(), V( 0,-1)
 	};
 
-	static const inline Vec3f grad3D[16] = {
-		Vec3f( 1, 1,-1).normalized(), Vec3f(-1, 1, 1).normalized(),
-		Vec3f(-1, 1,-1).normalized(), Vec3f( 1,-1, 1).normalized(),
-		Vec3f( 1,-1,-1).normalized(), Vec3f(-1,-1, 1).normalized(),
-		Vec3f(-1,-1,-1).normalized(), Vec3f( 1, 1, 1).normalized(),
-		Vec3f( 1, 1, 0).normalized(), Vec3f( 1, 0, 0),
-		Vec3f(-1, 1, 0).normalized(), Vec3f(-1, 0, 0),
-		Vec3f( 1,-1, 0).normalized(), Vec3f( 0, 1, 0),
-		Vec3f(-1,-1, 0).normalized(), Vec3f( 0, 0, 1)
+	template<FloatVector V> requires(V::Size == 3)
+	static inline const V gradient<V>[16] = {
+		V( 1, 1,-1).normalized(), V(-1, 1, 1).normalized(),
+		V(-1, 1,-1).normalized(), V( 1,-1, 1).normalized(),
+		V( 1,-1,-1).normalized(), V(-1,-1, 1).normalized(),
+		V(-1,-1,-1).normalized(), V( 1, 1, 1).normalized(),
+		V( 1, 1, 0).normalized(), V( 1, 0, 0),
+		V(-1, 1, 0).normalized(), V(-1, 0, 0),
+		V( 1,-1, 0).normalized(), V( 0, 1, 0),
+		V(-1,-1, 0).normalized(), V( 0, 0, 1)
 	};
 
-	static const inline Vec4f grad4D[32] = {
-		Vec4f(-1, 1,-1, 0).normalized(), Vec4f(-1, 1,-1,-1).normalized(),
-		Vec4f( 1,-1,-1, 0).normalized(), Vec4f( 1,-1,-1,-1).normalized(),
-		Vec4f(-1,-1,-1, 0).normalized(), Vec4f(-1,-1,-1,-1).normalized(),
-		Vec4f( 1, 1, 0, 0).normalized(), Vec4f( 1, 1, 0,-1).normalized(),
-		Vec4f( 1,-1, 0, 0).normalized(), Vec4f( 1,-1, 0,-1).normalized(),
-		Vec4f(-1,-1, 0, 0).normalized(), Vec4f(-1,-1, 0,-1).normalized(),
-		Vec4f(-1, 1, 1, 0).normalized(), Vec4f(-1, 1, 1,-1).normalized(),
-		Vec4f( 1,-1, 1, 0).normalized(), Vec4f( 1,-1, 1,-1).normalized(),
-		Vec4f( 1, 1, 1, 0).normalized(), Vec4f( 1, 1, 1,-1).normalized(),
-		Vec4f( 1, 1,-1, 1).normalized(), Vec4f(-1,-1, 1, 1).normalized(),
-		Vec4f(-1, 1,-1, 1).normalized(), Vec4f( 1, 1, 1, 1).normalized(),
-		Vec4f( 1,-1,-1, 1).normalized(), Vec4f(-1, 0, 0, 1),
-		Vec4f( 1, 1, 0, 1).normalized(), Vec4f( 0, 0, 1, 1),
-		Vec4f(-1, 1, 0, 1).normalized(), Vec4f( 0, 1, 0, 0),
-		Vec4f(-1,-1, 0, 1).normalized(), Vec4f( 0, 0, 1, 0),
-		Vec4f(-1, 1, 1, 1).normalized(), Vec4f( 0, 1, 0,-1),
+	template<FloatVector V> requires(V::Size == 4)
+	static inline const V gradient<V>[32] = {
+		V(-1, 1,-1, 0).normalized(), V(-1, 1,-1,-1).normalized(),
+		V( 1,-1,-1, 0).normalized(), V( 1,-1,-1,-1).normalized(),
+		V(-1,-1,-1, 0).normalized(), V(-1,-1,-1,-1).normalized(),
+		V( 1, 1, 0, 0).normalized(), V( 1, 1, 0,-1).normalized(),
+		V( 1,-1, 0, 0).normalized(), V( 1,-1, 0,-1).normalized(),
+		V(-1,-1, 0, 0).normalized(), V(-1,-1, 0,-1).normalized(),
+		V(-1, 1, 1, 0).normalized(), V(-1, 1, 1,-1).normalized(),
+		V( 1,-1, 1, 0).normalized(), V( 1,-1, 1,-1).normalized(),
+		V( 1, 1, 1, 0).normalized(), V( 1, 1, 1,-1).normalized(),
+		V( 1, 1,-1, 1).normalized(), V(-1,-1, 1, 1).normalized(),
+		V(-1, 1,-1, 1).normalized(), V( 1, 1, 1, 1).normalized(),
+		V( 1,-1,-1, 1).normalized(), V(-1, 0, 0, 1),
+		V( 1, 1, 0, 1).normalized(), V( 0, 0, 1, 1),
+		V(-1, 1, 0, 1).normalized(), V( 0, 1, 0, 0),
+		V(-1,-1, 0, 1).normalized(), V( 0, 0, 1, 0),
+		V(-1, 1, 1, 1).normalized(), V( 0, 1, 0,-1),
 	};
 
 
@@ -138,7 +145,7 @@ private:
 
 	using PermutationT = std::array<u32, 512>;
 
-	static PermutationT generate(u32 seed) {
+	static PermutationT genPermutation(u32 seed) {
 
 		PermutationT p;
 
@@ -153,7 +160,7 @@ private:
 
 	static constexpr u32 defaultSeed = 0xA6C;
 
-	inline static const PermutationT defaultPermutation = generate(defaultSeed);
+	static inline const PermutationT defaultP = genPermutation(defaultSeed);
 
 	PermutationT p;
 };

@@ -11,7 +11,7 @@
 #include "noisebase.hpp"
 
 
-class PerlinNoiseImpl : public NoiseBase {
+class PerlinNoise : public NoiseBase {
 
 public:
 
@@ -30,7 +30,7 @@ public:
 		u32 ip1 = ip0 + 1;
 
 		auto dot = [&](F p, u32 ip) {
-			return grad1D[hash(ip) & grad1DMask] * p;
+			return gradient<F>[hash(ip) & grad1DMask] * p;
 		};
 
 		constexpr F scale = 2; // sqrt(4/1)
@@ -64,7 +64,7 @@ public:
 		u32 ipy1 = ipy0 + 1;
 
 		auto dot = [&](F px, F py, u32 ipx, u32 ipy) {
-			return V(px, py).dot(grad2D[hash(ipx, ipy) & grad2DMask]);
+			return V(px, py).dot(gradient<V>[hash(ipx, ipy) & grad2DMask]);
 		};
 
 		F stepy = interpolate(py0);
@@ -109,7 +109,7 @@ public:
 		u32 ipz1 = ipz0 + 1;
 
 		auto dot = [&](F px, F py, F pz, u32 ipx, u32 ipy, u32 ipz) {
-			return V(px, py, pz).dot(grad3D[hash(ipx, ipy, ipz) & grad3DMask]);
+			return V(px, py, pz).dot(gradient<V>[hash(ipx, ipy, ipz) & grad3DMask]);
 		};
 
 		F stepz = interpolate(pz0);
@@ -167,7 +167,7 @@ public:
 		u32 ipw1 = ipw0 + 1;
 
 		auto dot = [&](F px, F py, F pz, F pw, u32 ipx, u32 ipy, u32 ipz, u32 ipw) {
-			return V(px, py, pz, pw).dot(grad4D[hash(ipx, ipy, ipz, ipw) & grad4DMask]);
+			return V(px, py, pz, pw).dot(gradient<V>[hash(ipx, ipy, ipz, ipw) & grad4DMask]);
 		};
 
 		F stepw = interpolate(pw0);
@@ -212,5 +212,3 @@ private:
 	}
 
 };
-
-using PerlinNoise = PerlinNoiseImpl;

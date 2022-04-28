@@ -11,7 +11,7 @@
 #include "noisebase.hpp"
 
 
-class SimplexNoiseImpl : public NoiseBase {
+class SimplexNoise : public NoiseBase {
 
 public:
 
@@ -30,7 +30,7 @@ public:
 
 			i32 ofsP = ip + offset;
 
-			F dot = grad1D[hash(ofsP) & grad1DMask] * (p - offset);
+			F dot = gradient<F>[hash(ofsP) & grad1DMask] * (p - offset);
 
 			return dot * falloff(p - offset, 1);
 
@@ -69,7 +69,7 @@ public:
 			F unskew = (ofsP.x + ofsP.y) * toTriangle;
 			V unskewed = point - ofsP + V(unskew);
 
-			F dot = grad2D[hash(hashP + offset) & grad2DMask].dot(unskewed);
+			F dot = gradient<V>[hash(hashP + offset) & grad2DMask].dot(unskewed);
 
 			return dot * falloff(unskewed, 0.5);
 
@@ -116,7 +116,7 @@ public:
 			F unskew = (ofsP.x + ofsP.y + ofsP.z) * toTetrahedron;
 			V unskewed = point - ofsP + V(unskew);
 
-			F dot = grad3D[hash(hashP + offset) & grad3DMask].dot(unskewed);
+			F dot = gradient<V>[hash(hashP + offset) & grad3DMask].dot(unskewed);
 
 			return dot * falloff(unskewed, 0.5);
 
@@ -189,7 +189,7 @@ public:
 			F unskew = (ofsP.x + ofsP.y + ofsP.z + ofsP.w) * to5Cell;
 			V unskewed = point - ofsP + V(unskew);
 
-			F dot = grad4D[hash(hashP + offset) & grad4DMask].dot(unskewed);
+			F dot = gradient<V>[hash(hashP + offset) & grad4DMask].dot(unskewed);
 
 			return dot * falloff(unskewed, 0.5);
 
@@ -363,5 +363,3 @@ private:
 	}
 
 };
-
-using SimplexNoise = SimplexNoiseImpl;
