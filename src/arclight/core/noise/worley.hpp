@@ -11,127 +11,188 @@
 #include "noisebase.hpp"
 
 
+enum class WorleyNoiseFlag {
+	None,
+	Second,
+	Diff,
+};
+
+
+template<WorleyNoiseFlag Flag = WorleyNoiseFlag::None>
 class WorleyNoiseImpl : public NoiseBase {
 
 public:
 
+	using FlagT = WorleyNoiseFlag;
+
+
 	template<Float F, Arithmetic A>
-	F sample(F point, A frequency) const {
+	constexpr F sample(F point, A frequency) const {
+
+		constexpr F max = 2;
 
 		point *= frequency;
 
-		i32 ip = Math::floor(point);
+		i32 ipx = Math::floor(point);
 
-		F p = point - ip;
+		F px = point - ipx;
 
-		F sample = 2;
+		F first = max;
+		F second = max;
 
-		for (u32 i = 0; i < 3; i++) {
+		for (const auto& ofsx : offsets1D) {
 
-			u32 h = Math::abs(ip + offsets1D[i]);
-			h &= hashMask;
+			u32 hx = Math::abs(ipx + ofsx) & hashMask;
 
-			F grad = grad1D[hash(h) & grad1DMask] / 2;
-			grad += offsets1D[i] + F(0.5);
+			F gx = gradient<F>[hash(hx) & grad1DMask];
 
-			sample = Math::min(sample, Math::abs(p - grad));
+			gx = gx / 2 + 0.5 + ofsx;
+
+			F dist = Math::abs(px - gx);
+
+			updateDistance(first, second, dist);
 
 		}
 
-		return sample - 1;
+		return applyFlag(first, second) / max * 2 - 1;
 
 	}
 
 	template<FloatVector V, Arithmetic A> requires(V::Size == 2)
-	typename V::Type sample(V point, A frequency) const {
+	constexpr typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
-		using Vi = Vec2i;
-		using Vui = Vec2ui;
+
+		constexpr F max = 1.41421356237; // sqrt(2)
 
 		point *= frequency;
 
-		Vi ip = Math::floor(point);
+		F x = point.x;
+		F y = point.y;
 
-		V p = point - ip;
+		i32 ipx = Math::floor(x);
+		i32 ipy = Math::floor(y);
 
-		F sample = 2.82842712475; // 2 * sqrt(2)
+		F px = x - ipx;
+		F py = y - ipy;
 
-		for (u32 i = 0; i < 3 * 3; i++) {
+		F first = max;
+		F second = max;
 
-			Vui h = Math::abs(ip + offsets2D[i]);
-			h &= hashMask;
+		for (const auto& [ofsx, ofsy] : offsets2D) {
 
-			V grad = grad2D[hash(h) & grad2DMask] / 2;
-			grad += offsets2D[i] + V(0.5);
+			u32 hx = Math::abs(ipx + ofsx) & hashMask;
+			u32 hy = Math::abs(ipy + ofsy) & hashMask;
 
-			sample = Math::min(sample, p.distance(grad));
+			auto [gx, gy] = gradient<V>[hash(hx, hy) & grad2DMask];
+
+			gx = gx / 2 + 0.5 + ofsx;
+			gy = gy / 2 + 0.5 + ofsy;
+
+			F dist = V(px, py).distance(V(gx, gy));
+
+			updateDistance(first, second, dist);
 
 		}
 
-		return sample - 1;
+		return applyFlag(first, second) / max * 2 - 1;
 
 	}
 
 	template<FloatVector V, Arithmetic A> requires(V::Size == 3)
-	typename V::Type sample(V point, A frequency) const {
+	constexpr typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
-		using Vi = Vec3i;
-		using Vui = Vec3ui;
+
+		constexpr F max = 1.73205080756; // sqrt(3)
 
 		point *= frequency;
 
-		Vi ip = Math::floor(point);
+		F x = point.x;
+		F y = point.y;
+		F z = point.z;
 
-		V p = point - ip;
+		i32 ipx = Math::floor(x);
+		i32 ipy = Math::floor(y);
+		i32 ipz = Math::floor(z);
 
-		F sample = 3.46410161514; // 2 * sqrt(3)
+		F px = x - ipx;
+		F py = y - ipy;
+		F pz = z - ipz;
 
-		for (u32 i = 0; i < 3 * 3 * 3; i++) {
+		F first = max;
+		F second = max;
 
-			Vui h = Math::abs(ip + offsets3D[i]);
-			h &= hashMask;
+		for (const auto& [ofsx, ofsy, ofsz] : offsets3D) {
 
-			V grad = grad3D[hash(h) & grad3DMask] / 2;
-			grad += offsets3D[i] + V(0.5);
+			u32 hx = Math::abs(ipx + ofsx) & hashMask;
+			u32 hy = Math::abs(ipy + ofsy) & hashMask;
+			u32 hz = Math::abs(ipz + ofsz) & hashMask;
 
-			sample = Math::min(sample, p.distance(grad));
+			auto [gx, gy, gz] = gradient<V>[hash(hx, hy, hz) & grad3DMask];
+
+			gx = gx / 2 + 0.5 + ofsx;
+			gy = gy / 2 + 0.5 + ofsy;
+			gz = gz / 2 + 0.5 + ofsz;
+
+			F dist = V(px, py, pz).distance(V(gx, gy, gz));
+
+			updateDistance(first, second, dist);
 
 		}
 
-		return sample - 1;
+		return applyFlag(first, second) / max * 2 - 1;
 
 	}
 
 	template<FloatVector V, Arithmetic A> requires(V::Size == 4)
-	typename V::Type sample(V point, A frequency) const {
+	constexpr typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
-		using Vi = Vec4i;
-		using Vui = Vec4ui;
+
+		constexpr F max = 2; // sqrt(4)
 
 		point *= frequency;
 
-		Vi ip = Math::floor(point);
+		F x = point.x;
+		F y = point.y;
+		F z = point.z;
+		F w = point.w;
 
-		V p = point - ip;
+		i32 ipx = Math::floor(x);
+		i32 ipy = Math::floor(y);
+		i32 ipz = Math::floor(z);
+		i32 ipw = Math::floor(w);
 
-		F sample = 4;
+		F px = x - ipx;
+		F py = y - ipy;
+		F pz = z - ipz;
+		F pw = w - ipw;
 
-		for (u32 i = 0; i < 3 * 3 * 3 * 3; i++) {
+		F first = max;
+		F second = max;
 
-			Vui h = Math::abs(ip + offsets4D[i]);
-			h &= hashMask;
+		for (const auto& [ofsx, ofsy, ofsz, ofsw] : offsets4D) {
 
-			V grad = grad4D[hash(h) & grad4DMask] / 2;
-			grad += offsets4D[i] + V(0.5);
+			u32 hx = Math::abs(ipx + ofsx) & hashMask;
+			u32 hy = Math::abs(ipy + ofsy) & hashMask;
+			u32 hz = Math::abs(ipz + ofsz) & hashMask;
+			u32 hw = Math::abs(ipw + ofsw) & hashMask;
 
-			sample = Math::min(sample, p.distance(grad));
+			auto [gx, gy, gz, gw] = gradient<V>[hash(hx, hy, hz, hw) & grad3DMask];
+
+			gx = gx / 2 + 0.5 + ofsx;
+			gy = gy / 2 + 0.5 + ofsy;
+			gz = gz / 2 + 0.5 + ofsz;
+			gw = gw / 2 + 0.5 + ofsw;
+
+			F dist = V(px, py, pz, pw).distance(V(gx, gy, gz, gw));
+
+			updateDistance(first, second, dist);
 
 		}
 
-		return sample - 1;
+		return applyFlag(first, second) / max * 2 - 1;
 
 	}
 
@@ -142,6 +203,37 @@ public:
 
 private:
 
+	template<Float F>
+	static constexpr void updateDistance(F& first, F& second, F dist) {
+		if constexpr (Flag == FlagT::None) {
+
+			first = Math::min(first, dist);
+
+		} else {
+
+			second = Math::min(second, dist);
+
+			if (Math::less(dist, first)) {
+				second = first;
+				first = dist;
+			}
+
+		}
+	}
+
+
+	template<Float F>
+	static constexpr F applyFlag(F first, F second) {
+		if constexpr (Flag == FlagT::Second) {
+			return second;
+		} else if constexpr (Flag == FlagT::Diff) {
+			return second - first;
+		} else {
+			return first;
+		}
+	}
+
+
 	template<class T, SizeT Size> requires(Integer<T> || IntegerVector<T>)
 	static constexpr auto generateOffsets() -> std::array<T, Size> {
 
@@ -149,20 +241,24 @@ private:
 
 		std::array<T, Size> offsets;
 
-		for (u32 i = 0; i < Size; i++) {
+		for (u32 i = 0; auto& ofs : offsets) {
+
 			if constexpr (Integer<T>) {
 
-				offsets[i] = T(i % 3 - 1);
+				ofs = T(i % 3 - 1);
 
 			} else {
 
 				constexpr I sizes[] = {1, 3, 9, 27};
 
 				for (u32 j = 0; j < T::Size; j++) {
-					offsets[i][j] = I(i / sizes[j] % 3 - 1);
+					ofs[j] = I(i / sizes[j] % 3 - 1);
 				}
 
 			}
+
+			i++;
+
 		}
 
 		return offsets;
@@ -179,4 +275,6 @@ private:
 
 };
 
-using WorleyNoise = WorleyNoiseImpl;
+using WorleyNoise = WorleyNoiseImpl<WorleyNoiseFlag::None>;
+using WorleyNoise2nd = WorleyNoiseImpl<WorleyNoiseFlag::Second>;
+using WorleyNoiseDiff = WorleyNoiseImpl<WorleyNoiseFlag::Diff>;
