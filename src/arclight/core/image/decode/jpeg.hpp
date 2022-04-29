@@ -273,9 +273,10 @@ namespace JPEG {
 
 	struct ArithmeticDCConditioning {
 
-		constexpr ArithmeticDCConditioning() noexcept : l(0), u(0), active(false) {}
+		constexpr ArithmeticDCConditioning() noexcept : lowerBound(0), upperBound(0), active(false) {}
 
-		u8 l, u;
+		i32 lowerBound;
+		i32 upperBound;
 		bool active;
 
 	};
@@ -324,15 +325,18 @@ namespace JPEG {
 
 	struct ScanComponent {
 
-		constexpr ScanComponent(HuffmanTable& dct, HuffmanTable& act, QuantizationTable& qt, FrameComponent& component)
-			: dcTable(dct), acTable(act), qTable(qt), frameComponent(component), prediction(0), block(nullptr) {}
+		constexpr ScanComponent(HuffmanTable& dct, HuffmanTable& act, ArithmeticDCConditioning& dcc, ArithmeticACConditioning& acc, QuantizationTable& qt, FrameComponent& component)
+			: dcTable(dct), acTable(act), dcConditioning(dcc), acConditioning(acc), qTable(qt), frameComponent(component), prediction(0), prevDifference(0), block(nullptr) {}
 
 		HuffmanTable& dcTable;
 		HuffmanTable& acTable;
+		ArithmeticDCConditioning& dcConditioning;
+		ArithmeticACConditioning& acConditioning;
 		QuantizationTable& qTable;
 		FrameComponent& frameComponent;
 
 		i32 prediction;
+		i32 prevDifference;
 		i32* block;
 
 	};

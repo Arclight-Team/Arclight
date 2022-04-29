@@ -67,6 +67,9 @@ private:
 		void reset();
 		void prefetch();
 		bool decodeBin(Bin& bin);
+		bool decodeDCBin(u32 bin);
+		bool decodeACBin(u32 bin);
+		bool decodeFixed(u16 lpsEstimate, bool mps);
 		static void mpsTransition(Bin& bin);
 		static void lpsTransition(Bin& bin);
 
