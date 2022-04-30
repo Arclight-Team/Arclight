@@ -23,6 +23,9 @@ public:
 	template<Arithmetic C, SizeT N> requires(N == TypesCount - 1)
 	using ContributionT = const C (&)[N];
 
+	template<class T, class... Pack>
+	using ArgsHelper = T;
+
 
 	constexpr NoiseMix(const Types&... types) : types(types...) {};
 
@@ -83,7 +86,7 @@ public:
 
 	}
 
-	template<class T, Arithmetic A, Float F = TT::CommonArithmeticType<T>, Returns<F, TT::Expand<F, Types>...> Func> requires(Float<T> || FloatVector<T>)
+	template<class T, Arithmetic A, Float F = TT::CommonArithmeticType<T>, Returns<F, ArgsHelper<F, Types>...> Func> requires(Float<T> || FloatVector<T>)
 	constexpr F sample(const T& point, A frequency, Func transform) const {
 
 		F sample = 0;
@@ -140,7 +143,7 @@ public:
 
 	}
 
-	template<class T, Arithmetic A, Arithmetic L, Arithmetic P, Float F = TT::CommonArithmeticType<T>, Returns<F, TT::Expand<F, Types>...> Func> requires(Float<T> || FloatVector<T>)
+	template<class T, Arithmetic A, Arithmetic L, Arithmetic P, Float F = TT::CommonArithmeticType<T>, Returns<F, ArgsHelper<F, Types>...> Func> requires(Float<T> || FloatVector<T>)
 	constexpr F sample(const T& point, A frequency, u32 octaves, L lacunarity, P persistence, Func transform) const {
 
 		F sample = 0;
