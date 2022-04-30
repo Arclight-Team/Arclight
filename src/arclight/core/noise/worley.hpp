@@ -29,28 +29,31 @@ public:
 	template<Float F, Arithmetic A>
 	constexpr F sample(F point, A frequency) const {
 
+		using I = TT::ToInteger<F>;
+		using UI = TT::MakeUnsigned<I>;
+
 		constexpr F max = 2;
 
 		point *= frequency;
 
-		i32 ipx = Math::floor(point);
+		I ip = Math::floor(point);
 
-		F px = point - ipx;
+		F p = point - ip;
 
 		F first = max;
 		F second = max;
 
 		for (const auto& ofsx : offsets1D) {
 
-			u32 hx = Math::abs(ipx + ofsx) & hashMask;
+			UI hx = Math::abs(ip + ofsx) & hashMask;
 
 			F gx = gradient<F>[hash(hx) & grad1DMask];
 
 			gx = gx / 2 + 0.5 + ofsx;
 
-			F dist = Math::abs(px - gx);
+			F dist = Math::abs(p - gx);
 
-			updateDistance(first, second, dist);
+			updateDistances(first, second, dist);
 
 		}
 
@@ -62,6 +65,8 @@ public:
 	constexpr typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
+		using I = TT::ToInteger<F>;
+		using UI = TT::MakeUnsigned<I>;
 
 		constexpr F max = 1.41421356237; // sqrt(2)
 
@@ -70,8 +75,8 @@ public:
 		F x = point.x;
 		F y = point.y;
 
-		i32 ipx = Math::floor(x);
-		i32 ipy = Math::floor(y);
+		I ipx = Math::floor(x);
+		I ipy = Math::floor(y);
 
 		F px = x - ipx;
 		F py = y - ipy;
@@ -81,8 +86,8 @@ public:
 
 		for (const auto& [ofsx, ofsy] : offsets2D) {
 
-			u32 hx = Math::abs(ipx + ofsx) & hashMask;
-			u32 hy = Math::abs(ipy + ofsy) & hashMask;
+			UI hx = Math::abs(ipx + ofsx) & hashMask;
+			UI hy = Math::abs(ipy + ofsy) & hashMask;
 
 			auto [gx, gy] = gradient<V>[hash(hx, hy) & grad2DMask];
 
@@ -91,7 +96,7 @@ public:
 
 			F dist = V(px, py).distance(V(gx, gy));
 
-			updateDistance(first, second, dist);
+			updateDistances(first, second, dist);
 
 		}
 
@@ -103,6 +108,8 @@ public:
 	constexpr typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
+		using I = TT::ToInteger<F>;
+		using UI = TT::MakeUnsigned<I>;
 
 		constexpr F max = 1.73205080756; // sqrt(3)
 
@@ -112,9 +119,9 @@ public:
 		F y = point.y;
 		F z = point.z;
 
-		i32 ipx = Math::floor(x);
-		i32 ipy = Math::floor(y);
-		i32 ipz = Math::floor(z);
+		I ipx = Math::floor(x);
+		I ipy = Math::floor(y);
+		I ipz = Math::floor(z);
 
 		F px = x - ipx;
 		F py = y - ipy;
@@ -125,9 +132,9 @@ public:
 
 		for (const auto& [ofsx, ofsy, ofsz] : offsets3D) {
 
-			u32 hx = Math::abs(ipx + ofsx) & hashMask;
-			u32 hy = Math::abs(ipy + ofsy) & hashMask;
-			u32 hz = Math::abs(ipz + ofsz) & hashMask;
+			UI hx = Math::abs(ipx + ofsx) & hashMask;
+			UI hy = Math::abs(ipy + ofsy) & hashMask;
+			UI hz = Math::abs(ipz + ofsz) & hashMask;
 
 			auto [gx, gy, gz] = gradient<V>[hash(hx, hy, hz) & grad3DMask];
 
@@ -137,7 +144,7 @@ public:
 
 			F dist = V(px, py, pz).distance(V(gx, gy, gz));
 
-			updateDistance(first, second, dist);
+			updateDistances(first, second, dist);
 
 		}
 
@@ -149,6 +156,8 @@ public:
 	constexpr typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
+		using I = TT::ToInteger<F>;
+		using UI = TT::MakeUnsigned<I>;
 
 		constexpr F max = 2; // sqrt(4)
 
@@ -159,10 +168,10 @@ public:
 		F z = point.z;
 		F w = point.w;
 
-		i32 ipx = Math::floor(x);
-		i32 ipy = Math::floor(y);
-		i32 ipz = Math::floor(z);
-		i32 ipw = Math::floor(w);
+		I ipx = Math::floor(x);
+		I ipy = Math::floor(y);
+		I ipz = Math::floor(z);
+		I ipw = Math::floor(w);
 
 		F px = x - ipx;
 		F py = y - ipy;
@@ -174,10 +183,10 @@ public:
 
 		for (const auto& [ofsx, ofsy, ofsz, ofsw] : offsets4D) {
 
-			u32 hx = Math::abs(ipx + ofsx) & hashMask;
-			u32 hy = Math::abs(ipy + ofsy) & hashMask;
-			u32 hz = Math::abs(ipz + ofsz) & hashMask;
-			u32 hw = Math::abs(ipw + ofsw) & hashMask;
+			UI hx = Math::abs(ipx + ofsx) & hashMask;
+			UI hy = Math::abs(ipy + ofsy) & hashMask;
+			UI hz = Math::abs(ipz + ofsz) & hashMask;
+			UI hw = Math::abs(ipw + ofsw) & hashMask;
 
 			auto [gx, gy, gz, gw] = gradient<V>[hash(hx, hy, hz, hw) & grad3DMask];
 
@@ -188,7 +197,7 @@ public:
 
 			F dist = V(px, py, pz, pw).distance(V(gx, gy, gz, gw));
 
-			updateDistance(first, second, dist);
+			updateDistances(first, second, dist);
 
 		}
 
@@ -204,7 +213,7 @@ public:
 private:
 
 	template<Float F>
-	static constexpr void updateDistance(F& first, F& second, F dist) {
+	static constexpr void updateDistances(F& first, F& second, F dist) {
 		if constexpr (Flag == FlagT::None) {
 
 			first = Math::min(first, dist);

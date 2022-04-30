@@ -18,9 +18,12 @@ public:
 	template<Float F, Arithmetic A>
 	constexpr F sample(F point, A frequency) const {
 
+		using I = TT::ToInteger<F>;
+		using UI = TT::MakeUnsigned<I>;
+
 		point *= frequency;
 
-		i32 ip = i32(Math::floor(point)) & hashMask;
+		UI ip = I(Math::floor(point)) & hashMask;
 
 		constexpr F scale = 1.0 / 0xFF;
 
@@ -29,14 +32,17 @@ public:
 	}
 
 	template<FloatVector V, Arithmetic A> requires(V::Size == 2)
-	constexpr typename V::Type sample(V point, A frequency) const {
+	constexpr typename V::Type sample(const V& point, A frequency) const {
 
 		using F = typename V::Type;
+		using I = TT::ToInteger<F>;
+		using UI = TT::MakeUnsigned<I>;
 
-		point *= frequency;
+		F x = point.x * frequency;
+		F y = point.y * frequency;
 
-		i32 ipx = i32(Math::floor(point.x)) & hashMask;
-		i32 ipy = i32(Math::floor(point.y)) & hashMask;
+		UI ipx = I(Math::floor(x)) & hashMask;
+		UI ipy = I(Math::floor(y)) & hashMask;
 
 		constexpr F scale = 1.0 / 0xFF;
 
@@ -48,12 +54,16 @@ public:
 	constexpr typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
+		using I = TT::ToInteger<F>;
+		using UI = TT::MakeUnsigned<I>;
 
-		point *= frequency;
+		F x = point.x * frequency;
+		F y = point.y * frequency;
+		F z = point.z * frequency;
 
-		i32 ipx = i32(Math::floor(point.x)) & hashMask;
-		i32 ipy = i32(Math::floor(point.y)) & hashMask;
-		i32 ipz = i32(Math::floor(point.z)) & hashMask;
+		UI ipx = I(Math::floor(x)) & hashMask;
+		UI ipy = I(Math::floor(y)) & hashMask;
+		UI ipz = I(Math::floor(z)) & hashMask;
 
 		constexpr F scale = 1.0 / 0xFF;
 
@@ -65,13 +75,18 @@ public:
 	constexpr typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
+		using I = TT::ToInteger<F>;
+		using UI = TT::MakeUnsigned<I>;
 
-		point *= frequency;
+		F x = point.x * frequency;
+		F y = point.y * frequency;
+		F z = point.z * frequency;
+		F w = point.w * frequency;
 
-		i32 ipx = i32(Math::floor(point.x)) & hashMask;
-		i32 ipy = i32(Math::floor(point.y)) & hashMask;
-		i32 ipz = i32(Math::floor(point.z)) & hashMask;
-		i32 ipw = i32(Math::floor(point.w)) & hashMask;
+		UI ipx = I(Math::floor(x)) & hashMask;
+		UI ipy = I(Math::floor(y)) & hashMask;
+		UI ipz = I(Math::floor(z)) & hashMask;
+		UI ipw = I(Math::floor(w)) & hashMask;
 
 		constexpr F scale = 1.0 / 0xFF;
 

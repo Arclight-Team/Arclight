@@ -18,19 +18,22 @@ public:
 	template<Float F, Arithmetic A>
 	constexpr F sample(F point, A frequency) const {
 
+		using I = TT::ToInteger<F>;
+		using UI = TT::MakeUnsigned<I>;
+
 		point *= frequency;
 
-		i32 ip0 = Math::floor(point);
+		I ip0 = Math::floor(point);
 
 		F p0 = point - ip0;
 		F p1 = p0 - 1;
 
 		ip0 &= hashMask;
 
-		u32 ip1 = ip0 + 1;
+		UI ip1 = ip0 + 1;
 
-		auto dot = [&](F p, u32 ip) {
-			return gradient<F>[hash(ip) & grad1DMask] * p;
+		auto dot = [&](F p, UI ip) constexpr {
+			return p * gradient<F>[hash(ip) & grad1DMask];
 		};
 
 		constexpr F scale = 2; // sqrt(4/1)
@@ -40,17 +43,17 @@ public:
 	}
 
 	template<FloatVector V, Arithmetic A> requires(V::Size == 2)
-	constexpr typename V::Type sample(V point, A frequency) const {
+	constexpr typename V::Type sample(const V& point, A frequency) const {
 
 		using F = typename V::Type;
+		using I = TT::ToInteger<F>;
+		using UI = TT::MakeUnsigned<I>;
 
-		point *= frequency;
+		F x = point.x * frequency;
+		F y = point.y * frequency;
 
-		F x = point.x;
-		F y = point.y;
-
-		i32 ipx0 = Math::floor(x);
-		i32 ipy0 = Math::floor(y);
+		I ipx0 = Math::floor(x);
+		I ipy0 = Math::floor(y);
 
 		F px0 = x - ipx0;
 		F py0 = y - ipy0;
@@ -60,38 +63,41 @@ public:
 		ipx0 &= hashMask;
 		ipy0 &= hashMask;
 
-		u32 ipx1 = ipx0 + 1;
-		u32 ipy1 = ipy0 + 1;
+		UI ipx1 = ipx0 + 1;
+		UI ipy1 = ipy0 + 1;
 
-		auto dot = [&](F px, F py, u32 ipx, u32 ipy) {
-			return V(px, py).dot(gradient<V>[hash(ipx, ipy) & grad2DMask]);
+		auto dot = [&](F px, F py, UI ipx, UI ipy) constexpr {
+			const auto& [gx, gy] = gradient<V>[hash(ipx, ipy) & grad2DMask];
+			return px * gx + py * gy;
 		};
+
+		F stepx = interpolate(px0);
+
+		F sample0y = Math::lerp(dot(px0, py0, ipx0, ipy0), dot(px1, py0, ipx1, ipy0), stepx);
+		F sample1y = Math::lerp(dot(px0, py1, ipx0, ipy1), dot(px1, py1, ipx1, ipy1), stepx);
 
 		F stepy = interpolate(py0);
 
-		F sample0y = Math::lerp(dot(px0, py0, ipx0, ipy0), dot(px0, py1, ipx0, ipy1), stepy);
-		F sample1y = Math::lerp(dot(px1, py0, ipx1, ipy0), dot(px1, py1, ipx1, ipy1), stepy);
-
 		constexpr F scale = 1.41421356237; // sqrt(4/2)
 
-		return Math::lerp(sample0y, sample1y, interpolate(px0)) * scale;
+		return Math::lerp(sample0y, sample1y, stepy) * scale;
 
 	}
 
 	template<FloatVector V, Arithmetic A> requires(V::Size == 3)
-	constexpr typename V::Type sample(V point, A frequency) const {
+	constexpr typename V::Type sample(const V& point, A frequency) const {
 
 		using F = typename V::Type;
+		using I = TT::ToInteger<F>;
+		using UI = TT::MakeUnsigned<I>;
 
-		point *= frequency;
+		F x = point.x * frequency;
+		F y = point.y * frequency;
+		F z = point.z * frequency;
 
-		F x = point.x;
-		F y = point.y;
-		F z = point.z;
-
-		i32 ipx0 = Math::floor(x);
-		i32 ipy0 = Math::floor(y);
-		i32 ipz0 = Math::floor(z);
+		I ipx0 = Math::floor(x);
+		I ipy0 = Math::floor(y);
+		I ipz0 = Math::floor(z);
 
 		F px0 = x - ipx0;
 		F py0 = y - ipy0;
@@ -104,48 +110,51 @@ public:
 		ipy0 &= hashMask;
 		ipz0 &= hashMask;
 
-		u32 ipx1 = ipx0 + 1;
-		u32 ipy1 = ipy0 + 1;
-		u32 ipz1 = ipz0 + 1;
+		UI ipx1 = ipx0 + 1;
+		UI ipy1 = ipy0 + 1;
+		UI ipz1 = ipz0 + 1;
 
-		auto dot = [&](F px, F py, F pz, u32 ipx, u32 ipy, u32 ipz) {
-			return V(px, py, pz).dot(gradient<V>[hash(ipx, ipy, ipz) & grad3DMask]);
+		auto dot = [&](F px, F py, F pz, UI ipx, UI ipy, UI ipz) constexpr {
+			const auto& [gx, gy, gz] = gradient<V>[hash(ipx, ipy, ipz) & grad3DMask];
+			return px * gx + py * gy + pz * gz;
 		};
 
-		F stepz = interpolate(pz0);
+		F stepx = interpolate(px0);
 
-		F sample0z = Math::lerp(dot(px0, py0, pz0, ipx0, ipy0, ipz0), dot(px0, py0, pz1, ipx0, ipy0, ipz1), stepz);
-		F sample1z = Math::lerp(dot(px0, py1, pz0, ipx0, ipy1, ipz0), dot(px0, py1, pz1, ipx0, ipy1, ipz1), stepz);
-		F sample2z = Math::lerp(dot(px1, py0, pz0, ipx1, ipy0, ipz0), dot(px1, py0, pz1, ipx1, ipy0, ipz1), stepz);
-		F sample3z = Math::lerp(dot(px1, py1, pz0, ipx1, ipy1, ipz0), dot(px1, py1, pz1, ipx1, ipy1, ipz1), stepz);
+		F sample0x = Math::lerp(dot(px0, py0, pz0, ipx0, ipy0, ipz0), dot(px1, py0, pz0, ipx1, ipy0, ipz0), stepx);
+		F sample1x = Math::lerp(dot(px0, py0, pz1, ipx0, ipy0, ipz1), dot(px1, py0, pz1, ipx1, ipy0, ipz1), stepx);
+		F sample2x = Math::lerp(dot(px0, py1, pz0, ipx0, ipy1, ipz0), dot(px1, py1, pz0, ipx1, ipy1, ipz0), stepx);
+		F sample3x = Math::lerp(dot(px0, py1, pz1, ipx0, ipy1, ipz1), dot(px1, py1, pz1, ipx1, ipy1, ipz1), stepx);
 
 		F stepy = interpolate(py0);
 
-		F sample0y = Math::lerp(sample0z, sample1z, stepy);
-		F sample1y = Math::lerp(sample2z, sample3z, stepy);
+		F sample0y = Math::lerp(sample0x, sample2x, stepy);
+		F sample1y = Math::lerp(sample1x, sample3x, stepy);
+
+		F stepz = interpolate(pz0);
 
 		constexpr F scale = 1.15470053838; // sqrt(4/3)
 
-		return Math::lerp(sample0y, sample1y, interpolate(px0)) * scale;
+		return Math::lerp(sample0y, sample1y, stepz) * scale;
 
 	}
 
 	template<FloatVector V, Arithmetic A> requires(V::Size == 4)
-	constexpr typename V::Type sample(V point, A frequency) const {
+	constexpr typename V::Type sample(const V& point, A frequency) const {
 
 		using F = typename V::Type;
+		using I = TT::ToInteger<F>;
+		using UI = TT::MakeUnsigned<I>;
 
-		point *= frequency;
+		F x = point.x * frequency;
+		F y = point.y * frequency;
+		F z = point.z * frequency;
+		F w = point.w * frequency;
 
-		F x = point.x;
-		F y = point.y;
-		F z = point.z;
-		F w = point.w;
-
-		i32 ipx0 = Math::floor(x);
-		i32 ipy0 = Math::floor(y);
-		i32 ipz0 = Math::floor(z);
-		i32 ipw0 = Math::floor(w);
+		I ipx0 = Math::floor(x);
+		I ipy0 = Math::floor(y);
+		I ipz0 = Math::floor(z);
+		I ipw0 = Math::floor(w);
 
 		F px0 = x - ipx0;
 		F py0 = y - ipy0;
@@ -161,41 +170,44 @@ public:
 		ipz0 &= hashMask;
 		ipw0 &= hashMask;
 
-		u32 ipx1 = ipx0 + 1;
-		u32 ipy1 = ipy0 + 1;
-		u32 ipz1 = ipz0 + 1;
-		u32 ipw1 = ipw0 + 1;
+		UI ipx1 = ipx0 + 1;
+		UI ipy1 = ipy0 + 1;
+		UI ipz1 = ipz0 + 1;
+		UI ipw1 = ipw0 + 1;
 
-		auto dot = [&](F px, F py, F pz, F pw, u32 ipx, u32 ipy, u32 ipz, u32 ipw) {
-			return V(px, py, pz, pw).dot(gradient<V>[hash(ipx, ipy, ipz, ipw) & grad4DMask]);
+		auto dot = [&](F px, F py, F pz, F pw, UI ipx, UI ipy, UI ipz, UI ipw) constexpr {
+			const auto& [gx, gy, gz, gw] = gradient<V>[hash(ipx, ipy, ipz, ipw) & grad4DMask];
+			return px * gx + py * gy + pz * gz + pw * gw;
 		};
 
-		F stepw = interpolate(pw0);
+		F stepx = interpolate(px0);
 
-		F sample0w = Math::lerp(dot(px0, py0, pz0, pw0, ipx0, ipy0, ipz0, ipw0), dot(px0, py0, pz0, pw1, ipx0, ipy0, ipz0, ipw1), stepw);
-		F sample1w = Math::lerp(dot(px0, py0, pz1, pw0, ipx0, ipy0, ipz1, ipw0), dot(px0, py0, pz1, pw1, ipx0, ipy0, ipz1, ipw1), stepw);
-		F sample2w = Math::lerp(dot(px0, py1, pz0, pw0, ipx0, ipy1, ipz0, ipw0), dot(px0, py1, pz0, pw1, ipx0, ipy1, ipz0, ipw1), stepw);
-		F sample3w = Math::lerp(dot(px0, py1, pz1, pw0, ipx0, ipy1, ipz1, ipw0), dot(px0, py1, pz1, pw1, ipx0, ipy1, ipz1, ipw1), stepw);
-		F sample4w = Math::lerp(dot(px1, py0, pz0, pw0, ipx1, ipy0, ipz0, ipw0), dot(px1, py0, pz0, pw1, ipx1, ipy0, ipz0, ipw1), stepw);
-		F sample5w = Math::lerp(dot(px1, py0, pz1, pw0, ipx1, ipy0, ipz1, ipw0), dot(px1, py0, pz1, pw1, ipx1, ipy0, ipz1, ipw1), stepw);
-		F sample6w = Math::lerp(dot(px1, py1, pz0, pw0, ipx1, ipy1, ipz0, ipw0), dot(px1, py1, pz0, pw1, ipx1, ipy1, ipz0, ipw1), stepw);
-		F sample7w = Math::lerp(dot(px1, py1, pz1, pw0, ipx1, ipy1, ipz1, ipw0), dot(px1, py1, pz1, pw1, ipx1, ipy1, ipz1, ipw1), stepw);
-
-		F stepz = interpolate(pz0);
-
-		F sample0z = Math::lerp(sample0w, sample1w, stepz);
-		F sample1z = Math::lerp(sample2w, sample3w, stepz);
-		F sample2z = Math::lerp(sample4w, sample5w, stepz);
-		F sample3z = Math::lerp(sample6w, sample7w, stepz);
+		F sample0x = Math::lerp(dot(px0, py0, pz0, pw0, ipx0, ipy0, ipz0, ipw0), dot(px1, py0, pz0, pw0, ipx1, ipy0, ipz0, ipw0), stepx);
+		F sample1x = Math::lerp(dot(px0, py0, pz0, pw1, ipx0, ipy0, ipz0, ipw1), dot(px1, py0, pz0, pw1, ipx1, ipy0, ipz0, ipw1), stepx);
+		F sample2x = Math::lerp(dot(px0, py0, pz1, pw0, ipx0, ipy0, ipz1, ipw0), dot(px1, py0, pz1, pw0, ipx1, ipy0, ipz1, ipw0), stepx);
+		F sample3x = Math::lerp(dot(px0, py0, pz1, pw1, ipx0, ipy0, ipz1, ipw1), dot(px1, py0, pz1, pw1, ipx1, ipy0, ipz1, ipw1), stepx);
+		F sample4x = Math::lerp(dot(px0, py1, pz0, pw0, ipx0, ipy1, ipz0, ipw0), dot(px1, py1, pz0, pw0, ipx1, ipy1, ipz0, ipw0), stepx);
+		F sample5x = Math::lerp(dot(px0, py1, pz0, pw1, ipx0, ipy1, ipz0, ipw1), dot(px1, py1, pz0, pw1, ipx1, ipy1, ipz0, ipw1), stepx);
+		F sample6x = Math::lerp(dot(px0, py1, pz1, pw0, ipx0, ipy1, ipz1, ipw0), dot(px1, py1, pz1, pw0, ipx1, ipy1, ipz1, ipw0), stepx);
+		F sample7x = Math::lerp(dot(px0, py1, pz1, pw1, ipx0, ipy1, ipz1, ipw1), dot(px1, py1, pz1, pw1, ipx1, ipy1, ipz1, ipw1), stepx);
 
 		F stepy = interpolate(py0);
 
-		F sample0y = Math::lerp(sample0z, sample1z, stepy);
-		F sample1y = Math::lerp(sample2z, sample3z, stepy);
+		F sample0y = Math::lerp(sample0x, sample4x, stepy);
+		F sample1y = Math::lerp(sample1x, sample5x, stepy);
+		F sample2y = Math::lerp(sample2x, sample6x, stepy);
+		F sample3y = Math::lerp(sample3x, sample7x, stepy);
+
+		F stepz = interpolate(pz0);
+
+		F sample0z = Math::lerp(sample0y, sample2y, stepz);
+		F sample1z = Math::lerp(sample1y, sample3y, stepz);
+
+		F stepw = interpolate(pw0);
 
 		constexpr F scale = 1; // sqrt(4/4)
 
-		return Math::lerp(sample0y, sample1y, interpolate(px0)) * scale;
+		return Math::lerp(sample0y, sample1y, stepw) * scale;
 
 	}
 
