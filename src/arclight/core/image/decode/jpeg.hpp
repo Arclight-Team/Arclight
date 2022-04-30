@@ -37,6 +37,14 @@ namespace JPEG {
 		constexpr u16 SOF13 = 0xFFCD;
 		constexpr u16 SOF14 = 0xFFCE;
 		constexpr u16 SOF15 = 0xFFCF;
+		constexpr u16 RST0 = 0xFFD0;
+		constexpr u16 RST1 = 0xFFD1;
+		constexpr u16 RST2 = 0xFFD2;
+		constexpr u16 RST3 = 0xFFD3;
+		constexpr u16 RST4 = 0xFFD4;
+		constexpr u16 RST5 = 0xFFD5;
+		constexpr u16 RST6 = 0xFFD6;
+		constexpr u16 RST7 = 0xFFD7;
 		constexpr u16 SOI = 0xFFD8;
 		constexpr u16 EOI = 0xFFD9;
 		constexpr u16 SOS = 0xFFDA;

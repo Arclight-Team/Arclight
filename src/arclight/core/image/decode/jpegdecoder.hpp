@@ -29,9 +29,21 @@ public:
 
 private:
 
-	struct HuffmanDecoder {
+	struct EntropyDecoder {
 
-		constexpr explicit HuffmanDecoder(BinaryReader& reader) : data(0), size(0), sink(reader) {}
+		constexpr explicit EntropyDecoder(BinaryReader& reader) : end(false), sink(reader) {}
+
+		constexpr void unblock() noexcept { end = false; }
+		std::optional<u8> fetchByte();
+
+		bool end;
+		BinaryReader& sink;
+
+	};
+
+	struct HuffmanDecoder : public EntropyDecoder {
+
+		constexpr explicit HuffmanDecoder(BinaryReader& reader) : EntropyDecoder(reader), data(0), size(0) {}
 
 		void reset();
 		JPEG::HuffmanResult decodeDC(const JPEG::HuffmanTable& table);
@@ -44,13 +56,12 @@ private:
 
 		u32 data;
 		i32 size;
-		BinaryReader& sink;
 
 	};
 
-	struct ArithmeticDecoder {
+	struct ArithmeticDecoder : public EntropyDecoder {
 
-		explicit ArithmeticDecoder(BinaryReader& reader) : sink(reader) { reset(); }
+		constexpr explicit ArithmeticDecoder(BinaryReader& reader) : EntropyDecoder(reader), baseInterval(0), data(0), size(0) {}
 
 		constexpr u16 getValue() const noexcept { return data >> 16; }
 		constexpr void setValue(u16 value) noexcept { data = (data & 0xFFFF) | (value << 16); }
@@ -69,7 +80,6 @@ private:
 		u16 baseInterval;
 		u32 data;
 		u32 size;
-		BinaryReader& sink;
 
 	};
 
@@ -89,7 +99,7 @@ private:
 	void resolveTargetFormat();
 
 	void decodeScan();
-	void decodeImage();
+	void decodeImage(u32 startMCU, u32 endMCU);
 	void decodeHuffmanBlock(JPEG::ScanComponent& component);
 	void decodeArithmeticBlock(JPEG::ScanComponent& component);
 	void decodeProgressiveDCBlock(JPEG::ScanComponent& component);

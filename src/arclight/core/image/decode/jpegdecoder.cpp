@@ -213,7 +213,7 @@ void JPEGDecoder::decode(std::span<const u8> data) {
 				break;
 
 			default:
-				//Log::error("JPEG Loader", "Unknown marker 0x%X", marker);
+				//Log::error("JPEG Decoder", "Unknown marker 0x%X", marker);
 				reader.seek(-1);
 				break;
 
@@ -286,7 +286,7 @@ void JPEGDecoder::parseApplicationSegment0() {
 		u8 thumbnailH = reader.read<u8>();
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", "[APP0 JFIF] Major: %d, Minor: %d, Density: 0x%X, DensityX: %d, DensityY: %d, ThumbnailW: %d, ThumbnailH: %d",
+		Log::info("JPEG Decoder", "[APP0 JFIF] Major: %d, Minor: %d, Density: 0x%X, DensityX: %d, DensityY: %d, ThumbnailW: %d, ThumbnailH: %d",
 				  major, minor, density, densityX, densityY, thumbnailW, thumbnailH);
 #endif
 
@@ -314,14 +314,14 @@ void JPEGDecoder::parseApplicationSegment0() {
 		u8 format = reader.read<u8>();
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", "[APP0 JFXX] ThumbnailFormat: 0x%X", format);
+		Log::info("JPEG Decoder", "[APP0 JFXX] ThumbnailFormat: 0x%X", format);
 #endif
 
 		switch (format) {
 
 			case 0x10:
 				//TODO: Embedded JPEG
-				Log::warn("JPEG Loader", "Embedded JPEG thumbnails unsupported");
+				Log::warn("JPEG Decoder", "Embedded JPEG thumbnails unsupported");
 				reader.seekTo(segmentEnd);
 				break;
 
@@ -422,7 +422,7 @@ void JPEGDecoder::parseHuffmanTable() {
 		bool dc = type == 0;
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", "[DHT] Class: %s, ID: %d", dc ? "DC" : "AC", id);
+		Log::info("JPEG Decoder", "[DHT] Class: %s, ID: %d", dc ? "DC" : "AC", id);
 #endif
 
 		if (type > 1 || id > 3) {
@@ -550,7 +550,7 @@ void JPEGDecoder::parseHuffmanTable() {
 	} while (offset != length);
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Loader", "[DHT] Tables read: %d", count);
+	Log::info("JPEG Decoder", "[DHT] Tables read: %d", count);
 #endif
 
 }
@@ -580,7 +580,7 @@ void JPEGDecoder::parseArithmeticConditioning() {
 		bool dc = type == 0;
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", "[DAC] Class: %s, ID: %d", dc ? "DC" : "AC", id);
+		Log::info("JPEG Decoder", "[DAC] Class: %s, ID: %d", dc ? "DC" : "AC", id);
 #endif
 
 		if (type > 1 || id > 3) {
@@ -604,7 +604,7 @@ void JPEGDecoder::parseArithmeticConditioning() {
 			dcc.active = true;
 
 #ifdef ARC_IMAGE_DEBUG
-			Log::info("JPEG Loader", "[DAC] LowerBound: %d, UpperBound: %d", dcc.lowerBound, dcc.upperBound);
+			Log::info("JPEG Decoder", "[DAC] LowerBound: %d, UpperBound: %d", dcc.lowerBound, dcc.upperBound);
 #endif
 
 		} else {
@@ -618,7 +618,7 @@ void JPEGDecoder::parseArithmeticConditioning() {
 			acc.active = true;
 
 #ifdef ARC_IMAGE_DEBUG
-			Log::info("JPEG Loader", "[DAC] Kx: %d", acc.kx);
+			Log::info("JPEG Decoder", "[DAC] Kx: %d", acc.kx);
 #endif
 
 		}
@@ -628,7 +628,7 @@ void JPEGDecoder::parseArithmeticConditioning() {
 	} while (offset != length);
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Loader", "[DAC] Tables read: %d", count);
+	Log::info("JPEG Decoder", "[DAC] Tables read: %d", count);
 #endif
 
 }
@@ -653,7 +653,7 @@ void JPEGDecoder::parseQuantizationTable() {
 		u8 id = setting & 0xF;
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", std::string("[DQT] Table %d, ") + (precision ? "16 bit" : "8 bit"), id);
+		Log::info("JPEG Decoder", std::string("[DQT] Table %d, ") + (precision ? "16 bit" : "8 bit"), id);
 #endif
 
 		if (precision > 1 || id > 3) {
@@ -690,7 +690,7 @@ void JPEGDecoder::parseQuantizationTable() {
 	} while (offset != length);
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Loader", "[DQT] Tables read: %d", count);
+	Log::info("JPEG Decoder", "[DQT] Tables read: %d", count);
 #endif
 
 }
@@ -708,6 +708,10 @@ void JPEGDecoder::parseRestartInterval() {
 	restartInterval = reader.read<u16>();
 	restartEnabled = restartInterval;
 
+#ifdef ARC_IMAGE_DEBUG
+	Log::info("JPEG Decoder", "[DRI] RestartInterval: %d", restartInterval);
+#endif
+
 }
 
 
@@ -717,7 +721,7 @@ void JPEGDecoder::parseComment() {
 	u16 length = verifySegmentLength();
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Loader", "[COM] Comment: " + std::string(reinterpret_cast<const char*>(reader.head()), length - 2));
+	Log::info("JPEG Decoder", "[COM] Comment: " + std::string(reinterpret_cast<const char*>(reader.head()), length - 2));
 #endif
 
 	comment.assign(reinterpret_cast<const char8_t*>(reader.head()), length - 2);
@@ -737,7 +741,7 @@ void JPEGDecoder::parseNumberOfLines() {
 	u16 lines = reader.read<u16>();
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Loader", "[DNL] Lines: %d", lines);
+	Log::info("JPEG Decoder", "[DNL] Lines: %d", lines);
 #endif
 
 	if (!lines) {
@@ -766,7 +770,7 @@ void JPEGDecoder::parseFrameHeader() {
 	u8 components = reader.read<u8>();
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Loader", "[SOF] Bits: %d, Lines: %d, Samples: %d, Components: %d", frame.bits, frame.lines, frame.samples, components);
+	Log::info("JPEG Decoder", "[SOF] Bits: %d, Lines: %d, Samples: %d, Components: %d", frame.bits, frame.lines, frame.samples, components);
 #endif
 
 	switch (frame.type) {
@@ -830,7 +834,7 @@ void JPEGDecoder::parseFrameHeader() {
 		FrameComponent component(s >> 4, s & 0xF, q);
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", "[SOF] Component: %d, SX: %d, SY: %d, QTableIndex: %d", id, component.samplesX, component.samplesY, q);
+		Log::info("JPEG Decoder", "[SOF] Component: %d, SX: %d, SY: %d, QTableIndex: %d", id, component.samplesX, component.samplesY, q);
 #endif
 
 		if (!Math::inRange(component.samplesX, 1, 4) || !Math::inRange(component.samplesY, 1, 4) || q > 3 || (frame.type == FrameType::Lossless && q != 0)) {
@@ -871,7 +875,7 @@ void JPEGDecoder::parseScanHeader() {
 	u8 components = reader.read<u8>();
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Loader", "[SOS] Images: %d", components);
+	Log::info("JPEG Decoder", "[SOS] Images: %d", components);
 #endif
 
 	if (!Math::inRange(components, 1, 4)) {
@@ -891,7 +895,7 @@ void JPEGDecoder::parseScanHeader() {
 		u8 acTableID = ids & 0xF;
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", "[SOS] Component %d: ID: %d, DCID: %d, ACID: %d", i + 1, componentID, dcTableID, acTableID);
+		Log::info("JPEG Decoder", "[SOS] Component %d: ID: %d, DCID: %d, ACID: %d", i + 1, componentID, dcTableID, acTableID);
 #endif
 
 		if (!frame.components.contains(componentID)) {
@@ -937,7 +941,7 @@ void JPEGDecoder::parseScanHeader() {
 	scan.approximationLow = approx & 0xF;
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Loader", "[SOS] SStart: %d, SEnd: %d, ApproxHigh: %d, ApproxLow: %d", scan.spectralStart, scan.spectralEnd, scan.approximationHigh, scan.approximationLow);
+	Log::info("JPEG Decoder", "[SOS] SStart: %d, SEnd: %d, ApproxHigh: %d, ApproxLow: %d", scan.spectralStart, scan.spectralEnd, scan.approximationHigh, scan.approximationLow);
 #endif
 
 	switch (frame.type) {
@@ -1113,11 +1117,29 @@ void JPEGDecoder::decodeScan() {
 	//Start scan decoding
 	if (restartEnabled) {
 
-		ArcDebug() << "Restart enabled";
+		u32 restartCount = scan.totalMCUs / restartInterval;
+		u32 baseMCU = 0;
+
+		for (u32 i = 0; i < restartCount; i++) {
+
+			decodeImage(baseMCU, baseMCU + restartInterval);
+			baseMCU += restartInterval;
+
+			//Skip potential marker
+			if (reader.remainingSize() >= 2 && Math::inRange(reader.peek<u16>(), Markers::RST0, Markers::RST7)) {
+				ArcDebug() << "Skipped";
+				reader.seek(2);
+			}
+
+		}
+
+		if (scan.totalMCUs % restartInterval) {
+			decodeImage(baseMCU, scan.totalMCUs);
+		}
 
 	} else {
 
-		decodeImage();
+		decodeImage(0, scan.totalMCUs);
 
 	}
 
@@ -1125,7 +1147,7 @@ void JPEGDecoder::decodeScan() {
 
 
 
-void JPEGDecoder::decodeImage() {
+void JPEGDecoder::decodeImage(u32 startMCU, u32 endMCU) {
 
 	auto decodeBlock = [this](ScanComponent& scanComponent, bool Huffman) constexpr {
 
@@ -1139,8 +1161,8 @@ void JPEGDecoder::decodeImage() {
 
 	auto doDecode = [&, this]<bool Progressive, bool Huffman, bool Interleave>() {
 
-		SizeT mcuX = 0;
-		SizeT mcuY = 0;
+		SizeT mcuX = startMCU % scan.mcusX;
+		SizeT mcuY = startMCU / scan.mcusX;
 
 		auto innerDecode = [&](ScanComponent& scanComponent) {
 
@@ -1193,7 +1215,9 @@ void JPEGDecoder::decodeImage() {
 
 		};
 
-		for (u32 currentMCU = 0; currentMCU < scan.totalMCUs; currentMCU++, mcuX++) {
+
+
+		for (u32 currentMCU = startMCU; currentMCU < endMCU; currentMCU++, mcuX++) {
 
 			if (mcuX >= scan.mcusX) {
 
@@ -1228,6 +1252,13 @@ void JPEGDecoder::decodeImage() {
 
 		arithmeticDecoder.reset();
 		arithmeticDecoder.prefetch();
+
+		for (ScanComponent& component : scan.scanComponents) {
+
+			component.dcConditioning.bins.fill({});
+			component.acConditioning.bins.fill({});
+
+		}
 
 	}
 
@@ -2441,6 +2472,7 @@ u16 JPEGDecoder::verifySegmentLength() {
 
 void JPEGDecoder::ArithmeticDecoder::reset() {
 
+	EntropyDecoder::unblock();
 	data = 0;
 	size = 0;
 	baseInterval = 0;
@@ -2630,38 +2662,23 @@ void JPEGDecoder::ArithmeticDecoder::renormalize() {
 	baseInterval <<= toShiftIn;
 	data <<= toShiftIn;
 
+	if (end) {
+		return;
+	}
+
 	u32 count = (toShiftIn + 7 - size) / 8;
 	u32 newData = 0;
 	u32 byteShift = toShiftIn + 8 - size;
 
 	for (u32 i = 0; i < count; i++) {
 
-		if (!sink.remainingSize()) {
+		auto byte = fetchByte();
+
+		if (!byte.has_value()) {
 			break;
 		}
 
-		u8 byte = sink.read<u8>();
-
-		if (byte == 0xFF) {
-
-			if (!sink.remainingSize()) {
-				throw ImageDecoderException("Bad stream end");
-			}
-
-			u8 nextByte = sink.read<u8>();
-
-			if (nextByte != 0) {
-
-				//Marker found, must be restart interval
-				//TODO
-				sink.seek(-2);
-				break;
-
-			}
-
-		}
-
-		newData |= byte << byteShift;
+		newData |= *byte << byteShift;
 		byteShift -= 8;
 
 	}
@@ -2675,6 +2692,7 @@ void JPEGDecoder::ArithmeticDecoder::renormalize() {
 
 void JPEGDecoder::HuffmanDecoder::reset() {
 
+	EntropyDecoder::unblock();
 	data = 0;
 	size = 0;
 
@@ -2745,37 +2763,21 @@ u32 JPEGDecoder::HuffmanDecoder::decodeOffset(u8 category) {
 
 void JPEGDecoder::HuffmanDecoder::saturate() {
 
+	if (end) {
+		return;
+	}
+
 	u32 count = (32 - size) / 8;
 
 	for (u32 i = 0; i < count; i++) {
 
-		if (!sink.remainingSize()) {
-			break;
+		auto byte = fetchByte();
+
+		if (!byte.has_value()) {
+			return;
 		}
 
-		u8 byte = sink.read<u8>();
-
-		//Skip trailing 'escape zero'
-		if (byte == 0xFF) {
-
-			if (!sink.remainingSize()) {
-				break;
-			}
-
-			u8 nextByte = sink.read<u8>();
-
-			if (nextByte != 0) {
-
-				//Marker found, must be restart interval
-				//TODO
-				sink.seek(-2);
-				break;
-
-			}
-
-		}
-
-		data |= byte << (32 - size - 8);
+		data |= *byte << (32 - size - 8);
 		size += 8;
 
 	}
@@ -2802,5 +2804,54 @@ void JPEGDecoder::HuffmanDecoder::consume(u32 count) {
 
 	size -= i32(count);
 	data <<= count;
+
+}
+
+
+
+std::optional<u8> JPEGDecoder::EntropyDecoder::fetchByte() {
+
+	if (!sink.remainingSize()) {
+
+		end = true;
+		return {};
+
+	}
+
+	u8 byte = sink.read<u8>();
+
+	//Skip trailing 'escape zero'
+	if (byte == 0xFF) {
+
+		if (!sink.remainingSize()) {
+
+			end = true;
+			return {};
+
+		}
+
+		u8 nextByte = sink.read<u8>();
+
+		if (nextByte) {
+
+			//Restart intervals simply cause a buffer block
+			if (nextByte < (Markers::RST0 & 0xFF) || nextByte > (Markers::RST7 & 0xFF)) {
+
+				//Seek back to not consume the unknown marker
+				if (nextByte != (Markers::DNL & 0xFF)) {
+					sink.seek(-2);
+				}
+
+			}
+
+			//Block stream
+			end = true;
+			return {};
+
+		}
+
+	}
+
+	return byte;
 
 }
