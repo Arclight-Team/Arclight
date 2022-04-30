@@ -1315,10 +1315,6 @@ void JPEGDecoder::decodeHuffmanBlock(JPEG::ScanComponent& component) {
 
 	}
 
-	for (u32 i = 0; i < 8; i++) {
-		ArcDebug() << std::span{block + i * 8, 8};
-	}
-
 }
 
 
@@ -1399,15 +1395,13 @@ void JPEGDecoder::decodeArithmeticBlock(JPEG::ScanComponent& component) {
 
 			while (!arithmeticDecoder.decodeACBin(component, baseBin + 1)) {
 
+				if (k == 63) {
+					Log::warn("JPEG Decoder", "Bad AC symbol, skipping");
+					return;
+				}
+
 				baseBin += 3;
 				k++;
-
-			}
-
-			if (k > 63) {
-
-				//Log::warn("JPEG Decoder", "Bad AC symbol, skipping");
-				break;
 
 			}
 
@@ -1460,19 +1454,15 @@ void JPEGDecoder::decodeArithmeticBlock(JPEG::ScanComponent& component) {
 
 			if (k == 63) {
 				break;
-			} else {
-				k++;
-				baseBin += 3;
 			}
+
+			k++;
+			baseBin += 3;
 
 		}
 
 	}
-/*
-	for (u32 i = 0; i < 8; i++) {
-		ArcDebug() << std::span{block + i * 8, 8};
-	}
-*/
+
 }
 
 
