@@ -235,6 +235,11 @@ namespace TT {
 	constexpr inline SizeT SizeofN = Detail::SizeofN<N, Pack...>;
 
 
+	/* Expands pack and always returns T */
+	template<class T, class... Pack>
+	using Expand = T;
+
+
 	/* Conditionally adds the const qualifier to T */
 	template<bool B, class T>
 	using ConditionalConst = std::conditional_t<B, const T, T>;

@@ -191,8 +191,8 @@ concept NestedType = __ConceptDetail::NestedType<T>::Value;
 template<class F, class... A>
 concept Invocable = std::is_invocable_v<F, A...>;
 
-template<class F, class R>
-concept Returns = Invocable<F> && Equal<std::invoke_result_t<F>, R>;
+template<class F, class R, class... A>
+concept Returns = Invocable<F, A...> && Equal<std::invoke_result_t<F, A...>, R>;
 
 template<class T>
 concept Shape = requires(T s) { s.area(); };
