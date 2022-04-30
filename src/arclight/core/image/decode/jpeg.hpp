@@ -271,21 +271,32 @@ namespace JPEG {
 
 	};
 
+	struct Bin {
+
+		constexpr Bin() : index(0), mps(false) {}
+
+		u32 index;
+		bool mps;
+
+	};
+
 	struct ArithmeticDCConditioning {
 
-		constexpr ArithmeticDCConditioning() noexcept : lowerBound(0), upperBound(0), active(false) {}
+		constexpr ArithmeticDCConditioning() noexcept : lowerBound(0), upperBound(0), bins{}, active(false) {}
 
 		i32 lowerBound;
 		i32 upperBound;
+		std::array<Bin,  49> bins;
 		bool active;
 
 	};
 
 	struct ArithmeticACConditioning {
 
-		constexpr ArithmeticACConditioning() noexcept : kx(1), active(false) {}
+		constexpr ArithmeticACConditioning() noexcept : kx(1), bins{}, active(false) {}
 
 		u8 kx;
+		std::array<Bin, 245> bins;
 		bool active;
 
 	};
@@ -325,9 +336,10 @@ namespace JPEG {
 
 	struct ScanComponent {
 
-		constexpr ScanComponent(HuffmanTable& dct, HuffmanTable& act, ArithmeticDCConditioning& dcc, ArithmeticACConditioning& acc, QuantizationTable& qt, FrameComponent& component)
-			: dcTable(dct), acTable(act), dcConditioning(dcc), acConditioning(acc), qTable(qt), frameComponent(component), prediction(0), prevDifference(0), block(nullptr) {}
+		constexpr ScanComponent(u32 index, HuffmanTable& dct, HuffmanTable& act, ArithmeticDCConditioning& dcc, ArithmeticACConditioning& acc, QuantizationTable& qt, FrameComponent& component)
+			: index(index), dcTable(dct), acTable(act), dcConditioning(dcc), acConditioning(acc), qTable(qt), frameComponent(component), prediction(0), prevDifference(0), block(nullptr) {}
 
+		u32 index;
 		HuffmanTable& dcTable;
 		HuffmanTable& acTable;
 		ArithmeticDCConditioning& dcConditioning;

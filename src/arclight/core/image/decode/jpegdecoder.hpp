@@ -50,15 +50,6 @@ private:
 
 	struct ArithmeticDecoder {
 
-		struct Bin {
-
-			constexpr Bin() : index(0), mps(false) {}
-
-			u32 index;
-			bool mps;
-
-		};
-
 		explicit ArithmeticDecoder(BinaryReader& reader) : sink(reader) { reset(); }
 
 		constexpr u16 getValue() const noexcept { return data >> 16; }
@@ -66,19 +57,16 @@ private:
 
 		void reset();
 		void prefetch();
-		bool decodeBin(Bin& bin);
-		bool decodeDCBin(u32 bin);
-		bool decodeACBin(u32 bin);
+		bool decodeBin(JPEG::Bin& bin);
+		bool decodeDCBin(JPEG::ScanComponent& component, u32 bin);
+		bool decodeACBin(JPEG::ScanComponent& component, u32 bin);
 		bool decodeFixed(u16 lpsEstimate, bool mps);
-		static void mpsTransition(Bin& bin);
-		static void lpsTransition(Bin& bin);
+		static void mpsTransition(JPEG::Bin& bin);
+		static void lpsTransition(JPEG::Bin& bin);
 
 		void renormalize();
 
 		u16 baseInterval;
-		std::array<Bin,  49> dcBins;
-		std::array<Bin, 245> acBins;
-
 		u32 data;
 		u32 size;
 		BinaryReader& sink;

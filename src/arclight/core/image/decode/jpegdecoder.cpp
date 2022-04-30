@@ -599,6 +599,10 @@ void JPEGDecoder::parseArithmeticConditioning() {
 			dcc.upperBound = 1 << u;
 			dcc.active = true;
 
+#ifdef ARC_IMAGE_DEBUG
+			Log::info("JPEG Loader", "[DAC] LowerBound: %d, UpperBound: %d", dcc.lowerBound, dcc.upperBound);
+#endif
+
 		} else {
 
 			if (cs == 0 || cs > 63) {
@@ -608,6 +612,10 @@ void JPEGDecoder::parseArithmeticConditioning() {
 			ArithmeticACConditioning& acc = acConditioning[id];
 			acc.kx = cs;
 			acc.active = true;
+
+#ifdef ARC_IMAGE_DEBUG
+			Log::info("JPEG Loader", "[DAC] Kx: %d", acc.kx);
+#endif
 
 		}
 
@@ -870,7 +878,7 @@ void JPEGDecoder::parseScanHeader() {
 			throw ImageDecoderException("[SOS] Quantization table not installed");
 		}
 
-		scan.scanComponents.emplace_back(dcHuffmanTables[dcTableID], acHuffmanTables[acTableID], dcConditioning[dcTableID], acConditioning[acTableID], quantizationTables[frameComponent.qID], frameComponent);
+		scan.scanComponents.emplace_back(i, dcHuffmanTables[dcTableID], acHuffmanTables[acTableID], dcConditioning[dcTableID], acConditioning[acTableID], quantizationTables[frameComponent.qID], frameComponent);
 
 	}
 
@@ -1266,7 +1274,7 @@ void JPEGDecoder::decodeHuffmanBlock(JPEG::ScanComponent& component) {
 			if (zeroes == 0) {
 
 				//End Of Block
-				return;
+				break;
 
 			} else if (zeroes == 0xF) {
 
@@ -1307,6 +1315,10 @@ void JPEGDecoder::decodeHuffmanBlock(JPEG::ScanComponent& component) {
 
 	}
 
+	for (u32 i = 0; i < 8; i++) {
+		ArcDebug() << std::span{block + i * 8, 8};
+	}
+
 }
 
 
@@ -1324,7 +1336,7 @@ void JPEGDecoder::decodeArithmeticBlock(JPEG::ScanComponent& component) {
 
 		if (absPrevDifference > component.dcConditioning.lowerBound) {
 
-			if (absPrevDifference >= component.dcConditioning.upperBound) {
+			if (absPrevDifference > component.dcConditioning.upperBound) {
 				baseBin = positivePrevDifference ? 12 : 16;
 			} else {
 				baseBin = positivePrevDifference ? 4 : 8;
@@ -1332,20 +1344,20 @@ void JPEGDecoder::decodeArithmeticBlock(JPEG::ScanComponent& component) {
 
 		}
 
-		if (arithmeticDecoder.decodeDCBin(baseBin)) {
+		if (arithmeticDecoder.decodeDCBin(component, baseBin)) {
 
 			//Decode_V
-			bool negative = arithmeticDecoder.decodeDCBin(baseBin + 1);
-			u32 currentBin = negative ? 3 : 2;
+			bool negative = arithmeticDecoder.decodeDCBin(component, baseBin + 1);
+			u32 currentBin = baseBin + (negative ? 3 : 2);
 
 			u32 m = 0;
 
-			if (arithmeticDecoder.decodeDCBin(baseBin + currentBin)) {
+			if (arithmeticDecoder.decodeDCBin(component, currentBin)) {
 
 				m = 1;
 				currentBin = 20;
 
-				while (arithmeticDecoder.decodeDCBin(currentBin) && currentBin < 34) {
+				while (arithmeticDecoder.decodeDCBin(component, currentBin) && currentBin < 34) {
 
 					m <<= 1;
 					currentBin += 1;
@@ -1359,21 +1371,23 @@ void JPEGDecoder::decodeArithmeticBlock(JPEG::ScanComponent& component) {
 
 			while (m >>= 1) {
 
-				if (arithmeticDecoder.decodeDCBin(currentBin)) {
+				if (arithmeticDecoder.decodeDCBin(component, currentBin)) {
 					value |= m;
 				}
 
 			}
 
-			difference = Bits::cast<i32>(value) + 1;
-			difference = negative ? -difference : difference;
+			difference = static_cast<i32>(value + 1);
+
+			if (negative) {
+				difference = -difference;
+			}
 
 		}
 
 		i32 dc = component.prediction + difference;
 		component.prediction = dc;
 		component.prevDifference = difference;
-
 		block[0] = dc * component.qTable.data[0];
 	}
 
@@ -1381,9 +1395,9 @@ void JPEGDecoder::decodeArithmeticBlock(JPEG::ScanComponent& component) {
 		u32 k = 1;
 		u32 baseBin = 0;
 
-		while (!arithmeticDecoder.decodeACBin(baseBin)) {
+		while (!arithmeticDecoder.decodeACBin(component, baseBin)) {
 
-			while (!arithmeticDecoder.decodeACBin(baseBin + 1)) {
+			while (!arithmeticDecoder.decodeACBin(component, baseBin + 1)) {
 
 				baseBin += 3;
 				k++;
@@ -1403,17 +1417,17 @@ void JPEGDecoder::decodeArithmeticBlock(JPEG::ScanComponent& component) {
 
 			u32 m = 0;
 
-			if (arithmeticDecoder.decodeACBin(currentBin)) {
+			if (arithmeticDecoder.decodeACBin(component, currentBin)) {
 
 				m = 1;
 
-				if (arithmeticDecoder.decodeACBin(currentBin)) {
+				if (arithmeticDecoder.decodeACBin(component, currentBin)) {
 
 					m = 2;
 					currentBin = k <= component.acConditioning.kx ? 189 : 217;
 					u32 lastBin = currentBin + 14;
 
-					while (arithmeticDecoder.decodeACBin(currentBin) && currentBin < lastBin) {
+					while (arithmeticDecoder.decodeACBin(component, currentBin) && currentBin < lastBin) {
 
 						m <<= 1;
 						currentBin += 1;
@@ -1429,14 +1443,17 @@ void JPEGDecoder::decodeArithmeticBlock(JPEG::ScanComponent& component) {
 
 			while (m >>= 1) {
 
-				if (arithmeticDecoder.decodeACBin(currentBin)) {
+				if (arithmeticDecoder.decodeACBin(component, currentBin)) {
 					value |= m;
 				}
 
 			}
 
-			i32 ac = Bits::cast<i32>(value) + 1;
-			ac = negative ? -ac : ac;
+			i32 ac = static_cast<i32>(value + 1);
+
+			if (negative) {
+				ac = -ac;
+			}
 
 			u32 dezigzagIndex = dezigzagTableTransposed[k];
 			block[dezigzagIndex] = ac * component.qTable.data[k];
@@ -1445,12 +1462,17 @@ void JPEGDecoder::decodeArithmeticBlock(JPEG::ScanComponent& component) {
 				break;
 			} else {
 				k++;
+				baseBin += 3;
 			}
 
 		}
 
 	}
-
+/*
+	for (u32 i = 0; i < 8; i++) {
+		ArcDebug() << std::span{block + i * 8, 8};
+	}
+*/
 }
 
 
@@ -2358,8 +2380,6 @@ void JPEGDecoder::ArithmeticDecoder::reset() {
 	data = 0;
 	size = 0;
 	baseInterval = 0;
-	dcBins.fill({});
-	acBins.fill({});
 
 }
 
@@ -2401,22 +2421,24 @@ void JPEGDecoder::ArithmeticDecoder::prefetch() {
 
 
 
-bool JPEGDecoder::ArithmeticDecoder::decodeDCBin(u32 bin) {
-	return decodeBin(dcBins[bin]);
+bool JPEGDecoder::ArithmeticDecoder::decodeDCBin(ScanComponent& component, u32 bin) {
+	return decodeBin(component.dcConditioning.bins[bin]);
 }
 
 
 
-bool JPEGDecoder::ArithmeticDecoder::decodeACBin(u32 bin) {
-	return decodeBin(acBins[bin]);
+bool JPEGDecoder::ArithmeticDecoder::decodeACBin(ScanComponent& component, u32 bin) {
+	return decodeBin(component.acConditioning.bins[bin]);
 }
 
 
 
 bool JPEGDecoder::ArithmeticDecoder::decodeFixed(u16 lpsEstimate, bool mps) {
 
-	u16 currentValue = getValue();
+	baseInterval -= lpsEstimate;
 	bool decision = false;
+
+	u16 currentValue = getValue();
 
 	if (currentValue < baseInterval) {
 
@@ -2452,6 +2474,7 @@ bool JPEGDecoder::ArithmeticDecoder::decodeFixed(u16 lpsEstimate, bool mps) {
 bool JPEGDecoder::ArithmeticDecoder::decodeBin(Bin& bin) {
 
 	u16 lpsEstimate = arithmeticTransitionTable[bin.index].lpsEstimate;
+
 	baseInterval -= lpsEstimate;
 	bool decision = false;
 
@@ -2534,7 +2557,7 @@ void JPEGDecoder::ArithmeticDecoder::lpsTransition(Bin& bin) {
 
 void JPEGDecoder::ArithmeticDecoder::renormalize() {
 
-	u32 toShiftIn = Math::max(Bits::ctz(baseInterval), 1);
+	u32 toShiftIn = Math::max(Bits::clz(baseInterval), 1);
 
 	if (toShiftIn >= 16) {
 		throw ImageDecoderException("Bad arithmetic stream");
