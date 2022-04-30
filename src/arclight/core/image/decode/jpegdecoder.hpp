@@ -79,6 +79,7 @@ private:
 	void parseArithmeticConditioning();
 	void parseQuantizationTable();
 	void parseRestartInterval();
+	void parseComment();
 
 	void parseFrameHeader();
 	void parseScanHeader();
@@ -118,6 +119,7 @@ private:
 	BinaryReader reader;
 	bool validDecode;
 
+	U8String comment;
 	HuffmanDecoder huffmanDecoder;
 	ArithmeticDecoder arithmeticDecoder;
 

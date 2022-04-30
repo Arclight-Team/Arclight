@@ -174,6 +174,10 @@ void JPEGDecoder::decode(std::span<const u8> data) {
 				parseArithmeticConditioning();
 				break;
 
+			case Markers::COM:
+				parseComment();
+				break;
+
 			case Markers::DRI:
 				parseRestartInterval();
 				break;
@@ -703,6 +707,16 @@ void JPEGDecoder::parseRestartInterval() {
 
 	restartInterval = reader.read<u16>();
 	restartEnabled = restartInterval;
+
+}
+
+
+
+void JPEGDecoder::parseComment() {
+
+	u16 length = verifySegmentLength();
+
+	comment.assign(reinterpret_cast<const char8_t*>(reader.head()), length - 2);
 
 }
 
@@ -1468,6 +1482,10 @@ void JPEGDecoder::decodeArithmeticBlock(JPEG::ScanComponent& component) {
 
 
 void JPEGDecoder::decodeProgressiveDCBlock(JPEG::ScanComponent& component) {
+
+	i32* block = std::assume_aligned<32>(component.block);
+
+
 
 }
 

@@ -26,7 +26,6 @@ namespace JPEG {
 		constexpr u16 SOF2 = 0xFFC2;
 		constexpr u16 SOF3 = 0xFFC3;
 		constexpr u16 DHT = 0xFFC4;
-		constexpr u16 DAC = 0xFFCC;
 		constexpr u16 SOF5 = 0xFFC5;
 		constexpr u16 SOF6 = 0xFFC6;
 		constexpr u16 SOF7 = 0xFFC7;
@@ -34,6 +33,7 @@ namespace JPEG {
 		constexpr u16 SOF9 = 0xFFC9;
 		constexpr u16 SOF10 = 0xFFCA;
 		constexpr u16 SOF11 = 0xFFCB;
+		constexpr u16 DAC = 0xFFCC;
 		constexpr u16 SOF13 = 0xFFCD;
 		constexpr u16 SOF14 = 0xFFCE;
 		constexpr u16 SOF15 = 0xFFCF;
@@ -44,6 +44,7 @@ namespace JPEG {
 		constexpr u16 DRI = 0xFFDD;
 		constexpr u16 APP0 = 0xFFE0;
 		constexpr u16 APP1 = 0xFFE1;
+		constexpr u16 COM = 0xFFFE;
 
 	};
 
