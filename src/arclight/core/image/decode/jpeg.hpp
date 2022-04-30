@@ -41,6 +41,7 @@ namespace JPEG {
 		constexpr u16 EOI = 0xFFD9;
 		constexpr u16 SOS = 0xFFDA;
 		constexpr u16 DQT = 0xFFDB;
+		constexpr u16 DNL = 0xFFDC;
 		constexpr u16 DRI = 0xFFDD;
 		constexpr u16 APP0 = 0xFFE0;
 		constexpr u16 APP1 = 0xFFE1;

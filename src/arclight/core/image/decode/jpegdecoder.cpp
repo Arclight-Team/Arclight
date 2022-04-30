@@ -716,7 +716,35 @@ void JPEGDecoder::parseComment() {
 
 	u16 length = verifySegmentLength();
 
+#ifdef ARC_IMAGE_DEBUG
+	Log::info("JPEG Loader", "[COM] Comment: " + std::string(reinterpret_cast<const char*>(reader.head()), length - 2));
+#endif
+
 	comment.assign(reinterpret_cast<const char8_t*>(reader.head()), length - 2);
+
+}
+
+
+
+void JPEGDecoder::parseNumberOfLines() {
+
+	u16 length = verifySegmentLength();
+
+	if (length != 4) {
+		throw ImageDecoderException("[DNL] Bad table size");
+	}
+
+	u16 lines = reader.read<u16>();
+
+#ifdef ARC_IMAGE_DEBUG
+	Log::info("JPEG Loader", "[DNL] Lines: %d", lines);
+#endif
+
+	if (!lines) {
+		throw ImageDecoderException("[DNL] Line count cannot be 0");
+	}
+
+	frame.lines = lines;
 
 }
 
@@ -821,6 +849,11 @@ void JPEGDecoder::parseFrameHeader() {
 	if (frame.type == FrameType::Lossless) {
 		Log::error("JPEG Decoder", "Cannot decode lossless JPEG");
 		return;
+	}
+
+	//Find DNL if lines are zero
+	if (!frame.lines) {
+		searchForLineSegment();
 	}
 
 }
@@ -996,6 +1029,29 @@ void JPEGDecoder::parseScanHeader() {
 	if (scan.mcuDataUnits > 10) {
 		throw ImageDecoderException("Too many data units in MCU");
 	}
+
+}
+
+
+
+void JPEGDecoder::searchForLineSegment() {
+
+	SizeT pos = reader.position();
+
+	//Assume it's somewhere in the file
+	while (reader.remainingSize() >= 2) {
+
+		if (reader.read<u8>() == (Markers::DNL >> 8) && reader.read<u8>() == (Markers::DNL & 0xFF)) {
+
+			parseNumberOfLines();
+			reader.seekTo(pos);
+			return;
+
+		}
+
+	}
+
+	throw ImageDecoderException("No DNL segment found in file");
 
 }
 

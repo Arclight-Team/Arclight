@@ -80,10 +80,12 @@ private:
 	void parseQuantizationTable();
 	void parseRestartInterval();
 	void parseComment();
+	void parseNumberOfLines();
 
 	void parseFrameHeader();
 	void parseScanHeader();
 
+	void searchForLineSegment();
 	void resolveTargetFormat();
 
 	void decodeScan();
