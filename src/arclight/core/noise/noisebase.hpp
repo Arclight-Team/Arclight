@@ -16,6 +16,13 @@
 #include <array>
 
 
+enum class NoiseFractal {
+	Standard,
+	Ridged,
+	RidgedSq,
+};
+
+
 class NoiseBase {
 
 public:
@@ -34,22 +41,65 @@ public:
 
 protected:
 
-	template<class T, Arithmetic A, Arithmetic L, Arithmetic P, Invocable<T, A> Func> requires(Float<T> || FloatVector<T>)
+	template<NoiseFractal Fractal, Float F>
+	static constexpr F applyFractal(F sample) {
+
+		if constexpr (Fractal != NoiseFractal::Standard) {
+
+			sample = 1 - Math::abs(sample);
+
+			if constexpr (Fractal == NoiseFractal::RidgedSq) {
+				sample *= sample;
+			}
+
+			sample = sample * 2 - 1;
+		}
+
+		return sample;
+
+	}
+
+	template<NoiseFractal Fractal, class T, Arithmetic A, Arithmetic L, Arithmetic P, Invocable<T, A> Func> requires(Float<T> || FloatVector<T>)
 	static constexpr auto fractalSample(Func func, const T& point, A frequency, u32 octaves, L lacunarity, P persistence) -> TT::CommonArithmeticType<T> {
 
 		arc_assert(octaves >= 1, "Octaves count cannot be 0");
 
 		using F = TT::CommonArithmeticType<T>;
 
-		F noise = func(point, frequency);
 		F scale = 1;
-		F range = 1;
+		F noise;
+		F range;
 
-		for (u32 i = 1; i < octaves; i++) {
-			frequency *= lacunarity;
-			scale *= persistence;
-			range += scale;
-			noise += func(point, frequency) * scale;
+		if constexpr (Fractal == NoiseFractal::Standard) {
+
+			noise = func(point, frequency);
+			range = 1;
+
+			for (u32 i = 1; i < octaves; i++) {
+				frequency *= lacunarity;
+				scale *= persistence;
+				range += scale;
+				noise += func(point, frequency) * scale;
+			}
+
+		} else {
+
+			noise = 0;
+			range = 0;
+
+			for (u32 i = 0; i < octaves; i++) {
+
+				F sample = func(point, frequency);
+
+				noise += sample * scale;
+
+				frequency *= lacunarity;
+				range += scale;
+
+				scale *= 1 - Math::abs(sample);
+				scale *= 0.5;
+
+			}
 		}
 
 		return noise / range;
@@ -127,18 +177,6 @@ protected:
 
 	constexpr u32 hash(u32 x, u32 y, u32 z, u32 w) const {
 		return p[hash(x, y, z) + w];
-	}
-
-	constexpr u32 hash(const Vec2ui& vec) const {
-		return p[hash(vec.x) + vec.y];
-	}
-
-	constexpr u32 hash(const Vec3ui& vec) const {
-		return p[hash(vec.toVec2()) + vec.z];
-	}
-
-	constexpr u32 hash(const Vec4ui& vec) const {
-		return p[hash(vec.toVec3()) + vec.w];
 	}
 
 private:

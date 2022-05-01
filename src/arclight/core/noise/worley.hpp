@@ -18,8 +18,8 @@ enum class WorleyNoiseFlag {
 };
 
 
-template<WorleyNoiseFlag Flag = WorleyNoiseFlag::None>
-class WorleyNoiseImpl : public NoiseBase {
+template<NoiseFractal Fractal = NoiseFractal::Standard, WorleyNoiseFlag Flag = WorleyNoiseFlag::None>
+class WorleyNoiseBase : public NoiseBase {
 
 public:
 
@@ -57,7 +57,9 @@ public:
 
 		}
 
-		return applyFlag(first, second) / max * 2 - 1;
+		F sample = applyFlag(first, second) / max * 2 - 1;
+
+		return applyFractal<Fractal>(sample);
 
 	}
 
@@ -100,7 +102,9 @@ public:
 
 		}
 
-		return applyFlag(first, second) / max * 2 - 1;
+		F sample = applyFlag(first, second) / max * 2 - 1;
+
+		return applyFractal<Fractal>(sample);
 
 	}
 
@@ -148,7 +152,9 @@ public:
 
 		}
 
-		return applyFlag(first, second) / max * 2 - 1;
+		F sample = applyFlag(first, second) / max * 2 - 1;
+
+		return applyFractal<Fractal>(sample);
 
 	}
 
@@ -201,13 +207,15 @@ public:
 
 		}
 
-		return applyFlag(first, second) / max * 2 - 1;
+		F sample = applyFlag(first, second) / max * 2 - 1;
+
+		return applyFractal<Fractal>(sample);
 
 	}
 
 	template<class T, Arithmetic A, Arithmetic L, Arithmetic P> requires(Float<T> || FloatVector<T>)
 	constexpr auto sample(const T& point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
-		return fractalSample([this](T p, A f) constexpr { return sample(p, f); }, point, frequency, octaves, lacunarity, persistence);
+		return fractalSample<Fractal>([this](T p, A f) constexpr { return sample(p, f); }, point, frequency, octaves, lacunarity, persistence);
 	}
 
 private:
@@ -284,6 +292,13 @@ private:
 
 };
 
-using WorleyNoise = WorleyNoiseImpl<WorleyNoiseFlag::None>;
-using WorleyNoise2nd = WorleyNoiseImpl<WorleyNoiseFlag::Second>;
-using WorleyNoiseDiff = WorleyNoiseImpl<WorleyNoiseFlag::Diff>;
+
+using WorleyNoise				= WorleyNoiseBase<NoiseFractal::Standard,	WorleyNoiseFlag::None>;
+using WorleyNoise2nd			= WorleyNoiseBase<NoiseFractal::Standard,	WorleyNoiseFlag::Second>;
+using WorleyNoiseDiff			= WorleyNoiseBase<NoiseFractal::Standard,	WorleyNoiseFlag::Diff>;
+using WorleyNoiseRidged			= WorleyNoiseBase<NoiseFractal::Ridged,		WorleyNoiseFlag::None>;
+using WorleyNoiseRidged2nd		= WorleyNoiseBase<NoiseFractal::Ridged,		WorleyNoiseFlag::Second>;
+using WorleyNoiseRidgedDiff		= WorleyNoiseBase<NoiseFractal::Ridged,		WorleyNoiseFlag::Diff>;
+using WorleyNoiseRidgedSq		= WorleyNoiseBase<NoiseFractal::RidgedSq,	WorleyNoiseFlag::None>;
+using WorleyNoiseRidgedSq2nd	= WorleyNoiseBase<NoiseFractal::RidgedSq,	WorleyNoiseFlag::Second>;
+using WorleyNoiseRidgedSqDiff	= WorleyNoiseBase<NoiseFractal::RidgedSq,	WorleyNoiseFlag::Diff>;

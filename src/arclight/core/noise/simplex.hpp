@@ -11,7 +11,8 @@
 #include "noisebase.hpp"
 
 
-class SimplexNoise : public NoiseBase {
+template<NoiseFractal Fractal = NoiseFractal::Standard>
+class SimplexNoiseBase : public NoiseBase {
 
 public:
 
@@ -44,7 +45,7 @@ public:
 
 		constexpr F scale = 64.0 / 27;
 
-		return sample * scale;
+		return applyFractal<Fractal>(sample * scale);
 
 	}
 
@@ -106,7 +107,7 @@ public:
 
 		constexpr F scale = 32.990773983; // 2916 * sqrt(2) / 125
 
-		return sample * scale;
+		return applyFractal<Fractal>(sample * scale);
 
 	}
 
@@ -205,7 +206,9 @@ public:
 
 		constexpr float scale = 30.6822935365; // 8192 * sqrt(3) / (327 * sqrt(2))
 
-		return (sample1 + sample2 + sample3 + sample4) * scale;
+		F sample = (sample1 + sample2 + sample3 + sample4) * scale;
+
+		return applyFractal<Fractal>(sample);
 
 	}
 
@@ -406,13 +409,15 @@ public:
 
 		constexpr F scale = 27;
 
-		return (sample1 + sample2 + sample3 + sample4 + sample5) * scale;
+		F sample = (sample1 + sample2 + sample3 + sample4 + sample5) * scale;
+
+		return applyFractal<Fractal>(sample);
 
 	}
 
 	template<class T, Arithmetic A, Arithmetic L, Arithmetic P> requires(Float<T> || FloatVector<T>)
 	constexpr auto sample(const T& point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
-		return fractalSample([this](T p, A f) constexpr { return sample(p, f); }, point, frequency, octaves, lacunarity, persistence);
+		return fractalSample<Fractal>([this](T p, A f) constexpr { return sample(p, f); }, point, frequency, octaves, lacunarity, persistence);
 	}
 
 private:
@@ -430,3 +435,8 @@ private:
 	}
 
 };
+
+
+using SimplexNoise			= SimplexNoiseBase<NoiseFractal::Standard>;
+using SimplexNoiseRidged	= SimplexNoiseBase<NoiseFractal::Ridged>;
+using SimplexNoiseRidgedSq	= SimplexNoiseBase<NoiseFractal::RidgedSq>;

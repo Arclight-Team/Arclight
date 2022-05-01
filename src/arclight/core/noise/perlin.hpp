@@ -11,7 +11,8 @@
 #include "noisebase.hpp"
 
 
-class PerlinNoise : public NoiseBase {
+template<NoiseFractal Fractal = NoiseFractal::Standard>
+class PerlinNoiseBase : public NoiseBase {
 
 public:
 
@@ -38,7 +39,9 @@ public:
 
 		constexpr F scale = 2; // sqrt(4/1)
 
-		return Math::lerp(dot(p0, ip0), dot(p1, ip1), interpolate(p0)) * scale;
+		F sample = Math::lerp(dot(p0, ip0), dot(p1, ip1), interpolate(p0)) * scale;
+
+		return applyFractal<Fractal>(sample);
 
 	}
 
@@ -80,7 +83,9 @@ public:
 
 		constexpr F scale = 1.41421356237; // sqrt(4/2)
 
-		return Math::lerp(sample0y, sample1y, stepy) * scale;
+		F sample = Math::lerp(sample0y, sample1y, stepy) * scale;
+
+		return applyFractal<Fractal>(sample);
 
 	}
 
@@ -135,7 +140,9 @@ public:
 
 		constexpr F scale = 1.15470053838; // sqrt(4/3)
 
-		return Math::lerp(sample0y, sample1y, stepz) * scale;
+		F sample = Math::lerp(sample0y, sample1y, stepz) * scale;
+
+		return applyFractal<Fractal>(sample);
 
 	}
 
@@ -207,13 +214,15 @@ public:
 
 		constexpr F scale = 1; // sqrt(4/4)
 
-		return Math::lerp(sample0y, sample1y, stepw) * scale;
+		F sample = Math::lerp(sample0z, sample1z, stepw) * scale;
+
+		return applyFractal<Fractal>(sample);
 
 	}
 
 	template<class T, Arithmetic A, Arithmetic L, Arithmetic P> requires(Float<T> || FloatVector<T>)
 	constexpr auto sample(const T& point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
-		return fractalSample([this](T p, A f) constexpr { return sample(p, f); }, point, frequency, octaves, lacunarity, persistence);
+		return fractalSample<Fractal>([this](T p, A f) constexpr { return sample(p, f); }, point, frequency, octaves, lacunarity, persistence);
 	}
 
 private:
@@ -224,3 +233,8 @@ private:
 	}
 
 };
+
+
+using PerlinNoise			= PerlinNoiseBase<NoiseFractal::Standard>;
+using PerlinNoiseRidged		= PerlinNoiseBase<NoiseFractal::Ridged>;
+using PerlinNoiseRidgedSq	= PerlinNoiseBase<NoiseFractal::RidgedSq>;

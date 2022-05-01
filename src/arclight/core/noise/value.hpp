@@ -11,7 +11,8 @@
 #include "noisebase.hpp"
 
 
-class ValueNoiseImpl : public NoiseBase {
+template<NoiseFractal Fractal = NoiseFractal::Standard>
+class ValueNoiseBase : public NoiseBase {
 
 public:
 
@@ -27,7 +28,9 @@ public:
 
 		constexpr F scale = 1.0 / 0xFF;
 
-		return (hash(ip) * scale) * 2 - 1;
+		F sample = hash(ip) * scale * 2 - 1;
+
+		return applyFractal<Fractal>(sample);
 
 	}
 
@@ -46,7 +49,9 @@ public:
 
 		constexpr F scale = 1.0 / 0xFF;
 
-		return (hash(ipx, ipy) * scale) * 2 - 1;
+		F sample = hash(ipx, ipy) * scale * 2 - 1;
+
+		return applyFractal<Fractal>(sample);
 
 	}
 
@@ -67,7 +72,9 @@ public:
 
 		constexpr F scale = 1.0 / 0xFF;
 
-		return (hash(ipx, ipy, ipz) * scale) * 2 - 1;
+		F sample = hash(ipx, ipy, ipz) * scale * 2 - 1;
+
+		return applyFractal<Fractal>(sample);
 
 	}
 
@@ -90,15 +97,20 @@ public:
 
 		constexpr F scale = 1.0 / 0xFF;
 
-		return (hash(ipx, ipy, ipz, ipw) * scale) * 2 - 1;
+		F sample = hash(ipx, ipy, ipz, ipw) * scale * 2 - 1;
+
+		return applyFractal<Fractal>(sample);
 
 	}
 
 	template<class T, Arithmetic A, Arithmetic L, Arithmetic P> requires(Float<T> || FloatVector<T>)
 	constexpr auto sample(const T& point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
-		return fractalSample([this](T p, A f) constexpr { return sample(p, f); }, point, frequency, octaves, lacunarity, persistence);
+		return fractalSample<Fractal>([this](T p, A f) constexpr { return sample(p, f); }, point, frequency, octaves, lacunarity, persistence);
 	}
 
 };
 
-using ValueNoise = ValueNoiseImpl;
+
+using ValueNoise			= ValueNoiseBase<NoiseFractal::Standard>;
+using ValueNoiseRidged		= ValueNoiseBase<NoiseFractal::Ridged>;
+using ValueNoiseRidgedSq	= ValueNoiseBase<NoiseFractal::RidgedSq>;
