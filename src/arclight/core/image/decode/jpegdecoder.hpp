@@ -103,6 +103,9 @@ private:
 	void decodeHuffmanBlock(JPEG::ScanComponent& component);
 	void decodeArithmeticBlock(JPEG::ScanComponent& component);
 	void decodeProgressiveDCBlock(JPEG::ScanComponent& component);
+	void predictSample(JPEG::ScanComponent& component, u32 x, u32 y, u32 predictor);
+	i32 calculatePrediction(JPEG::ScanComponent& component, u32 x, u32 y, u32 predictor);
+	static i16 sampleComponent(JPEG::ScanComponent& component, u32 x, u32 y);
 
 	i32* clearBlockBuffer(JPEG::ScanComponent& component);
 

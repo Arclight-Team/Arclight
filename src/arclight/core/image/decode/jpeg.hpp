@@ -58,7 +58,7 @@ namespace JPEG {
 	};
 
 	enum class FrameType {
-		Baseline,
+		Sequential,
 		ExtendedSequential,
 		Progressive,
 		Lossless
@@ -330,7 +330,7 @@ namespace JPEG {
 
 	struct Frame {
 
-		Frame() : type(FrameType::Baseline), differential(false), encoding(Encoding::Huffman), bits(8), lines(0), samples(1) {}
+		Frame() : type(FrameType::Sequential), differential(false), encoding(Encoding::Huffman), bits(8), lines(0), samples(1) {}
 
 		FrameType type;
 		bool differential;
@@ -365,13 +365,15 @@ namespace JPEG {
 
 	struct Scan {
 
-		constexpr Scan() noexcept : spectralStart(0), spectralEnd(0), approximationHigh(0), approximationLow(0), maxSamplesX(0), maxSamplesY(0), mcuDataUnits(0), totalMCUs(0), mcusX(0), mcusY(0) {}
+		constexpr Scan() noexcept : spectralStart(0), spectralEnd(0), approximationHigh(0), approximationLow(0), predictor(1), pointTransform(0), maxSamplesX(0), maxSamplesY(0), mcuDataUnits(0), totalMCUs(0), mcusX(0), mcusY(0) {}
 
 		std::vector<ScanComponent> scanComponents;
 		u32 spectralStart;
 		u32 spectralEnd;
 		u32 approximationHigh;
 		u32 approximationLow;
+		u32 predictor;
+		u32 pointTransform;
 
 		u32 maxSamplesX, maxSamplesY;
 		u32 mcuDataUnits;
