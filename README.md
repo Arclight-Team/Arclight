@@ -95,7 +95,7 @@ Libraries go into `lib/LibraryName/`. Then, simply invoke CMake to build all of 
 
 ## Release
 The first release is expected to be in 2023. Until then, there will be a consistent, intuitive and well-tested API, examples for different use cases and removal of unused dependencies.
-We also plan an easy-to-use build system though Arclight Studio, a tool to manage different aspects of application development with Arclight and C++.
+We also plan an easy-to-use build system through Arclight Studio, a tool to manage different aspects of application development with Arclight and C++.
 With the first release the license will be revealed as well.
 
 Arclight will move to C++23 as soon as support improves for major compilers to ensure a modern and future-proof API.
