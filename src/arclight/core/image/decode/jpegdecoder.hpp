@@ -107,14 +107,16 @@ private:
 	i32 calculatePrediction(JPEG::ScanComponent& component, u32 x, u32 y, u32 predictor);
 	static i16 sampleComponent(JPEG::ScanComponent& component, u32 x, u32 y);
 
-	i32* clearBlockBuffer(JPEG::ScanComponent& component);
+	static i32* clearBlockBuffer(JPEG::ScanComponent& component);
 
 	static void applyIDCT(JPEG::ScanComponent& component, SizeT imageBase);
 	static void applyPartialIDCT(JPEG::ScanComponent& component, SizeT imageBase, u32 width, u32 height);
 
 	void blendAndUpsample();
 	void blendMonochrome();
+	void blendMonochromeTransformless();
 	void blendAndUpsampleYCbCr();
+	void blendAndUpsampleYCbCrTransformless();
 
 	u16 verifySegmentLength();
 

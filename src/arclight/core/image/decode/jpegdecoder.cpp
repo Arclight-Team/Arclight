@@ -12,6 +12,7 @@
 #include "time/profiler.hpp"
 #include "util/bool.hpp"
 #include "util/assert.hpp"
+#include "util/unsupportedoperationexception.hpp"
 
 #include <map>
 
@@ -24,7 +25,10 @@ constexpr static u32 fixScaleShift = 10;
 constexpr static u32 fixMultiplyShift = 10;
 constexpr static u32 fixTransformShift = 7;
 constexpr static u32 ycbcrShift = 14;
-constexpr static i32 colorBias = 1 << (fixTransformShift - 1);
+
+template<u32 Shift>
+constexpr static i32 colorBias = (Shift && Shift < 32) ? 1 << (Shift - 1) : 0;
+
 
 constexpr static i32 coeffBaseDifference[16] = {
 	0, -1, -3, -7, -15, -31, -63, -127, -255, -511, -1023, -2047, -4095, -8191, -16383, -32767
@@ -1142,6 +1146,10 @@ void JPEGDecoder::decodeScan() {
 
 	if (!reader.size()) {
 		throw ImageDecoderException("Scan empty");
+	}
+
+	if (frame.bits != 8 || frame.type == FrameType::Progressive || frame.differential || (frame.type == FrameType::Lossless && frame.encoding == Encoding::Arithmetic)) {
+		throw UnsupportedOperationException("JPEG cannot be progressive, hierarchical or non-8 bpp");
 	}
 
 	//Start scan decoding
@@ -2289,17 +2297,19 @@ void JPEGDecoder::applyPartialIDCT(JPEG::ScanComponent& component, SizeT imageBa
 
 void JPEGDecoder::blendAndUpsample() {
 
+	bool lossless = frame.type == FrameType::Lossless;
+
 	switch (scan.scanComponents.size()) {
 
 		case 1:
-			blendMonochrome();
+			lossless ? blendMonochromeTransformless() : blendMonochrome();
 			break;
 
 		case 2:
 			break;
 
 		case 3:
-			blendAndUpsampleYCbCr();
+			lossless ? blendAndUpsampleYCbCrTransformless() : blendAndUpsampleYCbCr();
 			break;
 
 		case 4:
@@ -2314,7 +2324,8 @@ void JPEGDecoder::blendAndUpsample() {
 
 
 
-void JPEGDecoder::blendMonochrome() {
+template<u32 FixShift>
+static RawImage blendMonochromeCore(Scan& scan) {
 
 	const JPEG::ScanComponent& component = scan.scanComponents[0];
 	const JPEG::FrameComponent& frameComponent = component.frameComponent;
@@ -2332,15 +2343,15 @@ void JPEGDecoder::blendMonochrome() {
 	__m128i* targetVecData = reinterpret_cast<__m128i*>(target.getImageBuffer().data());
 	const __m128i* vecData = reinterpret_cast<const __m128i*>(frameComponent.imageData.data());
 
-	__m128i bias = _mm_set1_epi16(colorBias);
+	__m128i bias = _mm_set1_epi16(colorBias<FixShift>);
 
 	for (SizeT i = 0; i < vectorSize; i++) {
 
 		__m128i v0 = _mm_load_si128(vecData + 0);
 		__m128i v1 = _mm_load_si128(vecData + 1);
 
-		v0 = _mm_srai_epi16(_mm_add_epi16(v0, bias), fixTransformShift);
-		v1 = _mm_srai_epi16(_mm_add_epi16(v1, bias), fixTransformShift);
+		v0 = _mm_srai_epi16(_mm_add_epi16(v0, bias), FixShift);
+		v1 = _mm_srai_epi16(_mm_add_epi16(v1, bias), FixShift);
 
 		_mm_storeu_si128(targetVecData++, _mm_packus_epi16(v0, v1));
 
@@ -2353,7 +2364,7 @@ void JPEGDecoder::blendMonochrome() {
 
 	for (SizeT i = 0; i < scalarSize; i++) {
 
-		*targetSclData = (*imgData + colorBias) >> fixTransformShift;
+		*targetSclData = (*imgData + colorBias) >> FixShift;
 
 		targetSclData++;
 		imgData++;
@@ -2366,7 +2377,7 @@ void JPEGDecoder::blendMonochrome() {
 
 		for (u32 j = 0; j < target.getWidth(); j++) {
 
-			target.setPixel(j, i, PixelGrayscale8(Math::clamp((component.frameComponent.imageData[offset++] + colorBias) >> fixTransformShift, 0, 255)));
+			target.setPixel(j, i, PixelGrayscale8(Math::clamp((component.frameComponent.imageData[offset++] + colorBias<FixShift>) >> FixShift, 0, 255)));
 
 		}
 
@@ -2374,13 +2385,14 @@ void JPEGDecoder::blendMonochrome() {
 
 #endif
 
-	image = target.makeRaw();
+	return target.makeRaw();
 
 }
 
 
 
-void JPEGDecoder::blendAndUpsampleYCbCr() {
+template<u32 FixShift>
+static RawImage blendAndUpsampleYCbCrCore(Scan& scan) {
 
 	enum class Subsampling {
 		None,
@@ -2389,7 +2401,7 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 		Both
 	};
 
-	auto exec = [this]<Subsampling S>() {
+	auto exec = [&]<Subsampling S>() -> RawImage {
 
 		const JPEG::ScanComponent& component = scan.scanComponents[0];
 		const JPEG::FrameComponent& frameComponent = component.frameComponent;
@@ -2403,10 +2415,7 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 	#ifdef ARC_VECTORIZE_X86_SSE4_1
 
 		if constexpr (S != Subsampling::None) {
-
-			ArcDebug() << "Subsampling not yet vectorized";
-			return;
-
+			throw UnsupportedOperationException("Subsampling not yet vectorized");
 		}
 
 		SizeT totalPixels = target.pixelCount();
@@ -2414,13 +2423,13 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 		SizeT scalarSize = totalPixels % 16;
 
 		i32 yShift = 15 - ycbcrShift;
-		i32 rgbShift = fixTransformShift + ycbcrShift - 15;
+		i32 rgbShift = FixShift + ycbcrShift - 15;
 
 		__m128i rcr = _mm_set1_epi16(ycbcrFactors[0]);
 		__m128i gcb = _mm_set1_epi16(ycbcrFactors[1]);
 		__m128i gcr = _mm_set1_epi16(ycbcrFactors[2]);
 		__m128i bcb = _mm_set1_epi16(ycbcrFactors[3]);
-		__m128i csb = _mm_set1_epi16(128 << fixTransformShift);
+		__m128i csb = _mm_set1_epi16(128 << FixShift);
 		__m128i bias = _mm_set1_epi16(i16(1 << (rgbShift - 1)));
 
 		__m128i shuf0 = _mm_setr_epi32(0x0D070605, 0x01000F0E, 0x08040302, 0x0C0B0A09);
@@ -2496,16 +2505,16 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 
 			//YCbCr to RGB
 			i32 y  = *imgData[0];
-			i32 cb = *imgData[1] - (128 << fixTransformShift);
-			i32 cr = *imgData[2] - (128 << fixTransformShift);
+			i32 cb = *imgData[1] - (128 << FixShift);
+			i32 cr = *imgData[2] - (128 << FixShift);
 
 			i32 r = y + ((cr * ycbcrFactors[0]) >> ycbcrShift);
 			i32 g = y - ((cb * ycbcrFactors[1]) >> ycbcrShift) - ((cr * ycbcrFactors[2]) >> ycbcrShift);
 			i32 b = y + ((cb * ycbcrFactors[3]) >> ycbcrShift);
 
-			u8 rb = Math::clamp((r + colorBias) >> fixTransformShift, 0, 255);
-			u8 gb = Math::clamp((g + colorBias) >> fixTransformShift, 0, 255);
-			u8 bb = Math::clamp((b + colorBias) >> fixTransformShift, 0, 255);
+			u8 rb = Math::clamp((r + colorBias) >> FixShift, 0, 255);
+			u8 gb = Math::clamp((g + colorBias) >> FixShift, 0, 255);
+			u8 bb = Math::clamp((b + colorBias) >> FixShift, 0, 255);
 
 			targetSclData[0] = rb;
 			targetSclData[1] = gb;
@@ -2539,14 +2548,14 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 				}
 
 				i32 y = imgData[0][lumaOffset++];
-				i32 cb = imgData[1][chromaOffset] - (128 << fixTransformShift);
-				i32 cr = imgData[2][chromaOffset] - (128 << fixTransformShift);
+				i32 cb = imgData[1][chromaOffset] - (128 << FixShift);
+				i32 cr = imgData[2][chromaOffset] - (128 << FixShift);
 
 				i32 r = y + ((cr * ycbcrFactors[0]) >> ycbcrShift);
 				i32 g = y - ((cb * ycbcrFactors[1]) >> ycbcrShift) - ((cr * ycbcrFactors[2]) >> ycbcrShift);
 				i32 b = y + ((cb * ycbcrFactors[3]) >> ycbcrShift);
 
-				target.setPixel(j, i, PixelRGB8(Math::clamp((r + colorBias) >> fixTransformShift, 0, 255), Math::clamp((g + colorBias) >> fixTransformShift, 0, 255), Math::clamp((b + colorBias) >> fixTransformShift, 0, 255)));
+				target.setPixel(j, i, PixelRGB8(Math::clamp((r + colorBias<FixShift>) >> FixShift, 0, 255), Math::clamp((g + colorBias<FixShift>) >> FixShift, 0, 255), Math::clamp((b + colorBias<FixShift>) >> FixShift, 0, 255)));
 
 			}
 
@@ -2566,7 +2575,7 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 
 	#endif
 
-		image = target.makeRaw();
+		return target.makeRaw();
 
 	};
 
@@ -2584,33 +2593,57 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 	if (Bool::all(yArea, cbArea, crArea, 1)) {
 
 		//No chroma subsampling
-		exec.template operator()<Subsampling::None>();
+		return exec.template operator()<Subsampling::None>();
 
 	} else if (Bool::all(ySamplesX, ySamplesY, 2) && Bool::all(cbArea, crArea, 1)) {
 
 		//Symmetrical chroma subsampling
-		exec.template operator()<Subsampling::Both>();
+		return exec.template operator()<Subsampling::Both>();
 
 	} else if (yArea == 2 && Bool::all(cbArea, crArea, 1)) {
 
 		if (ySamplesX == 1) {
 
 			//Horizontally asymmetric chroma subsampling (H > V)
-			exec.template operator()<Subsampling::Horizontal>();
+			return exec.template operator()<Subsampling::Horizontal>();
 
 		} else {
 
 			//Vertically asymmetric chroma subsampling (H < V)
-			exec.template operator()<Subsampling::Vertical>();
+			return exec.template operator()<Subsampling::Vertical>();
 
 		}
 
 	} else {
 
-		ArcDebug() << "Subsampling variant not implemented yet";
+		//TODO: Generic upsampling
+		throw UnsupportedOperationException("Subsampling variant not implemented yet");
 
 	}
 
+}
+
+
+void JPEGDecoder::blendMonochrome() {
+	image = blendMonochromeCore<fixTransformShift>(scan);
+}
+
+
+
+void JPEGDecoder::blendMonochromeTransformless() {
+	image = blendMonochromeCore<0>(scan);
+}
+
+
+
+void JPEGDecoder::blendAndUpsampleYCbCr() {
+	image = blendAndUpsampleYCbCrCore<fixTransformShift>(scan);
+}
+
+
+
+void JPEGDecoder::blendAndUpsampleYCbCrTransformless() {
+	image = blendAndUpsampleYCbCrCore<0>(scan);
 }
 
 
