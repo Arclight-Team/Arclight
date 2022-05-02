@@ -12,6 +12,7 @@
 #include "time/profiler.hpp"
 #include "util/bool.hpp"
 #include "util/assert.hpp"
+#include "util/unsupportedoperationexception.hpp"
 
 #include <map>
 
@@ -24,14 +25,17 @@ constexpr static u32 fixScaleShift = 10;
 constexpr static u32 fixMultiplyShift = 10;
 constexpr static u32 fixTransformShift = 7;
 constexpr static u32 ycbcrShift = 14;
-constexpr static i32 colorBias = 1 << (fixTransformShift - 1);
+
+template<u32 Shift>
+constexpr static i32 colorBias = (Shift && Shift < 32) ? 1 << (Shift - 1) : 0;
+
 
 constexpr static i32 coeffBaseDifference[16] = {
-	0, -1, -3, -7, -15, -31, -63, -127, -255, -511, -1023, -2047, 0, 0, 0, 0
+	0, -1, -3, -7, -15, -31, -63, -127, -255, -511, -1023, -2047, -4095, -8191, -16383, -32767
 };
 
 constexpr static i32 entropyPositiveBase[16] = {
-	0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 0, 0, 0, 0
+	0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384
 };
 
 
@@ -174,6 +178,10 @@ void JPEGDecoder::decode(std::span<const u8> data) {
 				parseArithmeticConditioning();
 				break;
 
+			case Markers::COM:
+				parseComment();
+				break;
+
 			case Markers::DRI:
 				parseRestartInterval();
 				break;
@@ -209,7 +217,7 @@ void JPEGDecoder::decode(std::span<const u8> data) {
 				break;
 
 			default:
-				//Log::error("JPEG Loader", "Unknown marker 0x%X", marker);
+				//Log::error("JPEG Decoder", "Unknown marker 0x%X", marker);
 				reader.seek(-1);
 				break;
 
@@ -282,7 +290,7 @@ void JPEGDecoder::parseApplicationSegment0() {
 		u8 thumbnailH = reader.read<u8>();
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", "[APP0 JFIF] Major: %d, Minor: %d, Density: 0x%X, DensityX: %d, DensityY: %d, ThumbnailW: %d, ThumbnailH: %d",
+		Log::info("JPEG Decoder", "[APP0 JFIF] Major: %d, Minor: %d, Density: 0x%X, DensityX: %d, DensityY: %d, ThumbnailW: %d, ThumbnailH: %d",
 				  major, minor, density, densityX, densityY, thumbnailW, thumbnailH);
 #endif
 
@@ -310,14 +318,14 @@ void JPEGDecoder::parseApplicationSegment0() {
 		u8 format = reader.read<u8>();
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", "[APP0 JFXX] ThumbnailFormat: 0x%X", format);
+		Log::info("JPEG Decoder", "[APP0 JFXX] ThumbnailFormat: 0x%X", format);
 #endif
 
 		switch (format) {
 
 			case 0x10:
 				//TODO: Embedded JPEG
-				Log::warn("JPEG Loader", "Embedded JPEG thumbnails unsupported");
+				Log::warn("JPEG Decoder", "Embedded JPEG thumbnails unsupported");
 				reader.seekTo(segmentEnd);
 				break;
 
@@ -418,7 +426,7 @@ void JPEGDecoder::parseHuffmanTable() {
 		bool dc = type == 0;
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", "[DHT] Class: %s, ID: %d", dc ? "DC" : "AC", id);
+		Log::info("JPEG Decoder", "[DHT] Class: %s, ID: %d", dc ? "DC" : "AC", id);
 #endif
 
 		if (type > 1 || id > 3) {
@@ -546,7 +554,7 @@ void JPEGDecoder::parseHuffmanTable() {
 	} while (offset != length);
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Loader", "[DHT] Tables read: %d", count);
+	Log::info("JPEG Decoder", "[DHT] Tables read: %d", count);
 #endif
 
 }
@@ -576,7 +584,7 @@ void JPEGDecoder::parseArithmeticConditioning() {
 		bool dc = type == 0;
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", "[DAC] Class: %s, ID: %d", dc ? "DC" : "AC", id);
+		Log::info("JPEG Decoder", "[DAC] Class: %s, ID: %d", dc ? "DC" : "AC", id);
 #endif
 
 		if (type > 1 || id > 3) {
@@ -595,9 +603,13 @@ void JPEGDecoder::parseArithmeticConditioning() {
 			}
 
 			ArithmeticDCConditioning& dcc = dcConditioning[id];
-			dcc.u = u;
-			dcc.l = l;
+			dcc.lowerBound = l == 0 ? 0 : 1 << (l - 1);
+			dcc.upperBound = 1 << u;
 			dcc.active = true;
+
+#ifdef ARC_IMAGE_DEBUG
+			Log::info("JPEG Decoder", "[DAC] LowerBound: %d, UpperBound: %d", dcc.lowerBound, dcc.upperBound);
+#endif
 
 		} else {
 
@@ -609,6 +621,10 @@ void JPEGDecoder::parseArithmeticConditioning() {
 			acc.kx = cs;
 			acc.active = true;
 
+#ifdef ARC_IMAGE_DEBUG
+			Log::info("JPEG Decoder", "[DAC] Kx: %d", acc.kx);
+#endif
+
 		}
 
 		count++;
@@ -616,7 +632,7 @@ void JPEGDecoder::parseArithmeticConditioning() {
 	} while (offset != length);
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Loader", "[DAC] Tables read: %d", count);
+	Log::info("JPEG Decoder", "[DAC] Tables read: %d", count);
 #endif
 
 }
@@ -641,7 +657,7 @@ void JPEGDecoder::parseQuantizationTable() {
 		u8 id = setting & 0xF;
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", std::string("[DQT] Table %d, ") + (precision ? "16 bit" : "8 bit"), id);
+		Log::info("JPEG Decoder", std::string("[DQT] Table %d, ") + (precision ? "16 bit" : "8 bit"), id);
 #endif
 
 		if (precision > 1 || id > 3) {
@@ -678,7 +694,7 @@ void JPEGDecoder::parseQuantizationTable() {
 	} while (offset != length);
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Loader", "[DQT] Tables read: %d", count);
+	Log::info("JPEG Decoder", "[DQT] Tables read: %d", count);
 #endif
 
 }
@@ -695,6 +711,48 @@ void JPEGDecoder::parseRestartInterval() {
 
 	restartInterval = reader.read<u16>();
 	restartEnabled = restartInterval;
+
+#ifdef ARC_IMAGE_DEBUG
+	Log::info("JPEG Decoder", "[DRI] RestartInterval: %d", restartInterval);
+#endif
+
+}
+
+
+
+void JPEGDecoder::parseComment() {
+
+	u16 length = verifySegmentLength();
+
+#ifdef ARC_IMAGE_DEBUG
+	Log::info("JPEG Decoder", "[COM] Comment: " + std::string(reinterpret_cast<const char*>(reader.head()), length - 2));
+#endif
+
+	comment.assign(reinterpret_cast<const char8_t*>(reader.head()), length - 2);
+
+}
+
+
+
+void JPEGDecoder::parseNumberOfLines() {
+
+	u16 length = verifySegmentLength();
+
+	if (length != 4) {
+		throw ImageDecoderException("[DNL] Bad table size");
+	}
+
+	u16 lines = reader.read<u16>();
+
+#ifdef ARC_IMAGE_DEBUG
+	Log::info("JPEG Decoder", "[DNL] Lines: %d", lines);
+#endif
+
+	if (!lines) {
+		throw ImageDecoderException("[DNL] Line count cannot be 0");
+	}
+
+	frame.lines = lines;
 
 }
 
@@ -716,12 +774,12 @@ void JPEGDecoder::parseFrameHeader() {
 	u8 components = reader.read<u8>();
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Loader", "[SOF] Bits: %d, Lines: %d, Samples: %d, Components: %d", frame.bits, frame.lines, frame.samples, components);
+	Log::info("JPEG Decoder", "[SOF] Bits: %d, Lines: %d, Samples: %d, Components: %d", frame.bits, frame.lines, frame.samples, components);
 #endif
 
 	switch (frame.type) {
 
-		case FrameType::Baseline:
+		case FrameType::Sequential:
 
 			if (frame.bits != 8) {
 				throw ImageDecoderException("[SOF] Bit depth for baseline must be 8");
@@ -780,7 +838,7 @@ void JPEGDecoder::parseFrameHeader() {
 		FrameComponent component(s >> 4, s & 0xF, q);
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", "[SOF] Component: %d, SX: %d, SY: %d, QTableIndex: %d", id, component.samplesX, component.samplesY, q);
+		Log::info("JPEG Decoder", "[SOF] Component: %d, SX: %d, SY: %d, QTableIndex: %d", id, component.samplesX, component.samplesY, q);
 #endif
 
 		if (!Math::inRange(component.samplesX, 1, 4) || !Math::inRange(component.samplesY, 1, 4) || q > 3 || (frame.type == FrameType::Lossless && q != 0)) {
@@ -795,10 +853,9 @@ void JPEGDecoder::parseFrameHeader() {
 
 	}
 
-	//Frame type capability check (TODO: Remove after lossless is implemented)
-	if (frame.type == FrameType::Lossless) {
-		Log::error("JPEG Decoder", "Cannot decode lossless JPEG");
-		return;
+	//Find DNL if lines are zero
+	if (!frame.lines) {
+		searchForLineSegment();
 	}
 
 }
@@ -816,7 +873,7 @@ void JPEGDecoder::parseScanHeader() {
 	u8 components = reader.read<u8>();
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Loader", "[SOS] Images: %d", components);
+	Log::info("JPEG Decoder", "[SOS] Images: %d", components);
 #endif
 
 	if (!Math::inRange(components, 1, 4)) {
@@ -836,7 +893,7 @@ void JPEGDecoder::parseScanHeader() {
 		u8 acTableID = ids & 0xF;
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Loader", "[SOS] Component %d: ID: %d, DCID: %d, ACID: %d", i + 1, componentID, dcTableID, acTableID);
+		Log::info("JPEG Decoder", "[SOS] Component %d: ID: %d, DCID: %d, ACID: %d", i + 1, componentID, dcTableID, acTableID);
 #endif
 
 		if (!frame.components.contains(componentID)) {
@@ -848,29 +905,43 @@ void JPEGDecoder::parseScanHeader() {
 		scan.maxSamplesX = Math::max(scan.maxSamplesX, frameComponent.samplesX);
 		scan.maxSamplesY = Math::max(scan.maxSamplesY, frameComponent.samplesY);
 
-		if (dcTableID > 3 || (frame.type == FrameType::Baseline && dcTableID > 1)) {
+		if (dcTableID > 3 || (frame.type == FrameType::Sequential && dcTableID > 1)) {
 			throw ImageDecoderException("[SOS] Illegal DC table ID");
 		}
 
-		if (acTableID > 3 || (frame.type == FrameType::Baseline && acTableID > 1) || (frame.type == FrameType::Lossless && acTableID)) {
+		if (acTableID > 3 || (frame.type == FrameType::Sequential && acTableID > 1) || (frame.type == FrameType::Lossless && acTableID)) {
 			throw ImageDecoderException("[SOS] Illegal AC table ID");
 		}
 
 		if (frame.type != FrameType::Progressive) {
 
-			if (frame.encoding == Encoding::Huffman && (dcHuffmanTables[dcTableID].empty() || acHuffmanTables[acTableID].empty())) {
-				throw ImageDecoderException("[SOS] Huffman table not installed");
-			} else if (frame.encoding == Encoding::Arithmetic && (!dcConditioning[dcTableID].active || !acConditioning[acTableID].active)) {
-				throw ImageDecoderException("[SOS] Arithmetic coder not conditioned");
+			bool incompleteDCTables = dcHuffmanTables[dcTableID].empty() || (frame.type != FrameType::Lossless && acHuffmanTables[acTableID].empty());
+
+			if (frame.encoding == Encoding::Huffman) {
+
+				if (dcHuffmanTables[dcTableID].empty() || (frame.type != FrameType::Lossless && acHuffmanTables[acTableID].empty())) {
+					throw ImageDecoderException("[SOS] Huffman table not installed");
+				}
+
+			} else {
+
+				if (!dcConditioning[dcTableID].active || (frame.type != FrameType::Lossless && !acConditioning[acTableID].active)) {
+					throw ImageDecoderException("[SOS] Arithmetic coder not conditioned");
+				}
+
 			}
 
 		}
 
-		if (quantizationTables[frameComponent.qID].empty()) {
-			throw ImageDecoderException("[SOS] Quantization table not installed");
+		if (frame.type != FrameType::Lossless) {
+
+			if (quantizationTables[frameComponent.qID].empty()) {
+				throw ImageDecoderException("[SOS] Quantization table not installed");
+			}
+
 		}
 
-		scan.scanComponents.emplace_back(dcHuffmanTables[dcTableID], acHuffmanTables[acTableID], quantizationTables[frameComponent.qID], frameComponent);
+		scan.scanComponents.emplace_back(i, dcHuffmanTables[dcTableID], acHuffmanTables[acTableID], dcConditioning[dcTableID], acConditioning[acTableID], quantizationTables[frameComponent.qID], frameComponent);
 
 	}
 
@@ -882,12 +953,12 @@ void JPEGDecoder::parseScanHeader() {
 	scan.approximationLow = approx & 0xF;
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Loader", "[SOS] SStart: %d, SEnd: %d, ApproxHigh: %d, ApproxLow: %d", scan.spectralStart, scan.spectralEnd, scan.approximationHigh, scan.approximationLow);
+	Log::info("JPEG Decoder", "[SOS] SStart: %d, SEnd: %d, ApproxHigh: %d, ApproxLow: %d", scan.spectralStart, scan.spectralEnd, scan.approximationHigh, scan.approximationLow);
 #endif
 
 	switch (frame.type) {
 
-		case FrameType::Baseline:
+		case FrameType::Sequential:
 		case FrameType::ExtendedSequential:
 
 			if (scan.spectralStart != 0 || scan.spectralEnd != 63 || scan.approximationHigh != 0 || scan.approximationLow != 0) {
@@ -928,11 +999,27 @@ void JPEGDecoder::parseScanHeader() {
 			break;
 
 		case FrameType::Lossless:
+			{
+				if (scan.spectralStart > 7 || scan.spectralEnd || scan.approximationHigh || scan.approximationLow > 15) {
+					throw ImageDecoderException("[SOS] Bad scan settings");
+				}
 
-			if (scan.spectralStart > 7 || scan.spectralEnd || scan.approximationHigh || scan.approximationLow > 15) {
-				throw ImageDecoderException("[SOS] Bad scan settings");
+				if (restartEnabled && !(restartInterval % scan.mcusX)) {
+					throw ImageDecoderException("Restart interval must be an integer multiple of row MCUs");
+				}
+
+				//Alias to properly named variables
+				scan.pointTransform = scan.approximationLow;
+				scan.predictor = scan.spectralStart;
+
+				//Pre-calculate initial prediction
+				if (frame.bits - 1 < scan.pointTransform) {
+
+					Log::warn("JPEG Decoder", "Specified point transform rounded to 0");
+					scan.pointTransform = 0;
+
+				}
 			}
-
 			break;
 
 	}
@@ -948,11 +1035,17 @@ void JPEGDecoder::parseScanHeader() {
 		frameComponent.width = (frame.samples * frameComponent.samplesX + scan.maxSamplesX - 1) / scan.maxSamplesX;
 		frameComponent.height = (frame.lines * frameComponent.samplesY + scan.maxSamplesY - 1) / scan.maxSamplesY;
 
-		u32 multipleX = frameComponent.samplesX * 8;
-		u32 multipleY = frameComponent.samplesY * 8;
-		u32 blocksPerMCU = frameComponent.samplesX * frameComponent.samplesY;
+		u32 multipleX = frameComponent.samplesX;
+		u32 multipleY = frameComponent.samplesY;
 
-		scan.mcuDataUnits += blocksPerMCU;
+		if (frame.type != FrameType::Lossless) {
+
+			multipleX *= 8;
+			multipleY *= 8;
+
+		}
+
+		scan.mcuDataUnits += frameComponent.samplesX * frameComponent.samplesY;
 
 		if (calcMCUs) {
 
@@ -974,6 +1067,29 @@ void JPEGDecoder::parseScanHeader() {
 	if (scan.mcuDataUnits > 10) {
 		throw ImageDecoderException("Too many data units in MCU");
 	}
+
+}
+
+
+
+void JPEGDecoder::searchForLineSegment() {
+
+	SizeT pos = reader.position();
+
+	//Assume it's somewhere in the file
+	while (reader.remainingSize() >= 2) {
+
+		if (reader.read<u8>() == (Markers::DNL >> 8) && reader.read<u8>() == (Markers::DNL & 0xFF)) {
+
+			parseNumberOfLines();
+			reader.seekTo(pos);
+			return;
+
+		}
+
+	}
+
+	throw ImageDecoderException("No DNL segment found in file");
 
 }
 
@@ -1032,14 +1148,35 @@ void JPEGDecoder::decodeScan() {
 		throw ImageDecoderException("Scan empty");
 	}
 
+	if (frame.bits != 8 || frame.type == FrameType::Progressive || frame.differential || (frame.type == FrameType::Lossless && frame.encoding == Encoding::Arithmetic)) {
+		throw UnsupportedOperationException("JPEG cannot be progressive, hierarchical or non-8 bpp");
+	}
+
 	//Start scan decoding
 	if (restartEnabled) {
 
-		ArcDebug() << "Restart enabled";
+		u32 restartCount = scan.totalMCUs / restartInterval;
+		u32 baseMCU = 0;
+
+		for (u32 i = 0; i < restartCount; i++) {
+
+			decodeImage(baseMCU, baseMCU + restartInterval);
+			baseMCU += restartInterval;
+
+			//Skip potential marker
+			if (reader.remainingSize() >= 2 && Math::inRange(reader.peek<u16>(), Markers::RST0, Markers::RST7)) {
+				reader.seek(2);
+			}
+
+		}
+
+		if (scan.totalMCUs % restartInterval) {
+			decodeImage(baseMCU, scan.totalMCUs);
+		}
 
 	} else {
 
-		decodeImage();
+		decodeImage(0, scan.totalMCUs);
 
 	}
 
@@ -1047,7 +1184,7 @@ void JPEGDecoder::decodeScan() {
 
 
 
-void JPEGDecoder::decodeImage() {
+void JPEGDecoder::decodeImage(u32 startMCU, u32 endMCU) {
 
 	auto decodeBlock = [this](ScanComponent& scanComponent, bool Huffman) constexpr {
 
@@ -1059,12 +1196,12 @@ void JPEGDecoder::decodeImage() {
 
 	};
 
-	auto doDecode = [&, this]<bool Progressive, bool Huffman, bool Interleave>() {
+	auto doDecode = [&, this]<FrameType Type, bool Huffman, bool Interleave>() {
 
-		SizeT mcuX = 0;
-		SizeT mcuY = 0;
+		SizeT mcuX = startMCU % scan.mcusX;
+		SizeT mcuY = startMCU / scan.mcusX;
 
-		auto innerDecode = [&](ScanComponent& scanComponent) {
+		auto sequentialDecode = [&](ScanComponent& scanComponent) {
 
 			FrameComponent& component = scanComponent.frameComponent;
 
@@ -1115,7 +1252,42 @@ void JPEGDecoder::decodeImage() {
 
 		};
 
-		for (u32 currentMCU = 0; currentMCU < scan.totalMCUs; currentMCU++, mcuX++) {
+		auto progressiveDecode = [&](ScanComponent& component) {};
+
+		auto losslessDecode = [&, this](ScanComponent& scanComponent) {
+
+			FrameComponent& component = scanComponent.frameComponent;
+
+			SizeT mcuBaseX = mcuX * component.samplesX;
+			SizeT mcuBaseY = mcuY * component.samplesY;
+
+			u32 predictor = scan.predictor;
+
+			for (u32 sy = 0; sy < component.samplesY; sy++) {
+
+				u32 y = mcuBaseY + sy;
+
+				if (y == 0) {
+					predictor = 1;
+				}
+
+				for (u32 sx = 0; sx < component.samplesX; sx++) {
+
+					u32 x = mcuBaseX + sx;
+
+					if (x == 0) {
+						predictor = y ? 2 : 0;
+					}
+
+					predictSample(scanComponent, x, y, predictor);
+
+				}
+
+			}
+
+		};
+
+		for (u32 currentMCU = startMCU; currentMCU < endMCU; currentMCU++, mcuX++) {
 
 			if (mcuX >= scan.mcusX) {
 
@@ -1124,15 +1296,17 @@ void JPEGDecoder::decodeImage() {
 
 			}
 
-			if constexpr (Interleave) {
+			for (u32 i = 0; Interleave ? i < scan.scanComponents.size() : i < 1; i++) {
 
-				for (ScanComponent& scanComponent : scan.scanComponents) {
-					innerDecode(scanComponent);
+				ScanComponent& component = scan.scanComponents[i];
+
+				if constexpr (Type == FrameType::Sequential || Type == FrameType::ExtendedSequential) {
+					sequentialDecode(component);
+				} else if constexpr (Type == FrameType::Progressive) {
+					progressiveDecode(component);
+				} else {
+					losslessDecode(component);
 				}
-
-			} else {
-
-				innerDecode(scan.scanComponents[0]);
 
 			}
 
@@ -1151,10 +1325,17 @@ void JPEGDecoder::decodeImage() {
 		arithmeticDecoder.reset();
 		arithmeticDecoder.prefetch();
 
+		for (ScanComponent& component : scan.scanComponents) {
+
+			component.dcConditioning.bins.fill({});
+			component.acConditioning.bins.fill({});
+
+		}
+
 	}
 
 
-	if (frame.type == FrameType::Baseline || frame.type == FrameType::ExtendedSequential) {
+	if (frame.type == FrameType::Sequential || frame.type == FrameType::ExtendedSequential) {
 
 		alignas(32) i32 block[64];
 
@@ -1162,6 +1343,7 @@ void JPEGDecoder::decodeImage() {
 		for (ScanComponent& component : scan.scanComponents) {
 
 			component.prediction = 0;
+			component.prevDifference = 0;
 			component.block = block;
 
 		}
@@ -1169,17 +1351,17 @@ void JPEGDecoder::decodeImage() {
 		if (frame.encoding == Encoding::Huffman) {
 
 			if (scan.scanComponents.size() > 1) {
-				doDecode.template operator()<false, true, true>();
+				doDecode.template operator()<FrameType::Sequential, true, true>();
 			} else {
-				doDecode.template operator()<false, true, false>();
+				doDecode.template operator()<FrameType::Sequential, true, false>();
 			}
 
 		} else {
 
 			if (scan.scanComponents.size() > 1) {
-				doDecode.template operator()<false, false, true>();
+				doDecode.template operator()<FrameType::Sequential, false, true>();
 			} else {
-				doDecode.template operator()<false, false, false>();
+				doDecode.template operator()<FrameType::Sequential, false, false>();
 			}
 
 		}
@@ -1204,17 +1386,37 @@ void JPEGDecoder::decodeImage() {
 		if (frame.encoding == Encoding::Huffman) {
 
 			if (scan.scanComponents.size() > 1) {
-				doDecode.template operator()<true, true, true>();
+				doDecode.template operator()<FrameType::Progressive, true, true>();
 			} else {
-				doDecode.template operator()<true, true, false>();
+				doDecode.template operator()<FrameType::Progressive, true, false>();
 			}
 
 		} else {
 
 			if (scan.scanComponents.size() > 1) {
-				doDecode.template operator()<true, false, true>();
+				doDecode.template operator()<FrameType::Progressive, false, true>();
 			} else {
-				doDecode.template operator()<true, false, false>();
+				doDecode.template operator()<FrameType::Progressive, false, false>();
+			}
+
+		}
+
+	} else {
+
+		if (frame.encoding == Encoding::Huffman) {
+
+			if (scan.scanComponents.size() > 1) {
+				doDecode.template operator()<FrameType::Lossless, true, true>();
+			} else {
+				doDecode.template operator()<FrameType::Lossless, true, false>();
+			}
+
+		} else {
+
+			if (scan.scanComponents.size() > 1) {
+				doDecode.template operator()<FrameType::Lossless, false, true>();
+			} else {
+				doDecode.template operator()<FrameType::Lossless, false, false>();
 			}
 
 		}
@@ -1238,10 +1440,11 @@ void JPEGDecoder::decodeHuffmanBlock(JPEG::ScanComponent& component) {
 		u32 offset = 0;
 
 		if (category) {
-			offset = huffmanDecoder.decodeOffset(category);
-		}
 
-		difference = offset >= entropyPositiveBase[category] ? static_cast<i32>(offset) : coeffBaseDifference[category] + static_cast<i32>(offset);
+			offset = huffmanDecoder.decodeOffset(category);
+			difference = offset >= entropyPositiveBase[category] ? static_cast<i32>(offset) : coeffBaseDifference[category] + static_cast<i32>(offset);
+
+		}
 
 		i32 dc = component.prediction + difference;
 		component.prediction = dc;
@@ -1265,7 +1468,7 @@ void JPEGDecoder::decodeHuffmanBlock(JPEG::ScanComponent& component) {
 			if (zeroes == 0) {
 
 				//End Of Block
-				return;
+				break;
 
 			} else if (zeroes == 0xF) {
 
@@ -1313,6 +1516,146 @@ void JPEGDecoder::decodeHuffmanBlock(JPEG::ScanComponent& component) {
 void JPEGDecoder::decodeArithmeticBlock(JPEG::ScanComponent& component) {
 
 	i32* block = clearBlockBuffer(component);
+	i32 difference = 0;
+
+	{
+		i32 absPrevDifference = Math::abs(component.prevDifference);
+		bool positivePrevDifference = component.prevDifference >= 0;
+		u32 baseBin = 0;
+		u32 binOffset = 0;
+
+		if (absPrevDifference > component.dcConditioning.lowerBound) {
+
+			if (absPrevDifference > component.dcConditioning.upperBound) {
+				baseBin = positivePrevDifference ? 12 : 16;
+			} else {
+				baseBin = positivePrevDifference ? 4 : 8;
+			}
+
+		}
+
+		if (arithmeticDecoder.decodeDCBin(component, baseBin)) {
+
+			//Decode_V
+			bool negative = arithmeticDecoder.decodeDCBin(component, baseBin + 1);
+			u32 currentBin = baseBin + (negative ? 3 : 2);
+
+			u32 m = 0;
+
+			if (arithmeticDecoder.decodeDCBin(component, currentBin)) {
+
+				m = 1;
+				currentBin = 20;
+
+				while (arithmeticDecoder.decodeDCBin(component, currentBin) && currentBin < 34) {
+
+					m <<= 1;
+					currentBin += 1;
+
+				}
+
+			}
+
+			u32 value = m;
+			currentBin += 14;
+
+			while (m >>= 1) {
+
+				if (arithmeticDecoder.decodeDCBin(component, currentBin)) {
+					value |= m;
+				}
+
+			}
+
+			difference = static_cast<i32>(value + 1);
+
+			if (negative) {
+				difference = -difference;
+			}
+
+		}
+
+		i32 dc = component.prediction + difference;
+		component.prediction = dc;
+		component.prevDifference = difference;
+		block[0] = dc * component.qTable.data[0];
+	}
+
+	{
+		u32 k = 1;
+		u32 baseBin = 0;
+
+		while (!arithmeticDecoder.decodeACBin(component, baseBin)) {
+
+			while (!arithmeticDecoder.decodeACBin(component, baseBin + 1)) {
+
+				if (k == 63) {
+					Log::warn("JPEG Decoder", "Bad AC symbol, skipping");
+					return;
+				}
+
+				baseBin += 3;
+				k++;
+
+			}
+
+			//Decode_V
+			bool negative = arithmeticDecoder.decodeFixed(0x5A1D, false);
+			u32 currentBin = baseBin + 2;
+
+			u32 m = 0;
+
+			if (arithmeticDecoder.decodeACBin(component, currentBin)) {
+
+				m = 1;
+
+				if (arithmeticDecoder.decodeACBin(component, currentBin)) {
+
+					m = 2;
+					currentBin = k <= component.acConditioning.kx ? 189 : 217;
+					u32 lastBin = currentBin + 14;
+
+					while (arithmeticDecoder.decodeACBin(component, currentBin) && currentBin < lastBin) {
+
+						m <<= 1;
+						currentBin += 1;
+
+					}
+
+				}
+
+			}
+
+			u32 value = m;
+			currentBin += 14;
+
+			while (m >>= 1) {
+
+				if (arithmeticDecoder.decodeACBin(component, currentBin)) {
+					value |= m;
+				}
+
+			}
+
+			i32 ac = static_cast<i32>(value + 1);
+
+			if (negative) {
+				ac = -ac;
+			}
+
+			u32 dezigzagIndex = dezigzagTableTransposed[k];
+			block[dezigzagIndex] = ac * component.qTable.data[k];
+
+			if (k == 63) {
+				break;
+			}
+
+			k++;
+			baseBin += 3;
+
+		}
+
+	}
 
 }
 
@@ -1320,6 +1663,91 @@ void JPEGDecoder::decodeArithmeticBlock(JPEG::ScanComponent& component) {
 
 void JPEGDecoder::decodeProgressiveDCBlock(JPEG::ScanComponent& component) {
 
+	i32* block = std::assume_aligned<32>(component.block);
+
+}
+
+
+
+void JPEGDecoder::predictSample(JPEG::ScanComponent& component, u32 x, u32 y, u32 predictor) {
+
+	i32 prediction = calculatePrediction(component, x, y, predictor);
+
+	HuffmanResult result = huffmanDecoder.decodeDC(component.dcTable);
+
+	u32 category = result.first;
+	i32 difference = 0;
+
+	if (category) {
+
+		if (category < 16) {
+
+			u32 offset = huffmanDecoder.decodeOffset(category);
+			difference = offset >= entropyPositiveBase[category] ? static_cast<i32>(offset) : coeffBaseDifference[category] + static_cast<i32>(offset);
+
+		} else {
+
+			difference = 32768;
+
+		}
+
+	}
+
+	component.frameComponent.imageData[y * component.frameComponent.width + x] = static_cast<i16>((prediction + difference) << scan.pointTransform);
+
+}
+
+
+
+i32 JPEGDecoder::calculatePrediction(JPEG::ScanComponent& component, u32 x, u32 y, u32 predictor) {
+
+	i32 prediction = 0;
+
+	switch (predictor) {
+
+		case 0:
+		default:
+			prediction = 1 << (frame.bits - scan.pointTransform - 1);
+			break;
+
+		case 1:
+			prediction = sampleComponent(component, x - 1, y);
+			break;
+
+		case 2:
+			prediction = sampleComponent(component, x, y - 1);
+			break;
+
+		case 3:
+			prediction = sampleComponent(component, x - 1, y - 1);
+			break;
+
+		case 4:
+			prediction = calculatePrediction(component, x, y, 1) + calculatePrediction(component, x, y, 2) - calculatePrediction(component, x, y, 3);
+			break;
+
+		case 5:
+			prediction = calculatePrediction(component, x, y, 1) + ((calculatePrediction(component, x, y, 2) - calculatePrediction(component, x, y, 3)) >> 1);
+			break;
+
+		case 6:
+			prediction = calculatePrediction(component, x, y, 2) + ((calculatePrediction(component, x, y, 1) - calculatePrediction(component, x, y, 3)) >> 1);
+			break;
+
+		case 7:
+			prediction = ((calculatePrediction(component, x, y, 1) + calculatePrediction(component, x, y, 2)) >> 1);
+			break;
+
+	}
+
+	return prediction;
+
+}
+
+
+
+i16 JPEGDecoder::sampleComponent(JPEG::ScanComponent& component, u32 x, u32 y) {
+	return component.frameComponent.imageData[y * component.frameComponent.width + x];
 }
 
 
@@ -1869,17 +2297,19 @@ void JPEGDecoder::applyPartialIDCT(JPEG::ScanComponent& component, SizeT imageBa
 
 void JPEGDecoder::blendAndUpsample() {
 
+	bool lossless = frame.type == FrameType::Lossless;
+
 	switch (scan.scanComponents.size()) {
 
 		case 1:
-			blendMonochrome();
+			lossless ? blendMonochromeTransformless() : blendMonochrome();
 			break;
 
 		case 2:
 			break;
 
 		case 3:
-			blendAndUpsampleYCbCr();
+			lossless ? blendAndUpsampleYCbCrTransformless() : blendAndUpsampleYCbCr();
 			break;
 
 		case 4:
@@ -1894,7 +2324,8 @@ void JPEGDecoder::blendAndUpsample() {
 
 
 
-void JPEGDecoder::blendMonochrome() {
+template<u32 FixShift>
+static RawImage blendMonochromeCore(Scan& scan) {
 
 	const JPEG::ScanComponent& component = scan.scanComponents[0];
 	const JPEG::FrameComponent& frameComponent = component.frameComponent;
@@ -1912,15 +2343,15 @@ void JPEGDecoder::blendMonochrome() {
 	__m128i* targetVecData = reinterpret_cast<__m128i*>(target.getImageBuffer().data());
 	const __m128i* vecData = reinterpret_cast<const __m128i*>(frameComponent.imageData.data());
 
-	__m128i bias = _mm_set1_epi16(colorBias);
+	__m128i bias = _mm_set1_epi16(colorBias<FixShift>);
 
 	for (SizeT i = 0; i < vectorSize; i++) {
 
 		__m128i v0 = _mm_load_si128(vecData + 0);
 		__m128i v1 = _mm_load_si128(vecData + 1);
 
-		v0 = _mm_srai_epi16(_mm_add_epi16(v0, bias), fixTransformShift);
-		v1 = _mm_srai_epi16(_mm_add_epi16(v1, bias), fixTransformShift);
+		v0 = _mm_srai_epi16(_mm_add_epi16(v0, bias), FixShift);
+		v1 = _mm_srai_epi16(_mm_add_epi16(v1, bias), FixShift);
 
 		_mm_storeu_si128(targetVecData++, _mm_packus_epi16(v0, v1));
 
@@ -1933,7 +2364,7 @@ void JPEGDecoder::blendMonochrome() {
 
 	for (SizeT i = 0; i < scalarSize; i++) {
 
-		*targetSclData = (*imgData + colorBias) >> fixTransformShift;
+		*targetSclData = (*imgData + colorBias) >> FixShift;
 
 		targetSclData++;
 		imgData++;
@@ -1946,7 +2377,7 @@ void JPEGDecoder::blendMonochrome() {
 
 		for (u32 j = 0; j < target.getWidth(); j++) {
 
-			target.setPixel(j, i, PixelGrayscale8(Math::clamp((component.frameComponent.imageData[offset++] + colorBias) >> fixTransformShift, 0, 255)));
+			target.setPixel(j, i, PixelGrayscale8(Math::clamp((component.frameComponent.imageData[offset++] + colorBias<FixShift>) >> FixShift, 0, 255)));
 
 		}
 
@@ -1954,13 +2385,14 @@ void JPEGDecoder::blendMonochrome() {
 
 #endif
 
-	image = target.makeRaw();
+	return target.makeRaw();
 
 }
 
 
 
-void JPEGDecoder::blendAndUpsampleYCbCr() {
+template<u32 FixShift>
+static RawImage blendAndUpsampleYCbCrCore(Scan& scan) {
 
 	enum class Subsampling {
 		None,
@@ -1969,7 +2401,7 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 		Both
 	};
 
-	auto exec = [this]<Subsampling S>() {
+	auto exec = [&]<Subsampling S>() -> RawImage {
 
 		const JPEG::ScanComponent& component = scan.scanComponents[0];
 		const JPEG::FrameComponent& frameComponent = component.frameComponent;
@@ -1983,10 +2415,7 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 	#ifdef ARC_VECTORIZE_X86_SSE4_1
 
 		if constexpr (S != Subsampling::None) {
-
-			ArcDebug() << "Subsampling not yet vectorized";
-			return;
-
+			throw UnsupportedOperationException("Subsampling not yet vectorized");
 		}
 
 		SizeT totalPixels = target.pixelCount();
@@ -1994,13 +2423,13 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 		SizeT scalarSize = totalPixels % 16;
 
 		i32 yShift = 15 - ycbcrShift;
-		i32 rgbShift = fixTransformShift + ycbcrShift - 15;
+		i32 rgbShift = FixShift + ycbcrShift - 15;
 
 		__m128i rcr = _mm_set1_epi16(ycbcrFactors[0]);
 		__m128i gcb = _mm_set1_epi16(ycbcrFactors[1]);
 		__m128i gcr = _mm_set1_epi16(ycbcrFactors[2]);
 		__m128i bcb = _mm_set1_epi16(ycbcrFactors[3]);
-		__m128i csb = _mm_set1_epi16(128 << fixTransformShift);
+		__m128i csb = _mm_set1_epi16(128 << FixShift);
 		__m128i bias = _mm_set1_epi16(i16(1 << (rgbShift - 1)));
 
 		__m128i shuf0 = _mm_setr_epi32(0x0D070605, 0x01000F0E, 0x08040302, 0x0C0B0A09);
@@ -2076,16 +2505,16 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 
 			//YCbCr to RGB
 			i32 y  = *imgData[0];
-			i32 cb = *imgData[1] - (128 << fixTransformShift);
-			i32 cr = *imgData[2] - (128 << fixTransformShift);
+			i32 cb = *imgData[1] - (128 << FixShift);
+			i32 cr = *imgData[2] - (128 << FixShift);
 
 			i32 r = y + ((cr * ycbcrFactors[0]) >> ycbcrShift);
 			i32 g = y - ((cb * ycbcrFactors[1]) >> ycbcrShift) - ((cr * ycbcrFactors[2]) >> ycbcrShift);
 			i32 b = y + ((cb * ycbcrFactors[3]) >> ycbcrShift);
 
-			u8 rb = Math::clamp((r + colorBias) >> fixTransformShift, 0, 255);
-			u8 gb = Math::clamp((g + colorBias) >> fixTransformShift, 0, 255);
-			u8 bb = Math::clamp((b + colorBias) >> fixTransformShift, 0, 255);
+			u8 rb = Math::clamp((r + colorBias) >> FixShift, 0, 255);
+			u8 gb = Math::clamp((g + colorBias) >> FixShift, 0, 255);
+			u8 bb = Math::clamp((b + colorBias) >> FixShift, 0, 255);
 
 			targetSclData[0] = rb;
 			targetSclData[1] = gb;
@@ -2119,14 +2548,14 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 				}
 
 				i32 y = imgData[0][lumaOffset++];
-				i32 cb = imgData[1][chromaOffset] - (128 << fixTransformShift);
-				i32 cr = imgData[2][chromaOffset] - (128 << fixTransformShift);
+				i32 cb = imgData[1][chromaOffset] - (128 << FixShift);
+				i32 cr = imgData[2][chromaOffset] - (128 << FixShift);
 
 				i32 r = y + ((cr * ycbcrFactors[0]) >> ycbcrShift);
 				i32 g = y - ((cb * ycbcrFactors[1]) >> ycbcrShift) - ((cr * ycbcrFactors[2]) >> ycbcrShift);
 				i32 b = y + ((cb * ycbcrFactors[3]) >> ycbcrShift);
 
-				target.setPixel(j, i, PixelRGB8(Math::clamp((r + colorBias) >> fixTransformShift, 0, 255), Math::clamp((g + colorBias) >> fixTransformShift, 0, 255), Math::clamp((b + colorBias) >> fixTransformShift, 0, 255)));
+				target.setPixel(j, i, PixelRGB8(Math::clamp((r + colorBias<FixShift>) >> FixShift, 0, 255), Math::clamp((g + colorBias<FixShift>) >> FixShift, 0, 255), Math::clamp((b + colorBias<FixShift>) >> FixShift, 0, 255)));
 
 			}
 
@@ -2146,7 +2575,7 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 
 	#endif
 
-		image = target.makeRaw();
+		return target.makeRaw();
 
 	};
 
@@ -2164,33 +2593,57 @@ void JPEGDecoder::blendAndUpsampleYCbCr() {
 	if (Bool::all(yArea, cbArea, crArea, 1)) {
 
 		//No chroma subsampling
-		exec.template operator()<Subsampling::None>();
+		return exec.template operator()<Subsampling::None>();
 
 	} else if (Bool::all(ySamplesX, ySamplesY, 2) && Bool::all(cbArea, crArea, 1)) {
 
 		//Symmetrical chroma subsampling
-		exec.template operator()<Subsampling::Both>();
+		return exec.template operator()<Subsampling::Both>();
 
 	} else if (yArea == 2 && Bool::all(cbArea, crArea, 1)) {
 
 		if (ySamplesX == 1) {
 
 			//Horizontally asymmetric chroma subsampling (H > V)
-			exec.template operator()<Subsampling::Horizontal>();
+			return exec.template operator()<Subsampling::Horizontal>();
 
 		} else {
 
 			//Vertically asymmetric chroma subsampling (H < V)
-			exec.template operator()<Subsampling::Vertical>();
+			return exec.template operator()<Subsampling::Vertical>();
 
 		}
 
 	} else {
 
-		ArcDebug() << "Subsampling variant not implemented yet";
+		//TODO: Generic upsampling
+		throw UnsupportedOperationException("Subsampling variant not implemented yet");
 
 	}
 
+}
+
+
+void JPEGDecoder::blendMonochrome() {
+	image = blendMonochromeCore<fixTransformShift>(scan);
+}
+
+
+
+void JPEGDecoder::blendMonochromeTransformless() {
+	image = blendMonochromeCore<0>(scan);
+}
+
+
+
+void JPEGDecoder::blendAndUpsampleYCbCr() {
+	image = blendAndUpsampleYCbCrCore<fixTransformShift>(scan);
+}
+
+
+
+void JPEGDecoder::blendAndUpsampleYCbCrTransformless() {
+	image = blendAndUpsampleYCbCrCore<0>(scan);
 }
 
 
@@ -2218,11 +2671,10 @@ u16 JPEGDecoder::verifySegmentLength() {
 
 void JPEGDecoder::ArithmeticDecoder::reset() {
 
+	EntropyDecoder::unblock();
 	data = 0;
 	size = 0;
 	baseInterval = 0;
-	dcBins.fill({});
-	acBins.fill({});
 
 }
 
@@ -2255,7 +2707,60 @@ void JPEGDecoder::ArithmeticDecoder::prefetch() {
 
 		}
 
+		data |= byte << 8;
+		data <<= 8;
+
 	}
+
+}
+
+
+
+bool JPEGDecoder::ArithmeticDecoder::decodeDCBin(ScanComponent& component, u32 bin) {
+	return decodeBin(component.dcConditioning.bins[bin]);
+}
+
+
+
+bool JPEGDecoder::ArithmeticDecoder::decodeACBin(ScanComponent& component, u32 bin) {
+	return decodeBin(component.acConditioning.bins[bin]);
+}
+
+
+
+bool JPEGDecoder::ArithmeticDecoder::decodeFixed(u16 lpsEstimate, bool mps) {
+
+	baseInterval -= lpsEstimate;
+	bool decision = false;
+
+	u16 currentValue = getValue();
+
+	if (currentValue < baseInterval) {
+
+		if (baseInterval < 0x8000) {
+
+			decision = baseInterval < lpsEstimate ? !mps : mps;
+			renormalize();
+
+		} else {
+
+			decision = mps;
+
+		}
+
+	} else {
+
+		setValue(currentValue - baseInterval);
+
+		decision = baseInterval < lpsEstimate ? mps : !mps;
+		baseInterval = lpsEstimate;
+
+		renormalize();
+
+	}
+
+	return decision;
+
 
 }
 
@@ -2264,6 +2769,7 @@ void JPEGDecoder::ArithmeticDecoder::prefetch() {
 bool JPEGDecoder::ArithmeticDecoder::decodeBin(Bin& bin) {
 
 	u16 lpsEstimate = arithmeticTransitionTable[bin.index].lpsEstimate;
+
 	baseInterval -= lpsEstimate;
 	bool decision = false;
 
@@ -2299,7 +2805,6 @@ bool JPEGDecoder::ArithmeticDecoder::decodeBin(Bin& bin) {
 
 		//We're in the LPS
 		setValue(currentValue - baseInterval);
-		baseInterval = lpsEstimate;
 
 		if (baseInterval < lpsEstimate) {
 
@@ -2313,11 +2818,13 @@ bool JPEGDecoder::ArithmeticDecoder::decodeBin(Bin& bin) {
 
 		}
 
+		baseInterval = lpsEstimate;
+
 		renormalize();
 
 	}
 
-	return true;
+	return decision;
 
 }
 
@@ -2345,7 +2852,7 @@ void JPEGDecoder::ArithmeticDecoder::lpsTransition(Bin& bin) {
 
 void JPEGDecoder::ArithmeticDecoder::renormalize() {
 
-	u32 toShiftIn = Math::min(Bits::ctz(baseInterval), 1);
+	u32 toShiftIn = Math::max(Bits::clz(baseInterval), 1);
 
 	if (toShiftIn >= 16) {
 		throw ImageDecoderException("Bad arithmetic stream");
@@ -2354,38 +2861,23 @@ void JPEGDecoder::ArithmeticDecoder::renormalize() {
 	baseInterval <<= toShiftIn;
 	data <<= toShiftIn;
 
+	if (end) {
+		return;
+	}
+
 	u32 count = (toShiftIn + 7 - size) / 8;
 	u32 newData = 0;
 	u32 byteShift = toShiftIn + 8 - size;
 
 	for (u32 i = 0; i < count; i++) {
 
-		if (!sink.remainingSize()) {
+		auto byte = fetchByte();
+
+		if (!byte.has_value()) {
 			break;
 		}
 
-		u8 byte = sink.read<u8>();
-
-		if (byte == 0xFF) {
-
-			if (!sink.remainingSize()) {
-				throw ImageDecoderException("Bad stream end");
-			}
-
-			u8 nextByte = sink.read<u8>();
-
-			if (nextByte != 0) {
-
-				//Marker found, must be restart interval
-				//TODO
-				sink.seek(-2);
-				break;
-
-			}
-
-		}
-
-		newData |= byte << byteShift;
+		newData |= *byte << byteShift;
 		byteShift -= 8;
 
 	}
@@ -2399,6 +2891,7 @@ void JPEGDecoder::ArithmeticDecoder::renormalize() {
 
 void JPEGDecoder::HuffmanDecoder::reset() {
 
+	EntropyDecoder::unblock();
 	data = 0;
 	size = 0;
 
@@ -2469,37 +2962,21 @@ u32 JPEGDecoder::HuffmanDecoder::decodeOffset(u8 category) {
 
 void JPEGDecoder::HuffmanDecoder::saturate() {
 
+	if (end) {
+		return;
+	}
+
 	u32 count = (32 - size) / 8;
 
 	for (u32 i = 0; i < count; i++) {
 
-		if (!sink.remainingSize()) {
-			break;
+		auto byte = fetchByte();
+
+		if (!byte.has_value()) {
+			return;
 		}
 
-		u8 byte = sink.read<u8>();
-
-		//Skip trailing 'escape zero'
-		if (byte == 0xFF) {
-
-			if (!sink.remainingSize()) {
-				break;
-			}
-
-			u8 nextByte = sink.read<u8>();
-
-			if (nextByte != 0) {
-
-				//Marker found, must be restart interval
-				//TODO
-				sink.seek(-2);
-				break;
-
-			}
-
-		}
-
-		data |= byte << (32 - size - 8);
+		data |= *byte << (32 - size - 8);
 		size += 8;
 
 	}
@@ -2526,5 +3003,54 @@ void JPEGDecoder::HuffmanDecoder::consume(u32 count) {
 
 	size -= i32(count);
 	data <<= count;
+
+}
+
+
+
+std::optional<u8> JPEGDecoder::EntropyDecoder::fetchByte() {
+
+	if (!sink.remainingSize()) {
+
+		end = true;
+		return {};
+
+	}
+
+	u8 byte = sink.read<u8>();
+
+	//Skip trailing 'escape zero'
+	if (byte == 0xFF) {
+
+		if (!sink.remainingSize()) {
+
+			end = true;
+			return {};
+
+		}
+
+		u8 nextByte = sink.read<u8>();
+
+		if (nextByte) {
+
+			//Restart intervals simply cause a buffer block
+			if (nextByte < (Markers::RST0 & 0xFF) || nextByte > (Markers::RST7 & 0xFF)) {
+
+				//Seek back to not consume the unknown marker
+				if (nextByte != (Markers::DNL & 0xFF)) {
+					sink.seek(-2);
+				}
+
+			}
+
+			//Block stream
+			end = true;
+			return {};
+
+		}
+
+	}
+
+	return byte;
 
 }

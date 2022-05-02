@@ -26,7 +26,6 @@ namespace JPEG {
 		constexpr u16 SOF2 = 0xFFC2;
 		constexpr u16 SOF3 = 0xFFC3;
 		constexpr u16 DHT = 0xFFC4;
-		constexpr u16 DAC = 0xFFCC;
 		constexpr u16 SOF5 = 0xFFC5;
 		constexpr u16 SOF6 = 0xFFC6;
 		constexpr u16 SOF7 = 0xFFC7;
@@ -34,21 +33,32 @@ namespace JPEG {
 		constexpr u16 SOF9 = 0xFFC9;
 		constexpr u16 SOF10 = 0xFFCA;
 		constexpr u16 SOF11 = 0xFFCB;
+		constexpr u16 DAC = 0xFFCC;
 		constexpr u16 SOF13 = 0xFFCD;
 		constexpr u16 SOF14 = 0xFFCE;
 		constexpr u16 SOF15 = 0xFFCF;
+		constexpr u16 RST0 = 0xFFD0;
+		constexpr u16 RST1 = 0xFFD1;
+		constexpr u16 RST2 = 0xFFD2;
+		constexpr u16 RST3 = 0xFFD3;
+		constexpr u16 RST4 = 0xFFD4;
+		constexpr u16 RST5 = 0xFFD5;
+		constexpr u16 RST6 = 0xFFD6;
+		constexpr u16 RST7 = 0xFFD7;
 		constexpr u16 SOI = 0xFFD8;
 		constexpr u16 EOI = 0xFFD9;
 		constexpr u16 SOS = 0xFFDA;
 		constexpr u16 DQT = 0xFFDB;
+		constexpr u16 DNL = 0xFFDC;
 		constexpr u16 DRI = 0xFFDD;
 		constexpr u16 APP0 = 0xFFE0;
 		constexpr u16 APP1 = 0xFFE1;
+		constexpr u16 COM = 0xFFFE;
 
 	};
 
 	enum class FrameType {
-		Baseline,
+		Sequential,
 		ExtendedSequential,
 		Progressive,
 		Lossless
@@ -271,20 +281,32 @@ namespace JPEG {
 
 	};
 
+	struct Bin {
+
+		constexpr Bin() : index(0), mps(false) {}
+
+		u32 index;
+		bool mps;
+
+	};
+
 	struct ArithmeticDCConditioning {
 
-		constexpr ArithmeticDCConditioning() noexcept : l(0), u(0), active(false) {}
+		constexpr ArithmeticDCConditioning() noexcept : lowerBound(0), upperBound(0), bins{}, active(false) {}
 
-		u8 l, u;
+		i32 lowerBound;
+		i32 upperBound;
+		std::array<Bin,  49> bins;
 		bool active;
 
 	};
 
 	struct ArithmeticACConditioning {
 
-		constexpr ArithmeticACConditioning() noexcept : kx(1), active(false) {}
+		constexpr ArithmeticACConditioning() noexcept : kx(1), bins{}, active(false) {}
 
 		u8 kx;
+		std::array<Bin, 245> bins;
 		bool active;
 
 	};
@@ -308,7 +330,7 @@ namespace JPEG {
 
 	struct Frame {
 
-		Frame() : type(FrameType::Baseline), differential(false), encoding(Encoding::Huffman), bits(8), lines(0), samples(1) {}
+		Frame() : type(FrameType::Sequential), differential(false), encoding(Encoding::Huffman), bits(8), lines(0), samples(1) {}
 
 		FrameType type;
 		bool differential;
@@ -324,28 +346,34 @@ namespace JPEG {
 
 	struct ScanComponent {
 
-		constexpr ScanComponent(HuffmanTable& dct, HuffmanTable& act, QuantizationTable& qt, FrameComponent& component)
-			: dcTable(dct), acTable(act), qTable(qt), frameComponent(component), prediction(0), block(nullptr) {}
+		constexpr ScanComponent(u32 index, HuffmanTable& dct, HuffmanTable& act, ArithmeticDCConditioning& dcc, ArithmeticACConditioning& acc, QuantizationTable& qt, FrameComponent& component)
+			: index(index), dcTable(dct), acTable(act), dcConditioning(dcc), acConditioning(acc), qTable(qt), frameComponent(component), prediction(0), prevDifference(0), block(nullptr) {}
 
+		u32 index;
 		HuffmanTable& dcTable;
 		HuffmanTable& acTable;
+		ArithmeticDCConditioning& dcConditioning;
+		ArithmeticACConditioning& acConditioning;
 		QuantizationTable& qTable;
 		FrameComponent& frameComponent;
 
 		i32 prediction;
+		i32 prevDifference;
 		i32* block;
 
 	};
 
 	struct Scan {
 
-		constexpr Scan() noexcept : spectralStart(0), spectralEnd(0), approximationHigh(0), approximationLow(0), maxSamplesX(0), maxSamplesY(0), mcuDataUnits(0), totalMCUs(0), mcusX(0), mcusY(0) {}
+		constexpr Scan() noexcept : spectralStart(0), spectralEnd(0), approximationHigh(0), approximationLow(0), predictor(1), pointTransform(0), maxSamplesX(0), maxSamplesY(0), mcuDataUnits(0), totalMCUs(0), mcusX(0), mcusY(0) {}
 
 		std::vector<ScanComponent> scanComponents;
 		u32 spectralStart;
 		u32 spectralEnd;
 		u32 approximationHigh;
 		u32 approximationLow;
+		u32 predictor;
+		u32 pointTransform;
 
 		u32 maxSamplesX, maxSamplesY;
 		u32 mcuDataUnits;

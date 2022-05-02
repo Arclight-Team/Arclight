@@ -52,7 +52,7 @@ template<Unicode::Encoding E>
 class UnicodeString : private UnicodeStringHelper<E> {
 
 	template<class StringView>
-	consteval static bool IsStringViewConvertible() noexcept {
+	constexpr static bool IsStringViewConvertible() noexcept {
 
 		return (ImpConvertible<const StringView&, std::basic_string_view<char8_t>> && !ImpConvertible<const StringView&, const char8_t*>)
 			   || (ImpConvertible<const StringView&, std::basic_string_view<char16_t>> && !ImpConvertible<const StringView&, const char16_t*>)
@@ -1097,6 +1097,10 @@ public:
 		str.resize(count * units);
 		//restoreDistanceRange(prevSize, prevStart, prevSize + c)
 
+	}
+
+	constexpr void resizeBytes(SizeT count) {
+		str.resize(count);
 	}
 
 	constexpr void swap(UnicodeString<E>& other) noexcept(noexcept(str.swap(other.str)) && noexcept(Base::distances.swap(other.distances))) {

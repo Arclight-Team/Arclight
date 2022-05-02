@@ -29,9 +29,21 @@ public:
 
 private:
 
-	struct HuffmanDecoder {
+	struct EntropyDecoder {
 
-		constexpr explicit HuffmanDecoder(BinaryReader& reader) : data(0), size(0), sink(reader) {}
+		constexpr explicit EntropyDecoder(BinaryReader& reader) : end(false), sink(reader) {}
+
+		constexpr void unblock() noexcept { end = false; }
+		std::optional<u8> fetchByte();
+
+		bool end;
+		BinaryReader& sink;
+
+	};
+
+	struct HuffmanDecoder : public EntropyDecoder {
+
+		constexpr explicit HuffmanDecoder(BinaryReader& reader) : EntropyDecoder(reader), data(0), size(0) {}
 
 		void reset();
 		JPEG::HuffmanResult decodeDC(const JPEG::HuffmanTable& table);
@@ -44,41 +56,30 @@ private:
 
 		u32 data;
 		i32 size;
-		BinaryReader& sink;
 
 	};
 
-	struct ArithmeticDecoder {
+	struct ArithmeticDecoder : public EntropyDecoder {
 
-		struct Bin {
-
-			constexpr Bin() : index(0), mps(false) {}
-
-			u32 index;
-			bool mps;
-
-		};
-
-		explicit ArithmeticDecoder(BinaryReader& reader) : sink(reader) { reset(); }
+		constexpr explicit ArithmeticDecoder(BinaryReader& reader) : EntropyDecoder(reader), baseInterval(0), data(0), size(0) {}
 
 		constexpr u16 getValue() const noexcept { return data >> 16; }
 		constexpr void setValue(u16 value) noexcept { data = (data & 0xFFFF) | (value << 16); }
 
 		void reset();
 		void prefetch();
-		bool decodeBin(Bin& bin);
-		static void mpsTransition(Bin& bin);
-		static void lpsTransition(Bin& bin);
+		bool decodeBin(JPEG::Bin& bin);
+		bool decodeDCBin(JPEG::ScanComponent& component, u32 bin);
+		bool decodeACBin(JPEG::ScanComponent& component, u32 bin);
+		bool decodeFixed(u16 lpsEstimate, bool mps);
+		static void mpsTransition(JPEG::Bin& bin);
+		static void lpsTransition(JPEG::Bin& bin);
 
 		void renormalize();
 
 		u16 baseInterval;
-		std::array<Bin,  49> dcBins;
-		std::array<Bin, 245> acBins;
-
 		u32 data;
 		u32 size;
-		BinaryReader& sink;
 
 	};
 
@@ -88,26 +89,34 @@ private:
 	void parseArithmeticConditioning();
 	void parseQuantizationTable();
 	void parseRestartInterval();
+	void parseComment();
+	void parseNumberOfLines();
 
 	void parseFrameHeader();
 	void parseScanHeader();
 
+	void searchForLineSegment();
 	void resolveTargetFormat();
 
 	void decodeScan();
-	void decodeImage();
+	void decodeImage(u32 startMCU, u32 endMCU);
 	void decodeHuffmanBlock(JPEG::ScanComponent& component);
 	void decodeArithmeticBlock(JPEG::ScanComponent& component);
 	void decodeProgressiveDCBlock(JPEG::ScanComponent& component);
+	void predictSample(JPEG::ScanComponent& component, u32 x, u32 y, u32 predictor);
+	i32 calculatePrediction(JPEG::ScanComponent& component, u32 x, u32 y, u32 predictor);
+	static i16 sampleComponent(JPEG::ScanComponent& component, u32 x, u32 y);
 
-	i32* clearBlockBuffer(JPEG::ScanComponent& component);
+	static i32* clearBlockBuffer(JPEG::ScanComponent& component);
 
 	static void applyIDCT(JPEG::ScanComponent& component, SizeT imageBase);
 	static void applyPartialIDCT(JPEG::ScanComponent& component, SizeT imageBase, u32 width, u32 height);
 
 	void blendAndUpsample();
 	void blendMonochrome();
+	void blendMonochromeTransformless();
 	void blendAndUpsampleYCbCr();
+	void blendAndUpsampleYCbCrTransformless();
 
 	u16 verifySegmentLength();
 
@@ -127,6 +136,7 @@ private:
 	BinaryReader reader;
 	bool validDecode;
 
+	U8String comment;
 	HuffmanDecoder huffmanDecoder;
 	ArithmeticDecoder arithmeticDecoder;
 

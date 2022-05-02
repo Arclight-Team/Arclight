@@ -313,7 +313,7 @@ namespace Unicode {
 	constexpr SizeT transcode(const SrcT* s, DstT* d) noexcept requires (Equal<SrcT, typename UTFEncodingTraits<From>::Type> && Equal<DstT, typename UTFEncodingTraits<To>::Type>) {
 
 		[[maybe_unused]] SizeT decodedCPs;
-		return transcode<From, To>(s, d);
+		return transcode<From, To>(s, d, decodedCPs);
 
 	}
 
