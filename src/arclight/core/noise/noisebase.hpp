@@ -27,7 +27,7 @@ class NoiseBase {
 
 public:
 
-	NoiseBase() : p(defaultP) {};
+	constexpr NoiseBase() : p(defaultP) {};
 
 
 	inline void permutate(u32 seed) {
@@ -106,6 +106,7 @@ protected:
 
 	}
 
+
 	static constexpr u32 grad1DMask = 0x1;
 	static constexpr u32 grad2DMask = 0x7;
 	static constexpr u32 grad3DMask = 0xF;
@@ -121,43 +122,47 @@ protected:
 	};
 
 	template<FloatVector V> requires(V::Size == 2)
-	static inline const V gradient<V>[8] = {
-		V( 1, 1).normalized(), V( 1, 0),
-		V(-1, 1).normalized(), V(-1, 0),
-		V( 1,-1).normalized(), V( 0, 1),
-		V(-1,-1).normalized(), V( 0,-1)
+	static constexpr V gradient<V>[8] = {
+		{ 0.707107, 0.707107}, { 1, 0},
+		{-0.707107, 0.707107}, {-1, 0},
+		{ 0.707107,-0.707107}, { 0, 1},
+		{-0.707107,-0.707107}, { 0,-1}
 	};
 
 	template<FloatVector V> requires(V::Size == 3)
-	static inline const V gradient<V>[16] = {
-		V( 1, 1,-1).normalized(), V(-1, 1, 1).normalized(),
-		V(-1, 1,-1).normalized(), V( 1,-1, 1).normalized(),
-		V( 1,-1,-1).normalized(), V(-1,-1, 1).normalized(),
-		V(-1,-1,-1).normalized(), V( 1, 1, 1).normalized(),
-		V( 1, 1, 0).normalized(), V( 1, 0, 0),
-		V(-1, 1, 0).normalized(), V(-1, 0, 0),
-		V( 1,-1, 0).normalized(), V( 0, 1, 0),
-		V(-1,-1, 0).normalized(), V( 0, 0, 1)
+	static constexpr V gradient<V>[16] = {
+		{ 0.57735, 0.57735,-0.57735}, { 0.707107, 0.707107, 0},
+		{-0.57735, 0.57735, 0.57735}, {-0.707107, 0.707107, 0},
+		{-0.57735, 0.57735,-0.57735}, { 0.707107,-0.707107, 0},
+		{ 0.57735,-0.57735, 0.57735}, {-0.707107,-0.707107, 0},
+		{ 0.57735,-0.57735,-0.57735}, { 1, 0, 0},
+		{-0.57735,-0.57735, 0.57735}, {-1, 0, 0},
+		{-0.57735,-0.57735,-0.57735}, { 0, 1, 0},
+		{ 0.57735, 0.57735, 0.57735}, { 0, 0, 1}
 	};
 
 	template<FloatVector V> requires(V::Size == 4)
-	static inline const V gradient<V>[32] = {
-		V(-1, 1,-1, 0).normalized(), V(-1, 1,-1,-1).normalized(),
-		V( 1,-1,-1, 0).normalized(), V( 1,-1,-1,-1).normalized(),
-		V(-1,-1,-1, 0).normalized(), V(-1,-1,-1,-1).normalized(),
-		V( 1, 1, 0, 0).normalized(), V( 1, 1, 0,-1).normalized(),
-		V( 1,-1, 0, 0).normalized(), V( 1,-1, 0,-1).normalized(),
-		V(-1,-1, 0, 0).normalized(), V(-1,-1, 0,-1).normalized(),
-		V(-1, 1, 1, 0).normalized(), V(-1, 1, 1,-1).normalized(),
-		V( 1,-1, 1, 0).normalized(), V( 1,-1, 1,-1).normalized(),
-		V( 1, 1, 1, 0).normalized(), V( 1, 1, 1,-1).normalized(),
-		V( 1, 1,-1, 1).normalized(), V(-1,-1, 1, 1).normalized(),
-		V(-1, 1,-1, 1).normalized(), V( 1, 1, 1, 1).normalized(),
-		V( 1,-1,-1, 1).normalized(), V(-1, 0, 0, 1),
-		V( 1, 1, 0, 1).normalized(), V( 0, 0, 1, 1),
-		V(-1, 1, 0, 1).normalized(), V( 0, 1, 0, 0),
-		V(-1,-1, 0, 1).normalized(), V( 0, 0, 1, 0),
-		V(-1, 1, 1, 1).normalized(), V( 0, 1, 0,-1),
+	static constexpr V gradient<V>[32] = {
+		{-0.5, 0.5,-0.5,-0.5}, {-0.57735, 0.57735,-0.57735, 0},
+		{ 0.5,-0.5,-0.5,-0.5}, { 0.57735,-0.57735,-0.57735, 0},
+		{-0.5,-0.5,-0.5,-0.5}, {-0.57735,-0.57735,-0.57735, 0},
+		{-0.5, 0.5, 0.5,-0.5}, {-0.57735, 0.57735, 0.57735, 0},
+		{ 0.5,-0.5, 0.5,-0.5}, { 0.57735,-0.57735, 0.57735, 0},
+		{ 0.5, 0.5, 0.5,-0.5}, { 0.57735, 0.57735, 0.57735, 0},
+		{ 0.5, 0.5,-0.5, 0.5}, { 0.57735, 0.57735, 0,-0.57735},
+		{-0.5,-0.5, 0.5, 0.5}, { 0.57735,-0.57735, 0,-0.57735},
+		{-0.5, 0.5,-0.5, 0.5}, {-0.57735,-0.57735, 0,-0.57735},
+		{ 0.5, 0.5, 0.5, 0.5}, { 0.57735, 0.57735, 0, 0.57735},
+		{ 0.5,-0.5,-0.5, 0.5}, {-0.57735, 0.57735, 0, 0.57735},
+		{-0.5, 0.5, 0.5, 0.5}, {-0.57735,-0.57735, 0, 0.57735},
+		{ 0.707107, 0.707107, 0, 0},
+		{ 0.707107,-0.707107, 0, 0},
+		{-0.707107,-0.707107, 0, 0},
+		{-1, 0, 0, 1},
+		{ 0, 0, 1, 1},
+		{ 0, 1, 0, 0},
+		{ 0, 0, 1, 0},
+		{ 0, 1, 0,-1},
 	};
 
 
@@ -201,6 +206,7 @@ private:
 	static inline const PermutationT defaultP = genPermutation(defaultSeed);
 
 	PermutationT p;
+
 };
 
 
