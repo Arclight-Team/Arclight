@@ -11,10 +11,20 @@
 #include "noisebase.hpp"
 
 
-template<NoiseFractal Fractal = NoiseFractal::Standard>
+enum class ValueNoiseFlag {
+	None,
+	Linear,
+	Smooth
+};
+
+
+template<NoiseFractal Fractal = NoiseFractal::Standard, ValueNoiseFlag Flag = ValueNoiseFlag::None>
 class ValueNoiseBase : public NoiseBase {
 
 public:
+
+	using FlagT = ValueNoiseFlag;
+
 
 	template<Float F, Arithmetic A>
 	constexpr F sample(F point, A frequency) const {
@@ -24,11 +34,28 @@ public:
 
 		point *= frequency;
 
-		UI ip = I(Math::floor(point)) & hashMask;
+		I ip = Math::floor(point);
 
-		constexpr F scale = 1.0 / 0xFF;
+		UI hp0 = ip & hashMask;
 
-		F sample = hash(ip) * scale * 2 - 1;
+		auto part = [&](UI hp) constexpr {
+			return hash(hp) * hashScale<F>;
+		};
+
+		F sample;
+
+		if constexpr (Flag == ValueNoiseFlag::None) {
+
+			sample = part(hp0) * 2 - 1;
+
+		} else {
+
+			UI hp1 = hp0 + 1;
+
+			F p = point - ip;
+
+			sample = Math::lerp(part(hp0), part(hp1), interpolate(p)) * 2 - 1;
+		}
 
 		return applyFractal<Fractal>(sample);
 
@@ -44,19 +71,46 @@ public:
 		F x = point.x * frequency;
 		F y = point.y * frequency;
 
-		UI ipx = I(Math::floor(x)) & hashMask;
-		UI ipy = I(Math::floor(y)) & hashMask;
+		I ipx = Math::floor(x);
+		I ipy = Math::floor(y);
 
-		constexpr F scale = 1.0 / 0xFF;
+		UI hpx0 = ipx & hashMask;
+		UI hpy0 = ipy & hashMask;
 
-		F sample = hash(ipx, ipy) * scale * 2 - 1;
+		auto part = [&](UI hpx, UI hpy) constexpr {
+			return hash(hpx, hpy) * hashScale<F>;
+		};
+
+		F sample;
+
+		if constexpr (Flag == ValueNoiseFlag::None) {
+
+			sample = part(hpx0, hpy0) * 2 - 1;
+
+		} else {
+
+			UI hpx1 = hpx0 + 1;
+			UI hpy1 = hpy0 + 1;
+
+			F px = x - ipx;
+			F py = y - ipy;
+
+			F stepx = interpolate(px);
+
+			F sample0y = Math::lerp(part(hpx0, hpy0), part(hpx1, hpy0), stepx);
+			F sample1y = Math::lerp(part(hpx0, hpy1), part(hpx1, hpy1), stepx);
+
+			F stepy = interpolate(py);
+
+			sample = Math::lerp(sample0y, sample1y, stepy) * 2 - 1;
+		}
 
 		return applyFractal<Fractal>(sample);
 
 	}
 
 	template<FloatVector V, Arithmetic A> requires(V::Size == 3)
-	constexpr typename V::Type sample(V point, A frequency) const {
+	constexpr typename V::Type sample(const V& point, A frequency) const {
 
 		using F = typename V::Type;
 		using I = TT::ToInteger<F>;
@@ -66,20 +120,57 @@ public:
 		F y = point.y * frequency;
 		F z = point.z * frequency;
 
-		UI ipx = I(Math::floor(x)) & hashMask;
-		UI ipy = I(Math::floor(y)) & hashMask;
-		UI ipz = I(Math::floor(z)) & hashMask;
+		I ipx = Math::floor(x);
+		I ipy = Math::floor(y);
+		I ipz = Math::floor(z);
 
-		constexpr F scale = 1.0 / 0xFF;
+		UI hpx0 = ipx & hashMask;
+		UI hpy0 = ipy & hashMask;
+		UI hpz0 = ipz & hashMask;
 
-		F sample = hash(ipx, ipy, ipz) * scale * 2 - 1;
+		auto part = [&](UI hpx, UI hpy, UI hpz) constexpr {
+			return hash(hpx, hpy, hpz) * hashScale<F>;
+		};
+
+		F sample;
+
+		if constexpr (Flag == ValueNoiseFlag::None) {
+
+			sample = part(hpx0, hpy0, hpz0) * 2 - 1;
+
+		} else {
+
+			UI hpx1 = hpx0 + 1;
+			UI hpy1 = hpy0 + 1;
+			UI hpz1 = hpz0 + 1;
+
+			F px = x - ipx;
+			F py = y - ipy;
+			F pz = z - ipz;
+
+			F stepx = interpolate(px);
+
+			F sample0x = Math::lerp(part(hpx0, hpy0, hpz0), part(hpx1, hpy0, hpz0), stepx);
+			F sample1x = Math::lerp(part(hpx0, hpy0, hpz1), part(hpx1, hpy0, hpz1), stepx);
+			F sample2x = Math::lerp(part(hpx0, hpy1, hpz0), part(hpx1, hpy1, hpz0), stepx);
+			F sample3x = Math::lerp(part(hpx0, hpy1, hpz1), part(hpx1, hpy1, hpz1), stepx);
+
+			F stepy = interpolate(py);
+
+			F sample0y = Math::lerp(sample0x, sample2x, stepy);
+			F sample1y = Math::lerp(sample1x, sample3x, stepy);
+
+			F stepz = interpolate(pz);
+
+			sample = Math::lerp(sample0y, sample1y, stepz) * 2 - 1;
+		}
 
 		return applyFractal<Fractal>(sample);
 
 	}
 
 	template<FloatVector V, Arithmetic A> requires(V::Size == 4)
-	constexpr typename V::Type sample(V point, A frequency) const {
+	constexpr typename V::Type sample(const V& point, A frequency) const {
 
 		using F = typename V::Type;
 		using I = TT::ToInteger<F>;
@@ -90,14 +181,65 @@ public:
 		F z = point.z * frequency;
 		F w = point.w * frequency;
 
-		UI ipx = I(Math::floor(x)) & hashMask;
-		UI ipy = I(Math::floor(y)) & hashMask;
-		UI ipz = I(Math::floor(z)) & hashMask;
-		UI ipw = I(Math::floor(w)) & hashMask;
+		I ipx = Math::floor(x);
+		I ipy = Math::floor(y);
+		I ipz = Math::floor(z);
+		I ipw = Math::floor(w);
 
-		constexpr F scale = 1.0 / 0xFF;
+		UI hpx0 = ipx & hashMask;
+		UI hpy0 = ipy & hashMask;
+		UI hpz0 = ipz & hashMask;
+		UI hpw0 = ipw & hashMask;
 
-		F sample = hash(ipx, ipy, ipz, ipw) * scale * 2 - 1;
+		auto part = [&](UI hpx, UI hpy, UI hpz, UI hpw) constexpr {
+			return hash(hpx, hpy, hpz, hpw) * hashScale<F>;
+		};
+
+		F sample;
+
+		if constexpr (Flag == ValueNoiseFlag::None) {
+
+			sample = part(hpx0, hpy0, hpz0, hpw0) * 2 - 1;
+
+		} else {
+
+			UI hpx1 = hpx0 + 1;
+			UI hpy1 = hpy0 + 1;
+			UI hpz1 = hpz0 + 1;
+			UI hpw1 = hpw0 + 1;
+
+			F px = x - ipx;
+			F py = y - ipy;
+			F pz = z - ipz;
+			F pw = w - ipw;
+
+			F stepx = interpolate(px);
+
+			F sample0x = Math::lerp(part(hpx0, hpy0, hpz0, hpw0), part(hpx1, hpy0, hpz0, hpw0), stepx);
+			F sample1x = Math::lerp(part(hpx0, hpy0, hpz0, hpw1), part(hpx1, hpy0, hpz0, hpw1), stepx);
+			F sample2x = Math::lerp(part(hpx0, hpy0, hpz1, hpw0), part(hpx1, hpy0, hpz1, hpw0), stepx);
+			F sample3x = Math::lerp(part(hpx0, hpy0, hpz1, hpw1), part(hpx1, hpy0, hpz1, hpw1), stepx);
+			F sample4x = Math::lerp(part(hpx0, hpy1, hpz0, hpw0), part(hpx1, hpy1, hpz0, hpw0), stepx);
+			F sample5x = Math::lerp(part(hpx0, hpy1, hpz0, hpw1), part(hpx1, hpy1, hpz0, hpw1), stepx);
+			F sample6x = Math::lerp(part(hpx0, hpy1, hpz1, hpw0), part(hpx1, hpy1, hpz1, hpw0), stepx);
+			F sample7x = Math::lerp(part(hpx0, hpy1, hpz1, hpw1), part(hpx1, hpy1, hpz1, hpw1), stepx);
+
+			F stepy = interpolate(py);
+
+			F sample0y = Math::lerp(sample0x, sample4x, stepy);
+			F sample1y = Math::lerp(sample1x, sample5x, stepy);
+			F sample2y = Math::lerp(sample2x, sample6x, stepy);
+			F sample3y = Math::lerp(sample3x, sample7x, stepy);
+
+			F stepz = interpolate(pz);
+
+			F sample0z = Math::lerp(sample0y, sample2y, stepz);
+			F sample1z = Math::lerp(sample1y, sample3y, stepz);
+
+			F stepw = interpolate(pw);
+
+			sample = Math::lerp(sample0z, sample1z, stepw) * 2 - 1;
+		}
 
 		return applyFractal<Fractal>(sample);
 
@@ -108,9 +250,29 @@ public:
 		return fractalSample<Fractal>([this](T p, A f) constexpr { return sample(p, f); }, point, frequency, octaves, lacunarity, persistence);
 	}
 
+private:
+
+	template<Float F>
+	static constexpr F hashScale = 1.0 / 0xFF;
+
+	template<Float F>
+	static constexpr F interpolate(F t) {
+		if constexpr(Flag == ValueNoiseFlag::Smooth) {
+			return t * t * t * (t * (t * 6 - 15) + 10);
+		} else {
+			return t;
+		}
+	};
+
 };
 
 
-using ValueNoise			= ValueNoiseBase<NoiseFractal::Standard>;
-using ValueNoiseRidged		= ValueNoiseBase<NoiseFractal::Ridged>;
-using ValueNoiseRidgedSq	= ValueNoiseBase<NoiseFractal::RidgedSq>;
+using ValueNoise				= ValueNoiseBase<NoiseFractal::Standard,	ValueNoiseFlag::None>;
+using ValueNoiseLerp			= ValueNoiseBase<NoiseFractal::Standard,	ValueNoiseFlag::Linear>;
+using ValueNoiseSmooth			= ValueNoiseBase<NoiseFractal::Standard,	ValueNoiseFlag::Smooth>;
+using ValueNoiseRidged			= ValueNoiseBase<NoiseFractal::Ridged,		ValueNoiseFlag::None>;
+using ValueNoiseRidgedLerp		= ValueNoiseBase<NoiseFractal::Ridged,		ValueNoiseFlag::Linear>;
+using ValueNoiseRidgedSmooth	= ValueNoiseBase<NoiseFractal::Ridged,		ValueNoiseFlag::Smooth>;
+using ValueNoiseRidgedSq		= ValueNoiseBase<NoiseFractal::RidgedSq,	ValueNoiseFlag::None>;
+using ValueNoiseRidgedSqLerp	= ValueNoiseBase<NoiseFractal::RidgedSq,	ValueNoiseFlag::Linear>;
+using ValueNoiseRidgedSqSmooth	= ValueNoiseBase<NoiseFractal::RidgedSq,	ValueNoiseFlag::Smooth>;
