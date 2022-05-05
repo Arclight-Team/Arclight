@@ -227,9 +227,9 @@ public:
 
 private:
 
-	template<class T> requires(Float<T> || FloatVector<T>)
-	static constexpr T interpolate(const T& t) {
-		return t * t * t * (t * (t * T(6) - T(15)) + T(10));
+	template<Float F>
+	static constexpr F interpolate(F t) {
+		return t * t * t * (t * (t * 6 - 15) + 10);
 	}
 
 };

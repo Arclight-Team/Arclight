@@ -43,18 +43,17 @@ public:
 		F first = max;
 		F second = max;
 
-		for (const auto& ofsx : offsets1D) {
+		for (I ofs = -1; ofs <= 1; ofs++) {
 
-			UI hx = Math::abs(ip + ofsx) & hashMask;
+			UI h = Math::abs(ip + ofs) & hashMask;
 
-			F gx = gradient<F>[hash(hx) & grad1DMask];
+			F g = gradient<F>[hash(h) & grad1DMask];
 
-			gx = gx / 2 + 0.5 + ofsx;
+			g = g / 2 + 0.5 + ofs;
 
-			F dist = Math::abs(p - gx);
+			F dist = Math::abs(p - g);
 
 			updateDistances(first, second, dist);
-
 		}
 
 		F sample = applyFlag(first, second) / max * 2 - 1;
@@ -86,20 +85,21 @@ public:
 		F first = max;
 		F second = max;
 
-		for (const auto& [ofsx, ofsy] : offsets2D) {
+		for (I ofsx = -1; ofsx <= 1; ofsx++) {
+			for (I ofsy = -1; ofsy <= 1; ofsy++) {
 
-			UI hx = Math::abs(ipx + ofsx) & hashMask;
-			UI hy = Math::abs(ipy + ofsy) & hashMask;
+				UI hx = Math::abs(ipx + ofsx) & hashMask;
+				UI hy = Math::abs(ipy + ofsy) & hashMask;
 
-			auto [gx, gy] = gradient<V>[hash(hx, hy) & grad2DMask];
+				auto [gx, gy] = gradient<V>[hash(hx, hy) & grad2DMask];
 
-			gx = gx / 2 + 0.5 + ofsx;
-			gy = gy / 2 + 0.5 + ofsy;
+				gx = gx / 2 + 0.5 + ofsx;
+				gy = gy / 2 + 0.5 + ofsy;
 
-			F dist = V(px, py).distance(V(gx, gy));
+				F dist = V(px, py).distance(V(gx, gy));
 
-			updateDistances(first, second, dist);
-
+				updateDistances(first, second, dist);
+			}
 		}
 
 		F sample = applyFlag(first, second) / max * 2 - 1;
@@ -134,22 +134,25 @@ public:
 		F first = max;
 		F second = max;
 
-		for (const auto& [ofsx, ofsy, ofsz] : offsets3D) {
+		for (I ofsx = -1; ofsx <= 1; ofsx++) {
+			for (I ofsy = -1; ofsy <= 1; ofsy++) {
+				for (I ofsz = -1; ofsz <= 1; ofsz++) {
 
-			UI hx = Math::abs(ipx + ofsx) & hashMask;
-			UI hy = Math::abs(ipy + ofsy) & hashMask;
-			UI hz = Math::abs(ipz + ofsz) & hashMask;
+					UI hx = Math::abs(ipx + ofsx) & hashMask;
+					UI hy = Math::abs(ipy + ofsy) & hashMask;
+					UI hz = Math::abs(ipz + ofsz) & hashMask;
 
-			auto [gx, gy, gz] = gradient<V>[hash(hx, hy, hz) & grad3DMask];
+					auto [gx, gy, gz] = gradient<V>[hash(hx, hy, hz) & grad3DMask];
 
-			gx = gx / 2 + 0.5 + ofsx;
-			gy = gy / 2 + 0.5 + ofsy;
-			gz = gz / 2 + 0.5 + ofsz;
+					gx = gx / 2 + 0.5 + ofsx;
+					gy = gy / 2 + 0.5 + ofsy;
+					gz = gz / 2 + 0.5 + ofsz;
 
-			F dist = V(px, py, pz).distance(V(gx, gy, gz));
+					F dist = V(px, py, pz).distance(V(gx, gy, gz));
 
-			updateDistances(first, second, dist);
-
+					updateDistances(first, second, dist);
+				}
+			}
 		}
 
 		F sample = applyFlag(first, second) / max * 2 - 1;
@@ -187,24 +190,29 @@ public:
 		F first = max;
 		F second = max;
 
-		for (const auto& [ofsx, ofsy, ofsz, ofsw] : offsets4D) {
+		for (I ofsx = -1; ofsx <= 1; ofsx++) {
+			for (I ofsy = -1; ofsy <= 1; ofsy++) {
+				for (I ofsz = -1; ofsz <= 1; ofsz++) {
+					for (I ofsw = -1; ofsw <= 1; ofsw++) {
 
-			UI hx = Math::abs(ipx + ofsx) & hashMask;
-			UI hy = Math::abs(ipy + ofsy) & hashMask;
-			UI hz = Math::abs(ipz + ofsz) & hashMask;
-			UI hw = Math::abs(ipw + ofsw) & hashMask;
+						UI hx = Math::abs(ipx + ofsx) & hashMask;
+						UI hy = Math::abs(ipy + ofsy) & hashMask;
+						UI hz = Math::abs(ipz + ofsz) & hashMask;
+						UI hw = Math::abs(ipw + ofsw) & hashMask;
 
-			auto [gx, gy, gz, gw] = gradient<V>[hash(hx, hy, hz, hw) & grad3DMask];
+						auto [gx, gy, gz, gw] = gradient<V>[hash(hx, hy, hz, hw) & grad3DMask];
 
-			gx = gx / 2 + 0.5 + ofsx;
-			gy = gy / 2 + 0.5 + ofsy;
-			gz = gz / 2 + 0.5 + ofsz;
-			gw = gw / 2 + 0.5 + ofsw;
+						gx = gx / 2 + 0.5 + ofsx;
+						gy = gy / 2 + 0.5 + ofsy;
+						gz = gz / 2 + 0.5 + ofsz;
+						gw = gw / 2 + 0.5 + ofsw;
 
-			F dist = V(px, py, pz, pw).distance(V(gx, gy, gz, gw));
+						F dist = V(px, py, pz, pw).distance(V(gx, gy, gz, gw));
 
-			updateDistances(first, second, dist);
-
+						updateDistances(first, second, dist);
+					}
+				}
+			}
 		}
 
 		F sample = applyFlag(first, second) / max * 2 - 1;
@@ -238,7 +246,6 @@ private:
 		}
 	}
 
-
 	template<Float F>
 	static constexpr F applyFlag(F first, F second) {
 		if constexpr (Flag == FlagT::Second) {
@@ -249,46 +256,6 @@ private:
 			return first;
 		}
 	}
-
-
-	template<class T, SizeT Size> requires(Integer<T> || IntegerVector<T>)
-	static constexpr auto generateOffsets() -> std::array<T, Size> {
-
-		using I = TT::CommonArithmeticType<T>;
-
-		std::array<T, Size> offsets;
-
-		for (u32 i = 0; auto& ofs : offsets) {
-
-			if constexpr (Integer<T>) {
-
-				ofs = T(i % 3 - 1);
-
-			} else {
-
-				constexpr I sizes[] = {1, 3, 9, 27};
-
-				for (u32 j = 0; j < T::Size; j++) {
-					ofs[j] = I(i / sizes[j] % 3 - 1);
-				}
-
-			}
-
-			i++;
-
-		}
-
-		return offsets;
-
-	}
-
-	static constexpr auto offsets1D = generateOffsets<i32, 3>();
-
-	static constexpr auto offsets2D = generateOffsets<Vec2i, 9>();
-
-	static constexpr auto offsets3D = generateOffsets<Vec3i, 27>();
-
-	static constexpr auto offsets4D = generateOffsets<Vec4i, 81>();
 
 };
 
