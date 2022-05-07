@@ -11,6 +11,7 @@
 #include "image.hpp"
 #include "decode/bitmapdecoder.hpp"
 #include "decode/jpegdecoder.hpp"
+#include "decode/ppmdecoder.hpp"
 #include "decode/qoidecoder.hpp"
 #include "util/bool.hpp"
 
@@ -97,7 +98,9 @@ namespace ImageIO {
 				return doLoad.template operator()<BitmapDecoder>(path);
 			} else if (Bool::any(ext, ".jpg", ".jpeg", ".jfif")) {
 				return doLoad.template operator()<JPEGDecoder>(path);
-			} else if (ext == ".qoi") {
+			} else if (ext == ".ppm") {
+	            return doLoad.template operator()<PPMDecoder>(path);
+	        } else if (ext == ".qoi") {
 	            return doLoad.template operator()<QOIDecoder>(path);
 	        }
 
