@@ -61,83 +61,105 @@ public:
 
 
 	template<Arithmetic A>
-	constexpr void add(const Vec2<A>& v) {
+	constexpr Vec2& add(const Vec2<A>& v) {
+
 		x += v.x;
 		y += v.y;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
-	constexpr void subtract(const Vec2<A>& v) {
+	constexpr Vec2& subtract(const Vec2<A>& v) {
+
 		x -= v.x;
 		y -= v.y;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
-	constexpr void multiply(A s) {
+	constexpr Vec2& multiply(A s) {
+
 		x *= s;
 		y *= s;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
-	constexpr void divide(A s) {
+	constexpr Vec2& divide(A s) {
+
 		arc_assert(!Math::isZero(s), "Vec2 divided by 0");
+
 		x /= s;
 		y /= s;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
-	constexpr void compMultiply(const Vec2<A>& v) {
+	constexpr Vec2& compMultiply(const Vec2<A>& v) {
+
 		x *= v.x;
 		y *= v.y;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
-	constexpr void compDivide(const Vec2<A>& v) {
+	constexpr Vec2& compDivide(const Vec2<A>& v) {
+
 		x /= v.x;
 		y /= v.y;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
 	constexpr Vec2& operator=(const Vec2<A>& v) {
+
 		x = v.x;
 		y = v.y;
+
 		return *this;
+
 	}
 
 	template<Arithmetic A>
 	constexpr Vec2& operator+=(const Vec2<A>& v) {
-		add(v);
-		return *this;
+		return add(v);
 	}
 
 	template<Arithmetic A>
 	constexpr Vec2& operator-=(const Vec2<A>& v) {
-		subtract(v);
-		return *this;
+		return subtract(v);
 	}
 
 	template<Arithmetic A>
 	constexpr Vec2& operator*=(const Vec2<A>& v) {
-		compMultiply(v);
-		return *this;
+		return compMultiply(v);
 	}
 
 	template<Arithmetic A>
 	constexpr Vec2& operator/=(const Vec2<A>& v) {
-		compDivide(v);
-		return *this;
+		return compDivide(v);
 	}
 
 	template<Arithmetic A>
 	constexpr Vec2& operator*=(A s) {
-		multiply(s);
-		return *this;
+		return multiply(s);
 	}
 
 	template<Arithmetic A>
 	constexpr Vec2& operator/=(A s) {
-		divide(s);
-		return *this;
+		return divide(s);
 	}
 
 	template<Arithmetic A>
@@ -198,7 +220,7 @@ public:
 		divide(length());
 	}
 
-	constexpr auto normalized() const {
+	constexpr Vec2 normalized() const {
 		return normalize(*this);
 	}
 
@@ -230,7 +252,7 @@ public:
 	}
 
 	constexpr Vec4<T> toVec4() const {
-		return { x, y, 0, 1 };
+		return { x, y, 0, 0 };
 	}
 
 
@@ -268,90 +290,112 @@ public:
 
 
 	template<Arithmetic A>
-	constexpr void add(const Vec3<A>& v) {
+	constexpr Vec3& add(const Vec3<A>& v) {
+
 		x += v.x;
 		y += v.y;
 		z += v.z;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
-	constexpr void subtract(const Vec3<A>& v) {
+	constexpr Vec3& subtract(const Vec3<A>& v) {
+
 		x -= v.x;
 		y -= v.y;
 		z -= v.z;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
-	constexpr void multiply(A s) {
+	constexpr Vec3& multiply(A s) {
+
 		x *= s;
 		y *= s;
 		z *= s;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
-	constexpr void divide(A s) {
+	constexpr Vec3& divide(A s) {
+
 		arc_assert(!Math::isZero(s), "Vec3 divided by 0");
+
 		x /= s;
 		y /= s;
 		z /= s;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
-	constexpr void compMultiply(const Vec3<A>& v) {
+	constexpr Vec3& compMultiply(const Vec3<A>& v) {
+
 		x *= v.x;
 		y *= v.y;
 		z *= v.z;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
-	constexpr void compDivide(const Vec3<A>& v) {
+	constexpr Vec3& compDivide(const Vec3<A>& v) {
+
 		x /= v.x;
 		y /= v.y;
 		z /= v.z;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
 	constexpr Vec3& operator=(const Vec3<A>& v) {
+
 		x = v.x;
 		y = v.y;
 		z = v.z;
+
 		return *this;
+
 	}
 
 	template<Arithmetic A>
 	constexpr Vec3& operator+=(const Vec3<A>& v) {
-		add(v);
-		return *this;
+		return add(v);
 	}
 
 	template<Arithmetic A>
 	constexpr Vec3& operator-=(const Vec3<A>& v) {
-		subtract(v);
-		return *this;
+		return subtract(v);
 	}
 
 	template<Arithmetic A>
 	constexpr Vec3& operator*=(const Vec3<A>& v) {
-		compMultiply(v);
-		return *this;
+		return compMultiply(v);
 	}
 
 	template<Arithmetic A>
 	constexpr Vec3& operator/=(const Vec3<A>& v) {
-		compDivide(v);
-		return *this;
+		return compDivide(v);
 	}
 
 	template<Arithmetic A>
 	constexpr Vec3& operator*=(A s) {
-		multiply(s);
-		return *this;
+		return multiply(s);
 	}
 
 	template<Arithmetic A>
 	constexpr Vec3& operator/=(A s) {
-		divide(s);
-		return *this;
+		return divide(s);
 	}
 
 	template<Arithmetic A>
@@ -415,7 +459,7 @@ public:
 		divide(length());
 	}
 
-	constexpr auto normalized() const {
+	constexpr Vec3& normalized() const {
 		return normalize(*this);
 	}
 
@@ -452,7 +496,7 @@ public:
 	}
 
 	constexpr Vec4<T> toVec4() const {
-		return { x, y, z, 1 };
+		return { x, y, z, 0 };
 	}
 
 
@@ -493,97 +537,119 @@ public:
 
 
 	template<Arithmetic A>
-	constexpr void add(const Vec4<A>& v) {
+	constexpr Vec4& add(const Vec4<A>& v) {
+
 		x += v.x;
 		y += v.y;
 		z += v.z;
 		w += v.w;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
-	constexpr void subtract(const Vec4<A>& v) {
+	constexpr Vec4& subtract(const Vec4<A>& v) {
+
 		x -= v.x;
 		y -= v.y;
 		z -= v.z;
 		w -= v.w;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
-	constexpr void multiply(A s) {
+	constexpr Vec4& multiply(A s) {
+
 		x *= s;
 		y *= s;
 		z *= s;
 		w *= s;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
-	constexpr void divide(A s) {
+	constexpr Vec4& divide(A s) {
+
 		arc_assert(!Math::isZero(s), "Vec4 divided by 0");
+
 		x /= s;
 		y /= s;
 		z /= s;
 		w /= s;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
-	constexpr void compMultiply(const Vec4<A>& v) {
+	constexpr Vec4& compMultiply(const Vec4<A>& v) {
+
 		x *= v.x;
 		y *= v.y;
 		z *= v.z;
 		w *= v.w;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
-	constexpr void compDivide(const Vec4<A>& v) {
+	constexpr Vec4& compDivide(const Vec4<A>& v) {
+
 		x /= v.x;
 		y /= v.y;
 		z /= v.z;
 		w /= v.w;
+
+		return *this;
+
 	}
 
 	template<Arithmetic A>
 	constexpr Vec4& operator=(const Vec4<A>& v) {
+
 		x = v.x;
 		y = v.y;
 		z = v.z;
 		w = v.w;
+
 		return *this;
+
 	}
 
 	template<Arithmetic A>
 	constexpr Vec4& operator+=(const Vec4<A>& v) {
-		add(v);
-		return *this;
+		return add(v);
 	}
 
 	template<Arithmetic A>
 	constexpr Vec4& operator-=(const Vec4<A>& v) {
-		subtract(v);
-		return *this;
+		return subtract(v);
 	}
 
 	template<Arithmetic A>
 	constexpr Vec4& operator*=(const Vec4<A>& v) {
-		compMultiply(v);
-		return *this;
+		return compMultiply(v);
 	}
 
 	template<Arithmetic A>
 	constexpr Vec4& operator/=(const Vec4<A>& v) {
-		compDivide(v);
-		return *this;
+		return compDivide(v);
 	}
 
 	template<Arithmetic A>
 	constexpr Vec4& operator*=(A s) {
-		multiply(s);
-		return *this;
+		return multiply(s);
 	}
 
 	template<Arithmetic A>
 	constexpr Vec4& operator/=(A s) {
-		divide(s);
-		return *this;
+		return divide(s);
 	}
 
 	template<Arithmetic A>
@@ -648,7 +714,7 @@ public:
 		divide(length());
 	}
 
-	constexpr auto normalized() const {
+	constexpr Vec4& normalized() const {
 		return normalize(*this);
 	}
 
@@ -707,8 +773,7 @@ constexpr auto operator-(A a, const B& b) {
 template<Vector A, Vector B>
 constexpr auto operator*(A a, const B& b) {
 	typename A::template Untyped<decltype(a[0] - b[0])> ax = a;
-	ax.compMultiply(b);
-	return ax;
+	return ax.compMultiply(b);
 }
 
 template<Vector A, Arithmetic B>
@@ -728,8 +793,7 @@ constexpr auto operator*(B b, A a) {
 template<Vector A, Vector B>
 constexpr auto operator/(A a, const B& b) {
 	typename A::template Untyped<decltype(a[0] - b[0])> ax = a;
-	ax.compDivide(b);
-	return ax;
+	return ax.compDivide(b);
 }
 
 template<Vector A, Arithmetic B>
