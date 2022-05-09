@@ -30,7 +30,7 @@ namespace ImageIO {
 	/*
 	 *  Raw decoder functions
 	 */
-	template<ImageDecoder Decoder, class... Args>
+	template<CC::ImageDecoder Decoder, class... Args>
 	Decoder decode(const std::span<const u8>& bytes, std::optional<Pixel> reqFormat, Args&&... args) {
 
 		Decoder decoder(reqFormat, std::forward<Args>(args)...);
@@ -40,7 +40,7 @@ namespace ImageIO {
 
 	}
 
-	template<ImageDecoder Decoder, class... Args>
+	template<CC::ImageDecoder Decoder, class... Args>
 	Decoder decode(const Path& path, std::optional<Pixel> reqFormat = {}, Args&&... args) {
 		return decode<Decoder, Args...>(Detail::loadFile(path), reqFormat, std::forward<Args>(args)...);
 	}
@@ -50,12 +50,12 @@ namespace ImageIO {
 	/*
 	 *  Forced format functions
 	 */
-	template<Pixel P, ImageDecoder Decoder, class... Args>
+	template<Pixel P, CC::ImageDecoder Decoder, class... Args>
 	Image<P> load(const std::span<const u8>& bytes, Args&&... args) {
 		return Image<P>::fromRaw(decode<Decoder, Args...>(bytes, P, std::forward<Args>(args)...).getImage(), true);
 	}
 
-	template<Pixel P, ImageDecoder Decoder, class... Args>
+	template<Pixel P, CC::ImageDecoder Decoder, class... Args>
 	Image<P> load(const Path& path, Args&&... args) {
 		return load<P, Decoder, Args...>(Detail::loadFile(path), std::forward<Args>(args)...);
 	}
@@ -65,12 +65,12 @@ namespace ImageIO {
 	/*
 	 *  Generic format functions
 	 */
-	template<ImageDecoder Decoder, class... Args>
+	template<CC::ImageDecoder Decoder, class... Args>
 	RawImage load(const std::span<const u8>& bytes, Args&&... args) {
 		return decode<Decoder, Args...>(bytes, {}, std::forward<Args>(args)...).getImage();
 	}
 
-	template<ImageDecoder Decoder, class... Args>
+	template<CC::ImageDecoder Decoder, class... Args>
 	RawImage load(const Path& path, Args&&... args) {
 		return load<Decoder, Args...>(Detail::loadFile(path), std::forward<Args>(args)...);
 	}
@@ -82,7 +82,7 @@ namespace ImageIO {
 		template<bool Raw, Pixel P = Pixel::RGB8>
 		auto fileLoad(const Path& path) -> TT::Conditional<Raw, RawImage, Image<P>> {
 
-			auto doLoad = []<ImageDecoder Decoder>(const Path& p) {
+			auto doLoad = []<CC::ImageDecoder Decoder>(const Path& p) {
 
 				if constexpr (Raw) {
 					return load<Decoder>(p);

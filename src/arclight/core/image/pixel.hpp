@@ -419,31 +419,35 @@ public:
 };
 
 
-template<class T>
-concept PixelStorageType = CC::BaseOf<PixelStorage<T::PixelType, typename T::ColorType>, T>;
+namespace CC {
+
+	template<class T>
+	concept PixelStorageType = CC::BaseOf<PixelStorage<T::PixelType, typename T::ColorType>, T>;
+
+}
 
 
-constexpr auto operator+(PixelStorageType auto a, const PixelStorageType auto& b) {
+constexpr auto operator+(CC::PixelStorageType auto a, const CC::PixelStorageType auto& b) {
 	a += b;
 	return a;
 }
 
-constexpr auto operator-(PixelStorageType auto a, const PixelStorageType auto& b) {
+constexpr auto operator-(CC::PixelStorageType auto a, const CC::PixelStorageType auto& b) {
 	a -= b;
 	return a;
 }
 
-constexpr auto operator*(PixelStorageType auto a, double f) {
+constexpr auto operator*(CC::PixelStorageType auto a, double f) {
 	a *= f;
 	return a;
 }
 
-constexpr auto operator*(double f, PixelStorageType auto a) {
+constexpr auto operator*(double f, CC::PixelStorageType auto a) {
 	a *= f;
 	return a;
 }
 
-constexpr auto operator/(PixelStorageType auto a, double f) {
+constexpr auto operator/(CC::PixelStorageType auto a, double f) {
 	a /= f;
 	return a;
 }

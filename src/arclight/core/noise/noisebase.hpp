@@ -34,7 +34,7 @@ public:
 	}
 
 
-	template<class T, CC::Arithmetic A, CC::Arithmetic L, CC::Arithmetic P> requires(CC::Float<T> || FloatVector<T>)
+	template<class T, CC::Arithmetic A, CC::Arithmetic L, CC::Arithmetic P> requires(CC::Float<T> || CC::FloatVector<T>)
 	constexpr auto sample(const T& point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
 
 		arc_assert(octaves >= 1, "Octaves count cannot be 0");
@@ -163,5 +163,9 @@ private:
 };
 
 
-template<class T>
-concept NoiseType = CC::BaseOf<NoiseBase<T>, T>;
+namespace CC {
+
+	template<class T>
+	concept NoiseType = CC::BaseOf<NoiseBase<T>, T>;
+
+}

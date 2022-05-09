@@ -25,18 +25,22 @@
 
 
 
-template<class T>
-concept StringStreamable = requires(T&& t, std::stringstream stream) {
-	stream << t;
-};
+namespace CC {
 
-template<class T>
-concept Iterable = requires(T&& t) {
-	t.begin();
-	t.end();
-	requires std::input_iterator<decltype(t.begin())>;
-	requires CC::Equal<decltype(t.begin()), decltype(t.end())>;
-};
+	template<class T>
+	concept StringStreamable = requires(T&& t, std::stringstream stream) {
+		stream << t;
+	};
+
+	template<class T>
+	concept Iterable = requires(T&& t) {
+		t.begin();
+		t.end();
+		requires std::input_iterator<decltype(t.begin())>;
+		requires CC::Equal<decltype(t.begin()), decltype(t.end())>;
+	};
+
+}
 
 
 
@@ -61,7 +65,7 @@ public:
 	ArcDebug() : reversed(false) {}
 	~ArcDebug();
 
-	template<StringStreamable S> requires (!CC::Char<S>)
+	template<CC::StringStreamable S> requires (!CC::Char<S>)
 	ArcDebug& operator<<(const S& value) {
 
 		write(value);
@@ -87,19 +91,19 @@ public:
 	}
 
 	template<class T> 
-	requires (Iterable<T> && !StringStreamable<T>)
+	requires (CC::Iterable<T> && !CC::StringStreamable<T>)
 	ArcDebug& operator<<(const T& container){
 		write(container);
 		return *this;
 	}
 
-	template<Vector V>
+	template<CC::Vector V>
 	ArcDebug& operator<<(const V& v) {
 		write(v);
 		return *this;
 	}
 
-	template<Matrix M>
+	template<CC::Matrix M>
 	ArcDebug& operator<<(const M& m) {
 		write(m);
 		return *this;
@@ -129,7 +133,7 @@ private:
 		buffer << static_cast<u32>(value);
 	}
 
-	void write(const StringStreamable auto& value) {
+	void write(const CC::StringStreamable auto& value) {
 
 		using S = TT::RemoveCVRef<decltype(value)>;
 
@@ -162,7 +166,7 @@ private:
 
 
 	template<class T> 
-	requires (Iterable<T> && !StringStreamable<T>)
+	requires (CC::Iterable<T> && !CC::StringStreamable<T>)
 	void write(const T& container) {
 
 		bool lineStart = true;
@@ -209,7 +213,7 @@ private:
 	}
 
 
-	template<Vector V>
+	template<CC::Vector V>
 	void write(const V& v) {
 
 		buffer << "Vec" << v.Size << "[";
@@ -224,7 +228,7 @@ private:
 	}
 
 
-	template<Matrix M>
+	template<CC::Matrix M>
 	void write(const M& m) {
 
 		buffer << "Mat" << m.Size << "[";

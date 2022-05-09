@@ -47,7 +47,7 @@ public:
 
 	}
 
-	template<FloatVector V, CC::Arithmetic A> requires(V::Size == 2)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 2)
 	typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
@@ -94,7 +94,7 @@ public:
 
 	}
 
-	template<FloatVector V, CC::Arithmetic A> requires(V::Size == 3)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 3)
 	typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
@@ -167,7 +167,7 @@ public:
 
 	}
 
-	template<FloatVector V, CC::Arithmetic A> requires(V::Size == 4)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 4)
 	typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
@@ -334,7 +334,7 @@ public:
 
 private:
 
-	template<class T, CC::Arithmetic B> requires(CC::Float<T> || FloatVector<T>)
+	template<class T, CC::Arithmetic B> requires(CC::Float<T> || CC::FloatVector<T>)
 	static constexpr auto falloff(const T& v, B bias) -> TT::CommonArithmeticType<T> {
 
 		using F = TT::CommonArithmeticType<T>;

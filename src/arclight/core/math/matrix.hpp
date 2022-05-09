@@ -1043,8 +1043,12 @@ public:
 };
 
 
-template<class T>
-concept Matrix = TT::IsAnyOf<T, Mat2<typename T::Type>, Mat3<typename T::Type>, Mat4<typename T::Type>>;
+namespace CC {
+
+	template<class T>
+	concept Matrix = TT::IsAnyOf<T, Mat2<typename T::Type>, Mat3<typename T::Type>, Mat4<typename T::Type>>;
+
+}
 
 
 template<CC::Float A, CC::Float B, template<CC::Float> class Matrix>

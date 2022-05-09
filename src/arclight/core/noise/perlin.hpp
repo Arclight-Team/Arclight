@@ -42,7 +42,7 @@ public:
 
 	}
 
-	template<FloatVector V, CC::Arithmetic A> requires(V::Size == 2)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 2)
 	constexpr typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
@@ -81,7 +81,7 @@ public:
 
 	}
 
-	template<FloatVector V, CC::Arithmetic A> requires(V::Size == 3)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 3)
 	constexpr typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
@@ -133,7 +133,7 @@ public:
 
 	}
 
-	template<FloatVector V, CC::Arithmetic A> requires(V::Size == 4)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 4)
 	constexpr typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
@@ -204,7 +204,7 @@ public:
 
 private:
 
-	template<class T> requires(CC::Float<T> || FloatVector<T>)
+	template<class T> requires(CC::Float<T> || CC::FloatVector<T>)
 	static constexpr T interpolate(const T& t) {
 		return t * t * t * (t * (t * T(6) - T(15)) + T(10));
 	}

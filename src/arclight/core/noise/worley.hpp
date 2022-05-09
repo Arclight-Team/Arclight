@@ -45,7 +45,7 @@ public:
 
 	}
 
-	template<FloatVector V, CC::Arithmetic A> requires(V::Size == 2)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 2)
 	typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
@@ -76,7 +76,7 @@ public:
 
 	}
 
-	template<FloatVector V, CC::Arithmetic A> requires(V::Size == 3)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 3)
 	typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
@@ -107,7 +107,7 @@ public:
 
 	}
 
-	template<FloatVector V, CC::Arithmetic A> requires(V::Size == 4)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 4)
 	typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
@@ -140,7 +140,7 @@ public:
 
 private:
 
-	template<class T, u32 Size> requires(CC::Integer<T> || IntegerVector<T>)
+	template<class T, u32 Size> requires(CC::Integer<T> || CC::IntegerVector<T>)
 	static constexpr auto generateOffsets() -> std::array<T, Size> {
 
 		using I = TT::CommonArithmeticType<T>;

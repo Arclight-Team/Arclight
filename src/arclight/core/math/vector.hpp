@@ -23,17 +23,30 @@ template<CC::Arithmetic T>
 class Vec4;
 
 
-template<class T>
-concept Vector = TT::IsAnyOf<T, Vec2<typename T::Type>, Vec3<typename T::Type>, Vec4<typename T::Type>>;
+namespace CC {
 
-template<class T>
-concept FloatVector = Vector<T> && CC::Float<typename T::Type>;
+	template<class T>
+	concept Vector = TT::IsAnyOf<T, Vec2<typename T::Type>, Vec3<typename T::Type>, Vec4<typename T::Type>>;
 
-template<class T>
-concept IntegerVector = Vector<T> && CC::Integer<typename T::Type>;
+	template<class T>
+	concept FloatVector = Vector<T> && CC::Float<typename T::Type>;
 
-template<class T>
-concept IntegralVector = Vector<T> && CC::Integral<typename T::Type>;
+	template<class T>
+	concept IntegerVector = Vector<T> && CC::Integer<typename T::Type>;
+
+	template<class T>
+	concept IntegralVector = Vector<T> && CC::Integral<typename T::Type>;
+
+	template<class T>
+	concept FloatParam = Float<T> || FloatVector<T>;
+
+	template<class T>
+	concept IntegerParam = Integer<T> || IntegerVector<T>;
+
+	template<class T>
+	concept IntegralParam = Integral<T> || IntegralVector<T>;
+
+}
 
 
 template<CC::Arithmetic T>
@@ -756,58 +769,58 @@ public:
 
 
 
-template<Vector A, Vector B>
+template<CC::Vector A, CC::Vector B>
 constexpr auto operator+(A a, const B& b) {
 	typename A::template Untyped<decltype(a[0] + b[0])> ax = a;
 	ax += b;
 	return ax;
 }
 
-template<Vector A, Vector B>
+template<CC::Vector A, CC::Vector B>
 constexpr auto operator-(A a, const B& b) {
 	typename A::template Untyped<decltype(a[0] - b[0])> ax = a;
 	ax -= b;
 	return ax;
 }
 
-template<Vector A, Vector B>
+template<CC::Vector A, CC::Vector B>
 constexpr auto operator*(A a, const B& b) {
 	typename A::template Untyped<decltype(a[0] - b[0])> ax = a;
 	return ax.compMultiply(b);
 }
 
-template<Vector A, CC::Arithmetic B>
+template<CC::Vector A, CC::Arithmetic B>
 constexpr auto operator*(A a, B b) {
 	typename A::template Untyped<decltype(a[0] * b)> ax = a;
 	ax *= b;
 	return ax;
 }
 
-template<Vector A, CC::Arithmetic B>
+template<CC::Vector A, CC::Arithmetic B>
 constexpr auto operator*(B b, A a) {
 	typename A::template Untyped<decltype(a[0] * b)> ax = a;
 	ax *= b;
 	return ax;
 }
 
-template<Vector A, Vector B>
+template<CC::Vector A, CC::Vector B>
 constexpr auto operator/(A a, const B& b) {
 	typename A::template Untyped<decltype(a[0] - b[0])> ax = a;
 	return ax.compDivide(b);
 }
 
-template<Vector A, CC::Arithmetic B>
+template<CC::Vector A, CC::Arithmetic B>
 constexpr auto operator/(A a, B b) {
 	typename A::template Untyped<decltype(a[0] / b)> ax = a;
 	ax /= b;
 	return ax;
 }
 
-template<IntegralVector A, class B> requires(CC::Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+template<CC::IntegralVector A, class B> requires(CC::Integral<B> || (CC::IntegralVector<B> && A::Size == B::Size))
 constexpr A operator&(A a, const B& b) {
 
 	for (u32 i = 0; i < A::Size; i++) {
-		if constexpr (IntegralVector<B>) {
+		if constexpr (CC::IntegralVector<B>) {
 			a[i] &= b[i];
 		} else {
 			a[i] &= b;
@@ -818,11 +831,11 @@ constexpr A operator&(A a, const B& b) {
 
 }
 
-template<IntegralVector A, class B> requires(CC::Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+template<CC::IntegralVector A, class B> requires(CC::Integral<B> || (CC::IntegralVector<B> && A::Size == B::Size))
 constexpr A operator|(A a, const B& b) {
 
 	for (u32 i = 0; i < A::Size; i++) {
-		if constexpr (IntegralVector<B>) {
+		if constexpr (CC::IntegralVector<B>) {
 			a[i] |= b[i];
 		} else {
 			a[i] |= b;
@@ -833,11 +846,11 @@ constexpr A operator|(A a, const B& b) {
 
 }
 
-template<IntegralVector A, class B> requires(CC::Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+template<CC::IntegralVector A, class B> requires(CC::Integral<B> || (CC::IntegralVector<B> && A::Size == B::Size))
 constexpr A operator^(A a, const B& b) {
 
 	for (u32 i = 0; i < A::Size; i++) {
-		if constexpr (IntegralVector<B>) {
+		if constexpr (CC::IntegralVector<B>) {
 			a[i] ^= b[i];
 		} else {
 			a[i] ^= b;
@@ -848,22 +861,22 @@ constexpr A operator^(A a, const B& b) {
 
 }
 
-template<IntegralVector A, class B> requires(CC::Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+template<CC::IntegralVector A, class B> requires(CC::Integral<B> || (CC::IntegralVector<B> && A::Size == B::Size))
 constexpr void operator&=(A& a, const B& b) {
 	a = a & b;
 }
 
-template<IntegralVector A, class B> requires(CC::Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+template<CC::IntegralVector A, class B> requires(CC::Integral<B> || (CC::IntegralVector<B> && A::Size == B::Size))
 constexpr void operator|=(A& a, const B& b) {
 	a = a | b;
 }
 
-template<IntegralVector A, class B> requires(CC::Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+template<CC::IntegralVector A, class B> requires(CC::Integral<B> || (CC::IntegralVector<B> && A::Size == B::Size))
 constexpr void operator^=(A& a, const B& b) {
 	a = a ^ b;
 }
 
-template<IntegralVector A>
+template<CC::IntegralVector A>
 constexpr A operator~(A a) {
 
 	for (u32 i = 0; i < A::Size; i++) {
@@ -878,12 +891,12 @@ constexpr A operator~(A a) {
 
 namespace Math {
 
-	template<Vector V, CC::Arithmetic Factor>
+	template<CC::Vector V, CC::Arithmetic Factor>
 	constexpr V lerp(V start, V end, Factor factor) {
 		return start + factor * (end - start);
 	}
 
-	template<Vector V>
+	template<CC::Vector V>
 	constexpr V floor(V vec) {
 
 		V ret;
@@ -895,7 +908,7 @@ namespace Math {
 		return ret;
 	}
 
-	template<Vector V>
+	template<CC::Vector V>
 	constexpr V ceil(V vec) {
 
 		V ret;
@@ -907,7 +920,7 @@ namespace Math {
 		return ret;
 	}
 
-	template<Vector V>
+	template<CC::Vector V>
 	constexpr V trunc(V vec) {
 
 		V ret;
@@ -919,7 +932,7 @@ namespace Math {
 		return ret;
 	}
 
-	template<Vector V>
+	template<CC::Vector V>
 	constexpr V round(V vec) {
 
 		V ret;
@@ -931,7 +944,7 @@ namespace Math {
 		return ret;
 	}
 
-	template<Vector V>
+	template<CC::Vector V>
 	constexpr V abs(V vec) {
 
 		V ret;

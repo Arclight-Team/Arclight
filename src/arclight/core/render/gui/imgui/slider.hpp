@@ -87,7 +87,7 @@ public:
 	void createVecFloat (const std::string& text, int num, float* variable, float min, float max);
 	void createVecDouble(const std::string& text, int num, double* variable, double min, double max);
 
-	template<Vector V, class T = typename V::Type>
+	template<CC::Vector V, class T = typename V::Type>
 	void createVector(const std::string& text, V* variable, T min = T(0), T max = T(1), const std::string& format = "") {
 
 		using U = typename V::Type;

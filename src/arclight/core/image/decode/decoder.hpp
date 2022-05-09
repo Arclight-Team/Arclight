@@ -36,11 +36,15 @@ protected:
 
 };
 
-template<class T>
-concept ImageDecoder = CC::BaseOf<IImageDecoder, T> && requires (T&& t, std::span<const u8>&& s) {
-	t.decode(s);                            //Decode function
-	{ t.getImage() } -> CC::Equal<RawImage&>;   //Image retrieval function
-};
+namespace CC {
+
+	template<class T>
+	concept ImageDecoder = CC::BaseOf<IImageDecoder, T> && requires (T&& t, std::span<const u8>&& s) {
+		t.decode(s);                            //Decode function
+		{ t.getImage() } -> CC::Equal<RawImage&>;   //Image retrieval function
+	};
+
+}
 
 
 
