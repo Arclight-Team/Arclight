@@ -9,7 +9,7 @@
 #pragma once
 
 #include "component/component.hpp"
-#include "util/typetraits.hpp"
+#include "common/typetraits.hpp"
 
 #include <tuple>
 

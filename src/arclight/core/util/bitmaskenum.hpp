@@ -8,14 +8,14 @@
 
 #pragma once
 
-#include "typetraits.hpp"
-#include "concepts.hpp"
+#include "common/typetraits.hpp"
+#include "common/concepts.hpp"
 
 
 
 #define ARC_CREATE_BITMASK_ENUM(E)                                                                                      \
 																														\
-	static_assert(ScopedEnum<E>, "E must be a scoped enum type");                                                       \
+	static_assert(CC::ScopedEnum<E>, "E must be a scoped enum type");                                                       \
 																														\
 	constexpr static E operator&(E a, E b) noexcept {                                                                   \
 		return static_cast<E>(static_cast<TT::Underlying<E>>(a) & static_cast<TT::Underlying<E>>(b));                   \
@@ -51,7 +51,7 @@
 
 #define ARC_CREATE_MEMBER_BITMASK_ENUM(E)                                                                               \
 																														\
-	static_assert(ScopedEnum<E>, "E must be a scoped enum type");                                                       \
+	static_assert(CC::ScopedEnum<E>, "E must be a scoped enum type");                                                       \
 																														\
 	constexpr friend E operator&(E a, E b) noexcept {                                                                   \
 		return static_cast<E>(static_cast<TT::Underlying<E>>(a) & static_cast<TT::Underlying<E>>(b));                   \

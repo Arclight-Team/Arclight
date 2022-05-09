@@ -11,7 +11,7 @@
 #include "math/math.hpp"
 #include "util/assert.hpp"
 #include "util/bits.hpp"
-#include "util/typetraits.hpp"
+#include "common/typetraits.hpp"
 #include "arcconfig.hpp"
 #include "types.hpp"
 
@@ -420,7 +420,7 @@ public:
 
 
 template<class T>
-concept PixelStorageType = BaseOf<PixelStorage<T::PixelType, typename T::ColorType>, T>;
+concept PixelStorageType = CC::BaseOf<PixelStorage<T::PixelType, typename T::ColorType>, T>;
 
 
 constexpr auto operator+(PixelStorageType auto a, const PixelStorageType auto& b) {
@@ -694,7 +694,7 @@ public:
 
 	}
 
-	template<Pixel DestPixel, UnsignedIntegral T>
+	template<Pixel DestPixel, CC::UnsignedIntegral T>
 	constexpr static auto convert(T pixel, T redMask, u32 redShift, T greenMask, u32 greenShift, T blueMask, u32 blueShift, T alphaMask = 0, u32 alphaShift = 0) {
 
 		using DestFormat = PixelFormat<DestPixel>;

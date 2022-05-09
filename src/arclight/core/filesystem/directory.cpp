@@ -9,7 +9,7 @@
 #include "directory.hpp"
 #include "util/bool.hpp"
 #include "util/assert.hpp"
-#include "util/typetraits.hpp"
+#include "common/typetraits.hpp"
 
 #include <algorithm>
 

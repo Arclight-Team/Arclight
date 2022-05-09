@@ -11,7 +11,7 @@
 #include "actor.hpp"
 #include "componentprovider.hpp"
 #include "componentobserver.hpp"
-#include "util/typetraits.hpp"
+#include "common/typetraits.hpp"
 
 
 

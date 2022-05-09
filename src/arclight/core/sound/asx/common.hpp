@@ -11,8 +11,8 @@
 #include "math/vector.hpp"
 #include "util/bitmaskenum.hpp"
 #include "util/bits.hpp"
-#include "util/concepts.hpp"
-#include "util/typetraits.hpp"
+#include "common/concepts.hpp"
+#include "common/typetraits.hpp"
 #include <fmod.hpp>
 
 
@@ -774,14 +774,14 @@ namespace ASX
 	template<class V>
 	using VectorCastOutput = Detail::VectorCastOutput<V>::Type;
 
-	static_assert(Equal<VectorCastOutput<Vec3f&>, FMOD_VECTOR&>);
-	static_assert(Equal<VectorCastOutput<const Vec3f&>, const FMOD_VECTOR&>);
-	static_assert(Equal<VectorCastOutput<Vec3f*>, FMOD_VECTOR*>);
-	static_assert(Equal<VectorCastOutput<const Vec3f*>, const FMOD_VECTOR*>);
-	static_assert(Equal<VectorCastOutput<FMOD_VECTOR&>, Vec3f&>);
-	static_assert(Equal<VectorCastOutput<const FMOD_VECTOR&>, const Vec3f&>);
-	static_assert(Equal<VectorCastOutput<FMOD_VECTOR*>, Vec3f*>);
-	static_assert(Equal<VectorCastOutput<const FMOD_VECTOR*>, const Vec3f*>);
+	static_assert(CC::Equal<VectorCastOutput<Vec3f&>, FMOD_VECTOR&>);
+	static_assert(CC::Equal<VectorCastOutput<const Vec3f&>, const FMOD_VECTOR&>);
+	static_assert(CC::Equal<VectorCastOutput<Vec3f*>, FMOD_VECTOR*>);
+	static_assert(CC::Equal<VectorCastOutput<const Vec3f*>, const FMOD_VECTOR*>);
+	static_assert(CC::Equal<VectorCastOutput<FMOD_VECTOR&>, Vec3f&>);
+	static_assert(CC::Equal<VectorCastOutput<const FMOD_VECTOR&>, const Vec3f&>);
+	static_assert(CC::Equal<VectorCastOutput<FMOD_VECTOR*>, Vec3f*>);
+	static_assert(CC::Equal<VectorCastOutput<const FMOD_VECTOR*>, const Vec3f*>);
 
 	template<class In>
 	auto castVec(In& vec) -> VectorCastOutput<In&> {

@@ -9,8 +9,8 @@
 #pragma once
 
 #include "unicode.hpp"
-#include "util/concepts.hpp"
-#include "util/typetraits.hpp"
+#include "common/concepts.hpp"
+#include "common/typetraits.hpp"
 
 #include <stdexcept>
 #include <vector>
@@ -54,20 +54,20 @@ class UnicodeString : private UnicodeStringHelper<E> {
 	template<class StringView>
 	constexpr static bool IsStringViewConvertible() noexcept {
 
-		return (ImpConvertible<const StringView&, std::basic_string_view<char8_t>> && !ImpConvertible<const StringView&, const char8_t*>)
-			   || (ImpConvertible<const StringView&, std::basic_string_view<char16_t>> && !ImpConvertible<const StringView&, const char16_t*>)
-			   || (ImpConvertible<const StringView&, std::basic_string_view<char32_t>> && !ImpConvertible<const StringView&, const char32_t*>);
+		return (CC::ImpConvertible<const StringView&, std::basic_string_view<char8_t>> && !CC::ImpConvertible<const StringView&, const char8_t*>)
+			   || (CC::ImpConvertible<const StringView&, std::basic_string_view<char16_t>> && !CC::ImpConvertible<const StringView&, const char16_t*>)
+			   || (CC::ImpConvertible<const StringView&, std::basic_string_view<char32_t>> && !CC::ImpConvertible<const StringView&, const char32_t*>);
 
 	}
 
 	template<class StringView>
 	consteval static Unicode::Encoding GetStringViewEncoding() noexcept {
 
-		if constexpr (ImpConvertible<const StringView&, std::basic_string_view<char8_t>> && !ImpConvertible<const StringView&, const char8_t*>) {
+		if constexpr (CC::ImpConvertible<const StringView&, std::basic_string_view<char8_t>> && !CC::ImpConvertible<const StringView&, const char8_t*>) {
 			return Unicode::UTF8;
-		} else if constexpr (ImpConvertible<const StringView&, std::basic_string_view<char16_t>> && !ImpConvertible<const StringView&, const char16_t*>) {
+		} else if constexpr (CC::ImpConvertible<const StringView&, std::basic_string_view<char16_t>> && !CC::ImpConvertible<const StringView&, const char16_t*>) {
 			return Unicode::UTF16;
-		} else if constexpr (ImpConvertible<const StringView&, std::basic_string_view<char32_t>> && !ImpConvertible<const StringView&, const char32_t*>) {
+		} else if constexpr (CC::ImpConvertible<const StringView&, std::basic_string_view<char32_t>> && !CC::ImpConvertible<const StringView&, const char32_t*>) {
 			return Unicode::UTF32;
 		} else {
 			static_assert("No suitable encoding exists for given type");
@@ -260,12 +260,12 @@ public:
 		assign(ustr, ssIndex, ssSize);
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString(const C* s, SizeT count) {
 		assign(s, count);
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString(const C* s) {
 		assign(s);
 	}
@@ -275,7 +275,7 @@ public:
 		assign(first, last);
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString(const std::initializer_list<C>& list) {
 		assign(list);
 	}
@@ -322,7 +322,7 @@ public:
 		return assign(std::move(ustr));
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& operator=(const C* s) {
 		return assign(s);
 	}
@@ -331,7 +331,7 @@ public:
 		return assign(codepoint);
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& operator=(const std::initializer_list<C>& list) {
 		return assign(list);
 	}
@@ -393,7 +393,7 @@ public:
 
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& assign(const C* s, SizeT count) {
 
 		std::span<const C> span {s, s + count};
@@ -403,7 +403,7 @@ public:
 
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& assign(const C* s) {
 		return assign(s, arraySize(s));
 	}
@@ -413,7 +413,7 @@ public:
 		return assignByRange(first, last);
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& assign(const std::initializer_list<C>& list) {
 		return assign(list.begin(), list.end());
 	}
@@ -603,7 +603,7 @@ public:
 
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& insert(SizeT index, const C* s, SizeT count) {
 
 		std::span<const C> span {s, count};
@@ -613,7 +613,7 @@ public:
 
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& insert(SizeT index, const C* s) {
 		return insert(index, s, arraySize(s));
 	}
@@ -672,7 +672,7 @@ public:
 		return insertByRange(pos, first, last);
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr iterator insert(const const_iterator& pos, std::initializer_list<C> list) {
 		return insert(pos, list.begin(), list.end());
 	}
@@ -791,7 +791,7 @@ public:
 
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& append(const C* s, SizeT count) {
 
 		std::span<const C> span {s, count};
@@ -799,7 +799,7 @@ public:
 
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& append(const C* s) {
 		return append(s, arraySize(s));
 	}
@@ -812,7 +812,7 @@ public:
 
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& append(std::initializer_list<C> list) {
 		return append(list.begin(), list.size());
 	}
@@ -844,12 +844,12 @@ public:
 		return append(codepoint);
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& operator+=(const C* s) {
 		return append(s);
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& operator+=(std::initializer_list<C> list) {
 		return append(list);
 	}
@@ -888,17 +888,17 @@ public:
 
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr i32 compare(const C* s) const noexcept {
 		return compareDirect(0, size(), s, arraySize(s));
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr i32 compare(SizeT index, SizeT count, const C* s) const {
 		return compare(index, count, s, arraySize(s));
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr i32 compare(SizeT index, SizeT count, const C* s, SizeT sCount) const {
 
 		checkIndexInclusive(index);
@@ -936,7 +936,7 @@ public:
 
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr bool startsWith(std::basic_string_view<C> sv) const noexcept {
 		//TODO
 		return true;
@@ -984,7 +984,7 @@ public:
 
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& replace(SizeT index, SizeT count, const C* s, SizeT sCount) {
 
 		std::span<const C> span {s, sCount};
@@ -992,7 +992,7 @@ public:
 
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& replace(const const_iterator& first, const const_iterator& last, const C* s, SizeT sCount) {
 
 		std::span<const C> span {s, sCount};
@@ -1000,12 +1000,12 @@ public:
 
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& replace(SizeT index, SizeT count, const C* s) {
 		return replace(index, count, s, arraySize(s));
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& replace(const const_iterator& first, const const_iterator& last, const C* s) {
 		return replace(first, last, s, arraySize(s));
 	}
@@ -1036,7 +1036,7 @@ public:
 
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr UnicodeString& replace(const const_iterator& first, const const_iterator& last, std::initializer_list<C> list) {
 		return replace(first, last, list.begin(), list.end());
 	}
@@ -1240,7 +1240,7 @@ private:
 	/*
 	 *  Returns the length of the char array, in UTF chars
 	 */
-	template<Char C>
+	template<CC::Char C>
 	constexpr static SizeT arraySize(const C* s) noexcept {
 
 		const C* p = s;
@@ -1624,13 +1624,13 @@ private:
 
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr i32 compareDirect(SizeT index, SizeT count, const C* s, SizeT sSize) const noexcept {
 		//TODO
 		return 0;
 	}
 
-	template<Char C>
+	template<CC::Char C>
 	constexpr i32 compareViewDirect(SizeT index, SizeT count, const std::basic_string_view<C>& view) const noexcept {
 		return compareDirect(index, count, view.data(), view.size());
 	}

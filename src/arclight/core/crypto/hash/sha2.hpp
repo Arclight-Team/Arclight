@@ -12,7 +12,7 @@
 #include "common.hpp"
 #include "util/bits.hpp"
 #include "util/bool.hpp"
-#include "util/typetraits.hpp"
+#include "common/typetraits.hpp"
 
 #include <span>
 #include <algorithm>

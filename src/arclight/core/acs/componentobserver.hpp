@@ -12,7 +12,7 @@
 #include "components.hpp"
 
 #include "stdext/any.hpp"
-#include "util/concepts.hpp"
+#include "common/concepts.hpp"
 #include "util/log.hpp"
 #include "arcconfig.hpp"
 
@@ -42,7 +42,7 @@ public:
 		observerInvokables.reserve(getObserverEntryIndex(ARC_ACS_MAX_COMPONENTS));
 	}
 
-	template<Component C, class Func> requires Constructible<Function<C>, Func&&>
+	template<Component C, class Func> requires CC::Constructible<Function<C>, Func&&>
 	void observe(ComponentEvent event, Func&& callback) {
 
 		constexpr ComponentID cid = ComponentHelper::getComponentID<C>();

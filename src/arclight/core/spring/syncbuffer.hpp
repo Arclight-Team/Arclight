@@ -41,7 +41,7 @@ public:
 	SizeT getUpdateEnd() const noexcept;
 	SizeT getUpdateSize() const noexcept;
 
-	template<Arithmetic T>
+	template<CC::Arithmetic T>
 	void write(SizeT offset, T t) {
 
 		write(offset, {Bits::toByteArray(&t), sizeof(T)});

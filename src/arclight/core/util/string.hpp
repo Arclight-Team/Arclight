@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "concepts.hpp"
+#include "common/concepts.hpp"
 #include "types.hpp"
 
 #include <string>
@@ -35,11 +35,11 @@ namespace String {
 	}
 
 	template<class... Chars>
-	constexpr std::string fromChars(Chars&&... c) requires ((Convertible<Chars, char>) && ...) {
+	constexpr std::string fromChars(Chars&&... c) requires ((CC::Convertible<Chars, char>) && ...) {
 		return {static_cast<char>(c)...};
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr std::string toHexString(A a, bool upper = true, bool prefix = false) {
 
 		constexpr char v[2][16] = {

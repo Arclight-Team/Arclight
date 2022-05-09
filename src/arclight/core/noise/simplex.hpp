@@ -18,7 +18,7 @@ public:
 	using NoiseBase<SimplexNoise>::sample;
 
 
-	template<Float F, Arithmetic A>
+	template<CC::Float F, CC::Arithmetic A>
 	F sample(F point, A frequency) const {
 
 		point *= frequency;
@@ -47,7 +47,7 @@ public:
 
 	}
 
-	template<FloatVector V, Arithmetic A> requires(V::Size == 2)
+	template<FloatVector V, CC::Arithmetic A> requires(V::Size == 2)
 	typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
@@ -94,7 +94,7 @@ public:
 
 	}
 
-	template<FloatVector V, Arithmetic A> requires(V::Size == 3)
+	template<FloatVector V, CC::Arithmetic A> requires(V::Size == 3)
 	typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
@@ -167,7 +167,7 @@ public:
 
 	}
 
-	template<FloatVector V, Arithmetic A> requires(V::Size == 4)
+	template<FloatVector V, CC::Arithmetic A> requires(V::Size == 4)
 	typename V::Type sample(V point, A frequency) const {
 
 		using F = typename V::Type;
@@ -334,14 +334,14 @@ public:
 
 private:
 
-	template<class T, Arithmetic B> requires(Float<T> || FloatVector<T>)
+	template<class T, CC::Arithmetic B> requires(CC::Float<T> || FloatVector<T>)
 	static constexpr auto falloff(const T& v, B bias) -> TT::CommonArithmeticType<T> {
 
 		using F = TT::CommonArithmeticType<T>;
 
 		F a = F(bias);
 
-		if constexpr (Float<T>) {
+		if constexpr (CC::Float<T>) {
 
 			a -= v * v;
 

@@ -10,16 +10,16 @@
 
 #include "math/math.hpp"
 #include "util/assert.hpp"
-#include "util/typetraits.hpp"
+#include "common/typetraits.hpp"
 
 
-template<Arithmetic T>
+template<CC::Arithmetic T>
 class Vec2;
 
-template<Arithmetic T>
+template<CC::Arithmetic T>
 class Vec3;
 
-template<Arithmetic T>
+template<CC::Arithmetic T>
 class Vec4;
 
 
@@ -27,16 +27,16 @@ template<class T>
 concept Vector = TT::IsAnyOf<T, Vec2<typename T::Type>, Vec3<typename T::Type>, Vec4<typename T::Type>>;
 
 template<class T>
-concept FloatVector = Vector<T> && Float<typename T::Type>;
+concept FloatVector = Vector<T> && CC::Float<typename T::Type>;
 
 template<class T>
-concept IntegerVector = Vector<T> && Integer<typename T::Type>;
+concept IntegerVector = Vector<T> && CC::Integer<typename T::Type>;
 
 template<class T>
-concept IntegralVector = Vector<T> && Integral<typename T::Type>;
+concept IntegralVector = Vector<T> && CC::Integral<typename T::Type>;
 
 
-template<Arithmetic T>
+template<CC::Arithmetic T>
 class Vec2 {
 
 public:
@@ -44,23 +44,23 @@ public:
 	using Type = T;
 	constexpr static u32 Size = 2;
 	
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	using Untyped = Vec2<A>;
 
 
 	constexpr Vec2() : x(T(0)), y(T(0)) {}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr explicit Vec2(A value) : x(T(value)), y(T(value)) {}
 
-	template<Arithmetic A, Arithmetic B>
+	template<CC::Arithmetic A, CC::Arithmetic B>
 	constexpr Vec2(A x, B y) : x(T(x)), y(T(y)) {}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec2(const Vec2<A>& v) : x(T(v.x)), y(T(v.y)) {}
 
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec2& add(const Vec2<A>& v) {
 
 		x += v.x;
@@ -70,7 +70,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec2& subtract(const Vec2<A>& v) {
 
 		x -= v.x;
@@ -80,7 +80,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec2& multiply(A s) {
 
 		x *= s;
@@ -90,7 +90,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec2& divide(A s) {
 
 		arc_assert(!Math::isZero(s), "Vec2 divided by 0");
@@ -102,7 +102,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec2& compMultiply(const Vec2<A>& v) {
 
 		x *= v.x;
@@ -112,7 +112,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec2& compDivide(const Vec2<A>& v) {
 
 		x /= v.x;
@@ -122,7 +122,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec2& operator=(const Vec2<A>& v) {
 
 		x = v.x;
@@ -132,37 +132,37 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec2& operator+=(const Vec2<A>& v) {
 		return add(v);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec2& operator-=(const Vec2<A>& v) {
 		return subtract(v);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec2& operator*=(const Vec2<A>& v) {
 		return compMultiply(v);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec2& operator/=(const Vec2<A>& v) {
 		return compDivide(v);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec2& operator*=(A s) {
 		return multiply(s);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec2& operator/=(A s) {
 		return divide(s);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr bool operator==(const Vec2<A>& v) const {
 		return Math::equal(x, v.x) && Math::equal(y, v.y);
 	}
@@ -224,23 +224,23 @@ public:
 		return normalize(*this);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr auto dot(const Vec2<A>& v) const {
 		return x * v.x + y * v.y;
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr auto distance(const Vec2<A>& v) const {
 		return Vec2<decltype(x - v.x)>(x - v.x, y - v.y).length();
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr auto angle(const Vec2<A>& v) const {
 		arc_assert(!Math::isZero(length()) && !Math::isZero(v.length()), "Vec2 angle with null vector");
 		return Math::acos(dot(v) / (length() * v.length()));
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr static Vec2<A> normalize(Vec2<A> v) {
 		v.normalize();
 		return v;
@@ -262,7 +262,7 @@ public:
 
 
 
-template<Arithmetic T>
+template<CC::Arithmetic T>
 class Vec3 {
 
 public:
@@ -270,26 +270,26 @@ public:
 	using Type = T;
 	constexpr static u32 Size = 3;
 	
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	using Untyped = Vec3<A>;
 
 
 	constexpr Vec3() : x(T(0)), y(T(0)), z(T(0)) {}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr explicit Vec3(A value) : x(T(value)), y(T(value)), z(T(value)) {}
 
-	template<Arithmetic A, Arithmetic B, Arithmetic C>
+	template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C>
 	constexpr Vec3(A x, B y, C z) : x(T(x)), y(T(y)), z(T(z)) {}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr explicit Vec3(const Vec2<A>& v) : x(T(v.x)), y(T(v.y)), z(T(0)) {}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec3(const Vec3<A>& v) : x(T(v.x)), y(T(v.y)), z(T(v.z)) {}
 
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec3& add(const Vec3<A>& v) {
 
 		x += v.x;
@@ -300,7 +300,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec3& subtract(const Vec3<A>& v) {
 
 		x -= v.x;
@@ -311,7 +311,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec3& multiply(A s) {
 
 		x *= s;
@@ -322,7 +322,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec3& divide(A s) {
 
 		arc_assert(!Math::isZero(s), "Vec3 divided by 0");
@@ -335,7 +335,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec3& compMultiply(const Vec3<A>& v) {
 
 		x *= v.x;
@@ -346,7 +346,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec3& compDivide(const Vec3<A>& v) {
 
 		x /= v.x;
@@ -357,7 +357,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec3& operator=(const Vec3<A>& v) {
 
 		x = v.x;
@@ -368,37 +368,37 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec3& operator+=(const Vec3<A>& v) {
 		return add(v);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec3& operator-=(const Vec3<A>& v) {
 		return subtract(v);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec3& operator*=(const Vec3<A>& v) {
 		return compMultiply(v);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec3& operator/=(const Vec3<A>& v) {
 		return compDivide(v);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec3& operator*=(A s) {
 		return multiply(s);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec3& operator/=(A s) {
 		return divide(s);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr bool operator==(const Vec3<A>& v) const {
 		return Math::equal(x, v.x) && Math::equal(y, v.y) && Math::equal(z, v.z);
 
@@ -463,28 +463,28 @@ public:
 		return normalize(*this);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr auto cross(const Vec3<A>& v) const {
 		return Vec3<decltype(y* v.z - z * v.y)>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr auto dot(const Vec3<A>& v) const {
 		return x * v.x + y * v.y + z * v.z;
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr auto distance(const Vec3<A>& v) const {
 		return Vec3<decltype(x - v.x)>(x - v.x, y - v.y, z - v.z).length();
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr auto angle(const Vec3<A>& v) const {
 		arc_assert(!Math::isZero(length()) && !Math::isZero(v.length()), "Vec3 angle with null vector");
 		return Math::acos(dot(v) / (length() * v.length()));
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr static Vec3<A> normalize(Vec3<A> v) {
 		v.normalize();
 		return v;
@@ -506,7 +506,7 @@ public:
 
 
 
-template<Arithmetic T>
+template<CC::Arithmetic T>
 class alignas(16) Vec4 {
 
 public:
@@ -514,29 +514,29 @@ public:
 	using Type = T;
 	constexpr static u32 Size = 4;
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	using Untyped = Vec4<A>;
 
 
 	constexpr Vec4() : x(T(0)), y(T(0)), z(T(0)), w(T(0)) {}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr explicit Vec4(A value) : x(T(value)), y(T(value)), z(T(value)), w(T(value)) {}
 
-	template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
+	template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C, CC::Arithmetic D>
 	constexpr Vec4(A x, B y, C z, D w) : x(T(x)), y(T(y)), z(T(z)), w(T(w)) {}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr explicit Vec4(const Vec2<A>& v) : x(T(v.x)), y(T(v.y)), z(T(0)), w(T(0)) {}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr explicit Vec4(const Vec3<A>& v) : x(T(v.x)), y(T(v.y)), z(T(v.z)), w(T(0)) {}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec4(const Vec4<A>& v) : x(T(v.x)), y(T(v.y)), z(T(v.z)), w(T(v.w)) {}
 
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec4& add(const Vec4<A>& v) {
 
 		x += v.x;
@@ -548,7 +548,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec4& subtract(const Vec4<A>& v) {
 
 		x -= v.x;
@@ -560,7 +560,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec4& multiply(A s) {
 
 		x *= s;
@@ -572,7 +572,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec4& divide(A s) {
 
 		arc_assert(!Math::isZero(s), "Vec4 divided by 0");
@@ -586,7 +586,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec4& compMultiply(const Vec4<A>& v) {
 
 		x *= v.x;
@@ -598,7 +598,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec4& compDivide(const Vec4<A>& v) {
 
 		x /= v.x;
@@ -610,7 +610,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec4& operator=(const Vec4<A>& v) {
 
 		x = v.x;
@@ -622,37 +622,37 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec4& operator+=(const Vec4<A>& v) {
 		return add(v);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec4& operator-=(const Vec4<A>& v) {
 		return subtract(v);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec4& operator*=(const Vec4<A>& v) {
 		return compMultiply(v);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec4& operator/=(const Vec4<A>& v) {
 		return compDivide(v);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec4& operator*=(A s) {
 		return multiply(s);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Vec4& operator/=(A s) {
 		return divide(s);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr bool operator==(const Vec4<A>& v) const {
 		return Math::equal(x, v.x) && Math::equal(y, v.y) && Math::equal(z, v.z) && Math::equal(w, v.w);
 	}
@@ -718,23 +718,23 @@ public:
 		return normalize(*this);
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr auto dot(const Vec4<A>& v) const {
 		return x * v.x + y * v.y + z * v.z + w * v.w;
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr auto distance(const Vec4<A>& v) const {
 		return Vec4<decltype(x - v.x)>(x - v.x, y - v.y, z - v.z, w - v.w).length();
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr auto angle(const Vec4<A>& v) const {
 		arc_assert(!Math::isZero(length()) && !Math::isZero(v.length()), "Vec4 angle with null vector");
 		return Math::acos(dot(v) / (length() * v.length()));
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr static Vec4<A> normalize(Vec4<A> v) {
 		v.normalize();
 		return v;
@@ -776,14 +776,14 @@ constexpr auto operator*(A a, const B& b) {
 	return ax.compMultiply(b);
 }
 
-template<Vector A, Arithmetic B>
+template<Vector A, CC::Arithmetic B>
 constexpr auto operator*(A a, B b) {
 	typename A::template Untyped<decltype(a[0] * b)> ax = a;
 	ax *= b;
 	return ax;
 }
 
-template<Vector A, Arithmetic B>
+template<Vector A, CC::Arithmetic B>
 constexpr auto operator*(B b, A a) {
 	typename A::template Untyped<decltype(a[0] * b)> ax = a;
 	ax *= b;
@@ -796,14 +796,14 @@ constexpr auto operator/(A a, const B& b) {
 	return ax.compDivide(b);
 }
 
-template<Vector A, Arithmetic B>
+template<Vector A, CC::Arithmetic B>
 constexpr auto operator/(A a, B b) {
 	typename A::template Untyped<decltype(a[0] / b)> ax = a;
 	ax /= b;
 	return ax;
 }
 
-template<IntegralVector A, class B> requires(Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+template<IntegralVector A, class B> requires(CC::Integral<B> || (IntegralVector<B> && A::Size == B::Size))
 constexpr A operator&(A a, const B& b) {
 
 	for (u32 i = 0; i < A::Size; i++) {
@@ -818,7 +818,7 @@ constexpr A operator&(A a, const B& b) {
 
 }
 
-template<IntegralVector A, class B> requires(Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+template<IntegralVector A, class B> requires(CC::Integral<B> || (IntegralVector<B> && A::Size == B::Size))
 constexpr A operator|(A a, const B& b) {
 
 	for (u32 i = 0; i < A::Size; i++) {
@@ -833,7 +833,7 @@ constexpr A operator|(A a, const B& b) {
 
 }
 
-template<IntegralVector A, class B> requires(Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+template<IntegralVector A, class B> requires(CC::Integral<B> || (IntegralVector<B> && A::Size == B::Size))
 constexpr A operator^(A a, const B& b) {
 
 	for (u32 i = 0; i < A::Size; i++) {
@@ -848,17 +848,17 @@ constexpr A operator^(A a, const B& b) {
 
 }
 
-template<IntegralVector A, class B> requires(Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+template<IntegralVector A, class B> requires(CC::Integral<B> || (IntegralVector<B> && A::Size == B::Size))
 constexpr void operator&=(A& a, const B& b) {
 	a = a & b;
 }
 
-template<IntegralVector A, class B> requires(Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+template<IntegralVector A, class B> requires(CC::Integral<B> || (IntegralVector<B> && A::Size == B::Size))
 constexpr void operator|=(A& a, const B& b) {
 	a = a | b;
 }
 
-template<IntegralVector A, class B> requires(Integral<B> || (IntegralVector<B> && A::Size == B::Size))
+template<IntegralVector A, class B> requires(CC::Integral<B> || (IntegralVector<B> && A::Size == B::Size))
 constexpr void operator^=(A& a, const B& b) {
 	a = a ^ b;
 }
@@ -878,7 +878,7 @@ constexpr A operator~(A a) {
 
 namespace Math {
 
-	template<Vector V, Arithmetic Factor>
+	template<Vector V, CC::Arithmetic Factor>
 	constexpr V lerp(V start, V end, Factor factor) {
 		return start + factor * (end - start);
 	}
@@ -982,20 +982,20 @@ VECTOR_DEFINE
 #undef VECTOR_DEFINE_ND
 #undef VECTOR_DEFINE_NDTS
 
-template<Arithmetic A>
+template<CC::Arithmetic A>
 Vec2(A)->Vec2<A>;
 
-template<Arithmetic A, Arithmetic B>
+template<CC::Arithmetic A, CC::Arithmetic B>
 Vec2(A, B)->Vec2<std::common_type_t<A, B>>;
 
-template<Arithmetic A>
+template<CC::Arithmetic A>
 Vec3(A)->Vec3<A>;
 
-template<Arithmetic A, Arithmetic B, Arithmetic C>
+template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C>
 Vec3(A, B, C)->Vec3<std::common_type_t<A, B, C>>;
 
-template<Arithmetic A>
+template<CC::Arithmetic A>
 Vec4(A)->Vec4<A>;
 
-template<Arithmetic A, Arithmetic B, Arithmetic C, Arithmetic D>
+template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C, CC::Arithmetic D>
 Vec4(A, B, C, D)->Vec4<std::common_type_t<A, B, C, D>>;

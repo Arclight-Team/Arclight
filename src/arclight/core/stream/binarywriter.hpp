@@ -22,7 +22,7 @@ public:
 	constexpr BinaryWriter() noexcept : convert(false) {}
 	constexpr explicit BinaryWriter(const std::span<ByteType>& stream, ByteOrder order = ByteOrder::Little) noexcept : BinaryStream(stream), convert(Bits::requiresEndianConversion(order)) {}
 
-	template<Arithmetic T>
+	template<CC::Arithmetic T>
 	constexpr void write(T t) noexcept {
 
 		if (convert) {
@@ -36,7 +36,7 @@ public:
 
 	}
 
-	template<Arithmetic T>
+	template<CC::Arithmetic T>
 	constexpr void write(const std::span<T>& dest) noexcept {
 
 		for (SizeT i = 0; i < dest.size(); i++) {

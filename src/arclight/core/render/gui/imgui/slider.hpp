@@ -52,7 +52,7 @@ public:
 	void createFloat (const std::string& text, float* variable, float min, float max);
 	void createDouble(const std::string& text, double* variable, double min, double max);
 
-	template<Arithmetic T>
+	template<CC::Arithmetic T>
 	void create(const std::string& text, T* variable, T min = T(0), T max = T(1), const std::string& format = "") {
 
 		if constexpr (std::is_same_v<T, bool>)			createBool  (text, variable);

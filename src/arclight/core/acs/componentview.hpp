@@ -11,8 +11,8 @@
 #include "componentviewchannel.hpp"
 #include "componentprovider.hpp"
 #include "component/component.hpp"
-#include "util/concepts.hpp"
-#include "util/typetraits.hpp"
+#include "common/concepts.hpp"
+#include "common/typetraits.hpp"
 
 #include <tuple>
 #include <algorithm>
@@ -171,7 +171,7 @@ class ComponentView {
 
 public:
 
-	static_assert((BaseType<Types> && ...), "View types must be non-qualified");
+	static_assert((CC::BaseType<Types> && ...), "View types must be non-qualified");
 
 	constexpr static SizeT TypeCount = sizeof...(Types);
 

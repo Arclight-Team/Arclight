@@ -29,7 +29,7 @@ namespace Xml
 
 	
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType = char>
+	template<CC::Char CharType = char>
 #endif
 	class Node
 	{
@@ -375,18 +375,18 @@ namespace Xml
 		}
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<Char CharType>
+		template<CC::Char CharType>
 #endif
 		friend class Document;
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<Char CharType>
+		template<CC::Char CharType>
 #endif
 		friend class Attribute;
 
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<Char CharType>
+		template<CC::Char CharType>
 		friend std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>&, const Node<CharType>&);
 #else
 		friend std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>&, const Node&);
@@ -413,7 +413,7 @@ namespace Xml
 	};
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType>
+	template<CC::Char CharType>
 	Document<CharType>& Attribute<CharType>::getDocument() {
 #else
 	Document& Attribute::getDocument() {
@@ -422,7 +422,7 @@ namespace Xml
 	}
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType>
+	template<CC::Char CharType>
 	const Document<CharType>& Attribute<CharType>::getDocument() const {
 #else
 	const Document& Attribute::getDocument() const {
@@ -431,7 +431,7 @@ namespace Xml
 	}
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType>
+	template<CC::Char CharType>
 	OptionalRef<Attribute<CharType>> Attribute<CharType>::getNext() {
 #else
 	OptionalRef<Attribute> Attribute::getNext() {
@@ -447,7 +447,7 @@ namespace Xml
 	}
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType>
+	template<CC::Char CharType>
 	OptionalRef<const Attribute<CharType>> Attribute<CharType>::getNext() const {
 #else
 	OptionalRef<const Attribute> Attribute::getNext() const {
@@ -463,7 +463,7 @@ namespace Xml
 	}
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType>
+	template<CC::Char CharType>
 	OptionalRef<Attribute<CharType>> Attribute<CharType>::getPrevious() {
 #else
 	OptionalRef<Attribute> Attribute::getPrevious() {
@@ -479,7 +479,7 @@ namespace Xml
 	}
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType>
+	template<CC::Char CharType>
 	OptionalRef<const Attribute<CharType>> Attribute<CharType>::getPrevious() const {
 #else
 	OptionalRef<const Attribute> Attribute::getPrevious() const {
@@ -495,7 +495,7 @@ namespace Xml
 	}
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType>
+	template<CC::Char CharType>
 	std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>& os, const Node<CharType>& node) {
 #else
 	std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>& os, const Node& node) {

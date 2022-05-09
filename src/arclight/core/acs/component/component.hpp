@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "util/concepts.hpp"
-#include "util/typetraits.hpp"
+#include "common/concepts.hpp"
+#include "common/typetraits.hpp"
 #include "types.hpp"
 
 
@@ -20,4 +20,4 @@ typedef u32 ComponentID;
 class Transform : public IComponent {};
 
 template<class C>
-concept Component = BaseOf<IComponent, TT::RemoveRef<C>>;
+concept Component = CC::BaseOf<IComponent, TT::RemoveRef<C>>;

@@ -8,15 +8,15 @@
 
 #pragma once
 
-#include "util/concepts.hpp"
-#include "util/typetraits.hpp"
+#include "common/concepts.hpp"
+#include "common/typetraits.hpp"
 #include "arcconfig.hpp"
 #include "vector.hpp"
 #include "box.hpp"
 
 
 
-template<Arithmetic T>
+template<CC::Arithmetic T>
 class Sphere
 {
 public:
@@ -75,19 +75,19 @@ public:
 	}
 
 	// Checks if the sphere intersects with another sphere
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr bool intersects(const Sphere<B>& other) const {
 		return Math::lessEqual(origin.distance(other.origin), radius + other.radius);
 	}
 
 	// Checks if the sphere contains another sphere
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr bool contains(const Sphere<B>& other) const {
 		return Math::less(origin.distance(other.origin) + other.radius, radius);
 	}
 
 	// Checks if the sphere contains a point
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr bool contains(const Vec3<B>& point) const {
 		return Math::lessEqual(origin.distance(point), radius);
 	}

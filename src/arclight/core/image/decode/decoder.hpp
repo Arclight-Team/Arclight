@@ -11,8 +11,8 @@
 #include "types.hpp"
 #include "image/pixel.hpp"
 #include "image/rawimage.hpp"
-#include "util/concepts.hpp"
-#include "util/typetraits.hpp"
+#include "common/concepts.hpp"
+#include "common/typetraits.hpp"
 
 #include <span>
 #include <optional>
@@ -37,9 +37,9 @@ protected:
 };
 
 template<class T>
-concept ImageDecoder = BaseOf<IImageDecoder, T> && requires (T&& t, std::span<const u8>&& s) {
+concept ImageDecoder = CC::BaseOf<IImageDecoder, T> && requires (T&& t, std::span<const u8>&& s) {
 	t.decode(s);                            //Decode function
-	{ t.getImage() } -> Equal<RawImage&>;   //Image retrieval function
+	{ t.getImage() } -> CC::Equal<RawImage&>;   //Image retrieval function
 };
 
 

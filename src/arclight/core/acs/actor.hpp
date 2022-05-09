@@ -9,7 +9,7 @@
 #pragma once
 
 #include "util/assert.hpp"
-#include "util/typetraits.hpp"
+#include "common/typetraits.hpp"
 #include "types.hpp"
 
 
@@ -39,4 +39,4 @@ private:
 
 
 template<class A>
-concept ActorBlueprint = BaseOf<IActor, TT::RemoveRef<A>>;
+concept ActorBlueprint = CC::BaseOf<IActor, TT::RemoveRef<A>>;

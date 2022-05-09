@@ -17,7 +17,7 @@
 #include <span>
 
 
-template<u32 Degree, Float F>
+template<u32 Degree, CC::Float F>
 class Bezier {
 
 public:

@@ -35,7 +35,7 @@ concept Iterable = requires(T&& t) {
 	t.begin();
 	t.end();
 	requires std::input_iterator<decltype(t.begin())>;
-	requires Equal<decltype(t.begin()), decltype(t.end())>;
+	requires CC::Equal<decltype(t.begin()), decltype(t.end())>;
 };
 
 
@@ -61,7 +61,7 @@ public:
 	ArcDebug() : reversed(false) {}
 	~ArcDebug();
 
-	template<StringStreamable S> requires (!Char<S>)
+	template<StringStreamable S> requires (!CC::Char<S>)
 	ArcDebug& operator<<(const S& value) {
 
 		write(value);
@@ -71,7 +71,7 @@ public:
 
 	}
 
-	ArcDebug& operator<<(Char auto value) {
+	ArcDebug& operator<<(CC::Char auto value) {
 
 		write(value);
 		dispatchToken(Token::ArcSpace);
@@ -105,7 +105,7 @@ public:
 		return *this;
 	}
 
-	template<Float F>
+	template<CC::Float F>
 	ArcDebug& operator<<(const Quaternion<F>& q) {
 		write(q);
 		return *this;
@@ -125,7 +125,7 @@ public:
 
 private:
 
-	void write(Char auto value) {
+	void write(CC::Char auto value) {
 		buffer << static_cast<u32>(value);
 	}
 
@@ -133,7 +133,7 @@ private:
 
 		using S = TT::RemoveCVRef<decltype(value)>;
 
-		if constexpr (PointerType<S> && !Equal<S, const char*>) {
+		if constexpr (CC::PointerType<S> && !CC::Equal<S, const char*>) {
 			buffer << Memory::pointerAddress(value);
 		} else {
 			buffer << value;
@@ -259,7 +259,7 @@ private:
 	}
 
 	
-	template<Float F>
+	template<CC::Float F>
 	void write(const Quaternion<F>& q) {
 
 		buffer << "Quat" << "[";
