@@ -7,7 +7,6 @@
  */
 
 #include "ppmdecoder.hpp"
-#include "debug.hpp"
 
 
 
@@ -39,7 +38,7 @@ void PPMDecoder::decode(std::span<const u8> data) {
 
 		// Skip comments
 		if (stringReader.peek() == '#') {
-			stringReader >> string;
+			std::getline(stringReader, string);
 			continue;
 		}
 
@@ -54,8 +53,14 @@ void PPMDecoder::decode(std::span<const u8> data) {
 			// Fetch magic string
 			stringReader >> string;
 
+			if (string == "P3")
+				throw ImageDecoderException("PPM version 3 not supported");
+
 			if (string != "P6")
 				throw ImageDecoderException("PPM magic doesn't match");
+
+			// Skip space character
+			stringReader.get();
 
 			parseStep++;
 
@@ -72,6 +77,9 @@ void PPMDecoder::decode(std::span<const u8> data) {
 			if (width <= 0)
 				throw ImageDecoderException("Width should be greater than zero");
 
+			// Skip space character
+			stringReader.get();
+
 			parseStep++;
 
 			break;
@@ -86,6 +94,9 @@ void PPMDecoder::decode(std::span<const u8> data) {
 
 			if (height <= 0)
 				throw ImageDecoderException("Height should be greater than zero");
+
+			// Skip space character
+			stringReader.get();
 
 			parseStep++;
 
@@ -102,6 +113,9 @@ void PPMDecoder::decode(std::span<const u8> data) {
 			if (colorRange < 0 || colorRange >= 65536)
 				throw ImageDecoderException("Color range should be in range 0-65535");
 
+			// Skip space character
+			stringReader.get();
+
 			parseStep++;
 
 			break;
@@ -109,6 +123,9 @@ void PPMDecoder::decode(std::span<const u8> data) {
 		}
 
 	}
+
+	if (colorRange > 255)
+		throw ImageDecoderException("RGB16 format not supported");
 
 	Image<Pixel::RGB8> bufImage(width, height);
 	u64 requiredSize = bufImage.pixelCount() * 3;

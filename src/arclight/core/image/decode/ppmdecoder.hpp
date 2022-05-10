@@ -19,14 +19,14 @@ class PPMDecoder : public IImageDecoder {
 
 public:
 
-    constexpr explicit PPMDecoder(std::optional<Pixel> reqFormat) noexcept : IImageDecoder(reqFormat), validDecode(false) {}
+	constexpr explicit PPMDecoder(std::optional<Pixel> reqFormat) noexcept : IImageDecoder(reqFormat), validDecode(false) {}
 
-    void decode(std::span<const u8> data);
+	void decode(std::span<const u8> data);
 	RawImage& getImage();
 
 private:
 
-    RawImage image;
-    bool validDecode;
+	RawImage image;
+	bool validDecode;
 
 };
