@@ -25,3 +25,18 @@ std::vector<u8> ImageIO::Detail::loadFile(const Path& path) {
 	return data;
 
 }
+
+
+
+void ImageIO::Detail::saveFile(const Path& path, std::span<const u8> data) {
+
+	File file(path, File::Out);
+
+	if (!file.open()) {
+		throw ImageException("Failed to open file " + path.toString());
+	}
+
+	file.write(data);
+	file.close();
+
+}

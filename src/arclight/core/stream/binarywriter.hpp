@@ -23,7 +23,7 @@ public:
 	constexpr explicit BinaryWriter(const std::span<ByteType>& stream, ByteOrder order = ByteOrder::Little) noexcept : BinaryStream(stream), convert(Bits::requiresEndianConversion(order)) {}
 
 	template<CC::Arithmetic T>
-	constexpr void write(T t) noexcept {
+	constexpr void write(TT::RemoveConst<T> t) noexcept {
 
 		if (convert) {
 			t = Bits::swap(t);
