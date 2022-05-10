@@ -15,6 +15,7 @@
 #include "decode/ppmdecoder.hpp"
 #include "decode/qoidecoder.hpp"
 #include "encode/encoder.hpp"
+#include "encode/ppmencoder.hpp"
 #include "util/bool.hpp"
 
 
@@ -159,7 +160,11 @@ namespace ImageIO {
 
 			std::string ext = path.getExtension();
 
+			if (ext == ".ppm") {
+	            save<PPMEncoder, Img>(path, image);
+	        } else {
 				throw ImageException("Unknown image file format");
+			}
 
 		}
 
