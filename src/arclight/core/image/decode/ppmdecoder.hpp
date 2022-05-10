@@ -9,9 +9,7 @@
 #pragma once
 
 #include "decoder.hpp"
-#include "bitmap.hpp"
 #include "image/image.hpp"
-#include "stream/binaryreader.hpp"
 
 
 

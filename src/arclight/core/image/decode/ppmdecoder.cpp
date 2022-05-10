@@ -130,7 +130,7 @@ void PPMDecoder::decode(std::span<const u8> data) {
 	Image<Pixel::RGB8> bufImage(width, height);
 	u64 requiredSize = bufImage.pixelCount() * 3;
 
-	u64 currentPos = 1 + stringReader.tellg();
+	u64 currentPos = stringReader.tellg();
 	u64 remainingSize = data.size() - currentPos;
 
 	if (remainingSize < requiredSize)
