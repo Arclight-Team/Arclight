@@ -19,15 +19,15 @@ class QOIDecoder : public IImageDecoder {
 
 public:
 
-    constexpr explicit QOIDecoder(std::optional<Pixel> reqFormat) noexcept : IImageDecoder(reqFormat), validDecode(false) {}
+	constexpr explicit QOIDecoder(std::optional<Pixel> reqFormat) noexcept : IImageDecoder(reqFormat), validDecode(false) {}
 
-    void decode(std::span<const u8> data);
+	void decode(std::span<const u8> data);
 	RawImage& getImage();
 
 private:
 
-    BinaryReader reader;
-    RawImage image;
-    bool validDecode;
+	BinaryReader reader;
+	RawImage image;
+	bool validDecode;
 
 };
