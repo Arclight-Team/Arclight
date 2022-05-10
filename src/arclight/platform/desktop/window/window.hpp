@@ -62,6 +62,7 @@ class Window final {
 
 public:
 
+	using WindowRefreshFunction		= std::function<void()>;
 	using WindowMoveFunction        = std::function<void(u32, u32)>;
 	using WindowResizeFunction      = std::function<void(u32, u32)>;
 	using WindowStateChangeFunction = std::function<void(WindowState)>;
@@ -77,6 +78,7 @@ public:
 
 	void setWindowConfig(const WindowConfig& config);
 	bool create(u32 w, u32 h, const std::string& title);
+	bool createNoContext(u32 w, u32 h, const std::string& title);
 	bool createFullscreen(const std::string& title, u32 monitorID = 0);
 	void close();
 
@@ -161,6 +163,7 @@ public:
 	static Monitor getMonitor(u32 id);
 	static bool monitorConfigurationChanged();
 
+	void setWindowRefreshFunction(WindowRefreshFunction function);
 	void setWindowMoveFunction(WindowMoveFunction function);
 	void setWindowResizeFunction(WindowResizeFunction function);
 	void setWindowStateChangeFunction(WindowStateChangeFunction function);
@@ -192,6 +195,7 @@ private:
 
 	RenderCursor cursor;
 
+	WindowRefreshFunction refreshFunction;
 	WindowMoveFunction moveFunction;
 	WindowResizeFunction resizeFunction;
 	WindowStateChangeFunction stateChangeFunction;
