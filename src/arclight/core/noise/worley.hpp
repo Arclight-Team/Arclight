@@ -26,8 +26,20 @@ public:
 	using FlagT = WorleyNoiseFlag;
 
 
+	template<FloatParam T, Arithmetic A, Arithmetic L = u32, Arithmetic P = u32>
+	constexpr TT::CommonArithmeticType<T> sample(const T& point, A frequency, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
+		return fractalSample<Fractal>([this](const T& p, A f) constexpr { return raw(p, f); }, point, frequency, octaves, lacunarity, persistence);
+	}
+
+	template<FloatParam T, Arithmetic A, Arithmetic L = u32, Arithmetic P = u32, Float F = TT::CommonArithmeticType<T>>
+	constexpr std::vector<F> sample(std::span<const T> points, std::span<const A> frequencies, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
+		return fractalSample<Fractal>([this](auto p, auto f) constexpr { return raw(p, f); }, points, frequencies, octaves, lacunarity, persistence);
+	}
+
+private:
+
 	template<Float F, Arithmetic A>
-	constexpr F sample(F point, A frequency) const {
+	constexpr F raw(F point, A frequency) const {
 
 		using I = TT::ToInteger<F>;
 		using UI = TT::MakeUnsigned<I>;
@@ -63,7 +75,7 @@ public:
 	}
 
 	template<FloatVector V, Arithmetic A> requires(V::Size == 2)
-	constexpr typename V::Type sample(V point, A frequency) const {
+	constexpr typename V::Type raw(V point, A frequency) const {
 
 		using F = typename V::Type;
 		using I = TT::ToInteger<F>;
@@ -109,7 +121,7 @@ public:
 	}
 
 	template<FloatVector V, Arithmetic A> requires(V::Size == 3)
-	constexpr typename V::Type sample(V point, A frequency) const {
+	constexpr typename V::Type raw(V point, A frequency) const {
 
 		using F = typename V::Type;
 		using I = TT::ToInteger<F>;
@@ -162,7 +174,7 @@ public:
 	}
 
 	template<FloatVector V, Arithmetic A> requires(V::Size == 4)
-	constexpr typename V::Type sample(V point, A frequency) const {
+	constexpr typename V::Type raw(V point, A frequency) const {
 
 		using F = typename V::Type;
 		using I = TT::ToInteger<F>;
@@ -221,12 +233,19 @@ public:
 
 	}
 
-	template<class T, Arithmetic A, Arithmetic L, Arithmetic P> requires(Float<T> || FloatVector<T>)
-	constexpr auto sample(const T& point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
-		return fractalSample<Fractal>([this](T p, A f) constexpr { return sample(p, f); }, point, frequency, octaves, lacunarity, persistence);
+
+	template<FloatParam T, Arithmetic A, Float F = TT::CommonArithmeticType<T>>
+	constexpr std::vector<F> raw(std::span<const T> points, std::span<const A> frequencies) const {
+
+		std::vector<F> samples;
+
+		for (u32 i = 0; i < points.size(); i++) {
+			samples.push_back(raw(points[i], frequencies[i]));
+		}
+
+		return samples;
 	}
 
-private:
 
 	template<Float F>
 	static constexpr void updateDistances(F& first, F& second, F dist) {

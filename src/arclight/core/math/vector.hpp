@@ -35,6 +35,18 @@ concept IntegerVector = Vector<T> && Integer<typename T::Type>;
 template<class T>
 concept IntegralVector = Vector<T> && Integral<typename T::Type>;
 
+template<class T>
+concept FloatParam = Float<T> || FloatVector<T>;
+
+template<class T>
+concept IntegerParam = Integer<T> || IntegerVector<T>;
+
+template<class T>
+concept IntegralParam = Integral<T> || IntegralVector<T>;
+
+template<class T>
+concept ArithmeticParam = Arithmetic<T> || Vector<T>;
+
 
 template<Arithmetic T>
 class Vec2 {

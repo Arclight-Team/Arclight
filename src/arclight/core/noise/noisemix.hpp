@@ -14,6 +14,9 @@
 template<NoiseType... Types>
 class NoiseMix {
 
+	template<class T, class... Pack>
+	using ArgsHelper = T;
+
 public:
 
 	static constexpr u32 TypesCount = sizeof...(Types);
@@ -22,9 +25,6 @@ public:
 
 	template<Arithmetic C, SizeT N> requires(N == TypesCount - 1)
 	using ContributionT = const C (&)[N];
-
-	template<class T, class... Pack>
-	using ArgsHelper = T;
 
 
 	constexpr NoiseMix(const Types&... types) : types(types...) {};
@@ -43,69 +43,16 @@ public:
 	}
 
 
-	template<class T, Arithmetic A> requires(Float<T> || FloatVector<T>)
-	constexpr auto sample(const T& point, A frequency) const -> TT::CommonArithmeticType<T> {
-
-		using F = TT::CommonArithmeticType<T>;
-
-		F sample = 0;
-
-		std::apply([&](const auto&... args) constexpr {
-			sample = (args.sample(point, frequency) + ...);
-		}, types);
-
-		return sample / TypesCount;
-
-	}
-
-	template<Arithmetic C, SizeT N, class T, Arithmetic A> requires(Float<T> || FloatVector<T>)
-	constexpr auto sample(ContributionT<C, N> contribution, const T& point, A frequency) const -> TT::CommonArithmeticType<T> {
-
-		using F = TT::CommonArithmeticType<T>;
-
-		F sample = 0;
-
-		auto calculate = [&](const auto& type, u32 i) constexpr {
-
-			F c = (i == 0) ? 1 : contribution[i - 1];
-
-			sample += type.sample(point, frequency) * c;
-
-			if (i != TypesCount - 1) {
-				sample *= (1 - contribution[i]);
-			}
-
-		};
-
-		std::apply([&](const auto&... args) constexpr {
-			u32 i = 0;
-			(calculate(args, i++), ...);
-		}, types);
-
-		return sample;
-
-	}
-
-	template<class T, Arithmetic A, Float F = TT::CommonArithmeticType<T>, Returns<F, ArgsHelper<F, Types>...> Func> requires(Float<T> || FloatVector<T>)
-	constexpr F sample(const T& point, A frequency, Func transform) const {
-
-		F sample = 0;
-
-		std::apply([&](const auto&... args) constexpr {
-			sample = transform(args.sample(point, frequency)...);
-		}, types);
-
-		return sample;
-
+	template<SizeT I>
+	constexpr TT::NthPackType<I, Types...> get() {
+		return std::get<I>(types);
 	}
 
 
-	template<class T, Arithmetic A, Arithmetic L, Arithmetic P> requires(Float<T> || FloatVector<T>)
-	constexpr auto sample(const T& point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
+	template<FloatParam T, Arithmetic A, Arithmetic L = u32, Arithmetic P = u32, Float F = TT::CommonArithmeticType<T>>
+	constexpr F sample(const T& point, A frequency, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 
-		using F = TT::CommonArithmeticType<T>;
-
-		F sample = 0;
+		F sample;
 
 		std::apply([&](const auto&... args) constexpr {
 			sample = (args.sample(point, frequency, octaves, lacunarity, persistence) + ...);
@@ -115,44 +62,134 @@ public:
 
 	}
 
-	template<Arithmetic C, SizeT N, class T, Arithmetic A, Arithmetic L, Arithmetic P> requires(Float<T> || FloatVector<T>)
-	constexpr auto sample(ContributionT<C, N> contribution, const T& point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
-
-		using F = TT::CommonArithmeticType<T>;
+	template<Arithmetic C, SizeT N, FloatParam T, Arithmetic A, Arithmetic L = u32, Arithmetic P = u32, Float F = TT::CommonArithmeticType<T>>
+	constexpr F sample(ContributionT<C, N> contribution, const T& point, A frequency, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 
 		F sample = 0;
 
-		auto calculate = [&](const auto& type, u32 i) constexpr {
+		auto calculate = [&](const auto& type, u32 idx) constexpr {
 
-			F c = (i == 0) ? 1 : contribution[i - 1];
+			F c = (idx == 0) ? 1 : contribution[idx - 1];
 
 			sample += type.sample(point, frequency, octaves, lacunarity, persistence) * c;
 
-			if (i != TypesCount - 1) {
-				sample *= (1 - contribution[i]);
+			if (idx != TypesCount - 1) {
+				sample *= (1 - contribution[idx]);
 			}
 
 		};
 
 		std::apply([&](const auto&... args) constexpr {
-			u32 i = 0;
-			(calculate(args, i++), ...);
+			u32 idx = 0;
+			(calculate(args, idx++), ...);
 		}, types);
 
 		return sample;
 
 	}
 
-	template<class T, Arithmetic A, Arithmetic L, Arithmetic P, Float F = TT::CommonArithmeticType<T>, Returns<F, ArgsHelper<F, Types>...> Func> requires(Float<T> || FloatVector<T>)
-	constexpr F sample(const T& point, A frequency, u32 octaves, L lacunarity, P persistence, Func transform) const {
+	template<FloatParam T, Arithmetic A, Arithmetic L = u32, Arithmetic P = u32, Float F = TT::CommonArithmeticType<T>, Returns<F, ArgsHelper<F, Types>...> Func>
+	constexpr F sample(Func&& transform, const T& point, A frequency, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 
-		F sample = 0;
+		F sample;
 
 		std::apply([&](const auto&... args) constexpr {
 			sample = transform(args.sample(point, frequency, octaves, lacunarity, persistence)...);
 		}, types);
 
-		return sample / TypesCount;
+		return sample;
+
+	}
+
+
+	template<FloatParam T, Arithmetic A, Arithmetic L = u32, Arithmetic P = u32, Float F = TT::CommonArithmeticType<T>>
+	constexpr std::vector<F> sample(std::span<const T> points, std::span<const A> frequencies, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
+
+		arc_assert(points.size() == frequencies.size(), "The amount of points need to match the amount of frequencies");
+
+		const u32 count = points.size();
+
+		std::vector<F> out(count);
+
+		auto calculate = [&](const auto& type) constexpr {
+
+			std::vector<F> samples = type.sample(points, frequencies, octaves, lacunarity, persistence);
+
+			for (u32 i = 0; i < count; i++) {
+				out[i] += samples[i];
+			}
+
+		};
+
+		std::apply([&](const auto&... args) constexpr {
+			(calculate(args), ...);
+		}, types);
+
+		for (F& sample : out) {
+			sample /= TypesCount;
+		}
+
+		return out;
+
+	}
+
+	template<Arithmetic C, SizeT N, FloatParam T, Arithmetic A, Arithmetic L = u32, Arithmetic P = u32, Float F = TT::CommonArithmeticType<T>>
+	constexpr std::vector<F> sample(ContributionT<C, N> contribution, std::span<const T> points, std::span<const A> frequencies, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
+
+		arc_assert(points.size() == frequencies.size(), "The amount of points need to match the amount of frequencies");
+
+		const u32 count = points.size();
+
+		std::vector<F> out(count);
+
+		auto calculate = [&](const auto& type, u32 idx) constexpr {
+
+			F scale = (idx == 0) ? 1 : contribution[idx - 1];
+
+			std::vector<F> samples = type.sample(points, frequencies, octaves, lacunarity, persistence);
+
+			for (u32 i = 0; i < count; i++) {
+
+				out[i] += samples[i] * scale;
+
+				if (idx != TypesCount - 1) {
+					out[i] *= 1 - contribution[idx];
+				}
+			}
+
+		};
+
+		std::apply([&](const auto&... args) constexpr {
+			u32 idx = 0;
+			(calculate(args, idx++), ...);
+		}, types);
+
+		return out;
+
+	}
+
+	template<FloatParam T, Arithmetic A, Arithmetic L = u32, Arithmetic P = u32, Float F = TT::CommonArithmeticType<T>, Returns<F, ArgsHelper<F, Types>...> Func>
+	constexpr std::vector<F> sample(Func&& transform, std::span<const T> points, std::span<const A> frequencies, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
+
+		arc_assert(points.size() == frequencies.size(), "The amount of points need to match the amount of frequencies");
+
+		const u32 count = points.size();
+
+		std::vector<F> out(count);
+
+		auto calculate = [&](const auto&... samples) constexpr {
+
+			for (u32 i = 0; i < count; i++) {
+				out[i] = transform(samples[i]...);
+			}
+
+		};
+
+		std::apply([&](const auto&... args) constexpr {
+			calculate(args.sample(points, frequencies, octaves, lacunarity, persistence)...);
+		}, types);
+
+		return out;
 
 	}
 
