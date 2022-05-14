@@ -14,6 +14,7 @@
 #include "decode/jpegdecoder.hpp"
 #include "decode/ppmdecoder.hpp"
 #include "decode/qoidecoder.hpp"
+#include "decode/tgadecoder.hpp"
 #include "encode/encoder.hpp"
 #include "encode/ppmencoder.hpp"
 #include "util/bool.hpp"
@@ -149,6 +150,8 @@ namespace ImageIO {
 	            return doLoad.template operator()<PPMDecoder>(path);
 	        } else if (ext == ".qoi") {
 	            return doLoad.template operator()<QOIDecoder>(path);
+	        } else if (ext == ".tga") {
+	            return doLoad.template operator()<TGADecoder>(path);
 	        }
 
 			throw ImageException("Unknown image file format");
