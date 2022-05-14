@@ -692,6 +692,8 @@ public:
 		DestType BValueOut = convertChannel<ConvType, BBitsIn, BBitsOut>(BValueIn) << DestFormat::BlueShift;
 		DestType AValueOut = convertChannel<ConvType, ABitsIn, ABitsOut>(AValueIn) << DestFormat::AlphaShift;
 
+		AValueOut |= DestFormat::AlphaMask * (ABitsIn == 0);
+
 		DestType out = RValueOut | GValueOut | BValueOut | AValueOut;
 
 		return DestPixelType(out);
