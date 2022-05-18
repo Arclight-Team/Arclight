@@ -10,6 +10,7 @@
 
 #include "decoder.hpp"
 #include "image/image.hpp"
+#include "stream/binaryreader.hpp"
 
 
 
@@ -28,9 +29,11 @@ public:
 
 private:
 
+	void readImageDataRLE(struct TGAHeader const&);
 	void parseColorMapImageData(struct TGAHeader const&);
 	void parseTrueColorImageData(struct TGAHeader const&);
 
+	BinaryReader reader;
 	RawImage image;
 	bool validDecode;
 

@@ -504,7 +504,7 @@ void BitmapDecoder::decodeRLE() {
 				throw ImageDecoderException("Stream size too small");
 			}
 
-			reader.read(std::span<u8>{ctrl, 2});
+			reader.read<u8>(ctrl);
 
 			if (ctrl[0]) {
 
@@ -549,7 +549,7 @@ void BitmapDecoder::decodeRLE() {
 							throw ImageDecoderException("Stream size too small");
 						}
 
-						reader.read(std::span<u8>{ctrl, 2});
+						reader.read<u8>(ctrl);
 
 						for (u32 i = 0; i < ctrl[0]; i++) {
 							image.setPixel(x++, y, palette[skipColorIdx]);
@@ -578,7 +578,7 @@ void BitmapDecoder::decodeRLE() {
 							throw ImageDecoderException("Stream size too small");
 						}
 
-						reader.read(std::span<u8>{indices, byteCount});
+						reader.read<u8>({indices, byteCount});
 
 						if (byteCount & 1) {
 

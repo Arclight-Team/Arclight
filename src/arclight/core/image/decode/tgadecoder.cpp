@@ -7,11 +7,25 @@
  */
 
 #include "tgadecoder.hpp"
-#include "stream/binaryreader.hpp"
 #include "util/bool.hpp"
 #include "util/unsupportedoperationexception.hpp"
 
 
+
+enum class TGAImageType : u8
+{
+	None,
+	ColorMap,
+	TrueColor,
+	BlackWhite,
+	ColorMapRLE = 9,
+	TrueColorRLE,
+	BlackWhiteRLE
+	/*
+	*	TODO: look for more info about the two formats mentioned here
+	*	http://www.paulbourke.net/dataformats/tga/
+	*/
+};
 
 struct TGAColorMapSpecification {
 
@@ -23,8 +37,8 @@ struct TGAColorMapSpecification {
 
 struct TGAImageSpecification {
 	
-	u16 originX;
-	u16 originY;
+	i16 originX; // Signed, according to
+	i16 originY; // http://www.paulbourke.net/dataformats/tga/
 	u16 width;
 	u16 height;
 	u8 pixelDepth;
@@ -36,13 +50,35 @@ struct TGAHeader {
 
 	u8 idLength;
 	u8 colorMapType;
-	u8 imageType;
+	TGAImageType imageType;
 	TGAColorMapSpecification colorMapSpec;
 	TGAImageSpecification imageSpec;
 
 };
 
 
+
+constexpr bool getValidImageType(const TGAHeader& hdr) {
+
+	return Bool::any(
+		hdr.imageType,
+		TGAImageType::None,
+		TGAImageType::ColorMap,
+		TGAImageType::TrueColor,
+		TGAImageType::BlackWhite,
+		TGAImageType::ColorMapRLE,
+		TGAImageType::TrueColorRLE,
+		TGAImageType::BlackWhiteRLE);
+
+}
+
+constexpr bool getImageDataUncompressed(const TGAHeader& hdr) {
+	return Bool::any(hdr.imageType, TGAImageType::ColorMap, TGAImageType::TrueColor, TGAImageType::BlackWhite);
+}
+
+constexpr bool getImageDataRLECompressed(const TGAHeader& hdr) {
+	return Bool::any(hdr.imageType, TGAImageType::ColorMapRLE, TGAImageType::TrueColorRLE, TGAImageType::BlackWhiteRLE);
+}
 
 constexpr u32 getColorMapSize(const TGAColorMapSpecification& spec) {
 	return spec.colorMapLength * spec.colorMapEntrySize / 8;
@@ -78,7 +114,7 @@ void TGADecoder::decode(std::span<const u8> data) {
 
 	validDecode = false;
 
-	BinaryReader reader(data);
+	reader = BinaryReader(data);
 
 	TGAHeader hdr{};
 
@@ -90,13 +126,13 @@ void TGADecoder::decode(std::span<const u8> data) {
 	if (hdr.colorMapType > 1)
 		throw ImageDecoderException("Invalid color map type");
 
-	hdr.imageType = reader.read<u8>();
+	hdr.imageType = TGAImageType(reader.read<u8>());
 
-	if (Bool::none(hdr.imageType, 0, 1, 2, 3, 9, 10, 11))
+	if (!getValidImageType(hdr))
 		throw ImageDecoderException("Invalid image type");
 
 	// Read color map specification
-	if (hdr.colorMapType) {
+	if (hdr.colorMapType == 1) {
 
 		hdr.colorMapSpec.firstEntryIndex = reader.read<u16>();
 		hdr.colorMapSpec.colorMapLength = reader.read<u16>();
@@ -107,8 +143,8 @@ void TGADecoder::decode(std::span<const u8> data) {
 	}
 
 	// Read image specification
-	origin.x = hdr.imageSpec.originX = reader.read<u16>();
-	origin.y = hdr.imageSpec.originY = reader.read<u16>();
+	origin.x = hdr.imageSpec.originX = reader.read<i16>();
+	origin.y = hdr.imageSpec.originY = reader.read<i16>();
 
 	hdr.imageSpec.width = reader.read<u16>();
 
@@ -123,6 +159,8 @@ void TGADecoder::decode(std::span<const u8> data) {
 	hdr.imageSpec.pixelDepth = reader.read<u8>();
 
 	// TODO: handle supported pixel depths
+	if (Bool::none(hdr.imageSpec.pixelDepth, 8, 16, 24, 32))
+		throw ImageDecoderException("Invalid pixel depth");
 
 	hdr.imageSpec.imageDescriptor = reader.read<u8>();
 
@@ -136,7 +174,7 @@ void TGADecoder::decode(std::span<const u8> data) {
 		reader.read<u8>({ idBuffer, hdr.idLength });
 
 	// Read color map data
-	if (hdr.colorMapType) {
+	if (hdr.colorMapType == 1) {
 
 		u32 colorMapSize = getColorMapSize(hdr.colorMapSpec);
 
@@ -145,42 +183,41 @@ void TGADecoder::decode(std::span<const u8> data) {
 		reader.read<u8>(colorMapData);
 
 	}
-
-	// TODO: implement RLE decompression
 	
 	// Read image data
-	if (Bool::any(hdr.imageType, 1, 2, 3)) {
+	if (hdr.imageType != TGAImageType::None) {
 
 		u32 imageDataSize = getImageDataSize(hdr.imageSpec);
 
 		imageData.resize(imageDataSize);
 
-		reader.read<u8>(imageData);
+		if (getImageDataRLECompressed(hdr)) {
+			readImageDataRLE(hdr);
+		} else {
+			reader.read<u8>(imageData);
+		}
 
 	}
 
 	switch (hdr.imageType) {
 
-	case 0: // No image data
+	case TGAImageType::None: // No image data
 		image = Image<Pixel::BGRA8>(hdr.imageSpec.width, hdr.imageSpec.height).makeRaw();
 		break;
 
-	case 1: // Uncompressed, Color mapped
+	case TGAImageType::ColorMap: // Uncompressed, Color mapped
+	case TGAImageType::ColorMapRLE: // Run-length encoded, Color mapped	
 		parseColorMapImageData(hdr);
 		break;
 
-	case 2: // Uncompressed, True color
+	case TGAImageType::TrueColor: // Uncompressed, True color
+	case TGAImageType::TrueColorRLE: // Run-length encoded, True color
 		parseTrueColorImageData(hdr);
 		break;
 
-	case 3: // Uncompressed, Black and white
-		break;
-
-	case 9: // Run-length encoded, Color mapped	
-	case 10: // Run-length encoded, True color
-	case 11: // Run-length encoded, Black and white
-
-		throw UnsupportedOperationException("Run-Length Encoded images are not supported");
+	case TGAImageType::BlackWhite: // Uncompressed, Black and white
+	case TGAImageType::BlackWhiteRLE: // Run-length encoded, Black and white
+		throw UnsupportedOperationException("Black and white images are not supported");
 
 	}
 
@@ -197,6 +234,48 @@ RawImage& TGADecoder::getImage() {
 	}
 
 	return image;
+
+}
+
+
+
+void TGADecoder::readImageDataRLE(const TGAHeader& hdr) {
+
+	u8 buffer[5]{};
+	u32 pixelSize = hdr.imageSpec.pixelDepth / 8;
+	u32 pixelCount = hdr.imageSpec.width * hdr.imageSpec.height;
+
+	for (u32 p = 0; p < pixelCount * pixelSize;) {
+
+		reader.read<u8>({ buffer,  pixelSize + 1 });
+
+		// Insert reference pixel
+		std::copy_n(buffer + 1, pixelSize, imageData.begin() + p);
+		p += pixelSize;
+
+		// RLE control byte
+		u32 n = buffer[0] & 0x7F;
+
+		if (buffer[0] & 0x80) {
+
+			// Insert pixel n times
+			for (u32 i = 0; i < n; i++) {
+
+				std::copy_n(buffer + 1, pixelSize, imageData.begin() + p);
+				p += pixelSize;
+
+			}
+
+		}
+		else {
+
+			// Read and insert n pixels
+			reader.read<u8>({ imageData.begin() + p, n * pixelSize });
+			p += n * pixelSize;
+
+		}
+
+	}
 
 }
 
