@@ -50,7 +50,7 @@ public:
 
 	}
 
-	template<Integer I>
+	template<CC::Integer I>
 	constexpr BigInt(I i) {
 		set(i);
 	}
@@ -59,7 +59,7 @@ public:
 		*this = parseString(view);
 	}
 
-	template<Integer I>
+	template<CC::Integer I>
 	constexpr void set(I i) {
 
 		if (i == I(0)) {
@@ -384,7 +384,7 @@ public:
 
 	}
 
-	template<Integer I>
+	template<CC::Integer I>
 	constexpr I toInteger() const {
 
 		if constexpr (sizeof(I) <= sizeof(ValueT)) {
@@ -405,10 +405,10 @@ public:
 
 	}
 
-	template<Integer I>
+	template<CC::Integer I>
 	constexpr bool hasIntegerRepresentation() const {
 
-		if constexpr (UnsignedType<I>) {
+		if constexpr (CC::UnsignedType<I>) {
 
 			return isPositive() && magnitudeBitSize() <= Bits::bitCount<I>();
 

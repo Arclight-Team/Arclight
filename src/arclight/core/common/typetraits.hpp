@@ -177,16 +177,16 @@ namespace TT {
 
 		};
 
-		template<Arithmetic T> struct BiggerType { static_assert("Illegal type"); };
+		template<CC::Arithmetic T> struct BiggerType { static_assert("Illegal type"); };
 		template<> struct BiggerType<i8>    { using Type = i16; };
 		template<> struct BiggerType<i16>   { using Type = i32; };
 		template<> struct BiggerType<i32>   { using Type = i64; };
 		template<> struct BiggerType<u8>    { using Type = u16; };
 		template<> struct BiggerType<u16>   { using Type = u32; };
 		template<> struct BiggerType<u32>   { using Type = u64; };
-		template<> struct BiggerType<char>  { using Type = TT::Conditional<SignedType<char>, i16, u16>; };
+		template<> struct BiggerType<char>  { using Type = TT::Conditional<CC::SignedType<char>, i16, u16>; };
 
-		template<Arithmetic T> struct SmallerType { static_assert("Illegal type"); };
+		template<CC::Arithmetic T> struct SmallerType { static_assert("Illegal type"); };
 		template<> struct SmallerType<i16>  { using Type = i8;  };
 		template<> struct SmallerType<i32>  { using Type = i16; };
 		template<> struct SmallerType<i64>  { using Type = i32; };
@@ -194,8 +194,8 @@ namespace TT {
 		template<> struct SmallerType<u32>  { using Type = u16; };
 		template<> struct SmallerType<u64>  { using Type = u32; };
 
-		template<class T> concept HasBiggerType = Arithmetic<T> && requires (T) { BiggerType<T>::Type; };
-		template<class T> concept HasSmallerType = Arithmetic<T> && requires (T) { SmallerType<T>::Type; };
+		template<class T> concept HasBiggerType = CC::Arithmetic<T> && requires (T) { BiggerType<T>::Type; };
+		template<class T> concept HasSmallerType = CC::Arithmetic<T> && requires (T) { SmallerType<T>::Type; };
 
 		template<SizeT N, class T, class... Pack>
 		struct PackHelper {
@@ -274,18 +274,18 @@ namespace TT {
 
 
 	/* Returns the smaller/bigger power of two type */
-	template<Arithmetic T>
+	template<CC::Arithmetic T>
 	using BiggerType = typename Detail::BiggerType<T>::Type;
 
-	template<Arithmetic T>
+	template<CC::Arithmetic T>
 	using SmallerType = typename Detail::SmallerType<T>::Type;
 
 
 	/* True if the given type has a smaller/bigger power of two type */
-	template<Arithmetic T>
+	template<CC::Arithmetic T>
 	constexpr inline bool HasBiggerType = Detail::HasBiggerType<T>;
 
-	template<Arithmetic T>
+	template<CC::Arithmetic T>
 	constexpr inline bool HasSmallerType = Detail::HasSmallerType<T>;
 
 
