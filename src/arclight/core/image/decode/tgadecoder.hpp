@@ -32,6 +32,7 @@ private:
 	void readImageDataRLE(struct TGAHeader const&);
 	void parseColorMapImageData(struct TGAHeader const&);
 	void parseTrueColorImageData(struct TGAHeader const&);
+	void parseBlackWhiteImageData(struct TGAHeader const&);
 
 	BinaryReader reader;
 	RawImage image;

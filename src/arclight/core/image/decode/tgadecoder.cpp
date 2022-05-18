@@ -100,6 +100,10 @@ constexpr u32 getImageDataSize(const TGAImageSpecification& spec) {
 	return spec.width * spec.height * spec.pixelDepth / 8;
 }
 
+constexpr bool getSupportedPixelDepth(const TGAImageSpecification& spec) {
+	return Bool::any(spec.pixelDepth, 8, 15, 16, 24, 32);
+}
+
 constexpr u32 getTransformedX(const TGAImageSpecification& spec, u32 x) {
 	return (getImageOriginMode(spec) & 0x10) ? spec.width - x - 1 : x;
 }
@@ -158,8 +162,7 @@ void TGADecoder::decode(std::span<const u8> data) {
 
 	hdr.imageSpec.pixelDepth = reader.read<u8>();
 
-	// TODO: handle supported pixel depths
-	if (Bool::none(hdr.imageSpec.pixelDepth, 8, 16, 24, 32))
+	if (!getSupportedPixelDepth(hdr.imageSpec))
 		throw ImageDecoderException("Invalid pixel depth");
 
 	hdr.imageSpec.imageDescriptor = reader.read<u8>();
@@ -201,23 +204,27 @@ void TGADecoder::decode(std::span<const u8> data) {
 
 	switch (hdr.imageType) {
 
-	case TGAImageType::None: // No image data
+	case TGAImageType::None:			// No image data
 		image = Image<Pixel::BGRA8>(hdr.imageSpec.width, hdr.imageSpec.height).makeRaw();
 		break;
 
-	case TGAImageType::ColorMap: // Uncompressed, Color mapped
-	case TGAImageType::ColorMapRLE: // Run-length encoded, Color mapped	
+	case TGAImageType::ColorMap:		// Uncompressed, Color mapped
+	case TGAImageType::ColorMapRLE:		// Run-length encoded, Color mapped	
 		parseColorMapImageData(hdr);
 		break;
 
-	case TGAImageType::TrueColor: // Uncompressed, True color
-	case TGAImageType::TrueColorRLE: // Run-length encoded, True color
+	case TGAImageType::TrueColor:		// Uncompressed, True color
+	case TGAImageType::TrueColorRLE:	// Run-length encoded, True color
 		parseTrueColorImageData(hdr);
 		break;
 
-	case TGAImageType::BlackWhite: // Uncompressed, Black and white
-	case TGAImageType::BlackWhiteRLE: // Run-length encoded, Black and white
-		throw UnsupportedOperationException("Black and white images are not supported");
+		// TODO: untested
+	case TGAImageType::BlackWhite:		// Uncompressed, Black and white
+	case TGAImageType::BlackWhiteRLE:	// Run-length encoded, Black and white
+		parseBlackWhiteImageData(hdr);
+		break;
+
+		throw UnsupportedOperationException("Invalid/unsupported TGA image type");
 
 	}
 
@@ -283,17 +290,25 @@ void TGADecoder::readImageDataRLE(const TGAHeader& hdr) {
 
 void TGADecoder::parseColorMapImageData(const TGAHeader& hdr) {
 
+	using ColorsT = Colors<Pixel::BGRA8>;
+
 	std::vector<PixelBGRA8> colorMap;
 
-	auto convertColorMap = [this, hdr, &colorMap]<Pixel P, SizeT Size>() {
+	auto convertColorMap = [&]<Pixel P, SizeT Size>() {
 
 		auto colorMapView = std::span{ colorMapData };
 
 		colorMap.resize(hdr.colorMapSpec.colorMapLength);
-		
+
+		bool alpha15 = hdr.imageSpec.pixelDepth == 16;
+
 		for (u32 i = 0; i < hdr.colorMapSpec.colorMapLength; i++) {
 
 			auto pixelData = colorMapView.subspan(i * Size, Size);
+
+			if (alpha15 && (pixelData.back() & 0x80) == 0) {
+				colorMap[i] = ColorsT::Transparent;
+			}
 
 			colorMap[i] = PixelConverter::convert<Pixel::BGRA8>(PixelType<P>(pixelData));
 
@@ -301,28 +316,36 @@ void TGADecoder::parseColorMapImageData(const TGAHeader& hdr) {
 
 	};
 
-	auto buildImage = [this, hdr, &colorMap]() {
+	auto buildImage = [&]<class T>() {
 
 		Image<Pixel::BGRA8> bufImage(hdr.imageSpec.width, hdr.imageSpec.height);
+
+		BinaryReader dataReader(imageData);
+
+		bool alpha15 = hdr.imageSpec.pixelDepth == 16;
 
 		for (u32 y = 0; y < hdr.imageSpec.height; y++) {
 
 			// TODO: profile the usage of getter functions vs booleans for flipX/flipY
-
 			u32 ry = getTransformedY(hdr.imageSpec, y);
 
 			for (u32 x = 0; x < hdr.imageSpec.width; x++) {
 
 				u32 rx = getTransformedX(hdr.imageSpec, x);
 
-				SizeT imageIndex = x + y * hdr.imageSpec.width;
+				T pixelData = dataReader.read<T>();
 
-				u8 colorIndex = imageData[imageIndex];
+				// TODO: just a speculation, not actually described anywhere... requires more testing
+				if (alpha15 && (pixelData & 0x8000) == 0) {
+					bufImage.setPixel(rx, ry, ColorsT::Transparent);
+				} else {
+					pixelData &= 0x7FFF;
+				}
 
-				if (colorIndex >= hdr.colorMapSpec.colorMapLength)
+				if (pixelData >= hdr.colorMapSpec.colorMapLength)
 					throw ImageDecoderException("Invalid color map index found in image data");
 
-				bufImage.setPixel(rx, ry, colorMap[colorIndex]);
+				bufImage.setPixel(rx, ry, colorMap[pixelData]);
 
 			}
 		}
@@ -334,6 +357,7 @@ void TGADecoder::parseColorMapImageData(const TGAHeader& hdr) {
 	// Convert color map to ARGB8
 	switch (hdr.colorMapSpec.colorMapEntrySize) {
 
+	case 15:
 	case 16:
 		convertColorMap.template operator()<Pixel::RGB5, 2>();
 		break;
@@ -354,10 +378,20 @@ void TGADecoder::parseColorMapImageData(const TGAHeader& hdr) {
 	switch (hdr.imageSpec.pixelDepth) {
 
 	case 8:	
-		buildImage();
+		buildImage.template operator()<u8>();
 		break;
 
+		/*
+		*	Wikipedia mentions 15-bit index formats
+		*	15th bit reserved for alpha/clear color?
+		*	This format is an inconsistent mess
+		*/
+
+	case 15:
 	case 16:
+		buildImage.template operator()<u16>();
+		break;
+
 	case 24:
 	case 32:
 		throw UnsupportedOperationException("Color map TGA format with %d-bits indices is not supported", hdr.imageSpec.pixelDepth);
@@ -373,15 +407,18 @@ void TGADecoder::parseColorMapImageData(const TGAHeader& hdr) {
 
 void TGADecoder::parseTrueColorImageData(const TGAHeader& hdr) {
 
-	auto loadData = [this, hdr]<Pixel P, SizeT Size>() {
+	using ColorsT = Colors<Pixel::BGRA8>;
+
+	auto loadData = [&]<Pixel P, SizeT Size>() {
 
 		BinaryReader reader(imageData);
 		Image<Pixel::BGRA8> bufImage(hdr.imageSpec.width, hdr.imageSpec.height);
 
+		bool alpha15 = hdr.imageSpec.pixelDepth == 16;
+
 		for (u32 y = 0; y < hdr.imageSpec.height; y++) {
 
 			// TODO: profile the usage of getter functions vs booleans for flipX/flipY
-
 			u32 ry = getTransformedY(hdr.imageSpec, y);
 
 			for (u32 x = 0; x < hdr.imageSpec.width; x++) {
@@ -391,8 +428,67 @@ void TGADecoder::parseTrueColorImageData(const TGAHeader& hdr) {
 				u8 pixelData[Size];
 				reader.read<u8>(pixelData);
 
-				auto pixel = PixelConverter::convert<Pixel::BGRA8>(PixelType<P>(pixelData));
+				if (alpha15 && (pixelData[Size - 1] & 0x80) == 0) {
+					bufImage.setPixel(rx, ry, ColorsT::Transparent);
+				} else {
 
+					auto pixel = PixelConverter::convert<Pixel::BGRA8>(PixelType<P>(pixelData));
+					bufImage.setPixel(rx, ry, pixel);
+
+				}
+
+			}
+		}
+
+		image = bufImage.makeRaw();
+
+	};
+
+	switch (hdr.imageSpec.pixelDepth) {
+
+	case 15:
+	case 16:
+		loadData.template operator()<Pixel::RGB5, 2>();
+		break;
+
+	case 24:
+		loadData.template operator()<Pixel::RGB8, 3>();
+		break;
+
+	case 32:
+		loadData.template operator()<Pixel::RGBA8, 4>();
+		break;
+
+	default:
+		throw ImageDecoderException("Invalid pixel format");
+
+	}
+
+}
+
+
+
+void TGADecoder::parseBlackWhiteImageData(const TGAHeader& hdr) {
+
+	using ColorsT = Colors<Pixel::BGRA8>;
+
+	auto loadData = [&]() {
+
+		BinaryReader reader(imageData);
+		Image<Pixel::BGRA8> bufImage(hdr.imageSpec.width, hdr.imageSpec.height);
+		
+		for (u32 y = 0; y < hdr.imageSpec.height; y++) {
+
+			// TODO: profile the usage of getter functions vs booleans for flipX/flipY
+			u32 ry = getTransformedY(hdr.imageSpec, y);
+
+			for (u32 x = 0; x < hdr.imageSpec.width; x++) {
+
+				u32 rx = getTransformedX(hdr.imageSpec, x);
+
+				u8 pixelData = reader.read<u8>();
+
+				auto pixel = PixelConverter::convert<Pixel::BGRA8>(PixelRGB8(pixelData, pixelData, pixelData));
 				bufImage.setPixel(rx, ry, pixel);
 
 			}
@@ -404,16 +500,8 @@ void TGADecoder::parseTrueColorImageData(const TGAHeader& hdr) {
 
 	switch (hdr.imageSpec.pixelDepth) {
 
-	case 16:
-		loadData.template operator()<Pixel::RGB5, 2>();
-		break;
-
-	case 24:
-		loadData.template operator()<Pixel::RGB8, 3>();
-		break;
-
-	case 32:
-		loadData.template operator()<Pixel::RGBA8, 4>();
+	case 8:
+		loadData();
 		break;
 
 	default:
