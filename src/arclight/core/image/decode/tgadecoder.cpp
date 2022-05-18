@@ -118,6 +118,8 @@ void TGADecoder::decode(std::span<const u8> data) {
 
 	validDecode = false;
 
+	id.clear();
+
 	reader = BinaryReader(data);
 
 	TGAHeader hdr{};
@@ -171,10 +173,10 @@ void TGADecoder::decode(std::span<const u8> data) {
 		Log::warn("TGADecoder", "ImageDescriptor reserved bits are not zero");
 
 	// Read image ID
-	u8 idBuffer[255];
+	id.resize(hdr.idLength);
 
 	if (hdr.idLength)
-		reader.read<u8>({ idBuffer, hdr.idLength });
+		reader.read<u8>(id);
 
 	// Read color map data
 	if (hdr.colorMapType == 1) {

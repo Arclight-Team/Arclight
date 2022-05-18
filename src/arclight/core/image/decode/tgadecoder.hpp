@@ -11,6 +11,7 @@
 #include "decoder.hpp"
 #include "image/image.hpp"
 #include "stream/binaryreader.hpp"
+#include <array>
 
 
 
@@ -22,6 +23,10 @@ public:
 
 	void decode(std::span<const u8> data);
 	RawImage& getImage();
+
+	constexpr auto& getID() const {
+		return id;
+	}
 
 	constexpr Vec2us getOrigin() const {
 		return origin;
@@ -41,6 +46,7 @@ private:
 	std::vector<u8> colorMapData;
 	std::vector<u8> imageData;
 
+	std::vector<u8> id;
 	Vec2us origin;
-
+	
 };
