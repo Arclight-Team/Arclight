@@ -38,12 +38,12 @@ public:
 	void setFlags(PipelineFlags flags);
 
 	template<class Func>
-	void setPreRenderCallback(Func&& func) requires Returns<Func, bool> {
+	void setPreRenderCallback(Func&& func) requires CC::Returns<Func, bool> {
 		preRenderCallback = func;
 	}
 
 	template<class Func>
-	void setPostRenderCallback(Func&& func) requires Returns<Func, void> {
+	void setPostRenderCallback(Func&& func) requires CC::Returns<Func, void> {
 		postRenderCallback = func;
 	}
 

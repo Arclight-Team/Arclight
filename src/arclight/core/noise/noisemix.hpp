@@ -10,7 +10,7 @@
 #include "noisebase.hpp"
 
 
-template<NoiseType... Types>
+template<CC::NoiseType... Types>
 class NoiseMix {
 
 public:
@@ -19,7 +19,7 @@ public:
 
 	static_assert(TypesCount > 1, "Cannot mix less than 2 noise types");
 
-	template<Arithmetic C, SizeT N> requires(N == TypesCount - 1)
+	template<CC::Arithmetic C, SizeT N> requires(N == TypesCount - 1)
 	using ContributionT = const C (&)[N];
 
 
@@ -39,7 +39,7 @@ public:
 	}
 
 
-	template<class T, Arithmetic A> requires(Float<T> || FloatVector<T>)
+	template<class T, CC::Arithmetic A> requires(CC::Float<T> || CC::FloatVector<T>)
 	constexpr auto sample(const T& point, A frequency) const -> TT::CommonArithmeticType<T> {
 
 		using F = TT::CommonArithmeticType<T>;
@@ -54,7 +54,7 @@ public:
 
 	}
 
-	template<Arithmetic C, SizeT N, class T, Arithmetic A> requires(Float<T> || FloatVector<T>)
+	template<CC::Arithmetic C, SizeT N, class T, CC::Arithmetic A> requires(CC::Float<T> || CC::FloatVector<T>)
 	constexpr auto sample(ContributionT<C, N> contribution, const T& point, A frequency) const -> TT::CommonArithmeticType<T> {
 
 		using F = TT::CommonArithmeticType<T>;
@@ -82,7 +82,7 @@ public:
 
 	}
 
-	template<class T, Arithmetic A, class Func, class... Args> requires((Float<T> || FloatVector<T>) && Invocable<Func, Args...> && TT::IsAllSame<T, Args...>)
+	template<class T, CC::Arithmetic A, class Func, class... Args> requires((CC::Float<T> || CC::FloatVector<T>) && CC::Invocable<Func, Args...> && TT::IsAllSame<T, Args...>)
 	constexpr auto sample(const T& point, A frequency, Func transform) const -> TT::CommonArithmeticType<T> {
 
 		using F = TT::CommonArithmeticType<T>;
@@ -98,7 +98,7 @@ public:
 	}
 
 
-	template<class T, Arithmetic A, Arithmetic L, Arithmetic P> requires(Float<T> || FloatVector<T>)
+	template<class T, CC::Arithmetic A, CC::Arithmetic L, CC::Arithmetic P> requires(CC::Float<T> || CC::FloatVector<T>)
 	constexpr auto sample(const T& point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
 
 		using F = TT::CommonArithmeticType<T>;
@@ -113,7 +113,7 @@ public:
 
 	}
 
-	template<Arithmetic C, SizeT N, class T, Arithmetic A, Arithmetic L, Arithmetic P> requires(Float<T> || FloatVector<T>)
+	template<CC::Arithmetic C, SizeT N, class T, CC::Arithmetic A, CC::Arithmetic L, CC::Arithmetic P> requires(CC::Float<T> || CC::FloatVector<T>)
 	constexpr auto sample(ContributionT<C, N> contribution, const T& point, A frequency, u32 octaves, L lacunarity, P persistence) const -> TT::CommonArithmeticType<T> {
 
 		using F = TT::CommonArithmeticType<T>;
@@ -141,7 +141,7 @@ public:
 
 	}
 
-	template<class T, Arithmetic A, Arithmetic L, Arithmetic P, class Func, class... Args> requires((Float<T> || FloatVector<T>) && Invocable<Func, Args...> && TT::IsAllSame<T, Args...>)
+	template<class T, CC::Arithmetic A, CC::Arithmetic L, CC::Arithmetic P, class Func, class... Args> requires((CC::Float<T> || CC::FloatVector<T>) && CC::Invocable<Func, Args...> && TT::IsAllSame<T, Args...>)
 	constexpr auto sample(const T& point, A frequency, u32 octaves, L lacunarity, P persistence, Func transform) const -> TT::CommonArithmeticType<T> {
 
 		using F = TT::CommonArithmeticType<T>;

@@ -15,7 +15,7 @@ namespace Xml
 {
 	
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType = char>
+	template<CC::Char CharType = char>
 #endif
 	class StringRef
 	{
@@ -154,7 +154,7 @@ namespace Xml
 	};
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType>
+	template<CC::Char CharType>
 	constexpr CharType selectQuoteChar(const StringRef<CharType>& string) {
 #else
 	constexpr CharType selectQuoteChar(const StringRef& string) {
@@ -163,7 +163,7 @@ namespace Xml
 	}
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType>
+	template<CC::Char CharType>
 	XML_TEMPLATE_INLINE std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>& os, const StringRef<CharType>& string) {
 #else
 	XML_TEMPLATE_INLINE std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>& os, const StringRef& string) {

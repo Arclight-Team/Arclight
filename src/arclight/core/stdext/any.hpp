@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "util/typetraits.hpp"
-#include "util/concepts.hpp"
+#include "common/typetraits.hpp"
+#include "common/concepts.hpp"
 #include "types.hpp"
 
 #include <typeinfo>
@@ -97,7 +97,7 @@ public:
 		Copy-constructs the object into the storage
 	*/
 	template<class T>
-	GenericAny(T&& value) requires (!Equal<TT::Decay<T>, GenericAny> && CopyConstructible<TT::Decay<T>> && !TT::TypeTagged<T>) {
+	GenericAny(T&& value) requires (!CC::Equal<TT::Decay<T>, GenericAny> && CC::CopyConstructible<TT::Decay<T>> && !TT::TypeTagged<T>) {
 
 		using U = TT::Decay<T>;
 
@@ -112,7 +112,7 @@ public:
 		In-place constructs the object into the storage
 	*/
 	template<class T, class... Args>
-	explicit GenericAny(TT::TypeTag<T>, Args&&... args) requires Constructible<T, Args...> {
+	explicit GenericAny(TT::TypeTag<T>, Args&&... args) requires CC::Constructible<T, Args...> {
 		
 		using U = TT::Decay<T>;
 		Executor<U>::construct(this, std::forward<Args>(args)...);
@@ -185,7 +185,7 @@ public:
 		Copy-constructs new storage from the object
 	*/
 	template<class T>
-	GenericAny& operator=(T&& value) requires CopyConstructible<TT::Decay<T>> {
+	GenericAny& operator=(T&& value) requires CC::CopyConstructible<TT::Decay<T>> {
 
 		*this = GenericAny(std::forward<T>(value));
 		return *this;
@@ -217,7 +217,7 @@ public:
 		In-place constructs an object of type T. Previous contents are destroyed.
 	*/
 	template<class T, class... Args>
-	void emplace(Args&&... args) requires Constructible<T, Args...> {
+	void emplace(Args&&... args) requires CC::Constructible<T, Args...> {
 
 		using U = TT::Decay<T>;
 
@@ -358,14 +358,14 @@ private:
 	StateExecutor executor;
 
 	
-	template<CopyConstructible T>
+	template<CC::CopyConstructible T>
 	struct Executor {
 
 		//Condition: a) must fit into the buffer; b) alignment must be no stricter than those of buffer
 		constexpr static bool StaticAllocatable = sizeof(T) <= Size && alignof(T) <= Align && std::is_nothrow_move_constructible_v<T>;
 
 		template<class... Args>
-		static void construct(GenericAny* any, Args&&... args) requires Constructible<T, Args...> {
+		static void construct(GenericAny* any, Args&&... args) requires CC::Constructible<T, Args...> {
 
 			if constexpr (StaticAllocatable) {
 				::new(any->storage.buffer) T(std::forward<Args>(args)...);

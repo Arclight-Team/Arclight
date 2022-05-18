@@ -15,7 +15,7 @@
 
 
 
-template<Float T>
+template<CC::Float T>
 class Quaternion {
 
 public:
@@ -25,7 +25,7 @@ public:
 	constexpr Quaternion() : x(T(0)), y(T(0)), z(T(0)), w(T(1)) {}
 	constexpr explicit Quaternion(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {}
 
-	template<Float F, Float G>
+	template<CC::Float F, CC::Float G>
 	constexpr explicit Quaternion(const Vec3<F>& axis, G angle) {
 		*this = Quaternion::fromAngleAxis(axis, angle);
 	}
@@ -52,7 +52,7 @@ public:
 	}
 
 
-	template<Float F>
+	template<CC::Float F>
 	constexpr void add(const Quaternion<F>& q) {
 
 		x += q.x;
@@ -62,7 +62,7 @@ public:
 
 	}
 
-	template<Float F>
+	template<CC::Float F>
 	constexpr void subtract(const Quaternion<F>& q) {
 
 		x -= q.x;
@@ -72,7 +72,7 @@ public:
 
 	}
 
-	template<Float F>
+	template<CC::Float F>
 	constexpr void multiply(const Quaternion<F>& q) {
 
 		T tx = w * q.x + x * q.w + y * q.z - z * q.y;
@@ -87,7 +87,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr void multiply(A scalar) {
 
 		x *= scalar;
@@ -97,7 +97,7 @@ public:
 
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr void divide(A scalar) {
 
 		arc_assert(!Math::isZero(scalar), "Cannot divide Quaternion by 0");
@@ -145,13 +145,13 @@ public:
 
 	}
 
-	template<Float F>
+	template<CC::Float F>
 	constexpr T dot(const Quaternion<F>& q) const {
 		return x * q.x + y * q.y + z * q.z + w * q.w;
 	}
 
 
-	template<Float F>
+	template<CC::Float F>
 	constexpr Quaternion& operator=(const Quaternion<F>& q) {
 
 		x = q.x;
@@ -162,37 +162,37 @@ public:
 
 	}
 
-	template<Float F>
+	template<CC::Float F>
 	constexpr Quaternion& operator+=(const Quaternion<F>& q) {
 		add(q);
 		return *this;
 	}
 
-	template<Float F>
+	template<CC::Float F>
 	constexpr Quaternion& operator-=(const Quaternion<F>& q) {
 		subtract(q);
 		return *this;
 	}
 
-	template<Float F>
+	template<CC::Float F>
 	constexpr Quaternion& operator*=(const Quaternion<F>& q) {
 		multiply(q);
 		return *this;
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Quaternion& operator*=(A scalar) {
 		multiply(scalar);
 		return *this;
 	}
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr Quaternion& operator/=(A scalar) {
 		divide(scalar);
 		return *this;
 	}
 
-	template<Float F>
+	template<CC::Float F>
 	constexpr bool operator==(const Quaternion<F>& q) const {
 		return Math::equal(x, q.x) && Math::equal(y, q.y) && Math::equal(z, q.z) && Math::equal(w, q.w);
 	}
@@ -202,7 +202,7 @@ public:
 	}
 
 
-	template<Float F, Float G>
+	template<CC::Float F, CC::Float G>
 	constexpr void setAngleAxis(const Vec3<F>& axis, G angle) {
 
 		T s = static_cast<T>(Math::sin(angle / static_cast<T>(2)));
@@ -231,7 +231,7 @@ public:
 
 	}
 
-	template<Float F>
+	template<CC::Float F>
 	constexpr void setMat3(const Mat3<F>& m) {
 		
 #ifdef ARC_QUATERNION_MATCONV_BRANCHLESS
@@ -286,7 +286,7 @@ public:
 
 	}
 
-	template<Float F>
+	template<CC::Float F>
 	constexpr void setMat4(const Mat4<F>& m) {
 		setMat3(m.toMat3());
 	}
@@ -312,7 +312,7 @@ public:
 
 	}
 
-	template<Float F, Float G>
+	template<CC::Float F, CC::Float G>
 	constexpr static Quaternion fromAngleAxis(const Vec3<F>& axis, G angle) {
 	   Quaternion q;
 	   q.setAngleAxis(axis, angle);
@@ -325,14 +325,14 @@ public:
 		return q;
 	}
 
-	template<Float F>
+	template<CC::Float F>
 	constexpr static Quaternion fromMat3(const Mat3<F>& m) {
 		Quaternion q;
 		q.setMat3(m);
 		return q;
 	}
 
-	template<Float F>
+	template<CC::Float F>
 	constexpr static Quaternion fromMat4(const Mat4<F>& m) {
 		Quaternion q;
 		q.setMat4(m);
@@ -359,7 +359,7 @@ public:
 
 
 
-template<Float F, Float G>
+template<CC::Float F, CC::Float G>
 constexpr auto operator+(Quaternion<F> q, const Quaternion<G>& p) {
 
 	Quaternion<decltype(q.x + p.x)> r = q;
@@ -368,7 +368,7 @@ constexpr auto operator+(Quaternion<F> q, const Quaternion<G>& p) {
 
 }
 
-template<Float F, Float G>
+template<CC::Float F, CC::Float G>
 constexpr auto operator-(Quaternion<F> q, const Quaternion<G>& p) {
 
 	Quaternion<decltype(q.x - p.x)> r = q;
@@ -377,7 +377,7 @@ constexpr auto operator-(Quaternion<F> q, const Quaternion<G>& p) {
 
 }
 
-template<Float F, Float G>
+template<CC::Float F, CC::Float G>
 constexpr auto operator*(Quaternion<F> q, const Quaternion<G>& p) {
 
 	Quaternion<decltype(q.x * p.x)> r = q;
@@ -386,7 +386,7 @@ constexpr auto operator*(Quaternion<F> q, const Quaternion<G>& p) {
 
 }
 
-template<Float F, Arithmetic A>
+template<CC::Float F, CC::Arithmetic A>
 constexpr auto operator*(Quaternion<F> q, A scalar) {
 
 	Quaternion<decltype(q.x * scalar)> p = q;
@@ -395,7 +395,7 @@ constexpr auto operator*(Quaternion<F> q, A scalar) {
 
 }
 
-template<Float F, Arithmetic A>
+template<CC::Float F, CC::Arithmetic A>
 constexpr auto operator/(Quaternion<F> q, A scalar) {
 
 	Quaternion<decltype(q.x / scalar)> p = q;

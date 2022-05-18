@@ -9,11 +9,11 @@
 #pragma once
 
 #include "vector.hpp"
-#include "util/concepts.hpp"
+#include "common/concepts.hpp"
 #include "arcconfig.hpp"
 
 
-template<Arithmetic A>
+template<CC::Arithmetic A>
 class Rectangle {
 
 public:
@@ -25,10 +25,10 @@ public:
 
 	constexpr Rectangle(A x, A y, A w, A h) : x(x), y(y), w(w), h(h) {}
 
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr Rectangle(const Rectangle<B>& rect) : Rectangle(rect.x, rect.y, rect.w, rect.h) {}
 
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr Rectangle<A>& operator=(const Rectangle<B>& other) {
 
 		x = other.x;
@@ -39,7 +39,7 @@ public:
 
 	}
 
-	constexpr auto toIntegerRect() const requires (Float<A>) {
+	constexpr auto toIntegerRect() const requires (CC::Float<A>) {
 
 		using Int = TT::ToInteger<A>;
 
@@ -124,7 +124,7 @@ public:
 	}
 
 
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr Rectangle<A> intersect(const Rectangle<B>& other) const {
 
 		A ax0 = x;
@@ -192,7 +192,7 @@ public:
 
 	}
 
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr bool intersects(const Rectangle<B>& other) const {
 
 		Vec2<A> s1 = getPosition();
@@ -219,7 +219,7 @@ public:
 	}
 
 	// Checks if the rectangle contains another rectangle
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr bool contains(const Rectangle<B>& other) const {
 		
 		Vec2<A> s1 = getPosition();
@@ -233,18 +233,18 @@ public:
 
 	}
 
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr Rectangle<A> unite(const Rectangle<B>& other) const {
 		return Rectangle<A>::fromPoints(Vec2<A>(Math::min(x, other.x), Math::min(y, other.y)), Vec2<A>(Math::max(x, other.x), Math::max(y, other.y)));
 	}
 
 
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr bool operator==(const Rectangle<B>& other) const {
 		return Math::equal(x, other.x) && Math::equal(y, other.y) && Math::equal(w, other.w) && Math::equal(h, other.h);
 	}
 
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr Rectangle<A>& operator|=(const Rectangle<B>& other) const {
 
 		*this = unite(other);
@@ -252,7 +252,7 @@ public:
 
 	}
 
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr Rectangle<A>& operator&=(const Rectangle<B>& other) const {
 
 		*this = intersect(other);
@@ -275,12 +275,12 @@ public:
 };
 
 
-template<Arithmetic A, Arithmetic B>
+template<CC::Arithmetic A, CC::Arithmetic B>
 constexpr auto operator|(const Rectangle<A>& a, const Rectangle<B>& b) {
 	return a.unite(b);
 }
 
-template<Arithmetic A, Arithmetic B>
+template<CC::Arithmetic A, CC::Arithmetic B>
 constexpr auto operator&(const Rectangle<A>& a, const Rectangle<B>& b) {
 	return a.intersect(b);
 }

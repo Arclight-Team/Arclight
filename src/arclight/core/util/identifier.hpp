@@ -9,7 +9,7 @@
 #pragma once
 
 #include "bits.hpp"
-#include "concepts.hpp"
+#include "common/concepts.hpp"
 #include "crypto/hash/sha2.hpp"
 
 #include <span>
@@ -18,7 +18,7 @@
 
 
 
-template<UnsignedType T>
+template<CC::UnsignedType T>
 class Identifier {
 
 public:
@@ -34,7 +34,7 @@ public:
 		assign(name);
 	}
 
-	template<class U> requires Equal<U, const char*>
+	template<class U> requires CC::Equal<U, const char*>
 	consteval Identifier(U name) noexcept {
 		assign(name);
 	}

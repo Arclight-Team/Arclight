@@ -8,15 +8,15 @@
 
 #pragma once
 
-#include "util/concepts.hpp"
-#include "util/typetraits.hpp"
+#include "common/concepts.hpp"
+#include "common/typetraits.hpp"
 #include "arcconfig.hpp"
 #include "vector.hpp"
 #include "rectangle.hpp"
 
 
 
-template<Arithmetic T>
+template<CC::Arithmetic T>
 class Circle {
 public:
 
@@ -74,19 +74,19 @@ public:
 	}
 
 	// Checks if the circle intersects with another circle
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr bool intersects(const Circle<B>& other) const {
 		return Math::lessEqual(origin.distance(other.origin), radius + other.radius);
 	}
 
 	// Checks if the circle contains another circle
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr bool contains(const Circle<B>& other) const {
 		return Math::less(origin.distance(other.origin) + other.radius, radius);
 	}
 
 	// Checks if the circle contains a point
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr bool contains(const Vec2<B>& point) const {
 		return Math::lessEqual(origin.distance(point), radius);
 	}

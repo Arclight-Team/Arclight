@@ -10,7 +10,7 @@
 
 #include "optionalref.hpp"
 #include "util/assert.hpp"
-#include "util/typetraits.hpp"
+#include "common/typetraits.hpp"
 
 #include <unordered_map>
 

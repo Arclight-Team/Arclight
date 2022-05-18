@@ -133,6 +133,37 @@ bool Window::create(u32 w, u32 h, const std::string& title) {
 }
 
 
+bool Window::createNoContext(u32 w, u32 h, const std::string& title) {
+
+	if (isOpen()) {
+		Log::warn("Window", "Cannot open window that is already open");
+		return true;
+	}
+
+	// Disable OpenGL context creation
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+	GLFWwindow* handle = glfwCreateWindow(w, h, title.c_str(), nullptr, nullptr);
+
+	if (handle) {
+
+		windowHandle = std::make_shared<WindowHandle>();
+		windowHandle->handle = handle;
+		windowHandle->userPtr.window = this;
+		glfwSetWindowUserPointer(windowHandle->handle, static_cast<void*>(&windowHandle->userPtr));
+
+		setupSyncCallback();
+
+	}
+	else {
+		Log::error("Window", "Failed to create window");
+	}
+
+	return isOpen();
+
+}
+
+
 
 bool Window::createFullscreen(const std::string& title, u32 monitorID) {
 
@@ -812,7 +843,7 @@ u32 Window::getCurrentMonitorID() const {
 	Vec2ui windowSize = getSize();
 
 	i32 bestOverlap = 0;
-	u32 bestMonitorID;
+	u32 bestMonitorID = u32(-1);
 
 	for (u32 i = 0; i < monitorCount; i++)
 	{
@@ -886,6 +917,27 @@ bool Window::monitorConfigurationChanged() {
 	}
 
 	return false;
+
+}
+
+
+
+void Window::setWindowRefreshFunction(WindowRefreshFunction function) {
+
+	arc_assert(isOpen(), "Tried to set window refresh function for non-existing window");
+	refreshFunction = function;
+
+	if (function) {
+
+		glfwSetWindowRefreshCallback(windowHandle->handle, [](GLFWwindow* window) {
+			Window* ptr = static_cast<WindowUserPtr*>(glfwGetWindowUserPointer(window))->window;
+			ptr->refreshFunction();
+		});
+
+	}
+	else {
+		glfwSetWindowRefreshCallback(windowHandle->handle, nullptr);
+	}
 
 }
 
@@ -1024,6 +1076,7 @@ void Window::setDropFunction(DropFunction function) {
 
 void Window::resetWindowFunctions() {
 
+	setWindowRefreshFunction(nullptr);
 	setWindowMoveFunction(nullptr);
 	setWindowResizeFunction(nullptr);
 	setWindowStateChangeFunction(nullptr);

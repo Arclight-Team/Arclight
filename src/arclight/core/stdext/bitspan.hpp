@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "util/typetraits.hpp"
+#include "common/typetraits.hpp"
 #include "math/math.hpp"
 #include "util/assert.hpp"
 #include "util/bits.hpp"
@@ -59,15 +59,15 @@ class BitSpan : private BitSpanBase<Extent == SizeT(-1)> {
 
 		using U = TT::Decay<T>;
 
-		if constexpr (Equal<TT::RemoveCV<TT::RemovePointer<U>>, u8>) {
+		if constexpr (CC::Equal<TT::RemoveCV<TT::RemovePointer<U>>, u8>) {
 
-			if constexpr (PointerType<U>) {
+			if constexpr (CC::PointerType<U>) {
 				return t;
 			} else {
 				return &t;
 			}
 
-		} else if constexpr (PointerType<U>) {
+		} else if constexpr (CC::PointerType<U>) {
 			return Bits::toByteArray(t);
 		} else {
 			return Bits::toByteArray(std::addressof(t));
@@ -217,22 +217,22 @@ public:
 	constexpr BitSpan() noexcept requires (Extent == 0 || Dynamic) : ptr(nullptr), start(0) {}
 
 
-	template<PointerType T, class U = TT::RemovePointer<T>>
-	constexpr BitSpan(const T& t, SizeT size = Bits::bitCount<U>()) noexcept requires (ConstType<U> <= Const) : Base(size), ptr(convertTToPointer(t)), start(0) {}
+	template<CC::PointerType T, class U = TT::RemovePointer<T>>
+	constexpr BitSpan(const T& t, SizeT size = Bits::bitCount<U>()) noexcept requires (CC::ConstType<U> <= Const) : Base(size), ptr(convertTToPointer(t)), start(0) {}
 
-	template<PointerType T, class U = TT::RemovePointer<T>>
-	constexpr BitSpan(const T& t, SizeT start, SizeT size) noexcept requires (ConstType<U> <= Const) : Base(size), ptr(convertTToPointer(t)), start(start) { normalize(); }
-
-
-	template<class T, SizeT N>
-	constexpr BitSpan(T(& t)[N], SizeT size = Bits::bitCount<T>() * N) noexcept requires (ConstType<T> <= Const) : Base(size), ptr(convertTToPointer(t)), start(0) {}
-
-	template<class T, SizeT N>
-	constexpr BitSpan(T(& t)[N], SizeT start, SizeT size) noexcept requires (ConstType<T> <= Const) : Base(size), ptr(convertTToPointer(t)), start(start) { normalize(); }
+	template<CC::PointerType T, class U = TT::RemovePointer<T>>
+	constexpr BitSpan(const T& t, SizeT start, SizeT size) noexcept requires (CC::ConstType<U> <= Const) : Base(size), ptr(convertTToPointer(t)), start(start) { normalize(); }
 
 
 	template<class T, SizeT N>
-	constexpr explicit(!Dynamic && N == std::dynamic_extent) BitSpan(const std::span<T, N>& span) noexcept requires (ConstType<T> <= Const) : Base(span.size() * sizeof(T)), ptr(convertTToPointer(span.data())), start(0) {}
+	constexpr BitSpan(T(& t)[N], SizeT size = Bits::bitCount<T>() * N) noexcept requires (CC::ConstType<T> <= Const) : Base(size), ptr(convertTToPointer(t)), start(0) {}
+
+	template<class T, SizeT N>
+	constexpr BitSpan(T(& t)[N], SizeT start, SizeT size) noexcept requires (CC::ConstType<T> <= Const) : Base(size), ptr(convertTToPointer(t)), start(start) { normalize(); }
+
+
+	template<class T, SizeT N>
+	constexpr explicit(!Dynamic && N == std::dynamic_extent) BitSpan(const std::span<T, N>& span) noexcept requires (CC::ConstType<T> <= Const) : Base(span.size() * sizeof(T)), ptr(convertTToPointer(span.data())), start(0) {}
 
 
 	template<SizeT N, bool ConstOther>
@@ -382,13 +382,13 @@ public:
 	}
 
 
-	template<Arithmetic A, SizeT Size = Math::min(Bits::bitCount<A>(), Extent)> requires (Size <= Math::min(Bits::bitCount<A>(), Extent))
+	template<CC::Arithmetic A, SizeT Size = Math::min(Bits::bitCount<A>(), Extent)> requires (Size <= Math::min(Bits::bitCount<A>(), Extent))
 	constexpr A read() const noexcept {
 		return read<A>(Size);
 	}
 
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	constexpr A read(SizeT size) const noexcept {
 
 		using I = TT::UnsignedFromSize<sizeof(A)>;
@@ -425,17 +425,17 @@ public:
 	}
 
 
-	template<SizeT Size, Arithmetic A> requires (!Const)
+	template<SizeT Size, CC::Arithmetic A> requires (!Const)
 	constexpr void write(A a) noexcept {
 		write<A, Size>(a);
 	}
 
-	template<Arithmetic A, SizeT Size = Math::min(Bits::bitCount<A>(), Extent)> requires (Size <= Math::min(Bits::bitCount<A>(), Extent) && !Const)
+	template<CC::Arithmetic A, SizeT Size = Math::min(Bits::bitCount<A>(), Extent)> requires (Size <= Math::min(Bits::bitCount<A>(), Extent) && !Const)
 	constexpr void write(A a) noexcept {
 		write(Size, a);
 	}
 
-	template<Arithmetic A> requires (!Const)
+	template<CC::Arithmetic A> requires (!Const)
 	constexpr void write(SizeT size, A a) noexcept {
 
 		if (size == 0) {
@@ -519,23 +519,23 @@ private:
 
 
 
-template<PointerType T, class U = TT::RemovePointer<T>>
-BitSpan(const T&) -> BitSpan<Bits::bitCount<U>(), ConstType<U>>;
+template<CC::PointerType T, class U = TT::RemovePointer<T>>
+BitSpan(const T&) -> BitSpan<Bits::bitCount<U>(), CC::ConstType<U>>;
 
-template<PointerType T, class U = TT::RemovePointer<T>>
-BitSpan(const T&, SizeT) -> BitSpan<std::dynamic_extent, ConstType<U>>;
+template<CC::PointerType T, class U = TT::RemovePointer<T>>
+BitSpan(const T&, SizeT) -> BitSpan<std::dynamic_extent, CC::ConstType<U>>;
 
-template<PointerType T, class U = TT::RemovePointer<T>>
-BitSpan(const T&, SizeT, SizeT) -> BitSpan<std::dynamic_extent, ConstType<U>>;
-
-template<class T, SizeT N>
-BitSpan(T(&)[N]) -> BitSpan<Bits::bitCount<T>() * N, ConstType<T>>;
+template<CC::PointerType T, class U = TT::RemovePointer<T>>
+BitSpan(const T&, SizeT, SizeT) -> BitSpan<std::dynamic_extent, CC::ConstType<U>>;
 
 template<class T, SizeT N>
-BitSpan(T(&)[N], SizeT) -> BitSpan<std::dynamic_extent, ConstType<T>>;
+BitSpan(T(&)[N]) -> BitSpan<Bits::bitCount<T>() * N, CC::ConstType<T>>;
 
 template<class T, SizeT N>
-BitSpan(T(&)[N], SizeT, SizeT) -> BitSpan<std::dynamic_extent, ConstType<T>>;
+BitSpan(T(&)[N], SizeT) -> BitSpan<std::dynamic_extent, CC::ConstType<T>>;
+
+template<class T, SizeT N>
+BitSpan(T(&)[N], SizeT, SizeT) -> BitSpan<std::dynamic_extent, CC::ConstType<T>>;
 
 template<class T, SizeT SExtent>
-BitSpan(const std::span<T, SExtent>&) -> BitSpan<SExtent == std::dynamic_extent ? std::dynamic_extent : SExtent * 8, ConstType<T>>;
+BitSpan(const std::span<T, SExtent>&) -> BitSpan<SExtent == std::dynamic_extent ? std::dynamic_extent : SExtent * 8, CC::ConstType<T>>;

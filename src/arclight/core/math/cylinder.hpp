@@ -8,15 +8,15 @@
 
 #pragma once
 
-#include "util/concepts.hpp"
-#include "util/typetraits.hpp"
+#include "common/concepts.hpp"
+#include "common/typetraits.hpp"
 #include "arcconfig.hpp"
 #include "vector.hpp"
 #include "box.hpp"
 
 
 
-template<Arithmetic T>
+template<CC::Arithmetic T>
 class Cylinder {
 public:
 
@@ -86,7 +86,7 @@ public:
 	}
 	
 	// Checks if the cylinder intersects with another cylinder
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr bool intersects(const Cylinder<B>& other) const {
 	
 		Vec3<T> s1 = start();
@@ -110,7 +110,7 @@ public:
 	}
 
 	// Checks if the cylinder contains another cylinder
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr bool contains(const Cylinder<B>& other) const {
 
 		Vec3<T> s1 = start();
@@ -134,7 +134,7 @@ public:
 	}
 
 	// Checks if the cylinder contains a point
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr bool contains(const Vec3<B>& point) const {
 
 		Vec3<B> p = point;

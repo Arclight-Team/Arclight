@@ -9,7 +9,7 @@
 #pragma once
 
 #include "types.hpp"
-#include "concepts.hpp"
+#include "common/concepts.hpp"
 
 #include <type_traits>
 
@@ -111,23 +111,23 @@ namespace TT {
 			constexpr static bool Value = (std::is_same_v<T, Pack> && ...);
 		};
 
-		template<Arithmetic A>
+		template<CC::Arithmetic A>
 		struct ToInteger {
 
 			constexpr static SizeT Size = sizeof(A);
 
-			using Type =    TT::Conditional<!Float<A>, A,
+			using Type =    TT::Conditional<!CC::Integer<A>, A,
 							TT::Conditional<Size <= 4, i32,
 							TT::Conditional<Size <= 8, i64, imax>>>;
 
 		};
 
-		template<Arithmetic A>
+		template<CC::Arithmetic A>
 		struct ToFloat {
 
 			constexpr static SizeT Size = sizeof(A);
 
-			using Type =	TT::Conditional<Float<A>, A,
+			using Type =	TT::Conditional<CC::Integer<A>, A,
 							TT::Conditional<Size <= sizeof(float), float,
 							TT::Conditional<Size <= sizeof(double), double, long double>>>;
 
@@ -148,7 +148,7 @@ namespace TT {
 
 		};
 
-		template<Arithmetic T>
+		template<CC::Arithmetic T>
 		struct CommonArithmeticType<T> {
 
 			using Type = T;
@@ -233,7 +233,7 @@ namespace TT {
 
 		template<template<class> class T, class U>
 		struct TypeTagged<T<U>> {
-			constexpr static bool Value = Equal<T<U>, TT::TypeTag<U>>;
+			constexpr static bool Value = CC::Equal<T<U>, TT::TypeTag<U>>;
 		};
 
 	}
@@ -258,10 +258,10 @@ namespace TT {
 
 
 	/* Converts an Integer type to a roughly equivalent Float type */
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	using ToInteger = typename Detail::ToInteger<A>::Type;
 
-	template<Arithmetic A>
+	template<CC::Arithmetic A>
 	using ToFloat = typename Detail::ToFloat<A>::Type;
 
 
@@ -298,10 +298,10 @@ namespace TT {
 	template<SizeT N, class... Pack>
 	using NthPackType = typename Detail::NthPackType<N, Pack...>::Type;
 
-	template<SizeT N, NestedType T>
+	template<SizeT N, CC::NestedType T>
 	using NthInnerType = typename Detail::NthInnerType<N, T>::Type;
 
-	template<NestedType T>
+	template<CC::NestedType T>
 	using InnerType = NthInnerType<0, T>;
 
 

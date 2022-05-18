@@ -19,7 +19,7 @@
 
 
 
-template<class T, AlignT ReqAlignment> requires (!ConstType<T>)
+template<class T, AlignT ReqAlignment> requires (!CC::ConstType<T>)
 class AlignedAllocator {
 
 public:

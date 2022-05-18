@@ -3,29 +3,27 @@
  *
  *	 This file is part of Arclight. All rights reserved.
  *
- *	 qoidecoder.hpp
+ *	 ppmdecoder.hpp
  */
 
 #pragma once
 
 #include "decoder.hpp"
 #include "image/image.hpp"
-#include "stream/binaryreader.hpp"
 
 
 
-class QOIDecoder : public IImageDecoder {
+class PPMDecoder : public IImageDecoder {
 
 public:
 
-	constexpr explicit QOIDecoder(std::optional<Pixel> reqFormat) noexcept : IImageDecoder(reqFormat), validDecode(false) {}
+	constexpr explicit PPMDecoder(std::optional<Pixel> reqFormat) noexcept : IImageDecoder(reqFormat), validDecode(false) {}
 
 	void decode(std::span<const u8> data);
 	RawImage& getImage();
 
 private:
 
-	BinaryReader reader;
 	RawImage image;
 	bool validDecode;
 

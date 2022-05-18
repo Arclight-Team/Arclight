@@ -257,7 +257,7 @@ void Path::setCurrentWorkingDirectory(const Path& path) {
 
 std::string Path::convertAnnotatedPath(const std::string& annotatedPath) {
 
-	if(annotatedPath.size() >= 2 && annotatedPath[1] == '/') {
+	if(annotatedPath.size() >= 2 && annotatedPath[0] != '.' && annotatedPath[1] == '/') {
 		return getAnnotatedPathPrefix(annotatedPath[0]) + annotatedPath.substr(2);
 	}
 

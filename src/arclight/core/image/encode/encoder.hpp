@@ -3,7 +3,7 @@
  *
  *	 This file is part of Arclight. All rights reserved.
  *
- *	 decoder.hpp
+ *	 encoder.hpp
  */
 
 #pragma once
@@ -20,11 +20,11 @@
 
 
 
-class IImageDecoder {
+class IImageEncoder {
 
 public:
 
-	constexpr explicit IImageDecoder(std::optional<Pixel> reqFormat) noexcept : requestedFormat(reqFormat) {}
+	constexpr explicit IImageEncoder(std::optional<Pixel> reqFormat) noexcept : requestedFormat(reqFormat) {}
 
 	constexpr bool autoDetectFormat() const noexcept {
 		return !requestedFormat.has_value();
@@ -39,18 +39,18 @@ protected:
 namespace CC {
 
 	template<class T>
-	concept ImageDecoder = CC::BaseOf<IImageDecoder, T> && requires (T&& t, std::span<const u8>&& s) {
-		t.decode(s);								//Decode function
-		{ t.getImage() } -> CC::Equal<RawImage&>;	//Image retrieval function
+	concept ImageEncoder = CC::BaseOf<IImageEncoder, T> && requires (T&& t, RawImage&& i) {
+		t.encode(i);											//Encode function
+		{ t.getBuffer() } -> CC::Equal<const std::vector<u8>&>;	//Buffer retrieval function
 	};
 
 }
 
 
 
-class ImageDecoderException : public std::runtime_error {
+class ImageEncoderException : public std::runtime_error {
 
 public:
-	explicit ImageDecoderException(const std::string& msg) : std::runtime_error(msg) {}
+	explicit ImageEncoderException(const std::string& msg) : std::runtime_error(msg) {}
 
 };
