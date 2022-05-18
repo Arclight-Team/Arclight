@@ -283,7 +283,7 @@ std::string Path::getAnnotatedPathPrefix(char annotation) {
 
 void Path::setAnnotatedPathPrefix(char annotation, const std::string& prefix) {
 
-	if (std::string("/<>:/\\|?*").find(annotation) != std::string::npos) {
+	if (std::string("./<>:/\\|?*").find(annotation) != std::string::npos) {
 		
 		Log::warn("Path", "Cannot set annotated path prefix for annotation %c", annotation);
 		return;

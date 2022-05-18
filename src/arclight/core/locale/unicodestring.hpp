@@ -1177,13 +1177,13 @@ private:
 
 			if (offset >= 0) {
 
-				for(imax i = 0; i < offset; i++) {
+				for (SizeT i = 0; i < offset; i++) {
 					startPtr += Unicode::getEncodedSize<E>(startPtr);
 				}
 
 			} else {
 
-				for(imax i = 0; i > offset; i--) {
+				for (imax i = 0; i > offset; i--) {
 					startPtr -= Unicode::getEncodedSize<E>(startPtr);
 				}
 
