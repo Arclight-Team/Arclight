@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "util/typetraits.hpp"
-#include "util/concepts.hpp"
+#include "common/typetraits.hpp"
+#include "common/concepts.hpp"
 
 #include <stdexcept>
 
@@ -36,15 +36,15 @@ class OptionalRef {
 
 public:
 
-	static_assert(BaseType<TT::RemoveCV<T>>, "T must be a plain data type");
+	static_assert(CC::BaseType<TT::RemoveCV<T>>, "T must be a plain data type");
 
 	constexpr OptionalRef() noexcept : storage(nullptr), valid(false) {}
 	constexpr OptionalRef(T& ref) noexcept : storage(&ref), valid(true) {}
 
-	template<class U> requires(Convertible<U&, T&>)
+	template<class U> requires(CC::Convertible<U&, T&>)
 	constexpr OptionalRef(const OptionalRef<U>& other) noexcept : storage(other.storage), valid(other.valid) {}
 		
-	template<class U> requires(Convertible<U&, T&>)
+	template<class U> requires(CC::Convertible<U&, T&>)
 	constexpr OptionalRef& operator=(const OptionalRef<U>& other) noexcept {
 		storage = other.storage;
 		valid = other.valid;

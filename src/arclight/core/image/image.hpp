@@ -82,6 +82,10 @@ public:
 	RawImage makeRaw();
 	static Image fromRaw(RawImage& image, bool allowConversion = true);
 
+	constexpr static Pixel getFormat() {
+		return P;
+	}
+
 private:
 
 	template<Pixel P> friend class Image;

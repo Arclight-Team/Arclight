@@ -411,7 +411,7 @@ namespace ASX
 			ASX_TRY() = Base::handle->setPan(pan);
 		}
 
-		void setMixLevelsInput(std::span<float> levels) requires(Equal<T, FMOD::Channel>) {
+		void setMixLevelsInput(std::span<float> levels) requires(CC::Equal<T, FMOD::Channel>) {
 			ASX_TRY() = Base::handle->setMixLevelsInput(levels.data(), levels.size());
 		}
 

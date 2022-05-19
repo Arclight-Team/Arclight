@@ -77,7 +77,7 @@ public:
 
 	//Visitor
 	template<class Func>
-	void spriteExecute(Func&& func) requires Invocable<Func, Sprite&> {
+	void spriteExecute(Func&& func) requires CC::Invocable<Func, Sprite&> {
 
 		for (Sprite& sprite : sprites) {
 			func(sprite);
@@ -86,7 +86,7 @@ public:
 	}
 
 	template<class Func>
-	void groupExecute(u32 shaderID, u32 groupID, Func&& func) requires Invocable<Func, Sprite&> {
+	void groupExecute(u32 shaderID, u32 groupID, Func&& func) requires CC::Invocable<Func, Sprite&> {
 
 		for (Sprite& sprite : sprites) {
 

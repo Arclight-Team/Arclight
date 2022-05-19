@@ -77,14 +77,14 @@ namespace Unicode {
 
 
 
-	template<Char C, bool FlipEndianess = false>
+	template<CC::Char C, bool FlipEndianess = false>
 	consteval Encoding fromCharType() noexcept {
 
-		if constexpr (Equal<C, char8_t>) {
+		if constexpr (CC::Equal<C, char8_t>) {
 
 			return Encoding::UTF8;
 
-		} else if constexpr (Equal<C, char16_t>) {
+		} else if constexpr (CC::Equal<C, char16_t>) {
 
 			if constexpr (FlipEndianess) {
 				return LittleEndian ? Encoding::UTF16BE : Encoding::UTF16LE;
@@ -92,7 +92,7 @@ namespace Unicode {
 				return Encoding::UTF16;
 			}
 
-		} else if constexpr (Equal<C, char32_t>) {
+		} else if constexpr (CC::Equal<C, char32_t>) {
 
 			if constexpr (FlipEndianess) {
 				return LittleEndian ? Encoding::UTF32BE : Encoding::UTF32LE;
@@ -108,7 +108,7 @@ namespace Unicode {
 
 	};
 
-	template<Char C, bool FlipEndianess = false>
+	template<CC::Char C, bool FlipEndianess = false>
 	constexpr Encoding TypeEncoding = fromCharType<C, FlipEndianess>();
 
 	template<Unicode::Encoding E> struct UTFEncodingTraits {};
@@ -126,7 +126,7 @@ namespace Unicode {
 
 	//Codepoint to UTF
 	template<Encoding E, class T>
-	constexpr SizeT encode(Codepoint codepoint, T* p) noexcept requires Equal<T, typename UTFEncodingTraits<E>::Type> {
+	constexpr SizeT encode(Codepoint codepoint, T* p) noexcept requires CC::Equal<T, typename UTFEncodingTraits<E>::Type> {
 
 		if constexpr (isUTF8<E>()) {
 
@@ -206,7 +206,7 @@ namespace Unicode {
 
 	//UTF to codepoint
 	template<Encoding E, class T>
-	constexpr Codepoint decode(const T* p, SizeT& count) noexcept requires Equal<T, typename UTFEncodingTraits<E>::Type> {
+	constexpr Codepoint decode(const T* p, SizeT& count) noexcept requires CC::Equal<T, typename UTFEncodingTraits<E>::Type> {
 
 		if constexpr (isUTF8<E>()) {
 
@@ -282,7 +282,7 @@ namespace Unicode {
 
 	//UTF to codepoint
 	template<Encoding E, class T>
-	constexpr Codepoint decode(const T* p) noexcept requires Equal<T, typename UTFEncodingTraits<E>::Type> {
+	constexpr Codepoint decode(const T* p) noexcept requires CC::Equal<T, typename UTFEncodingTraits<E>::Type> {
 
 		[[maybe_unused]] SizeT count;
 		return decode<E>(p, count);
@@ -291,7 +291,7 @@ namespace Unicode {
 
 	//UTF to UTF
 	template<Encoding From, Encoding To, class SrcT, class DstT>
-	constexpr SizeT transcode(const SrcT* s, DstT* d, SizeT& decoded) noexcept requires (Equal<SrcT, typename UTFEncodingTraits<From>::Type> && Equal<DstT, typename UTFEncodingTraits<To>::Type>) {
+	constexpr SizeT transcode(const SrcT* s, DstT* d, SizeT& decoded) noexcept requires (CC::Equal<SrcT, typename UTFEncodingTraits<From>::Type> && CC::Equal<DstT, typename UTFEncodingTraits<To>::Type>) {
 
 		if constexpr (From == To) {
 
@@ -310,16 +310,16 @@ namespace Unicode {
 	}
 
 	template<Encoding From, Encoding To, class SrcT, class DstT>
-	constexpr SizeT transcode(const SrcT* s, DstT* d) noexcept requires (Equal<SrcT, typename UTFEncodingTraits<From>::Type> && Equal<DstT, typename UTFEncodingTraits<To>::Type>) {
+	constexpr SizeT transcode(const SrcT* s, DstT* d) noexcept requires (CC::Equal<SrcT, typename UTFEncodingTraits<From>::Type> && CC::Equal<DstT, typename UTFEncodingTraits<To>::Type>) {
 
 		[[maybe_unused]] SizeT decodedCPs;
-		return transcode<From, To>(s, d);
+		return transcode<From, To>(s, d, decodedCPs);
 
 	}
 
 	//Returns the size of the codepoint encoded in From if converted to To
 	template<Encoding From, Encoding To, class T>
-	constexpr SizeT getTranscodedSize(const T* p) noexcept requires Equal<T, typename UTFEncodingTraits<From>::Type> {
+	constexpr SizeT getTranscodedSize(const T* p) noexcept requires CC::Equal<T, typename UTFEncodingTraits<From>::Type> {
 
 		if constexpr (isEquivalentEncoding<From, To>()) {
 			return getEncodedSize<From>(p);
@@ -331,7 +331,7 @@ namespace Unicode {
 
 	//UTF encoded size of next codepoint
 	template<Encoding E, class T>
-	constexpr SizeT getEncodedSize(const T* p) noexcept requires Equal<T, typename UTFEncodingTraits<E>::Type> {
+	constexpr SizeT getEncodedSize(const T* p) noexcept requires CC::Equal<T, typename UTFEncodingTraits<E>::Type> {
 
 		if constexpr (isUTF8<E>()) {
 
@@ -367,7 +367,7 @@ namespace Unicode {
 
 	//UTF encoded size of previous codepoint
 	template<Encoding E, class T>
-	constexpr SizeT getEncodedSizeBackwards(const T* p) noexcept requires Equal<T, typename UTFEncodingTraits<E>::Type> {
+	constexpr SizeT getEncodedSizeBackwards(const T* p) noexcept requires CC::Equal<T, typename UTFEncodingTraits<E>::Type> {
 
 		if constexpr (isUTF8<E>()) {
 

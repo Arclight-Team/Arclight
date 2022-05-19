@@ -37,8 +37,8 @@ public:
 	bool isBound() const;
 	bool validate() const;
 
-	void attachTexture(u32 attachmentIndex, const Texture& texture);
-	void attachTexture(u32 attachmentIndex, const Texture& texture, u32 layer);
+	void attachTexture(u32 attachmentIndex, const Texture& texture, u32 level = 0);
+	void attachTexture(u32 attachmentIndex, const Texture& texture, u32 layer, u32 level = 0);
 	void attachRenderbuffer(u32 attachmentIndex, const Renderbuffer& renderbuffer);
 
 	static void bindDefault();

@@ -26,6 +26,11 @@ namespace ArcRuntime {
 			return false;
 		}
 
+		if (CoInitialize(0)) {
+			Log::error("Runtime", "Failed to initialize COM");
+			return false;
+		}
+
 		return true;
 
 	}

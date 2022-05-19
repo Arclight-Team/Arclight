@@ -15,7 +15,7 @@ namespace Xml
 {
 	
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType = char>
+	template<CC::Char CharType = char>
 #endif
 	class CharIterator
 	{

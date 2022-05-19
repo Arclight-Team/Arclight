@@ -12,8 +12,8 @@
 #include "stdext/bitspan.hpp"
 #include "util/bits.hpp"
 #include "util/string.hpp"
-#include "util/concepts.hpp"
-#include "util/typetraits.hpp"
+#include "common/concepts.hpp"
+#include "common/typetraits.hpp"
 #include "types.hpp"
 
 #include <array>
@@ -36,12 +36,12 @@ public:
 
 	}
 
-	template<Integer... J>
+	template<CC::Integer... J>
 	constexpr Hash(J... j) noexcept {
 		set(j...);
 	}
 
-	template<Integer... J> requires ((sizeof(J) + ...) * 8 == Size)
+	template<CC::Integer... J> requires ((sizeof(J) + ...) * 8 == Size)
 	constexpr void set(J... j) {
 
 		SizeT i = 0;
@@ -61,7 +61,7 @@ public:
 
 	}
 
-	template<UnsignedType U>
+	template<CC::UnsignedType U>
 	constexpr U toInteger(SizeT start = 0) const noexcept {
 
 		if (start < Segments) {

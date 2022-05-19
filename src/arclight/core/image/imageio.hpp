@@ -9,9 +9,14 @@
 #pragma once
 
 #include "image.hpp"
+#include "decode/decoder.hpp"
 #include "decode/bitmapdecoder.hpp"
 #include "decode/jpegdecoder.hpp"
+#include "decode/ppmdecoder.hpp"
 #include "decode/qoidecoder.hpp"
+#include "decode/tgadecoder.hpp"
+#include "encode/encoder.hpp"
+#include "encode/ppmencoder.hpp"
 #include "util/bool.hpp"
 
 
@@ -22,14 +27,16 @@ namespace ImageIO {
 
 		std::vector<u8> loadFile(const Path& path);
 
+		void saveFile(const Path& path, std::span<const u8> data);
+
 	}
 
 
 
 	/*
-	 *  Raw decoder functions
+	 *  Raw decoder/encoder functions
 	 */
-	template<ImageDecoder Decoder, class... Args>
+	template<CC::ImageDecoder Decoder, class... Args>
 	Decoder decode(const std::span<const u8>& bytes, std::optional<Pixel> reqFormat, Args&&... args) {
 
 		Decoder decoder(reqFormat, std::forward<Args>(args)...);
@@ -39,9 +46,23 @@ namespace ImageIO {
 
 	}
 
-	template<ImageDecoder Decoder, class... Args>
+	template<CC::ImageDecoder Decoder, class... Args>
 	Decoder decode(const Path& path, std::optional<Pixel> reqFormat = {}, Args&&... args) {
 		return decode<Decoder, Args...>(Detail::loadFile(path), reqFormat, std::forward<Args>(args)...);
+	}
+
+	template<CC::ImageEncoder Encoder, class Img, class... Args>
+	Encoder encode(const Img& image, std::optional<Pixel> reqFormat, Args&&... args) {
+
+		Encoder encoder(reqFormat, std::forward<Args>(args)...);
+
+		if constexpr (CC::Equal<Img, RawImage>)
+			encoder.encode(image);
+		else
+			encoder.encode(Img(image).makeRaw());
+
+		return encoder;
+
 	}
 
 
@@ -49,14 +70,24 @@ namespace ImageIO {
 	/*
 	 *  Forced format functions
 	 */
-	template<Pixel P, ImageDecoder Decoder, class... Args>
+	template<Pixel P, CC::ImageDecoder Decoder, class... Args>
 	Image<P> load(const std::span<const u8>& bytes, Args&&... args) {
 		return Image<P>::fromRaw(decode<Decoder, Args...>(bytes, P, std::forward<Args>(args)...).getImage(), true);
 	}
 
-	template<Pixel P, ImageDecoder Decoder, class... Args>
+	template<Pixel P, CC::ImageDecoder Decoder, class... Args>
 	Image<P> load(const Path& path, Args&&... args) {
 		return load<P, Decoder, Args...>(Detail::loadFile(path), std::forward<Args>(args)...);
+	}
+
+	template<Pixel P, CC::ImageEncoder Encoder, class Img, class... Args>
+	std::vector<u8> save(const Img& image, Args&&... args) {
+		return encode<Encoder, Args...>(image, P, std::forward<Args>(args)...).getBuffer();
+	}
+
+	template<Pixel P, CC::ImageEncoder Encoder, class Img, class... Args>
+	void save(const Path& path, const Img& image, Args&&... args) {
+		Detail::saveFile(path, save<P, Encoder, Args...>(image, P, std::forward<Args>(args)...));
 	}
 
 
@@ -64,14 +95,32 @@ namespace ImageIO {
 	/*
 	 *  Generic format functions
 	 */
-	template<ImageDecoder Decoder, class... Args>
+	template<CC::ImageDecoder Decoder, class... Args>
 	RawImage load(const std::span<const u8>& bytes, Args&&... args) {
 		return decode<Decoder, Args...>(bytes, {}, std::forward<Args>(args)...).getImage();
 	}
 
-	template<ImageDecoder Decoder, class... Args>
+	template<CC::ImageDecoder Decoder, class... Args>
 	RawImage load(const Path& path, Args&&... args) {
 		return load<Decoder, Args...>(Detail::loadFile(path), std::forward<Args>(args)...);
+	}
+
+	template<CC::ImageEncoder Encoder, class Img, class... Args>
+	std::vector<u8> save(const Img& image, Args&&... args) {
+
+		std::optional<Pixel> reqFormat{};
+
+		// Fetch pixel from Image
+		if constexpr (!CC::Equal<Img, RawImage>)
+			reqFormat = Img::getFormat();
+		
+		return encode<Encoder, Args...>(image, reqFormat, std::forward<Args>(args)...).getBuffer();
+
+	}
+
+	template<CC::ImageEncoder Encoder, class Img, class... Args>
+	void save(const Path& path, const Img& image, Args&&... args) {
+		Detail::saveFile(path, save<Encoder, Args...>(image, std::forward<Args>(args)...));
 	}
 
 
@@ -81,7 +130,7 @@ namespace ImageIO {
 		template<bool Raw, Pixel P = Pixel::RGB8>
 		auto fileLoad(const Path& path) -> TT::Conditional<Raw, RawImage, Image<P>> {
 
-			auto doLoad = []<ImageDecoder Decoder>(const Path& p) {
+			auto doLoad = []<CC::ImageDecoder Decoder>(const Path& p) {
 
 				if constexpr (Raw) {
 					return load<Decoder>(p);
@@ -97,11 +146,28 @@ namespace ImageIO {
 				return doLoad.template operator()<BitmapDecoder>(path);
 			} else if (Bool::any(ext, ".jpg", ".jpeg", ".jfif")) {
 				return doLoad.template operator()<JPEGDecoder>(path);
-			} else if (ext == ".qoi") {
+			} else if (ext == ".ppm") {
+	            return doLoad.template operator()<PPMDecoder>(path);
+	        } else if (ext == ".qoi") {
 	            return doLoad.template operator()<QOIDecoder>(path);
+	        } else if (ext == ".tga") {
+	            return doLoad.template operator()<TGADecoder>(path);
 	        }
 
 			throw ImageException("Unknown image file format");
+
+		}
+
+		template<class Img>
+		void fileSave(const Path& path, const Img& image) {
+
+			std::string ext = path.getExtension();
+
+			if (ext == ".ppm") {
+	            save<PPMEncoder, Img>(path, image);
+	        } else {
+				throw ImageException("Unknown image file format");
+			}
 
 		}
 
@@ -119,6 +185,15 @@ namespace ImageIO {
 
 	inline RawImage load(const Path& path) {
 		return Detail::fileLoad<true>(path);
+	}
+
+	template<Pixel P>
+	void save(const Path& path, const Image<P>& image) {
+		return Detail::fileSave(path, image);
+	}
+
+	inline void save(const Path& path, const RawImage& image) {
+		return Detail::fileSave(path, image);
 	}
 
 }

@@ -52,7 +52,7 @@ public:
 	void createFloat (const std::string& text, float* variable, float min, float max);
 	void createDouble(const std::string& text, double* variable, double min, double max);
 
-	template<Arithmetic T>
+	template<CC::Arithmetic T>
 	void create(const std::string& text, T* variable, T min = T(0), T max = T(1), const std::string& format = "") {
 
 		if constexpr (std::is_same_v<T, bool>)			createBool  (text, variable);
@@ -87,7 +87,7 @@ public:
 	void createVecFloat (const std::string& text, int num, float* variable, float min, float max);
 	void createVecDouble(const std::string& text, int num, double* variable, double min, double max);
 
-	template<Vector V, class T = typename V::Type>
+	template<CC::Vector V, class T = typename V::Type>
 	void createVector(const std::string& text, V* variable, T min = T(0), T max = T(1), const std::string& format = "") {
 
 		using U = typename V::Type;

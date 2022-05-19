@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "util/concepts.hpp"
-#include "util/typetraits.hpp"
+#include "common/concepts.hpp"
+#include "common/typetraits.hpp"
 #include "arcconfig.hpp"
 #include "vector.hpp"
 #include "box.hpp"
@@ -18,7 +18,7 @@
 
 
 
-template<Arithmetic T>
+template<CC::Arithmetic T>
 class Capsule {
 public:
 
@@ -106,7 +106,7 @@ public:
 	}
 	
 	// Checks if the capsule intersects with another capsule
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr bool intersects(const Capsule<B>& other) const {
 
 		static_assert(false, "Incomplete or missing functionality");
@@ -143,7 +143,7 @@ public:
 	}
 
 	// Checks if the capsule contains another capsule
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr bool contains(const Capsule<B>& other) const {
 
 		static_assert(false, "Incomplete or missing functionality");
@@ -154,7 +154,7 @@ public:
 	}
 
 	// Checks if the capsule contains a point
-	template<Arithmetic B>
+	template<CC::Arithmetic B>
 	constexpr bool contains(const Vec3<B>& point) const {
 
 		if (topHemisphere().contains(point))

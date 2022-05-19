@@ -9,14 +9,14 @@
 #pragma once
 
 #include "vector.hpp"
-#include "util/concepts.hpp"
+#include "common/concepts.hpp"
 #include "arcconfig.hpp"
 
 #include <optional>
 
 
 
-template<Float F>
+template<CC::Float F>
 class Line {
 
 public:
@@ -25,7 +25,7 @@ public:
 
 	constexpr Line() : Line(Vec2<F>(), Vec2<F>()) {}
 
-	template<Arithmetic A, Arithmetic B>
+	template<CC::Arithmetic A, CC::Arithmetic B>
 	constexpr Line(const Vec2<A>& start, const Vec2<B>& end) : start(start), end(end) {}
 
 

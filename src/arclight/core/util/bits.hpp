@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "concepts.hpp"
-#include "typetraits.hpp"
+#include "common/concepts.hpp"
+#include "common/typetraits.hpp"
 #include "types.hpp"
 
 #include <bit>
@@ -68,8 +68,8 @@ namespace Bits {
 	}
 
 	template<class Dest, class Src>
-	inline Dest rcast(Src& src) noexcept {
-		return reinterpret_cast<Dest>(src);
+	inline Dest rcast(Src&& src) noexcept {
+		return reinterpret_cast<Dest>(std::forward<Src>(src));
 	}
 
 	template<class Dest, class Src>
@@ -77,42 +77,42 @@ namespace Bits {
 		return reinterpret_cast<Dest>(src);
 	}
 
-	template<Integer T>
+	template<CC::Integer T>
 	constexpr auto rol(T value, i32 bits) noexcept {
 		return std::rotl(static_cast<TT::MakeUnsigned<T>>(value), bits);
 	}
 
-	template<Integer T>
+	template<CC::Integer T>
 	constexpr auto ror(T value, i32 bits) noexcept {
 		return std::rotr(static_cast<TT::MakeUnsigned<T>>(value), bits);
 	}
 
-	template<Integer T>
+	template<CC::Integer T>
 	constexpr auto clz(T value) noexcept {
 		return std::countl_zero(static_cast<TT::MakeUnsigned<T>>(value));
 	}
 
-	template<Integer T>
+	template<CC::Integer T>
 	constexpr auto ctz(T value) noexcept {
 		return std::countr_zero(static_cast<TT::MakeUnsigned<T>>(value));
 	}
 
-	template<UnsignedType T>
+	template<CC::UnsignedType T>
 	constexpr bool isPowerOf2(T value) noexcept {
 		return std::has_single_bit(value);
 	}
 
-	template<UnsignedType T>
+	template<CC::UnsignedType T>
 	constexpr T ceilPowerOf2(T value) noexcept {
 		return std::bit_ceil(value);
 	}
 
-	template<UnsignedType T>
+	template<CC::UnsignedType T>
 	constexpr T floorPowerOf2(T value) noexcept {
 		return std::bit_floor(value);
 	}
 
-	template<Integer T>
+	template<CC::Integer T>
 	constexpr auto popcount(T value) noexcept {
 		return std::popcount(static_cast<TT::MakeUnsigned<T>>(value));
 	}
@@ -129,7 +129,7 @@ namespace Bits {
 		return (u64(swap32(in & 0xFFFFFFFF)) << 32) | (swap32(in >> 32));
 	}
 
-	template<Integer T>
+	template<CC::Integer T>
 	constexpr T swap(T in) noexcept {
 
 		if constexpr (sizeof(T) == 8) {
@@ -146,7 +146,7 @@ namespace Bits {
 
 	}
 
-	template<Integer T>
+	template<CC::Integer T>
 	constexpr T reverse(T in) noexcept {
 
 		auto t = Bits::cast<TT::MakeUnsigned<T>>(in);
@@ -256,32 +256,32 @@ namespace Bits {
 		return reqOrder != MachineByteOrder;
 	}
 
-	template<Integer T>
+	template<CC::Integer T>
 	constexpr auto countLeadingZeros(T value) noexcept {
 		return clz(value);
 	}
 
-	template<Integer T>
+	template<CC::Integer T>
 	constexpr auto countTrailingZeros(T value) noexcept {
 		return ctz(value);
 	}
 
-	template<Integer T>
+	template<CC::Integer T>
 	constexpr auto countLeadingOnes(T value) noexcept {
 		return clz(~value);
 	}
 
-	template<Integer T>
+	template<CC::Integer T>
 	constexpr auto countTrailingOnes(T value) noexcept {
 		return ctz(~value);
 	}
 
-	template<Integer T>
+	template<CC::Integer T>
 	constexpr auto countPopulation(T value) noexcept {
 		return popcount(value);
 	}
 
-	template<Integer I, Integer... J>
+	template<CC::Integer I, CC::Integer... J>
 	constexpr I assemble(J... js) noexcept requires (TT::IsAllSame<J...> && (TT::SizeofN<0, J...> * sizeof...(J)) == sizeof(I)) {
 
 		SizeT s = TT::SizeofN<0, J...>;
@@ -295,7 +295,7 @@ namespace Bits {
 
 	}
 
-	template<Integer I, Integer J>
+	template<CC::Integer I, CC::Integer J>
 	constexpr I assemble(J* js, SizeT max = -1) noexcept requires (sizeof(I) / sizeof(J) * sizeof(J) == sizeof(I)) {
 
 		I i = 0;
@@ -312,12 +312,12 @@ namespace Bits {
 
 	}
 
-	template<Integer I, Integer... J>
+	template<CC::Integer I, CC::Integer... J>
 	constexpr void disassemble(I i, J&... js) noexcept requires (TT::IsAllSame<J...> && (TT::SizeofN<0, J...> * sizeof...(J)) == sizeof(I)) {
 		((js = cast<J>(TT::MakeUnsigned<J>(i & ~static_cast<J>(0))), i >>= (TT::SizeofN<0, J...> * 8)), ...);
 	}
 
-	template<Integer I, Integer J>
+	template<CC::Integer I, CC::Integer J>
 	constexpr void disassemble(I i, J* js, SizeT max = -1) noexcept requires (sizeof(I) / sizeof(J) * sizeof(J) == sizeof(I)) {
 
 		for(SizeT n = 0; n < sizeof(I) / sizeof(J) && n < max; n++) {
@@ -334,19 +334,19 @@ namespace Bits {
 		return sizeof(T) * 8;
 	}
 
-	template<Integer T>
+	template<CC::Integer T>
 	constexpr T mask(T t, u32 start, u32 count) noexcept {
 		return t & (((T(1) << count) - 1) << start);
 	}
 
-	template<Integer T>
+	template<CC::Integer T>
 	constexpr T clear(T t, u32 start, u32 count) noexcept {
 		return t & ~(((T(1) << count) - 1) << start);
 	}
 
 	template<class T>
 	inline auto toByteArray(T* t) noexcept {
-		return reinterpret_cast<TT::ConditionalConst<ConstType<T>, u8>*>(t);
+		return reinterpret_cast<TT::ConditionalConst<CC::ConstType<T>, u8>*>(t);
 	}
 
 }

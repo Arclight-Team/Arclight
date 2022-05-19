@@ -8,7 +8,7 @@
 
 #include "font/truetype/truetype.hpp"
 #include "stream/binaryreader.hpp"
-#include "util/typetraits.hpp"
+#include "common/typetraits.hpp"
 
 
 

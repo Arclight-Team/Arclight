@@ -41,7 +41,7 @@ public:
 	SizeT getUpdateEnd() const noexcept;
 	SizeT getUpdateSize() const noexcept;
 
-	template<Arithmetic T>
+	template<CC::Arithmetic T>
 	void write(SizeT offset, T t) {
 
 		write(offset, {Bits::toByteArray(&t), sizeof(T)});
@@ -49,7 +49,7 @@ public:
 
 	}
 
-	template<Vector V>
+	template<CC::Vector V>
 	void write(SizeT offset, const V& v) {
 
 		constexpr u32 vecSize = V::Size;
@@ -63,7 +63,7 @@ public:
 
 	}
 
-	template<Matrix M>
+	template<CC::Matrix M>
 	void write(SizeT offset, const M& m) {
 
 		constexpr u32 matSize = M::Size;

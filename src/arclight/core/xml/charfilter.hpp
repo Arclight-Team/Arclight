@@ -18,7 +18,7 @@ namespace Xml
 	template<bool Invert>
 #else
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType, SizeT Count, bool Invert>
+	template<CC::Char CharType, SizeT Count, bool Invert>
 #else
 	template<SizeT Count, bool Invert>
 #endif
@@ -35,7 +35,7 @@ namespace Xml
 		struct IsCharFilter<CharFilter<Invert>>
 #else
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<Char CharType, SizeT Count, bool Invert>
+		template<CC::Char CharType, SizeT Count, bool Invert>
 		struct IsCharFilter<CharFilter<CharType, Count, Invert>>
 #else
 		template<SizeT Count, bool Invert>
@@ -54,7 +54,7 @@ namespace Xml
 	template<bool Invert = false>
 #else
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType = char, SizeT Count = 1, bool Invert = false>
+	template<CC::Char CharType = char, SizeT Count = 1, bool Invert = false>
 #else
 	template<SizeT Count, bool Invert = false>
 #endif
@@ -73,7 +73,7 @@ namespace Xml
 
 #ifdef XML_CHAR_FILTER_LUT
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<Char CharType, SizeT Count>
+		template<CC::Char CharType, SizeT Count>
 #else
 		template<SizeT Count>
 #endif
@@ -92,14 +92,14 @@ namespace Xml
 		}
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<Char CharType>
+		template<CC::Char CharType>
 #endif
 		constexpr bool apply(CharType c) const {
 			return find(c) ^ Invert;
 		}
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<Char CharType>
+		template<CC::Char CharType>
 #endif
 		constexpr bool operator()(CharType c) const {
 			return apply(c);
@@ -155,7 +155,7 @@ namespace Xml
 		// Merge a single character
 #ifdef XML_CHAR_FILTER_LUT
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<Char CharType>
+		template<CC::Char CharType>
 #endif
 		constexpr auto operator|(CharType c) const {
 
@@ -183,7 +183,7 @@ namespace Xml
 
 #ifdef XML_CHAR_FILTER_LUT
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<Char CharType>
+		template<CC::Char CharType>
 #endif
 		constexpr bool find(CharType c) const {
 			return table[u8(c)];
@@ -210,7 +210,7 @@ namespace Xml
 
 #ifdef XML_CHAR_FILTER_LUT
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType, bool Invert = false, SizeT Count = 0>
+	template<CC::Char CharType, bool Invert = false, SizeT Count = 0>
 #else
 	template<bool Invert = false, SizeT Count = 0>
 #endif
@@ -219,7 +219,7 @@ namespace Xml
 	}
 #else
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType, bool Invert = false, SizeT Count = 0>
+	template<CC::Char CharType, bool Invert = false, SizeT Count = 0>
 	constexpr static auto createFilter(const CharType(&chars)[Count]) {
 		return CharFilter<CharType, Count, Invert>(chars);
 	}
@@ -233,7 +233,7 @@ namespace Xml
 
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType = char>
+	template<CC::Char CharType = char>
 	struct Filters
 	{
 		static constexpr auto Space			= createFilter<CharType>({ ' ', '\t', '\r', '\n' });

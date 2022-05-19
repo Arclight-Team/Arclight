@@ -9,7 +9,7 @@
 #pragma once
 
 #include "key.hpp"
-#include "util/typetraits.hpp"
+#include "common/typetraits.hpp"
 #include "util/bits.hpp"
 #include "util/assert.hpp"
 

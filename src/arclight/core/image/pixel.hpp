@@ -11,7 +11,7 @@
 #include "math/math.hpp"
 #include "util/assert.hpp"
 #include "util/bits.hpp"
-#include "util/typetraits.hpp"
+#include "common/typetraits.hpp"
 #include "arcconfig.hpp"
 #include "types.hpp"
 
@@ -419,31 +419,35 @@ public:
 };
 
 
-template<class T>
-concept PixelStorageType = BaseOf<PixelStorage<T::PixelType, typename T::ColorType>, T>;
+namespace CC {
+
+	template<class T>
+	concept PixelStorageType = CC::BaseOf<PixelStorage<T::PixelType, typename T::ColorType>, T>;
+
+}
 
 
-constexpr auto operator+(PixelStorageType auto a, const PixelStorageType auto& b) {
+constexpr auto operator+(CC::PixelStorageType auto a, const CC::PixelStorageType auto& b) {
 	a += b;
 	return a;
 }
 
-constexpr auto operator-(PixelStorageType auto a, const PixelStorageType auto& b) {
+constexpr auto operator-(CC::PixelStorageType auto a, const CC::PixelStorageType auto& b) {
 	a -= b;
 	return a;
 }
 
-constexpr auto operator*(PixelStorageType auto a, double f) {
+constexpr auto operator*(CC::PixelStorageType auto a, double f) {
 	a *= f;
 	return a;
 }
 
-constexpr auto operator*(double f, PixelStorageType auto a) {
+constexpr auto operator*(double f, CC::PixelStorageType auto a) {
 	a *= f;
 	return a;
 }
 
-constexpr auto operator/(PixelStorageType auto a, double f) {
+constexpr auto operator/(CC::PixelStorageType auto a, double f) {
 	a /= f;
 	return a;
 }
@@ -688,13 +692,15 @@ public:
 		DestType BValueOut = convertChannel<ConvType, BBitsIn, BBitsOut>(BValueIn) << DestFormat::BlueShift;
 		DestType AValueOut = convertChannel<ConvType, ABitsIn, ABitsOut>(AValueIn) << DestFormat::AlphaShift;
 
+		AValueOut |= DestFormat::AlphaMask * (ABitsIn == 0);
+
 		DestType out = RValueOut | GValueOut | BValueOut | AValueOut;
 
 		return DestPixelType(out);
 
 	}
 
-	template<Pixel DestPixel, UnsignedIntegral T>
+	template<Pixel DestPixel, CC::UnsignedIntegral T>
 	constexpr static auto convert(T pixel, T redMask, u32 redShift, T greenMask, u32 greenShift, T blueMask, u32 blueShift, T alphaMask = 0, u32 alphaShift = 0) {
 
 		using DestFormat = PixelFormat<DestPixel>;

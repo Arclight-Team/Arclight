@@ -37,9 +37,9 @@ enum class TextureFilter {
 
 
 enum class TextureWrap {
-	Repeat	= 0x812F, // GL_CLAMP_TO_EDGE
-	Clamp	= 0x8370, // GL_MIRRORED_REPEAT
-	Mirror	= 0x2901, // GL_REPEAT
+	Repeat	= 0x2901, // GL_REPEAT
+	Clamp	= 0x812F, // GL_CLAMP_TO_EDGE
+	Mirror	= 0x8370, // GL_MIRRORED_REPEAT
 	Border	= 0x812D, // GL_CLAMP_TO_BORDER
 };
 

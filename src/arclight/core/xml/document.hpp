@@ -22,7 +22,7 @@ namespace Xml
 {
 	
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType = char>
+	template<CC::Char CharType = char>
 #endif
 	class Document
 	{
@@ -645,12 +645,12 @@ namespace Xml
 	private:
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<Char CharType>
+		template<CC::Char CharType>
 #endif
 		friend class Node;
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<Char CharType>
+		template<CC::Char CharType>
 #endif
 		friend class Attribute;
 
@@ -682,7 +682,7 @@ namespace Xml
 	};
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType>
+	template<CC::Char CharType>
 	std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>& os, const Document<CharType>& document) {
 #else
 	std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>& os, const Document& document) {
@@ -695,7 +695,7 @@ namespace Xml
 	}
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType>
+	template<CC::Char CharType>
 	std::basic_istream<CharType>& operator>>(std::basic_istream<CharType>& is, Document<CharType>& document) {
 #else
 	std::basic_istream<CharType>& operator>>(std::basic_istream<CharType>& is, Document& document) {

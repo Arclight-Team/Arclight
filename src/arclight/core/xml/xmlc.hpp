@@ -9,8 +9,8 @@
 #pragma once
 
 #include "util/bool.hpp"
-#include "util/concepts.hpp"
-#include "util/typetraits.hpp"
+#include "common/concepts.hpp"
+#include "common/typetraits.hpp"
 #include "stdext/optionalref.hpp"
 
 #include <stdexcept>
@@ -46,20 +46,20 @@ namespace Xml
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
 	
-	template<Char CharType>
+	template<CC::Char CharType>
 	class CharIterator;
 
-	template<Char CharType>
+	template<CC::Char CharType>
 	class StringRef;
 
 
-	template<Char CharType>
+	template<CC::Char CharType>
 	class Attribute;
 
-	template<Char CharType>
+	template<CC::Char CharType>
 	class Node;
 
-	template<Char CharType>
+	template<CC::Char CharType>
 	class Document;
 
 #else
@@ -74,7 +74,7 @@ namespace Xml
 #endif
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<Char CharType>
+	template<CC::Char CharType>
 #endif
 	constexpr CharType selectQuoteChar(const std::basic_string_view<CharType>& sv) {
 

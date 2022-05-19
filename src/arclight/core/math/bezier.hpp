@@ -17,7 +17,7 @@
 #include <span>
 
 
-template<u32 Degree, Float F>
+template<u32 Degree, CC::Float F>
 class Bezier {
 
 public:
@@ -30,10 +30,10 @@ public:
 
 	constexpr Bezier() : Bezier(Vec2<F>(0, 0)) {}
 
-	template<Vector... V>
+	template<CC::Vector... V>
 	constexpr Bezier(const V&... cps) : controlPoints {cps...} {}
 
-	template<Vector V>
+	template<CC::Vector V>
 	constexpr Bezier(const std::span<V>& cps) {
 		std::copy(cps.begin(), cps.end(), controlPoints);
 		std::fill_n(&controlPoints[cps.size()], Math::max<i32>(Degree + 1 - cps.size(), 0), Vec2<F>(0, 0));
