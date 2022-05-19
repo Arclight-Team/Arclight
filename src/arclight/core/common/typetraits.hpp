@@ -116,7 +116,7 @@ namespace TT {
 
 			constexpr static SizeT Size = sizeof(A);
 
-			using Type =    TT::Conditional<!CC::Integer<A>, A,
+			using Type =    TT::Conditional<CC::Integer<A>, A,
 							TT::Conditional<Size <= 4, i32,
 							TT::Conditional<Size <= 8, i64, imax>>>;
 
@@ -127,7 +127,7 @@ namespace TT {
 
 			constexpr static SizeT Size = sizeof(A);
 
-			using Type =	TT::Conditional<CC::Integer<A>, A,
+			using Type =	TT::Conditional<CC::Float<A>, A,
 							TT::Conditional<Size <= sizeof(float), float,
 							TT::Conditional<Size <= sizeof(double), double, long double>>>;
 

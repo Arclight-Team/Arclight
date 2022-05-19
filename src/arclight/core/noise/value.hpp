@@ -18,7 +18,7 @@ enum class ValueNoiseFlag {
 };
 
 
-template<NoiseFractal Fractal = NoiseFractal::Standard, ValueNoiseFlag Flag = ValueNoiseFlag::None>
+template<NoiseFractal Fractal, ValueNoiseFlag Flag>
 class ValueNoiseBase : public NoiseBase {
 
 public:
@@ -26,31 +26,30 @@ public:
 	using FlagT = ValueNoiseFlag;
 
 
-	template<FloatParam T, Arithmetic A, Arithmetic L = u32, Arithmetic P = u32>
+	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32>
 	constexpr TT::CommonArithmeticType<T> sample(const T& point, A frequency, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 		return fractalSample<Fractal>([this](const T& p, A f) constexpr { return raw(p, f); }, point, frequency, octaves, lacunarity, persistence);
 	}
 
-	template<FloatParam T, Arithmetic A, Arithmetic L = u32, Arithmetic P = u32, Float F = TT::CommonArithmeticType<T>>
+	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::CommonArithmeticType<T>>
 	constexpr std::vector<F> sample(std::span<const T> points, std::span<const A> frequencies, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 		return fractalSample<Fractal>([this](auto p, auto f) constexpr { return raw(p, f); }, points, frequencies, octaves, lacunarity, persistence);
 	}
 
 private:
 
-	template<Float F, Arithmetic A>
+	template<CC::Float F, CC::Arithmetic A>
 	constexpr F raw(F point, A frequency) const {
 
 		using I = TT::ToInteger<F>;
-		using UI = TT::MakeUnsigned<I>;
 
 		point *= frequency;
 
 		I ip = Math::floor(point);
 
-		UI hp0 = ip & hashMask;
+		u32 hp0 = ip & hashMask;
 
-		auto part = [&](UI hp) constexpr {
+		auto part = [&](u32 hp) constexpr {
 			return hash(hp) * hashScale<F>;
 		};
 
@@ -62,7 +61,7 @@ private:
 
 		} else {
 
-			UI hp1 = hp0 + 1;
+			u32 hp1 = hp0 + 1;
 
 			F p = point - ip;
 
@@ -73,12 +72,11 @@ private:
 
 	}
 
-	template<FloatVector V, Arithmetic A> requires(V::Size == 2)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 2)
 	constexpr typename V::Type raw(const V& point, A frequency) const {
 
 		using F = typename V::Type;
 		using I = TT::ToInteger<F>;
-		using UI = TT::MakeUnsigned<I>;
 
 		F x = point.x * frequency;
 		F y = point.y * frequency;
@@ -86,10 +84,10 @@ private:
 		I ipx = Math::floor(x);
 		I ipy = Math::floor(y);
 
-		UI hpx0 = ipx & hashMask;
-		UI hpy0 = ipy & hashMask;
+		u32 hpx0 = ipx & hashMask;
+		u32 hpy0 = ipy & hashMask;
 
-		auto part = [&](UI hpx, UI hpy) constexpr {
+		auto part = [&](u32 hpx, u32 hpy) constexpr {
 			return hash(hpx, hpy) * hashScale<F>;
 		};
 
@@ -101,8 +99,8 @@ private:
 
 		} else {
 
-			UI hpx1 = hpx0 + 1;
-			UI hpy1 = hpy0 + 1;
+			u32 hpx1 = hpx0 + 1;
+			u32 hpy1 = hpy0 + 1;
 
 			F px = x - ipx;
 			F py = y - ipy;
@@ -121,12 +119,11 @@ private:
 
 	}
 
-	template<FloatVector V, Arithmetic A> requires(V::Size == 3)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 3)
 	constexpr typename V::Type raw(const V& point, A frequency) const {
 
 		using F = typename V::Type;
 		using I = TT::ToInteger<F>;
-		using UI = TT::MakeUnsigned<I>;
 
 		F x = point.x * frequency;
 		F y = point.y * frequency;
@@ -136,11 +133,11 @@ private:
 		I ipy = Math::floor(y);
 		I ipz = Math::floor(z);
 
-		UI hpx0 = ipx & hashMask;
-		UI hpy0 = ipy & hashMask;
-		UI hpz0 = ipz & hashMask;
+		u32 hpx0 = ipx & hashMask;
+		u32 hpy0 = ipy & hashMask;
+		u32 hpz0 = ipz & hashMask;
 
-		auto part = [&](UI hpx, UI hpy, UI hpz) constexpr {
+		auto part = [&](u32 hpx, u32 hpy, u32 hpz) constexpr {
 			return hash(hpx, hpy, hpz) * hashScale<F>;
 		};
 
@@ -152,9 +149,9 @@ private:
 
 		} else {
 
-			UI hpx1 = hpx0 + 1;
-			UI hpy1 = hpy0 + 1;
-			UI hpz1 = hpz0 + 1;
+			u32 hpx1 = hpx0 + 1;
+			u32 hpy1 = hpy0 + 1;
+			u32 hpz1 = hpz0 + 1;
 
 			F px = x - ipx;
 			F py = y - ipy;
@@ -181,12 +178,11 @@ private:
 
 	}
 
-	template<FloatVector V, Arithmetic A> requires(V::Size == 4)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 4)
 	constexpr typename V::Type raw(const V& point, A frequency) const {
 
 		using F = typename V::Type;
 		using I = TT::ToInteger<F>;
-		using UI = TT::MakeUnsigned<I>;
 
 		F x = point.x * frequency;
 		F y = point.y * frequency;
@@ -198,12 +194,12 @@ private:
 		I ipz = Math::floor(z);
 		I ipw = Math::floor(w);
 
-		UI hpx0 = ipx & hashMask;
-		UI hpy0 = ipy & hashMask;
-		UI hpz0 = ipz & hashMask;
-		UI hpw0 = ipw & hashMask;
+		u32 hpx0 = ipx & hashMask;
+		u32 hpy0 = ipy & hashMask;
+		u32 hpz0 = ipz & hashMask;
+		u32 hpw0 = ipw & hashMask;
 
-		auto part = [&](UI hpx, UI hpy, UI hpz, UI hpw) constexpr {
+		auto part = [&](u32 hpx, u32 hpy, u32 hpz, u32 hpw) constexpr {
 			return hash(hpx, hpy, hpz, hpw) * hashScale<F>;
 		};
 
@@ -215,10 +211,10 @@ private:
 
 		} else {
 
-			UI hpx1 = hpx0 + 1;
-			UI hpy1 = hpy0 + 1;
-			UI hpz1 = hpz0 + 1;
-			UI hpw1 = hpw0 + 1;
+			u32 hpx1 = hpx0 + 1;
+			u32 hpy1 = hpy0 + 1;
+			u32 hpz1 = hpz0 + 1;
+			u32 hpw1 = hpw0 + 1;
 
 			F px = x - ipx;
 			F py = y - ipy;
@@ -258,7 +254,7 @@ private:
 	}
 
 
-	template<FloatParam T, Arithmetic A, Float F = TT::CommonArithmeticType<T>>
+	template<CC::FloatParam T, CC::Arithmetic A, CC::Float F = TT::CommonArithmeticType<T>>
 	constexpr std::vector<F> raw(std::span<const T> points, std::span<const A> frequencies) const {
 
 		std::vector<F> samples;
@@ -271,10 +267,10 @@ private:
 	}
 
 
-	template<Float F>
+	template<CC::Float F>
 	static constexpr F hashScale = 1.0 / 0xFF;
 
-	template<Float F>
+	template<CC::Float F>
 	static constexpr F interpolate(F t) {
 		if constexpr(Flag == ValueNoiseFlag::Smooth) {
 			return t * t * t * (t * (t * 6 - 15) + 10);

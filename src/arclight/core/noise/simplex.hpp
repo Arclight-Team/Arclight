@@ -11,28 +11,27 @@
 #include "noisebase.hpp"
 
 
-template<NoiseFractal Fractal = NoiseFractal::Standard>
+template<NoiseFractal Fractal>
 class SimplexNoiseBase : public NoiseBase {
 
 public:
 
-	template<FloatParam T, Arithmetic A, Arithmetic L = u32, Arithmetic P = u32>
+	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32>
 	constexpr TT::CommonArithmeticType<T> sample(const T& point, A frequency, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 		return fractalSample<Fractal>([this](const T& p, A f) constexpr { return raw(p, f); }, point, frequency, octaves, lacunarity, persistence);
 	}
 
-	template<FloatParam T, Arithmetic A, Arithmetic L = u32, Arithmetic P = u32, Float F = TT::CommonArithmeticType<T>>
+	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::CommonArithmeticType<T>>
 	constexpr std::vector<F> sample(std::span<const T> points, std::span<const A> frequencies, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 		return fractalSample<Fractal>([this](auto p, auto f) constexpr { return raw(p, f); }, points, frequencies, octaves, lacunarity, persistence);
 	}
 
 private:
 
-	template<Float F, Arithmetic A>
+	template<CC::Float F, CC::Arithmetic A>
 	F raw(F point, A frequency) const {
 
 		using I = TT::ToInteger<F>;
-		using UI = TT::MakeUnsigned<I>;
 
 		point *= frequency;
 
@@ -43,9 +42,9 @@ private:
 
 		ip0 &= hashMask;
 
-		UI ip1 = ip0 + 1;
+		u32 ip1 = ip0 + 1;
 
-		auto part = [&](F p, UI ip) constexpr {
+		auto part = [&](F p, u32 ip) constexpr {
 
 			F dot = p * gradient<F>[hash(ip) & grad1DMask];
 
@@ -61,12 +60,11 @@ private:
 
 	}
 
-	template<FloatVector V, Arithmetic A> requires(V::Size == 2)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 2)
 	typename V::Type raw(const V& point, A frequency) const {
 
 		using F = typename V::Type;
 		using I = TT::ToInteger<F>;
-		using UI = TT::MakeUnsigned<I>;
 
 		constexpr F toTriangle = 0.2113248654;
 		constexpr F toSquare = 0.36602540378;
@@ -88,12 +86,12 @@ private:
 		F px1 = px0 - 1;
 		F py1 = py0 - 1;
 
-		UI hpx0 = ipx0 & hashMask;
-		UI hpy0 = ipy0 & hashMask;
-		UI hpx1 = hpx0 + 1;
-		UI hpy1 = hpy0 + 1;
+		u32 hpx0 = ipx0 & hashMask;
+		u32 hpy0 = ipy0 & hashMask;
+		u32 hpx1 = hpx0 + 1;
+		u32 hpy1 = hpy0 + 1;
 
-		auto part = [&](F px, F py, I ipx, I ipy, UI hx, UI hy) constexpr {
+		auto part = [&](F px, F py, I ipx, I ipy, u32 hx, u32 hy) constexpr {
 
 			F unskew = (ipx + ipy) * toTriangle;
 			F unskewx = px + unskew;
@@ -123,12 +121,11 @@ private:
 
 	}
 
-	template<FloatVector V, Arithmetic A> requires(V::Size == 3)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 3)
 	typename V::Type raw(const V& point, A frequency) const {
 
 		using F = typename V::Type;
 		using I = TT::ToInteger<F>;
-		using UI = TT::MakeUnsigned<I>;
 
 		constexpr F toTetrahedron = 1.0 / 6;
 		constexpr F toCube = 1.0 / 3;
@@ -156,14 +153,14 @@ private:
 		F py1 = py0 - 1;
 		F pz1 = pz0 - 1;
 
-		UI hpx0 = ipx0 & hashMask;
-		UI hpy0 = ipy0 & hashMask;
-		UI hpz0 = ipz0 & hashMask;
-		UI hpx1 = hpx0 + 1;
-		UI hpy1 = hpy0 + 1;
-		UI hpz1 = hpz0 + 1;
+		u32 hpx0 = ipx0 & hashMask;
+		u32 hpy0 = ipy0 & hashMask;
+		u32 hpz0 = ipz0 & hashMask;
+		u32 hpx1 = hpx0 + 1;
+		u32 hpy1 = hpy0 + 1;
+		u32 hpz1 = hpz0 + 1;
 
-		auto part = [&](F px, F py, F pz, I ipx, I ipy, I ipz, UI hx, UI hy, UI hz) constexpr {
+		auto part = [&](F px, F py, F pz, I ipx, I ipy, I ipz, u32 hx, u32 hy, u32 hz) constexpr {
 
 			F unskew = (ipx + ipy + ipz) * toTetrahedron;
 			F unskewx = px + unskew;
@@ -224,12 +221,11 @@ private:
 
 	}
 
-	template<FloatVector V, Arithmetic A> requires(V::Size == 4)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 4)
 	typename V::Type raw(const V& point, A frequency) const {
 
 		using F = typename V::Type;
 		using I = TT::ToInteger<F>;
-		using UI = TT::MakeUnsigned<I>;
 
 		constexpr F to5Cell = 0.13819660112;
 		constexpr F toTesseract = 0.30901699437;
@@ -263,16 +259,16 @@ private:
 		F pz1 = pz0 - 1;
 		F pw1 = pw0 - 1;
 
-		UI hpx0 = ipx0 & hashMask;
-		UI hpy0 = ipy0 & hashMask;
-		UI hpz0 = ipz0 & hashMask;
-		UI hpw0 = ipw0 & hashMask;
-		UI hpx1 = hpx0 + 1;
-		UI hpy1 = hpy0 + 1;
-		UI hpz1 = hpz0 + 1;
-		UI hpw1 = hpw0 + 1;
+		u32 hpx0 = ipx0 & hashMask;
+		u32 hpy0 = ipy0 & hashMask;
+		u32 hpz0 = ipz0 & hashMask;
+		u32 hpw0 = ipw0 & hashMask;
+		u32 hpx1 = hpx0 + 1;
+		u32 hpy1 = hpy0 + 1;
+		u32 hpz1 = hpz0 + 1;
+		u32 hpw1 = hpw0 + 1;
 
-		auto part = [&](F px, F py, F pz, F pw, I ipx, I ipy, I ipz, I ipw, UI hx, UI hy, UI hz, UI hw) constexpr {
+		auto part = [&](F px, F py, F pz, F pw, I ipx, I ipy, I ipz, I ipw, u32 hx, u32 hy, u32 hz, u32 hw) constexpr {
 
 			F unskew = (ipx + ipy + ipz + ipw) * to5Cell;
 			F unskewx = px + unskew;
@@ -428,7 +424,7 @@ private:
 	}
 
 
-	template<FloatParam T, Arithmetic A, Float F = TT::CommonArithmeticType<T>>
+	template<CC::FloatParam T, CC::Arithmetic A, CC::Float F = TT::CommonArithmeticType<T>>
 	constexpr std::vector<F> raw(std::span<const T> points, std::span<const A> frequencies) const {
 
 		std::vector<F> samples;
@@ -441,7 +437,7 @@ private:
 	}
 
 
-	template<Float F, class... Args> requires(TT::IsAllSame<F, Args...>)
+	template<CC::Float F, class... Args> requires TT::IsAllSame<F, Args...>
 	static constexpr F falloff(F a, Args... v) {
 
 		((a -= v * v), ...);

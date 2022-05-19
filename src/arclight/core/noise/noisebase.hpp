@@ -10,7 +10,7 @@
 
 #include "math/math.hpp"
 #include "math/vector.hpp"
-#include "util/concepts.hpp"
+#include "common/concepts.hpp"
 #include <numeric>
 #include <random>
 #include <array>
@@ -41,7 +41,7 @@ public:
 
 protected:
 
-	template<NoiseFractal Fractal, Float F>
+	template<NoiseFractal Fractal, CC::Float F>
 	static constexpr F applyFractal(F sample) {
 
 		if constexpr (Fractal != NoiseFractal::Standard) {
@@ -59,7 +59,7 @@ protected:
 
 	}
 
-	template<NoiseFractal Fractal, FloatParam T, Arithmetic A, Arithmetic L, Arithmetic P, Invocable<T, A> Func>
+	template<NoiseFractal Fractal, CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L, CC::Arithmetic P, CC::Invocable<T, A> Func>
 	static constexpr TT::CommonArithmeticType<T> fractalSample(Func&& func, const T& point, A frequency, u32 octaves, L lacunarity, P persistence) {
 
 		arc_assert(octaves >= 1, "Octaves count cannot be 0");
@@ -95,7 +95,7 @@ protected:
 
 	}
 
-	template<NoiseFractal Fractal, FloatParam T, Arithmetic A, Arithmetic L, Arithmetic P, Invocable<T, A> Func, Float F = TT::CommonArithmeticType<T>>
+	template<NoiseFractal Fractal, CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L, CC::Arithmetic P, CC::Invocable<T, A> Func, CC::Float F = TT::CommonArithmeticType<T>>
 	static constexpr std::vector<F> fractalSample(Func&& func, std::span<const T> points, std::span<const A> frequencies, u32 octaves, L lacunarity, P persistence) {
 
 		arc_assert(octaves >= 1, "Octaves count cannot be 0");
@@ -121,12 +121,12 @@ protected:
 	template<class T>
 	static constexpr T gradient;
 
-	template<Float F>
+	template<CC::Float F>
 	static constexpr F gradient<F>[2] = {
 		-1, 1
 	};
 
-	template<FloatVector V> requires(V::Size == 2)
+	template<CC::FloatVector V> requires(V::Size == 2)
 	static constexpr V gradient<V>[8] = {
 		{ 0.707107, 0.707107}, { 1, 0},
 		{-0.707107, 0.707107}, {-1, 0},
@@ -134,7 +134,7 @@ protected:
 		{-0.707107,-0.707107}, { 0,-1}
 	};
 
-	template<FloatVector V> requires(V::Size == 3)
+	template<CC::FloatVector V> requires(V::Size == 3)
 	static constexpr V gradient<V>[16] = {
 		{ 0.57735, 0.57735,-0.57735}, { 0.707107, 0.707107, 0},
 		{-0.57735, 0.57735, 0.57735}, {-0.707107, 0.707107, 0},
@@ -146,7 +146,7 @@ protected:
 		{ 0.57735, 0.57735, 0.57735}, { 0, 0, 1}
 	};
 
-	template<FloatVector V> requires(V::Size == 4)
+	template<CC::FloatVector V> requires(V::Size == 4)
 	static constexpr V gradient<V>[32] = {
 		{-0.5, 0.5,-0.5,-0.5}, {-0.57735, 0.57735,-0.57735, 0},
 		{ 0.5,-0.5,-0.5,-0.5}, { 0.57735,-0.57735,-0.57735, 0},
@@ -215,5 +215,9 @@ private:
 };
 
 
-template<class T>
-concept NoiseType = BaseOf<NoiseBase, T>;
+namespace CC {
+
+	template<class T>
+	concept NoiseType = BaseOf<NoiseBase, T>;
+
+}

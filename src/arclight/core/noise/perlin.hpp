@@ -11,28 +11,27 @@
 #include "noisebase.hpp"
 
 
-template<NoiseFractal Fractal = NoiseFractal::Standard>
+template<NoiseFractal Fractal>
 class PerlinNoiseBase : public NoiseBase {
 
 public:
 
-	template<FloatParam T, Arithmetic A, Arithmetic L = u32, Arithmetic P = u32>
+	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32>
 	constexpr TT::CommonArithmeticType<T> sample(const T& point, A frequency, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 		return fractalSample<Fractal>([this](const T& p, A f) constexpr { return raw(p, f); }, point, frequency, octaves, lacunarity, persistence);
 	}
 
-	template<FloatParam T, Arithmetic A, Arithmetic L = u32, Arithmetic P = u32, Float F = TT::CommonArithmeticType<T>>
+	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::CommonArithmeticType<T>>
 	constexpr std::vector<F> sample(std::span<const T> points, std::span<const A> frequencies, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 		return fractalSample<Fractal>([this](auto p, auto f) constexpr { return raw(p, f); }, points, frequencies, octaves, lacunarity, persistence);
 	}
 
 private:
 
-	template<Float F, Arithmetic A>
+	template<CC::Float F, CC::Arithmetic A>
 	constexpr F raw(F point, A frequency) const {
 
 		using I = TT::ToInteger<F>;
-		using UI = TT::MakeUnsigned<I>;
 
 		point *= frequency;
 
@@ -43,9 +42,9 @@ private:
 
 		ip0 &= hashMask;
 
-		UI ip1 = ip0 + 1;
+		u32 ip1 = ip0 + 1;
 
-		auto dot = [&](F p, UI ip) constexpr {
+		auto dot = [&](F p, u32 ip) constexpr {
 			return p * gradient<F>[hash(ip) & grad1DMask];
 		};
 
@@ -57,12 +56,11 @@ private:
 
 	}
 
-	template<FloatVector V, Arithmetic A> requires(V::Size == 2)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 2)
 	constexpr typename V::Type raw(const V& point, A frequency) const {
 
 		using F = typename V::Type;
 		using I = TT::ToInteger<F>;
-		using UI = TT::MakeUnsigned<I>;
 
 		F x = point.x * frequency;
 		F y = point.y * frequency;
@@ -78,10 +76,10 @@ private:
 		ipx0 &= hashMask;
 		ipy0 &= hashMask;
 
-		UI ipx1 = ipx0 + 1;
-		UI ipy1 = ipy0 + 1;
+		u32 ipx1 = ipx0 + 1;
+		u32 ipy1 = ipy0 + 1;
 
-		auto dot = [&](F px, F py, UI ipx, UI ipy) constexpr {
+		auto dot = [&](F px, F py, u32 ipx, u32 ipy) constexpr {
 			const auto& [gx, gy] = gradient<V>[hash(ipx, ipy) & grad2DMask];
 			return px * gx + py * gy;
 		};
@@ -101,12 +99,11 @@ private:
 
 	}
 
-	template<FloatVector V, Arithmetic A> requires(V::Size == 3)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 3)
 	constexpr typename V::Type raw(const V& point, A frequency) const {
 
 		using F = typename V::Type;
 		using I = TT::ToInteger<F>;
-		using UI = TT::MakeUnsigned<I>;
 
 		F x = point.x * frequency;
 		F y = point.y * frequency;
@@ -127,11 +124,11 @@ private:
 		ipy0 &= hashMask;
 		ipz0 &= hashMask;
 
-		UI ipx1 = ipx0 + 1;
-		UI ipy1 = ipy0 + 1;
-		UI ipz1 = ipz0 + 1;
+		u32 ipx1 = ipx0 + 1;
+		u32 ipy1 = ipy0 + 1;
+		u32 ipz1 = ipz0 + 1;
 
-		auto dot = [&](F px, F py, F pz, UI ipx, UI ipy, UI ipz) constexpr {
+		auto dot = [&](F px, F py, F pz, u32 ipx, u32 ipy, u32 ipz) constexpr {
 			const auto& [gx, gy, gz] = gradient<V>[hash(ipx, ipy, ipz) & grad3DMask];
 			return px * gx + py * gy + pz * gz;
 		};
@@ -158,12 +155,11 @@ private:
 
 	}
 
-	template<FloatVector V, Arithmetic A> requires(V::Size == 4)
+	template<CC::FloatVector V, CC::Arithmetic A> requires(V::Size == 4)
 	constexpr typename V::Type raw(const V& point, A frequency) const {
 
 		using F = typename V::Type;
 		using I = TT::ToInteger<F>;
-		using UI = TT::MakeUnsigned<I>;
 
 		F x = point.x * frequency;
 		F y = point.y * frequency;
@@ -189,12 +185,12 @@ private:
 		ipz0 &= hashMask;
 		ipw0 &= hashMask;
 
-		UI ipx1 = ipx0 + 1;
-		UI ipy1 = ipy0 + 1;
-		UI ipz1 = ipz0 + 1;
-		UI ipw1 = ipw0 + 1;
+		u32 ipx1 = ipx0 + 1;
+		u32 ipy1 = ipy0 + 1;
+		u32 ipz1 = ipz0 + 1;
+		u32 ipw1 = ipw0 + 1;
 
-		auto dot = [&](F px, F py, F pz, F pw, UI ipx, UI ipy, UI ipz, UI ipw) constexpr {
+		auto dot = [&](F px, F py, F pz, F pw, u32 ipx, u32 ipy, u32 ipz, u32 ipw) constexpr {
 			const auto& [gx, gy, gz, gw] = gradient<V>[hash(ipx, ipy, ipz, ipw) & grad4DMask];
 			return px * gx + py * gy + pz * gz + pw * gw;
 		};
@@ -233,7 +229,7 @@ private:
 	}
 
 
-	template<FloatParam T, Arithmetic A, Float F = TT::CommonArithmeticType<T>>
+	template<CC::FloatParam T, CC::Arithmetic A, CC::Float F = TT::CommonArithmeticType<T>>
 	constexpr std::vector<F> raw(std::span<const T> points, std::span<const A> frequencies) const {
 
 		std::vector<F> samples;
@@ -246,7 +242,7 @@ private:
 	}
 
 
-	template<Float F>
+	template<CC::Float F>
 	static constexpr F interpolate(F t) {
 		return t * t * t * (t * (t * 6 - 15) + 10);
 	}
