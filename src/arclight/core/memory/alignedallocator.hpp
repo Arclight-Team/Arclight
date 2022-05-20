@@ -3,7 +3,7 @@
  *
  *	 This file is part of Arclight. All rights reserved.
  *
- *	 AlignedAllocator.hpp
+ *	 alignedallocator.hpp
  */
 
 #pragma once
