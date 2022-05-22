@@ -37,114 +37,99 @@ private:
 };
 
 
-struct BinaryOperator {
+enum class TokenType {
 
-	u32 symbol;
-	u32 precedence;
+	Constant,
+	Operator,
+	LeftBracket,
+	RightBracket,
+	End
 
 };
 
 
-constexpr static std::array operators = []() {
-	return std::array<BinaryOperator, 1>{{'+', 1}};
-}();
+struct Token {
+
+	constexpr Token() noexcept : Token("", TokenType::End) {}
+	constexpr Token(std::string_view str, TokenType type) : str(str), type(type) {}
+
+	std::string_view str;
+	TokenType type;
+
+};
 
 
 class Parser {
 
-public:
-
-	enum class TokenMode {
-		Operand,
-		Operator
+	enum class State {
+		Expression
 	};
 
-	Parser() : expression("") {}
-	Parser(const std::string& exp) : expression(exp) {}
+public:
+
+	Parser() : Parser("") {}
+	explicit Parser(const std::string& exp) : expression(exp), cursor(0), tokenStart(0) {}
 
 	void parse() {
 
 		ArcDebug() << expression;
 
-		TokenMode mode = TokenMode::Operand;
-		cursor = 0;
-
 		u32 level = 0;
+		cursor = 0;
+		tokenStart = 0;
 
-		while (cursor < expression.size()) {
+		Token token = tokenize();
+		ArcDebug() << "Token" << token.str;
 
-			if (cursorAtSpace()) {
+		while (token.type != TokenType::End) {
 
-				cursor++;
-				continue;
+			token = tokenize();
+			ArcDebug() << "Token" << token.str;
 
-			}
-
-			auto c = charAtCursor();
-
-			if (c == '(') {
-
-				level++;
-				cursor++;
-
-			} else if (c == ')'){
-
-				if (level) {
-					level--;
-				} else {
-					throw MathSyntaxException("Unexpected ')'", expression, cursor);
-				}
-
-				cursor++;
-
-			} else {
-
-				switch (mode) {
-
-					case TokenMode::Operand:
-
-						parseConstant();
-						mode = TokenMode::Operator;
-
-						break;
-
-					case TokenMode::Operator:
-
-						Log::info("MathExpr", std::string("Operator ") + c);
-						mode = TokenMode::Operand;
-						cursor++;
-
-						break;
-
-				}
-
-			}
-
-/*
-			if (mode == TokenMode::Value && ((c >= '0' && c <= '9') || c == '.' || c == '+' || c == '-')) {
-
-				parseConstant();
-				mode = TokenMode::Operator;
-
-			} else {
-
-				switch (c) {
-
-					case ' ':
-						cursor++;
-						break;
-
-					default:
-						throw MathSyntaxException(std::string("Invalid token '") + c + "'", expression, cursor);
-
-				}
-
-			}
-*/
 		}
 
 	}
 
+
+
+	Token tokenize() {
+
+		tokenStart = cursor;
+		TokenType type = scanNextToken();
+
+		return { std::string_view(expression.begin() + tokenStart, expression.begin() + cursor), type };
+
+	}
+
+
+	TokenType scanNextToken() {
+
+		TokenType type;
+
+		while (cursor < expression.size()) {
+
+			char c = charAtCursor();
+			cursor++;
+
+			switch (c) {
+
+				case '(':   return TokenType::LeftBracket;
+				case ')':   return TokenType::RightBracket;
+
+				case ' ':
+					tokenStart++;
+					break;
+
+				default:
+					throw MathSyntaxException(std::string("Illegal '") + c + "'", expression, cursor - 1);
+
+			}
+
+		}
+
+		return type;
+
+	}
 
 
 	void parseConstant() {
@@ -223,5 +208,6 @@ private:
 
 	std::string_view expression;
 	SizeT cursor;
+	SizeT tokenStart;
 
 };

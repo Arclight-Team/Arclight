@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "math/math.hpp"
 #include "math/overflow.hpp"
 #include "util/assert.hpp"
 #include "util/bits.hpp"
@@ -917,4 +918,11 @@ constexpr BigInt operator%(BigInt a, const BigInt& b) {
 	a %= b;
 	return a;
 
+}
+
+
+
+template<char... Chars>
+constexpr BigInt operator""_big() {
+    return BigInt(String::fromChars(Chars...));
 }
