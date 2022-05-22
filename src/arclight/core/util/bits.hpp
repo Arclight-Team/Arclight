@@ -412,11 +412,6 @@ namespace Bits {
 
 	}
 
-	template<class T>
-	constexpr SizeT bitCount() noexcept {
-		return sizeof(T) * 8;
-	}
-
 	template<CC::Integer I>
 	constexpr bool signOf(I i) noexcept {
 		return i >> (bitCount<I>() - 1);

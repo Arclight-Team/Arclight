@@ -14,7 +14,11 @@
 
 class IRandomNumberGenerator {};
 
-template<class T>
-concept RandomNumberGenerator = CC::BaseOf<IRandomNumberGenerator, T> && requires {
-	T::SeedBits -> SizeT;
-};
+namespace CC {
+
+	template<class T>
+	concept RandomNumberGenerator = CC::BaseOf<IRandomNumberGenerator, T> && requires {
+		T::SeedBits -> SizeT;
+	};
+
+}

@@ -11,6 +11,8 @@
 #include "seed.hpp"
 #include "random.hpp"
 #include "types.hpp"
+#include "common/typetraits.hpp"
+#include "util/bits.hpp"
 
 
 
