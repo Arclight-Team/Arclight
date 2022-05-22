@@ -329,9 +329,39 @@ namespace Bits {
 
 	}
 
+	template<CC::Integer I, CC::Integer J>
+	constexpr SizeT disassemble(I i, J* js, SizeT max) noexcept requires (sizeof(I) / sizeof(J) * sizeof(J) == sizeof(I)) {
+
+		SizeT slices = sizeof(I) / sizeof(J);
+
+		if (max > slices) {
+			max = slices;
+		}
+
+		for(SizeT n = 0; n < max; n++) {
+
+			js[n] = cast<J>(TT::MakeUnsigned<J>(i & ~static_cast<J>(0)));
+			i >>= sizeof(J) * 8;
+
+		}
+
+		return max;
+
+	}
+
 	template<class T>
 	constexpr SizeT bitCount() noexcept {
 		return sizeof(T) * 8;
+	}
+
+	template<CC::Integer I>
+	constexpr bool signOf(I i) noexcept {
+		return i >> (bitCount<I>() - 1);
+	}
+
+	template<CC::Integer I>
+	constexpr I allOnes() noexcept {
+		return I(-1);
 	}
 
 	template<CC::Integer T>
