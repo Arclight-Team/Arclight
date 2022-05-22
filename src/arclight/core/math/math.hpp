@@ -56,7 +56,11 @@ namespace Math {
 			return value == A(0) ? A(0) : (value < A(0) ? -value : value);
 		}
 
-		return std::abs(value);
+		if constexpr (CC::UnsignedType<A>) {
+			return value;
+		} else {
+			return std::abs(value);
+		}
 
 	}
 

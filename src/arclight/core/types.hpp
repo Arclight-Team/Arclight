@@ -26,7 +26,7 @@ using i64   = int64_t;
 using imax  = intmax_t;
 using umax  = uintmax_t;
 
-using SizeT     = size_t;
+using SizeT     = std::size_t;
 using AlignT    = SizeT;
 using AddressT  = uintptr_t;
 
