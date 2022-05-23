@@ -33,7 +33,7 @@ namespace Font {
    
 
 	template<Pixel P>
-	void rasterizeSingle(Image<P>& image, const Vec2i& origin, const TrueType::Glyph& glyph, double scale, const Mat2d& transform = Mat2d()) {
+	void rasterizeSingle(Image<P>& image, const Vec2i& origin, const TrueType::Glyph& glyph, double scale, const Mat2d& transform = Mat2d(), PixelType<P> color = Colors<P>::White) {
 
 		//Skip if the image size is 0
 		if(image.getWidth() == 0 || image.getHeight() == 0) {
@@ -257,7 +257,7 @@ namespace Font {
 
                 //Now render the fill
                 for(i32 x = Math::max(origin.x + startX, 0); x <= Math::min(origin.x + endX, static_cast<i32>(image.getWidth() - 1)); x++) {
-                    image.setPixel(x, py, Colors<P>::White);
+                    image.setPixel(x, py, color);
                 }
 
 			}
@@ -268,17 +268,17 @@ namespace Font {
 
 
 	template<Pixel P>
-	void rasterize(const TrueType::Font& font, Image<P>& image, const Vec2i& origin, const TrueType::Glyph& glyph, double scale) {
+	void rasterize(const TrueType::Font& font, Image<P>& image, const Vec2i& origin, const TrueType::Glyph& glyph, double scale, PixelType<P> color = Colors<P>::White) {
 
 		if(glyph.compound) {
 
 			for(const TrueType::Glyph::Component& component : glyph.getGlyphComponents()) {
-				rasterizeSingle<P>(image, origin + component.offset * scale, font.glyphs[component.glyphIndex], scale, component.transform);
+				rasterizeSingle<P>(image, origin + component.offset * scale, font.glyphs[component.glyphIndex], scale, component.transform, color);
 			}
 
 		} else {
 
-			rasterizeSingle<P>(image, origin, glyph, scale);
+			rasterizeSingle<P>(image, origin, glyph, scale, Mat2d(), color);
 
 		}
 
