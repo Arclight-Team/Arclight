@@ -210,6 +210,15 @@ namespace TT {
 
 
 		template<class T>
+		struct ArraySizeHelper {};
+
+		template<class T, SizeT N>
+		struct ArraySizeHelper<T[N]> {
+			static constexpr SizeT Size = N;
+		};
+
+
+		template<class T>
 		struct TypeTagged {
 			constexpr static bool Value = false;
 		};
@@ -254,6 +263,11 @@ namespace TT {
 
 	template<SizeT Size>
 	using SignedFromSize = typename Detail::SignedFromSize<Size>::Type;
+
+
+	/* Extracts the size of an array */
+	template<class T>
+	constexpr SizeT ArraySize = Detail::ArraySizeHelper<T>::Size;
 
 
 	/* Extracts the arithmetic type from a mathematical construct T or uses the arithmetic type T */
