@@ -48,18 +48,6 @@ namespace CC {
 
 }
 
-template<class T>
-concept FloatParam = Float<T> || FloatVector<T>;
-
-template<class T>
-concept IntegerParam = Integer<T> || IntegerVector<T>;
-
-template<class T>
-concept IntegralParam = Integral<T> || IntegralVector<T>;
-
-template<class T>
-concept ArithmeticParam = Arithmetic<T> || Vector<T>;
-
 
 template<CC::Arithmetic T>
 class Vec2 {
