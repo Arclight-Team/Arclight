@@ -422,6 +422,11 @@ namespace Bits {
 		return I(-1);
 	}
 
+	template<CC::Integer I>
+	constexpr I ones(SizeT n) noexcept {
+		return n >= bitCount<I>() ? allOnes<I>() : (I(1) << n) - 1;
+	}
+
 	template<CC::Integer T>
 	constexpr T mask(T t, u32 start, u32 count) noexcept {
 		return t & ((count < bitCount<T>() ? (cast<TT::MakeUnsigned<T>>(T(1)) << count) - 1 : ~T(0)) << start);
