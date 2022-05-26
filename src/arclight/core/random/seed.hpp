@@ -117,7 +117,7 @@ public:
 
 	}
 
-	template<CC::Integer T>
+	template<CC::Integral T>
 	constexpr T get(SizeT offset) const noexcept {
 
 		if constexpr (ExtStorage) {

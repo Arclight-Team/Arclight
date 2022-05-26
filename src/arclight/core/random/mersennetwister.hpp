@@ -44,13 +44,13 @@ public:
 	constexpr static X UMask = ~LMask & WMask;
 
 
-	constexpr MersenneTwister() noexcept : MersenneTwister(5489) {}
+	constexpr MersenneTwister() : MersenneTwister(5489) {}
 
-	constexpr explicit MersenneTwister(SeedType seed) noexcept {
+	constexpr explicit MersenneTwister(SeedType seed) {
 		setSeed(seed);
 	}
 
-	constexpr void setSeed(SeedType seed) noexcept {
+	constexpr void setSeed(SeedType seed) {
 
 		x[0] = seed.get<X>(0);
 

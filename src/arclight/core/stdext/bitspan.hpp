@@ -292,7 +292,7 @@ public:
 		return *(end() - 1);
 	}
 
-	constexpr auto operator[](SizeT idx) const {
+	constexpr auto operator[](SizeT idx) const noexcept {
 		return begin()[idx];
 	}
 
