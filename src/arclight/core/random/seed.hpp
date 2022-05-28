@@ -66,9 +66,11 @@ public:
 	template<CC::Integer I>
 	constexpr Seed(I i) {
 
+		SizeT bytes = (Bits + 7) / 8;
+
 		if constexpr (ExtStorage) {
 
-			storage.resize(sizeof(Bits));
+			storage.resize(bytes);
 			Bits::disassemble(i, storage.data(), storage.size());
 
 		} else {
