@@ -148,7 +148,7 @@ namespace CC {
 	concept SignedType = std::is_signed_v<T>;
 
 	template<class T>
-	concept UnsignedType = std::is_unsigned_v<T>;
+	concept UnsignedType = std::is_unsigned_v<T> && !Equal<T, bool>;
 
 
 	template<class T>

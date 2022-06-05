@@ -97,6 +97,16 @@ namespace Bits {
 		return std::countr_zero(static_cast<TT::MakeUnsigned<T>>(value));
 	}
 
+	template<CC::Integer T>
+	constexpr auto clo(T value) noexcept {
+		return std::countl_one(static_cast<TT::MakeUnsigned<T>>(value));
+	}
+
+	template<CC::Integer T>
+	constexpr auto cto(T value) noexcept {
+		return std::countr_one(static_cast<TT::MakeUnsigned<T>>(value));
+	}
+
 	template<CC::UnsignedType T>
 	constexpr bool isPowerOf2(T value) noexcept {
 		return std::has_single_bit(value);
@@ -268,12 +278,12 @@ namespace Bits {
 
 	template<CC::Integer T>
 	constexpr auto countLeadingOnes(T value) noexcept {
-		return clz(~value);
+		return clo(value);
 	}
 
 	template<CC::Integer T>
 	constexpr auto countTrailingOnes(T value) noexcept {
-		return ctz(~value);
+		return cto(value);
 	}
 
 	template<CC::Integer T>
@@ -281,11 +291,31 @@ namespace Bits {
 		return popcount(value);
 	}
 
+	template<class T>
+	constexpr SizeT bitCount() noexcept {
+		return sizeof(T) * 8;
+	}
+
+	template<CC::Integer To, CC::Integer From>
+	constexpr To zeroExtend(From t, u32 width = bitCount<From>()) noexcept {
+
+		u32 shift = bitCount<From>() - width;
+		return static_cast<To>((static_cast<TT::MakeUnsigned<From>>(t) << shift) >> shift);
+
+	}
+
+	template<CC::Integer To, CC::Integer From>
+	constexpr To signExtend(From t, u32 width = bitCount<From>()) noexcept {
+
+		u32 shift = bitCount<From>() - width;
+		return static_cast<To>(static_cast<TT::MakeSigned<From>>(static_cast<TT::MakeUnsigned<From>>(t) << shift) >> shift);
+
+	}
+
 	template<CC::Integer I, CC::Integer... J>
 	constexpr I assemble(J... js) noexcept requires (TT::IsAllSame<J...> && (TT::SizeofN<0, J...> * sizeof...(J)) == sizeof(I)) {
 
 		SizeT s = TT::SizeofN<0, J...>;
-		SizeT n = sizeof...(js) * s;
 		SizeT shift = 0;
 		I i = 0;
 
@@ -305,12 +335,12 @@ namespace Bits {
 	}
 
 	template<CC::Integer I, CC::Integer J>
-	constexpr I assemble(J* js, SizeT max = -1) noexcept requires (sizeof(I) / sizeof(J) * sizeof(J) == sizeof(I)) {
+	constexpr I assemble(J* js) noexcept requires (sizeof(I) / sizeof(J) * sizeof(J) == sizeof(I)) {
 
 		I i = 0;
 		SizeT shift = 0;
 
-		for (SizeT n = 0; n < sizeof(I) / sizeof(J) && n < max; n++) {
+		for (SizeT n = 0; n < sizeof(I) / sizeof(J); n++) {
 
 			i |= static_cast<TT::MakeUnsigned<I>>(cast<TT::MakeUnsigned<J>>(js[n])) << shift;
 			shift += sizeof(J) * 8;
@@ -321,12 +351,36 @@ namespace Bits {
 
 	}
 
-	template<CC::Float F, CC::Integer J>
-	constexpr F assemble(J* js, SizeT max = -1) noexcept requires (sizeof(F) / sizeof(J) * sizeof(J) == sizeof(F)) {
+	template<CC::Integer I, CC::Integer J>
+	constexpr I assemble(J* js, SizeT max) noexcept requires (sizeof(I) / sizeof(J) * sizeof(J) == sizeof(I)) {
 
-		using U = TT::MakeUnsigned<TT::ToInteger<F>>;
+		I i = 0;
+		SizeT shift = 0;
+		SizeT slices = sizeof(I) / sizeof(J);
 
-		return cast<F>(assemble<U>(js, max));
+		if (max > slices) {
+			max = slices;
+		}
+
+		for (SizeT n = 0; n < max; n++) {
+
+			i |= static_cast<TT::MakeUnsigned<I>>(cast<TT::MakeUnsigned<J>>(js[n])) << shift;
+			shift += sizeof(J) * 8;
+
+		}
+
+		//TODO: Sign extend?
+		/*
+		if constexpr (SignedType<I>) {
+
+			if (max != slices) {
+				i = signExtend<I>(i, bitCount<J>() * max);
+			}
+
+		}
+		 */
+
+		return i;
 
 	}
 
@@ -345,9 +399,9 @@ namespace Bits {
 	}
 
 	template<CC::Integer I, CC::Integer J>
-	constexpr void disassemble(I i, J* js, SizeT max = -1) noexcept requires (sizeof(I) / sizeof(J) * sizeof(J) == sizeof(I)) {
+	constexpr void disassemble(I i, J* js) noexcept requires (sizeof(I) / sizeof(J) * sizeof(J) == sizeof(I)) {
 
-		for(SizeT n = 0; n < sizeof(I) / sizeof(J) && n < max; n++) {
+		for(SizeT n = 0; n < sizeof(I) / sizeof(J); n++) {
 
 			js[n] = cast<J>(TT::MakeUnsigned<J>(i & ~static_cast<J>(0)));
 			i >>= sizeof(J) * 8;
@@ -356,28 +410,49 @@ namespace Bits {
 
 	}
 
-	template<CC::Float F, CC::Integer J>
-	constexpr void disassemble(F f, J* js, SizeT max = -1) noexcept requires (sizeof(F) / sizeof(J) * sizeof(J) == sizeof(F)) {
+	template<CC::Integer I, CC::Integer J>
+	constexpr SizeT disassemble(I i, J* js, SizeT max) noexcept requires (sizeof(I) / sizeof(J) * sizeof(J) == sizeof(I)) {
 
-		using U = TT::MakeUnsigned<TT::ToInteger<F>>;
+		SizeT slices = sizeof(I) / sizeof(J);
 
-		disassemble(cast<U>(f), js, max);
+		if (max > slices) {
+			max = slices;
+		}
+
+		for(SizeT n = 0; n < max; n++) {
+
+			js[n] = cast<J>(TT::MakeUnsigned<J>(i & ~static_cast<J>(0)));
+			i >>= sizeof(J) * 8;
+
+		}
+
+		return max;
 
 	}
 
-	template<class T>
-	constexpr SizeT bitCount() noexcept {
-		return sizeof(T) * 8;
+	template<CC::Integer I>
+	constexpr bool signOf(I i) noexcept {
+		return i >> (bitCount<I>() - 1);
+	}
+
+	template<CC::Integer I>
+	constexpr I allOnes() noexcept {
+		return I(-1);
+	}
+
+	template<CC::Integer I>
+	constexpr I ones(SizeT n) noexcept {
+		return n >= bitCount<I>() ? allOnes<I>() : (I(1) << n) - 1;
 	}
 
 	template<CC::Integer T>
 	constexpr T mask(T t, u32 start, u32 count) noexcept {
-		return t & (((T(1) << count) - 1) << start);
+		return t & ((count < bitCount<T>() ? (cast<TT::MakeUnsigned<T>>(T(1)) << count) - 1 : ~T(0)) << start);
 	}
 
 	template<CC::Integer T>
 	constexpr T clear(T t, u32 start, u32 count) noexcept {
-		return t & ~(((T(1) << count) - 1) << start);
+		return t & ~mask(t, start, count);
 	}
 
 	template<class T>

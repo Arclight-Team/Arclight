@@ -158,27 +158,44 @@ namespace TT {
 		template<SizeT Size>
 		struct UnsignedFromSize {
 
-			static_assert(Size <= sizeof(umax), "Cannot supply unsigned type greater than sizeof(umax)");
+			static_assert(Size <= sizeof(u64), "Cannot supply unsigned type greater than 8 bytes");
 
 			using Type =    TT::Conditional<Size == 1, u8,
 							TT::Conditional<Size == 2, u16,
-							TT::Conditional<Size <= 4, u32,
-							TT::Conditional<Size <= 8, u64, umax>>>>;
+							TT::Conditional<Size <= 4, u32, u64>>>;
 
 		};
 
 		template<SizeT Size>
 		struct SignedFromSize {
 
-			static_assert(Size <= sizeof(imax), "Cannot supply signed type greater than sizeof(imax)");
+			static_assert(Size <= sizeof(i64), "Cannot supply signed type greater than 8 bytes");
 
 			using Type =    TT::Conditional<Size == 1, i8,
 							TT::Conditional<Size == 2, i16,
-							TT::Conditional<Size <= 4, i32,
-							TT::Conditional<Size <= 8, i64, imax>>>>;
+							TT::Conditional<Size <= 4, i32, i64>>>;
 
 		};
 
+		template<CC::Arithmetic T> struct BiggerType { static_assert("Illegal type"); };
+		template<> struct BiggerType<i8>    { using Type = i16; };
+		template<> struct BiggerType<i16>   { using Type = i32; };
+		template<> struct BiggerType<i32>   { using Type = i64; };
+		template<> struct BiggerType<u8>    { using Type = u16; };
+		template<> struct BiggerType<u16>   { using Type = u32; };
+		template<> struct BiggerType<u32>   { using Type = u64; };
+		template<> struct BiggerType<char>  { using Type = TT::Conditional<CC::SignedType<char>, i16, u16>; };
+
+		template<CC::Arithmetic T> struct SmallerType { static_assert("Illegal type"); };
+		template<> struct SmallerType<i16>  { using Type = i8;  };
+		template<> struct SmallerType<i32>  { using Type = i16; };
+		template<> struct SmallerType<i64>  { using Type = i32; };
+		template<> struct SmallerType<u16>  { using Type = u8;  };
+		template<> struct SmallerType<u32>  { using Type = u16; };
+		template<> struct SmallerType<u64>  { using Type = u32; };
+
+		template<class T> concept HasBiggerType = CC::Arithmetic<T> && requires (T) { BiggerType<T>::Type; };
+		template<class T> concept HasSmallerType = CC::Arithmetic<T> && requires (T) { SmallerType<T>::Type; };
 
 		template<SizeT N, class T, class... Pack>
 		struct PackHelper {
@@ -267,7 +284,23 @@ namespace TT {
 
 	/* Extracts the size of an array */
 	template<class T>
-	constexpr SizeT ArraySize = Detail::ArraySizeHelper<T>::Size;
+	constexpr inline SizeT ArraySize = Detail::ArraySizeHelper<T>::Size;
+
+
+	/* Returns the smaller/bigger power of two type */
+	template<CC::Arithmetic T>
+	using BiggerType = typename Detail::BiggerType<T>::Type;
+
+	template<CC::Arithmetic T>
+	using SmallerType = typename Detail::SmallerType<T>::Type;
+
+
+	/* True if the given type has a smaller/bigger power of two type */
+	template<CC::Arithmetic T>
+	constexpr inline bool HasBiggerType = Detail::HasBiggerType<T>;
+
+	template<CC::Arithmetic T>
+	constexpr inline bool HasSmallerType = Detail::HasSmallerType<T>;
 
 
 	/* Extracts the arithmetic type from a mathematical construct T or uses the arithmetic type T */

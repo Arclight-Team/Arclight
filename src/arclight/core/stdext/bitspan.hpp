@@ -292,7 +292,7 @@ public:
 		return *(end() - 1);
 	}
 
-	constexpr auto operator[](SizeT idx) const {
+	constexpr auto operator[](SizeT idx) const noexcept {
 		return begin()[idx];
 	}
 
@@ -398,10 +398,7 @@ public:
 		}
 
 		if (size > this->size()) {
-
-			arc_force_assert("Attempted to read data past the end of the span");
 			size = this->size();
-
 		}
 
 		SizeT alignedReadBytes = Math::alignUp(size, 8) / 8;

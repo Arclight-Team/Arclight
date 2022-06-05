@@ -339,6 +339,10 @@ project (${PROJECT_NAME})
 
 		list(APPEND APPLICATION_LIBS ComCtl32.lib)
 
+		if("arclight.random" IN_LIST MODULE_LIST)
+			list(APPEND APPLICATION_LIBS Bcrypt.lib)
+		endif()
+
 	endif()
 
 
