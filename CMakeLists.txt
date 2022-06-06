@@ -337,11 +337,7 @@ project (${PROJECT_NAME})
 		# Force Unicode
 		add_compile_definitions(UNICODE _UNICODE)
 
-		list(APPEND APPLICATION_LIBS ComCtl32.lib)
-
-		if("arclight.random" IN_LIST MODULE_LIST)
-			list(APPEND APPLICATION_LIBS Bcrypt.lib)
-		endif()
+		list(APPEND APPLICATION_LIBS ComCtl32.lib Bcrypt.lib)
 
 	endif()
 

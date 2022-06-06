@@ -34,6 +34,11 @@ namespace Math {
 	constexpr double epsilon = 0.000001;
 	constexpr double minEpsilon = 0.00000001;
 
+	template<CC::Float F>
+	struct SplitFloat {
+		F integer;
+		F fractional;
+	};
 
 	template<CC::Arithmetic A> constexpr auto ceil(A value);
 	template<CC::Arithmetic A> constexpr auto floor(A value);
@@ -317,9 +322,18 @@ namespace Math {
 	}
 
 	template<CC::Float F>
+	ARC_CMATH_CONSTEXPR SplitFloat<F> split(F v) {
+
+		SplitFloat<F> f;
+		f.fractional = std::modf(v, &f.integer);
+
+		return f;
+
+	}
+
+	template<CC::Float F>
 	ARC_CMATH_CONSTEXPR F fract(F v) {
-		[[maybe_unused]] F f;
-		return std::modf(v, &f);
+		return split(v).fractional;
 	}
 
 	template<CC::Arithmetic A>

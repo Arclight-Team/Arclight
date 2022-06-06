@@ -36,7 +36,7 @@ struct OverflowMultiplyResult {
 namespace Math {
 
 	template<CC::Arithmetic A>
-	constexpr OverflowAddResult<A> overflowSignedAdd(A a, A b) {
+	constexpr OverflowAddResult<A> overflowSignedAdd(A a, A b) noexcept {
 
 		using UnsignedT = TT::MakeUnsigned<A>;
 
@@ -51,7 +51,7 @@ namespace Math {
 	}
 
 	template<CC::Arithmetic A>
-	constexpr OverflowAddResult<A> overflowUnsignedAdd(A a, A b) {
+	constexpr OverflowAddResult<A> overflowUnsignedAdd(A a, A b) noexcept {
 
 		using UnsignedT = TT::MakeUnsigned<A>;
 
@@ -67,7 +67,7 @@ namespace Math {
 	}
 
 	template<CC::Arithmetic A>
-	constexpr OverflowAddResult<A> overflowAdd(A a, A b) {
+	constexpr OverflowAddResult<A> overflowAdd(A a, A b) noexcept {
 
 		if constexpr (CC::UnsignedType<A>) {
 			return overflowUnsignedAdd(a, b);
@@ -78,7 +78,7 @@ namespace Math {
 	}
 
 	template<CC::Arithmetic A>
-	constexpr OverflowAddResult<A> overflowSignedSubtract(A a, A b) {
+	constexpr OverflowAddResult<A> overflowSignedSubtract(A a, A b) noexcept {
 
 		using UnsignedT = TT::MakeUnsigned<A>;
 
@@ -93,7 +93,7 @@ namespace Math {
 	}
 
 	template<CC::Arithmetic A>
-	constexpr OverflowAddResult<A> overflowUnsignedSubtract(A a, A b) {
+	constexpr OverflowAddResult<A> overflowUnsignedSubtract(A a, A b) noexcept {
 
 		using UnsignedT = TT::MakeUnsigned<A>;
 
@@ -109,7 +109,7 @@ namespace Math {
 	}
 
 	template<CC::Arithmetic A>
-	constexpr OverflowAddResult<A> overflowSubtract(A a, A b) {
+	constexpr OverflowAddResult<A> overflowSubtract(A a, A b) noexcept {
 
 		if constexpr (CC::UnsignedType<A>) {
 			return overflowUnsignedSubtract(a, b);
@@ -120,7 +120,7 @@ namespace Math {
 	}
 
 	template<CC::Arithmetic A>
-	constexpr OverflowMultiplyResult<A> overflowSignedMultiply(A a, A b) {
+	constexpr OverflowMultiplyResult<A> overflowSignedMultiply(A a, A b) noexcept {
 
 		using SignedT = TT::MakeSigned<A>;
 		using UnsignedT = TT::MakeUnsigned<A>;
@@ -175,7 +175,7 @@ namespace Math {
 	}
 
 	template<CC::Arithmetic A>
-	constexpr OverflowMultiplyResult<A> overflowUnsignedMultiply(A a, A b) {
+	constexpr OverflowMultiplyResult<A> overflowUnsignedMultiply(A a, A b) noexcept {
 
 		using UnsignedT = TT::MakeUnsigned<A>;
 
@@ -232,7 +232,7 @@ namespace Math {
 	}
 	
 	template<CC::Arithmetic A>
-	constexpr OverflowMultiplyResult<A> overflowMultiply(A a, A b) {
+	constexpr OverflowMultiplyResult<A> overflowMultiply(A a, A b) noexcept {
 
 		if constexpr (CC::UnsignedType<A>) {
 			return overflowUnsignedMultiply(a, b);

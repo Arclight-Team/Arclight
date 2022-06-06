@@ -334,6 +334,25 @@ public:
 		return negate();
 	}
 
+	constexpr BigInt operator<<(SizeT n) const {
+		BigInt i = *this;
+		return i.shiftLeft(n);
+	}
+
+	constexpr BigInt operator>>(SizeT n) const {
+		BigInt i = *this;
+		return i.shiftRight(n);
+	}
+
+	constexpr BigInt& operator<<=(SizeT n) {
+		return shiftLeft(n);
+	}
+
+	constexpr BigInt& operator>>=(SizeT n) {
+		return shiftRight(n);
+	}
+
+
 	constexpr explicit operator bool() const noexcept {
 		return !isZero();
 	}

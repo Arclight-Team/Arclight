@@ -303,6 +303,14 @@ namespace TT {
 	constexpr inline bool HasSmallerType = Detail::HasSmallerType<T>;
 
 
+	/* Selects a type depending on the size */
+	template<class T, class U>
+	using MinType = TT::Conditional<sizeof(T) <= sizeof(U), T, U>;
+
+	template<class T, class U>
+	using MaxType = TT::Conditional<sizeof(T) >= sizeof(U), T, U>;
+
+
 	/* Extracts the arithmetic type from a mathematical construct T or uses the arithmetic type T */
 	template<class T>
 	using CommonArithmeticType = typename Detail::CommonArithmeticType<T>::Type;
