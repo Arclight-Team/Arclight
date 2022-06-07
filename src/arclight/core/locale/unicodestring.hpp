@@ -1258,26 +1258,31 @@ private:
 
 		if constexpr (!Unicode::isUTF32<E>()) {
 
-			//First, we get the start index into distances to modify
-			SizeT dstOffset = cpStart / Base::CPDistance;
+			//Resize to fit all distance elements
+			SizeT distanceSize = totalCps / Base::CPDistance + 1;
+			Base::distances.resize(distanceSize);
 
-			//Resize to fit new distance elements
-			Base::totalCodepoints = totalCps;
-			Base::distances.resize((totalCps + Base::CPDistance - 1) / Base::CPDistance);
+			SizeT startRestoreDistance = cpStart / Base::CPDistance;
 
-			SizeT x = cpStart;
-			const CharT* ptr = str.data() + charStart;
+			//Only modify if it's not the last distance already
+			if (startRestoreDistance + 1 < distanceSize) {
 
-			//Calculate all new offsets from start point onwards
-			for(SizeT i = dstOffset + 1; i < Base::distances.size(); i++) {
+				const CharT* ptr = str.data() + Base::distances[startRestoreDistance];
 
-				for(; x < i * Base::CPDistance; x++) {
-					ptr += Unicode::getEncodedSize<E>(ptr);
+				//Calculate all new offsets from start point onwards
+				for (SizeT i = startRestoreDistance + 1; i < distanceSize; i++) {
+
+					for (SizeT x = 0; x < Base::CPDistance; x++) {
+						ptr += Unicode::getEncodedSize<E>(ptr);
+					}
+
+					Base::distances[i] = ptr - str.data();
+
 				}
 
-				Base::distances[i] = ptr - str.data();
-
 			}
+
+			Base::totalCodepoints = totalCps;
 
 		}
 
