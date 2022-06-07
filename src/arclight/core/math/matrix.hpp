@@ -257,6 +257,10 @@ public:
 		return v[0] == m[0] && v[1] == m[1];
 	}
 
+	constexpr Mat2 operator-() const noexcept {
+		return Mat2(-v[0], -v[1]);
+	}
+
 	constexpr Vec2<T>& operator[](u32 index) noexcept {
 		arc_assert(index < 2, "Mat2 access out of bounds (index=%d)", index);
 		return v[index];
@@ -508,6 +512,10 @@ public:
 	template<CC::Arithmetic A>
 	constexpr bool operator==(const Mat3<A>& m) const noexcept {
 		return v[0] == m[0] && v[1] == m[1] && v[2] == m[2];
+	}
+
+	constexpr Mat3 operator-() const noexcept {
+		return Mat3(-v[0], -v[1], -v[2]);
 	}
 
 	constexpr Vec3<T>& operator[](u32 index) noexcept {
@@ -1049,6 +1057,10 @@ public:
 	template<CC::Arithmetic A>
 	constexpr bool operator==(const Mat4<A>& m) const noexcept {
 		return v[0] == m[0] && v[1] == m[1] && v[2] == m[2] && v[3] == m[3];
+	}
+
+	constexpr Mat4 operator-() const noexcept {
+		return Mat4(-v[0], -v[1], -v[2], -v[3]);
 	}
 
 	constexpr Vec4<T>& operator[](u32 index) noexcept {
