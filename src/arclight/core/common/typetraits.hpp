@@ -111,29 +111,46 @@ namespace TT {
 			constexpr static bool Value = (std::is_same_v<T, Pack> && ...);
 		};
 
-		template<CC::Arithmetic A>
-		struct ToInteger {
+		template<CC::Arithmetic T>
+		struct ToSizedInteger {
 
-			constexpr static SizeT Size = sizeof(A);
+			constexpr static SizeT Size = sizeof(T);
 
-			using Type =    TT::Conditional<CC::Integer<A>, A,
+			using Type =    TT::Conditional<CC::Integral<T>, T,
 							TT::Conditional<Size <= 4, i32,
 							TT::Conditional<Size <= 8, i64, imax>>>;
 
 		};
 
-		template<CC::Arithmetic A>
-		struct ToFloat {
+		template<CC::Arithmetic T>
+		struct ToSizedFloat {
 
-			constexpr static SizeT Size = sizeof(A);
+			constexpr static SizeT Size = sizeof(T);
 
-			using Type =	TT::Conditional<CC::Float<A>, A,
+			using Type =	TT::Conditional<CC::Float<T>, T,
 							TT::Conditional<Size <= sizeof(float), float,
 							TT::Conditional<Size <= sizeof(double), double, long double>>>;
 
 		};
-		template<> struct ToFloat<u64> { using Type = double; };
-		template<> struct ToFloat<i64> { using Type = double; };
+
+		template<CC::Arithmetic T>
+		struct ToInteger {
+
+			using Type =    TT::Conditional<CC::Integral<T>, T,
+							TT::Conditional<CC::Equal<T, float>, i32, i64>>;
+
+		};
+
+		template<CC::Arithmetic T>
+		struct ToFloat {
+
+			constexpr static SizeT Size = sizeof(T);
+
+			using Type =	TT::Conditional<CC::Float<T>, T,
+							TT::Conditional<Size <= 2, float,
+							TT::Conditional<Size <= 4, double, long double>>>;
+
+		};
 
 		template<class T>
 		concept HasExposedInnerType = requires { T::Type; };
@@ -266,12 +283,25 @@ namespace TT {
 	using ConditionalConst = std::conditional_t<B, const T, T>;
 
 
-	/* Converts an Integer type to a roughly equivalent Float type */
+	/* Converts an Integer/Float type to a Float/Integer type */
+	/*
+	 *  It is guaranteed that any integer value is representable through the given float type,
+	 *  However, the same cannot hold true for float -> int.
+	 *  Therefore, the integer type that covers ~75% of all (usable) integer float values is provided instead.
+	 */
 	template<CC::Arithmetic A>
 	using ToInteger = typename Detail::ToInteger<A>::Type;
 
 	template<CC::Arithmetic A>
 	using ToFloat = typename Detail::ToFloat<A>::Type;
+
+
+	/* Converts an Integer/Float type to a Float/Integer type given that the resulting type is at least as wide as the original type */
+	template<CC::Arithmetic A>
+	using ToSizedInteger = typename Detail::ToSizedInteger<A>::Type;
+
+	template<CC::Arithmetic A>
+	using ToSizedFloat = typename Detail::ToSizedFloat<A>::Type;
 
 
 	/* Defines the corresponding integral type fitting at least the given amount of bytes */
@@ -309,6 +339,16 @@ namespace TT {
 
 	template<class T, class U>
 	using MaxType = TT::Conditional<sizeof(T) >= sizeof(U), T, U>;
+
+
+	/* Returns the type after arithmetic promotion */
+	template<CC::Arithmetic T>
+	using PromotedType = decltype(T(0) + T(0));
+
+
+	/* Returns the common type of multiple types */
+	template<class... T>
+	using CommonType = std::common_type_t<T...>;
 
 
 	/* Extracts the arithmetic type from a mathematical construct T or uses the arithmetic type T */

@@ -392,7 +392,7 @@ namespace Bits {
 	template<CC::Float F, CC::Integer... J>
 	constexpr void disassemble(F f, J&... js) noexcept requires (TT::IsAllSame<J...> && (TT::SizeofN<0, J...> * sizeof...(J)) == sizeof(F)) {
 
-		using U = TT::MakeUnsigned<TT::ToInteger<F>>;
+		using U = TT::MakeUnsigned<TT::ToSizedInteger<F>>;
 
 		disassemble(cast<U>(f), std::forward<J>(js)...);
 
