@@ -236,7 +236,7 @@ public:
 												            {0, 0, 1}} {}
 
 
-	Mat2<T> toMat2() const noexcept {
+	constexpr Mat2<T> toMat2() const noexcept {
 		return Mat2<T>(v[0][0], v[1][0], v[0][1], v[1][1]);
 	}
 
@@ -570,11 +570,11 @@ public:
 															  {0, 0, 0, 1}} {}
 
 
-	Mat2<T> toMat2() const noexcept {
+	constexpr Mat2<T> toMat2() const noexcept {
 		return Mat2<T>(v[0][0], v[1][0], v[0][1], v[1][1]);
 	}
 
-	Mat3<T> toMat3() const noexcept {
+	constexpr Mat3<T> toMat3() const noexcept {
 
 		return Mat3<T>(v[0][0], v[1][0], v[2][0],
 					   v[0][1], v[1][1], v[2][1],
