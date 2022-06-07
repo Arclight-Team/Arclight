@@ -51,6 +51,25 @@ namespace CC {
 
 }
 
+namespace TT {
+
+	namespace Detail {
+
+		template<CC::Vector V, CC::Arithmetic T>
+		struct SizedVector {
+			using Type = TT::Conditional<V::Size == 2, Vec2<T>, TT::Conditional<V::Size == 3, Vec3<T>, Vec4<T>>>;
+		};
+
+	}
+
+	template<CC::Vector V, CC::Arithmetic T>
+	using SizedVector = typename Detail::SizedVector<V, T>::Type;
+
+	template<CC::Vector A, CC::Vector B> requires CC::EqualVectorRank<A, B>
+	using CommonVectorType = SizedVector<A, TT::CommonType<typename A::Type, typename B::Type>>;
+
+}
+
 
 template<CC::Arithmetic T>
 class Vec2 {
@@ -60,10 +79,8 @@ class Vec2 {
 public:
 
 	using Type = T;
-	constexpr static u32 Size = 2;
-	
-	template<CC::Arithmetic A>
-	using Untyped = Vec2<A>;
+	constexpr static SizeT Size = 2;
+
 
 
 	constexpr Vec2() noexcept : x(0), y(0) {}
@@ -139,6 +156,7 @@ public:
 
 	}
 
+
 	template<CC::Arithmetic A>
 	constexpr Vec2& operator=(const Vec2<A>& v) noexcept {
 
@@ -178,6 +196,7 @@ public:
 	constexpr Vec2& operator/=(A s) noexcept {
 		return divide(s);
 	}
+
 
 	template<CC::Arithmetic A>
 	constexpr bool operator==(const Vec2<A>& v) const noexcept {
@@ -287,10 +306,8 @@ class Vec3 {
 public:
 
 	using Type = T;
-	constexpr static u32 Size = 3;
-	
-	template<CC::Arithmetic A>
-	using Untyped = Vec3<A>;
+	constexpr static SizeT Size = 3;
+
 
 
 	constexpr Vec3() noexcept : x(0), y(0), z(0) {}
@@ -375,6 +392,7 @@ public:
 
 	}
 
+
 	template<CC::Arithmetic A>
 	constexpr Vec3& operator=(const Vec3<A>& v) noexcept {
 
@@ -415,6 +433,37 @@ public:
 	constexpr Vec3& operator/=(A s) noexcept {
 		return divide(s);
 	}
+
+	template<CC::IntegralParam I>
+	constexpr Vec3 operator<<(I i) const noexcept requires (CC::Integral<T>) {
+
+		Vec3 v;
+		v.shiftLeft(i);
+
+		return *this;
+
+	}
+
+	template<CC::IntegralParam I>
+	constexpr Vec3 operator>>(I i) const noexcept requires (CC::Integral<T>) {
+
+		Vec3 v;
+		v.shiftRight(i);
+
+		return *this;
+
+	}
+
+	template<CC::IntegralParam I>
+	constexpr Vec3& operator<<=(I i) const noexcept requires (CC::Integral<T>) {
+		return shiftLeft(i);
+	}
+
+	template<CC::IntegralParam I>
+	constexpr Vec3& operator>>=(I i) const noexcept requires (CC::Integral<T>) {
+		return shiftRight(i);
+	}
+
 
 	template<CC::Arithmetic A>
 	constexpr bool operator==(const Vec3<A>& v) const noexcept {
@@ -532,10 +581,8 @@ class alignas(16) Vec4 {
 public:
 
 	using Type = T;
-	constexpr static u32 Size = 4;
+	constexpr static SizeT Size = 4;
 
-	template<CC::Arithmetic A>
-	using Untyped = Vec4<A>;
 
 
 	constexpr Vec4() noexcept : x(0), y(0), z(0), w(0) {}
@@ -629,6 +676,7 @@ public:
 
 	}
 
+
 	template<CC::Arithmetic A>
 	constexpr Vec4& operator=(const Vec4<A>& v) noexcept {
 
@@ -670,6 +718,37 @@ public:
 	constexpr Vec4& operator/=(A s) noexcept {
 		return divide(s);
 	}
+
+	template<CC::IntegralParam I>
+	constexpr Vec4 operator<<(I i) const noexcept requires (CC::Integral<T>) {
+
+		Vec4 v;
+		v.shiftLeft(i);
+
+		return *this;
+
+	}
+
+	template<CC::IntegralParam I>
+	constexpr Vec4 operator>>(I i) const noexcept requires (CC::Integral<T>) {
+
+		Vec4 v;
+		v.shiftRight(i);
+
+		return *this;
+
+	}
+
+	template<CC::IntegralParam I>
+	constexpr Vec4& operator<<=(I i) const noexcept requires (CC::Integral<T>) {
+		return shiftLeft(i);
+	}
+
+	template<CC::IntegralParam I>
+	constexpr Vec4& operator>>=(I i) const noexcept requires (CC::Integral<T>) {
+		return shiftRight(i);
+	}
+
 
 	template<CC::Arithmetic A>
 	constexpr bool operator==(const Vec4<A>& v) const noexcept {
@@ -776,122 +855,182 @@ public:
 
 
 template<CC::Vector A, CC::Vector B> requires CC::EqualVectorRank<A, B>
-constexpr auto operator+(A a, const B& b) noexcept {
-	typename A::template Untyped<TT::PromotedType<TT::InnerType<A>>> ax = a;
-	ax += b;
-	return ax;
+constexpr TT::CommonVectorType<A, B> operator+(A a, const B& b) noexcept {
+
+	TT::CommonVectorType<A, B> ax = a;
+	return ax += b;
+
 }
 
 template<CC::Vector A, CC::Vector B> requires CC::EqualVectorRank<A, B>
-constexpr auto operator-(A a, const B& b) noexcept {
-	typename A::template Untyped<TT::PromotedType<TT::InnerType<A>>> ax = a;
-	ax -= b;
-	return ax;
+constexpr TT::CommonVectorType<A, B> operator-(A a, const B& b) noexcept {
+
+	TT::CommonVectorType<A, B> ax = a;
+	return ax -= b;
+
 }
 
 template<CC::Vector A, CC::Vector B> requires CC::EqualVectorRank<A, B>
-constexpr auto operator*(A a, const B& b) noexcept {
-	typename A::template Untyped<TT::PromotedType<TT::InnerType<A>>> ax = a;
+constexpr TT::CommonVectorType<A, B> operator*(A a, const B& b) noexcept {
+
+	TT::CommonVectorType<A, B> ax = a;
 	return ax.compMultiply(b);
+
 }
 
 template<CC::Vector A, CC::Arithmetic B>
 constexpr auto operator*(A a, B b) noexcept {
-	typename A::template Untyped<TT::PromotedType<TT::InnerType<A>>> ax = a;
-	ax *= b;
-	return ax;
+
+	TT::SizedVector<A, TT::CommonType<typename A::Type, B>> ax = a;
+	return ax *= b;
+
 }
 
 template<CC::Vector A, CC::Arithmetic B>
 constexpr auto operator*(B b, A a) noexcept {
-	typename A::template Untyped<TT::PromotedType<TT::InnerType<A>>> ax = a;
-	ax *= b;
-	return ax;
+	return a * b;
 }
 
 template<CC::Vector A, CC::Vector B> requires CC::EqualVectorRank<A, B>
-constexpr auto operator/(A a, const B& b) noexcept {
-	typename A::template Untyped<TT::PromotedType<TT::InnerType<A>>> ax = a;
+constexpr TT::CommonVectorType<A, B> operator/(A a, const B& b) noexcept {
+
+	TT::CommonVectorType<A, B> ax = a;
 	return ax.compDivide(b);
+
 }
 
 template<CC::Vector A, CC::Arithmetic B>
 constexpr auto operator/(A a, B b) noexcept {
-	typename A::template Untyped<TT::PromotedType<TT::InnerType<A>>> ax = a;
-	ax /= b;
-	return ax;
+
+	TT::SizedVector<A, TT::CommonType<typename A::Type, B>> ax = a;
+	return ax /= b;
+
 }
 
-template<CC::IntegralVector A, class B> requires(CC::Integral<B> || (CC::IntegralVector<B> && CC::EqualVectorRank<A, B>))
-constexpr A operator&(A a, const B& b) noexcept {
 
-	for (u32 i = 0; i < A::Size; i++) {
+template<CC::IntegralVector A, class B> requires (CC::Integral<B> || (CC::IntegralVector<B> && CC::EqualVectorRank<A, B>))
+constexpr A& operator&=(A& a, const B& b) noexcept {
+
+	for (SizeT i = 0; i < A::Size; i++) {
+
 		if constexpr (CC::IntegralVector<B>) {
 			a[i] &= b[i];
 		} else {
 			a[i] &= b;
 		}
+
 	}
 
 	return a;
 
 }
 
-template<CC::IntegralVector A, class B> requires(CC::Integral<B> || (CC::IntegralVector<B> && CC::EqualVectorRank<A, B>))
-constexpr A operator|(A a, const B& b) noexcept {
+template<CC::IntegralVector A, class B> requires (CC::Integral<B> || (CC::IntegralVector<B> && CC::EqualVectorRank<A, B>))
+constexpr void operator|=(A& a, const B& b) noexcept {
 
-	for (u32 i = 0; i < A::Size; i++) {
+	for (SizeT i = 0; i < A::Size; i++) {
+
 		if constexpr (CC::IntegralVector<B>) {
 			a[i] |= b[i];
 		} else {
 			a[i] |= b;
 		}
+
 	}
 
 	return a;
 
 }
 
-template<CC::IntegralVector A, class B> requires(CC::Integral<B> || (CC::IntegralVector<B> && CC::EqualVectorRank<A, B>))
-constexpr A operator^(A a, const B& b) noexcept {
+template<CC::IntegralVector A, class B> requires (CC::Integral<B> || (CC::IntegralVector<B> && CC::EqualVectorRank<A, B>))
+constexpr void operator^=(A& a, const B& b) noexcept {
 
-	for (u32 i = 0; i < A::Size; i++) {
+	for (SizeT i = 0; i < A::Size; i++) {
+
 		if constexpr (CC::IntegralVector<B>) {
 			a[i] ^= b[i];
 		} else {
 			a[i] ^= b;
 		}
+
 	}
 
 	return a;
 
 }
 
-template<CC::IntegralVector A, class B> requires(CC::Integral<B> || (CC::IntegralVector<B> && CC::EqualVectorRank<A, B>))
-constexpr void operator&=(A& a, const B& b) noexcept {
-	a = a & b;
+
+template<CC::IntegralVector A, class B> requires (CC::Integral<B> || (CC::IntegralVector<B> && CC::EqualVectorRank<A, B>))
+constexpr A operator&(A a, const B& b) noexcept {
+	return a &= b;
+}
+
+template<CC::IntegralVector A, class B> requires (CC::Integral<B> || (CC::IntegralVector<B> && CC::EqualVectorRank<A, B>))
+constexpr A operator|(A a, const B& b) noexcept {
+	return a |= b;
 }
 
 template<CC::IntegralVector A, class B> requires(CC::Integral<B> || (CC::IntegralVector<B> && CC::EqualVectorRank<A, B>))
-constexpr void operator|=(A& a, const B& b) noexcept {
-	a = a | b;
-}
-
-template<CC::IntegralVector A, class B> requires(CC::Integral<B> || (CC::IntegralVector<B> && CC::EqualVectorRank<A, B>))
-constexpr void operator^=(A& a, const B& b) noexcept {
-	a = a ^ b;
+constexpr A operator^(A a, const B& b) noexcept {
+	return a ^= b;
 }
 
 template<CC::IntegralVector A>
 constexpr A operator~(A a) noexcept {
 
-	for (u32 i = 0; i < A::Size; i++) {
+	for (SizeT i = 0; i < A::Size; i++) {
 		a[i] = ~a[i];
 	}
 
 	return a;
 
 }
+
+
+template<CC::IntegralVector A, class B> requires (CC::Integral<B> || (CC::IntegralVector<B> && CC::EqualVectorRank<A, B>))
+constexpr A& operator<<=(A& a, const B& b) noexcept {
+
+	for (SizeT i = 0; i < A::Size; i++) {
+
+		if constexpr (CC::IntegralVector<B>) {
+			a[i] <<= b[i];
+		} else {
+			a[i] <<= b;
+		}
+
+	}
+
+	return a;
+
+}
+
+template<CC::IntegralVector A, class B> requires (CC::Integral<B> || (CC::IntegralVector<B> && CC::EqualVectorRank<A, B>))
+constexpr A& operator>>=(A& a, const B& b) noexcept {
+
+	for (SizeT i = 0; i < A::Size; i++) {
+
+		if constexpr (CC::IntegralVector<B>) {
+			a[i] >>= b[i];
+		} else {
+			a[i] >>= b;
+		}
+
+	}
+
+	return a;
+
+}
+
+template<CC::IntegralVector A, class B> requires (CC::Integral<B> || (CC::IntegralVector<B> && CC::EqualVectorRank<A, B>))
+constexpr A operator<<(A a, const B& b) noexcept {
+	return a <<= b;
+}
+
+template<CC::IntegralVector A, class B> requires (CC::Integral<B> || (CC::IntegralVector<B> && CC::EqualVectorRank<A, B>))
+constexpr A operator>>(A a, const B& b) noexcept {
+	return a >>= b;
+}
+
 
 
 
@@ -907,7 +1046,7 @@ namespace Math {
 
 		V ret;
 
-		for (u32 i = 0; i < V::Size; i++) {
+		for (SizeT i = 0; i < V::Size; i++) {
 			ret[i] = Math::floor(vec[i]);
 		}
 
@@ -920,7 +1059,7 @@ namespace Math {
 
 		V ret;
 
-		for (u32 i = 0; i < V::Size; i++) {
+		for (SizeT i = 0; i < V::Size; i++) {
 			ret[i] = Math::ceil(vec[i]);
 		}
 
@@ -933,7 +1072,7 @@ namespace Math {
 
 		V ret;
 
-		for (u32 i = 0; i < V::Size; i++) {
+		for (SizeT i = 0; i < V::Size; i++) {
 			ret[i] = Math::trunc(vec[i]);
 		}
 
@@ -946,7 +1085,7 @@ namespace Math {
 
 		V ret;
 
-		for (u32 i = 0; i < V::Size; i++) {
+		for (SizeT i = 0; i < V::Size; i++) {
 			ret[i] = Math::round(vec[i]);
 		}
 
@@ -959,7 +1098,7 @@ namespace Math {
 
 		V ret;
 
-		for (u32 i = 0; i < V::Size; i++) {
+		for (SizeT i = 0; i < V::Size; i++) {
 			ret[i] = Math::abs(vec[i]);
 		}
 

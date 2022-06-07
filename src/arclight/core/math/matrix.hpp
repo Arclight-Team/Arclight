@@ -44,6 +44,25 @@ namespace CC {
 
 }
 
+namespace TT {
+
+	namespace Detail {
+
+		template<CC::Matrix V, CC::Arithmetic T>
+		struct SizedMatrix {
+			using Type = TT::Conditional<V::Size == 2, Mat2<T>, TT::Conditional<V::Size == 3, Mat3<T>, Mat4<T>>>;
+		};
+
+	}
+
+	template<CC::Matrix V, CC::Arithmetic T>
+	using SizedMatrix = typename Detail::SizedMatrix<V, T>::Type;
+
+	template<CC::Matrix A, CC::Matrix B> requires CC::EqualMatrixRank<A, B>
+	using CommonMatrixType = SizedMatrix<A, TT::CommonType<typename A::Type, typename B::Type>>;
+
+}
+
 
 
 template<CC::Arithmetic T>
@@ -54,8 +73,8 @@ class Mat2 {
 public:
 
 	using Type = T;
+	constexpr static SizeT Size = 2;
 
-	constexpr static u32 Size = 2;
 
 
 	constexpr Mat2() noexcept {
@@ -74,46 +93,84 @@ public:
 
 	template<CC::Arithmetic A>
 	constexpr Mat2& add(const Mat2<A>& m) noexcept {
+
 		v[0] += m[0];
 		v[1] += m[1];
+
 		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
 	constexpr Mat2& subtract(const Mat2<A>& m) noexcept {
+
 		v[0] -= m[0];
 		v[1] -= m[1];
+
 		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
 	constexpr Mat2& multiply(const Mat2<A>& m) noexcept {
+
 		T a = v[0][0] * m[0][0] + v[1][0] * m[0][1];
 		T b = v[0][1] * m[0][0] + v[1][1] * m[0][1];
 		T c = v[0][0] * m[1][0] + v[1][0] * m[1][1];
 		T d = v[0][1] * m[1][0] + v[1][1] * m[1][1];
-		*this = Mat2(a, c, b, d);
-		return *this;
+
+		return *this = Mat2(a, c, b, d);
+
 	}
 
 	template<CC::Arithmetic A>
 	constexpr Mat2& multiply(A a) noexcept {
+
 		v[0] *= a;
 		v[1] *= a;
+
 		return *this;
+
+	}
+
+	template<CC::Arithmetic A>
+	constexpr Mat2& divide(A a) noexcept {
+
+		arc_assert(!Math::isZero(s), "Mat2 divided by 0");
+
+		v[0] /= a;
+		v[1] /= a;
+
+		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
 	constexpr Mat2& compMultiply(const Mat2<A>& m) noexcept {
+
 		v[0].compMultiply(m[0]);
 		v[1].compMultiply(m[1]);
+
 		return *this;
+
+	}
+
+	template<CC::Arithmetic A>
+	constexpr Mat2& compDivide(const Mat2<A>& m) noexcept {
+
+		v[0].compDivide(m[0]);
+		v[1].compDivide(m[1]);
+
+		return *this;
+
 	}
 
 	constexpr void transpose() noexcept {
+
 		T t = v[0][1];
 		v[0][1] = v[1][0];
 		v[1][0] = t;
+
 	}
 
 	constexpr Mat2 transposed() const noexcept {
@@ -126,12 +183,12 @@ public:
 
 	constexpr void invert() noexcept requires (CC::Float<T>) {
 
-		X det = determinant();
+		T det = determinant();
 		arc_assert(!Math::isZero(det), "Mat2 inverse failed: Matrix not invertible");
 
-		X s = 1.0 / det;
+		T s = 1.0 / det;
 
-		X t = v[0][0] * s;
+		T t = v[0][0] * s;
 		v[0][0] = v[1][1] * s;
 		v[0][1] = -v[0][1] * s;
 		v[1][0] = -v[1][0] * s;
@@ -139,9 +196,10 @@ public:
 
 	}
 
-	constexpr Mat2 inverse() const noexcept requires (CC::Float<T>) {
+	template<CC::Float F = TT::ToFloat<T>>
+	constexpr Mat2<F> inverse() const noexcept {
 
-		Mat2 ret = *this;
+		Mat2<F> ret = *this;
 		ret.invert();
 
 		return ret;
@@ -149,8 +207,10 @@ public:
 	}
 
 	constexpr void setIdentity() noexcept {
+
 		v[0] = {1, 0};
 		v[1] = {0, 1};
+
 	}
 
 	constexpr X trace() const noexcept {
@@ -159,9 +219,12 @@ public:
 
 	template<CC::Arithmetic A>
 	constexpr Mat2& operator=(const Mat2<A>& m) noexcept {
+
 		v[0] = m[0];
 		v[1] = m[1];
+
 		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
@@ -182,6 +245,11 @@ public:
 	template<CC::Arithmetic A>
 	constexpr Mat2& operator*=(A a) noexcept {
 		return multiply(a);
+	}
+
+	template<CC::Arithmetic A>
+	constexpr Mat2& operator/=(A a) noexcept {
+		return divide(a);
 	}
 
 	template<CC::Arithmetic A>
@@ -213,8 +281,8 @@ class Mat3 {
 public:
 
 	using Type = T;
+	constexpr static SizeT Size = 3;
 
-	constexpr static u32 Size = 3;
 
 
 	constexpr Mat3() noexcept {
@@ -242,22 +310,29 @@ public:
 
 	template<CC::Arithmetic A>
 	constexpr Mat3& add(const Mat3<A>& m) noexcept {
+
 		v[0] += m[0];
 		v[1] += m[1];
 		v[2] += m[2];
+
 		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
 	constexpr Mat3& subtract(const Mat3<A>& m) noexcept {
+
 		v[0] -= m[0];
 		v[1] -= m[1];
 		v[2] -= m[2];
+
 		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
 	constexpr Mat3& multiply(const Mat3<A>& m) noexcept {
+
 		T a = v[0][0] * m[0][0] + v[1][0] * m[0][1] + v[2][0] * m[0][2];
 		T b = v[0][1] * m[0][0] + v[1][1] * m[0][1] + v[2][1] * m[0][2];
 		T c = v[0][2] * m[0][0] + v[1][2] * m[0][1] + v[2][2] * m[0][2];
@@ -267,24 +342,55 @@ public:
 		T g = v[0][0] * m[2][0] + v[1][0] * m[2][1] + v[2][0] * m[2][2];
 		T h = v[0][1] * m[2][0] + v[1][1] * m[2][1] + v[2][1] * m[2][2];
 		T i = v[0][2] * m[2][0] + v[1][2] * m[2][1] + v[2][2] * m[2][2];
-		*this = Mat3(a, d, h, b, e, h, c, f, i);
-		return *this;
+
+		return *this = Mat3(a, d, h, b, e, h, c, f, i);
+
 	}
 
 	template<CC::Arithmetic A>
 	constexpr Mat3& multiply(A a) noexcept {
+
 		v[0] *= a;
 		v[1] *= a;
 		v[2] *= a;
+
 		return *this;
+
+	}
+
+	template<CC::Arithmetic A>
+	constexpr Mat3& divide(A a) noexcept {
+
+		arc_assert(!Math::isZero(s), "Mat3 divided by 0");
+
+		v[0] /= a;
+		v[1] /= a;
+		v[2] /= a;
+
+		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
 	constexpr Mat3& compMultiply(const Mat3<A>& m) noexcept {
+
 		v[0].compMultiply(m[0]);
 		v[1].compMultiply(m[1]);
 		v[2].compMultiply(m[2]);
+
 		return *this;
+
+	}
+
+	template<CC::Arithmetic A>
+	constexpr Mat3& compDivide(const Mat3<A>& m) noexcept {
+
+		v[0].compDivide(m[0]);
+		v[1].compDivide(m[1]);
+		v[2].compDivide(m[2]);
+
+		return *this;
+
 	}
 
 	constexpr void transpose() noexcept {
@@ -314,20 +420,20 @@ public:
 
 	constexpr void invert() noexcept requires (CC::Float<T>) {
 
-		X det = determinant();
+		T det = determinant();
 		arc_assert(!Math::isZero(det), "Mat3 inverse failed: Matrix not invertible");
 
-		X s = 1.0 / det;
+		T s = 1 / det;
 
-		X a = v[0][0];
-		X b = v[1][0];
-		X c = v[2][0];
-		X d = v[0][1];
-		X e = v[1][1];
-		X f = v[2][1];
-		X g = v[0][2];
-		X h = v[1][2];
-		X i = v[2][2];
+		T a = v[0][0];
+		T b = v[1][0];
+		T c = v[2][0];
+		T d = v[0][1];
+		T e = v[1][1];
+		T f = v[2][1];
+		T g = v[0][2];
+		T h = v[1][2];
+		T i = v[2][2];
 
 		v[0][0] = (e * i - f * h) * s;
 		v[0][1] = (f * g - d * i) * s;
@@ -341,9 +447,10 @@ public:
 
 	}
 
-	constexpr Mat3 inverse() const noexcept requires (CC::Float<T>) {
+	template<CC::Float F = TT::ToFloat<T>>
+	constexpr Mat3<F> inverse() const noexcept {
 
-		Mat3 ret = *this;
+		Mat3<F> ret = *this;
 		ret.invert();
 
 		return ret;
@@ -351,9 +458,11 @@ public:
 	}
 
 	constexpr void setIdentity() noexcept {
+
 		v[0] = {1, 0, 0};
 		v[1] = {0, 1, 0};
 		v[2] = {0, 0, 1};
+
 	}
 
 	constexpr X trace() const noexcept {
@@ -362,10 +471,13 @@ public:
 
 	template<CC::Arithmetic A>
 	constexpr Mat3& operator=(const Mat3<A>& m) noexcept {
+
 		v[0] = m[0];
 		v[1] = m[1];
 		v[2] = m[2];
+
 		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
@@ -389,6 +501,11 @@ public:
 	}
 
 	template<CC::Arithmetic A>
+	constexpr Mat3& operator/=(A a) noexcept {
+		return divide(a);
+	}
+
+	template<CC::Arithmetic A>
 	constexpr bool operator==(const Mat3<A>& m) const noexcept {
 		return v[0] == m[0] && v[1] == m[1] && v[2] == m[2];
 	}
@@ -406,9 +523,12 @@ public:
 
 	template<CC::Arithmetic A, CC::Arithmetic B>
 	constexpr Mat3& translate(A x, B y) noexcept {
+
 		v[2] += v[0] * x;
 		v[2] += v[1] * y;
+
 		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
@@ -433,9 +553,12 @@ public:
 
 	template<CC::Arithmetic A, CC::Arithmetic B>
 	constexpr Mat3& scale(A x, B y) noexcept {
+
 		v[0] *= x;
 		v[1] *= y;
+
 		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
@@ -445,14 +568,18 @@ public:
 
 	template<CC::Arithmetic A>
 	constexpr Mat3& shearX(A angle) noexcept {
+
 		v[1] += v[0] * Math::tan(angle);
 		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
 	constexpr Mat3& shearY(A angle) noexcept {
+
 		v[0] += v[1] * Math::tan(angle);
 		return *this;
+
 	}
 
 	template<CC::Arithmetic A, CC::Arithmetic B>
@@ -534,8 +661,8 @@ class alignas(16) Mat4 {
 public:
 
 	using Type = T;
+	constexpr static SizeT Size = 4;
 
-	constexpr static u32 Size = 4;
 
 
 	constexpr Mat4() {
@@ -584,20 +711,26 @@ public:
 
 	template<CC::Arithmetic A>
 	constexpr Mat4& add(const Mat4<A>& m) noexcept {
+
 		v[0] += m[0];
 		v[1] += m[1];
 		v[2] += m[2];
 		v[3] += m[3];
+
 		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
 	constexpr Mat4& subtract(const Mat4<A>& m) noexcept {
+
 		v[0] -= m[0];
 		v[1] -= m[1];
 		v[2] -= m[2];
 		v[3] -= m[3];
+
 		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
@@ -708,28 +841,58 @@ public:
 		T o = v[0][2] * t[3][0] + v[1][2] * t[3][1] + v[2][2] * t[3][2] + v[3][2] * t[3][3];
 		T p = v[0][3] * t[3][0] + v[1][3] * t[3][1] + v[2][3] * t[3][2] + v[3][3] * t[3][3];
 
-		*this = Mat4(a, e, i, m, b, f, j, n, c, g, k, o, d, h, l, p);
-
-		return *this;
+		return *this = Mat4(a, e, i, m, b, f, j, n, c, g, k, o, d, h, l, p);
 
 	}
 
 	template<CC::Arithmetic A>
 	constexpr Mat4& multiply(A a) noexcept {
+
 		v[0] *= a;
 		v[1] *= a;
 		v[2] *= a;
 		v[3] *= a;
+
 		return *this;
+
+	}
+
+	template<CC::Arithmetic A>
+	constexpr Mat4& divide(A a) noexcept {
+
+		arc_assert(!Math::isZero(s), "Mat4 divided by 0");
+
+		v[0] /= a;
+		v[1] /= a;
+		v[2] /= a;
+		v[3] /= a;
+
+		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
 	constexpr Mat4& compMultiply(const Mat4<A>& m) noexcept {
+
 		v[0].compMultiply(m[0]);
 		v[1].compMultiply(m[1]);
 		v[2].compMultiply(m[2]);
 		v[3].compMultiply(m[3]);
+
 		return *this;
+
+	}
+
+	template<CC::Arithmetic A>
+	constexpr Mat4& compDivide(const Mat4<A>& m) noexcept {
+
+		v[0].compDivide(m[0]);
+		v[1].compDivide(m[1]);
+		v[2].compDivide(m[2]);
+		v[3].compDivide(m[3]);
+
+		return *this;
+
 	}
 
 	constexpr void transpose() noexcept {
@@ -782,27 +945,27 @@ public:
 
 	constexpr void invert() noexcept requires (CC::Float<T>) {
 
-		X det = determinant();
+		T det = determinant();
 		arc_assert(!Math::isZero(det), "Mat4 inverse failed: Matrix not invertible");
 
-		X s = 1.0 / det;
+		T s = 1.0 / det;
 
-		X a = v[0][0];
-		X b = v[1][0];
-		X c = v[2][0];
-		X d = v[3][0];
-		X e = v[0][1];
-		X f = v[1][1];
-		X g = v[2][1];
-		X h = v[3][1];
-		X i = v[0][2];
-		X j = v[1][2];
-		X k = v[2][2];
-		X l = v[3][2];
-		X m = v[0][3];
-		X n = v[1][3];
-		X o = v[2][3];
-		X p = v[3][3];
+		T a = v[0][0];
+		T b = v[1][0];
+		T c = v[2][0];
+		T d = v[3][0];
+		T e = v[0][1];
+		T f = v[1][1];
+		T g = v[2][1];
+		T h = v[3][1];
+		T i = v[0][2];
+		T j = v[1][2];
+		T k = v[2][2];
+		T l = v[3][2];
+		T m = v[0][3];
+		T n = v[1][3];
+		T o = v[2][3];
+		T p = v[3][3];
 
 		v[0][0] = (f * k * p - f * l * o - j * g * p + j * h * o + n * g * l - n * h * k) * s;
 		v[0][1] = (-e * k * p + e * l * o + i * g * p - i * h * o - m * g * l + m * h * k) * s;
@@ -823,9 +986,10 @@ public:
 
 	}
 
-	constexpr Mat4 inverse() const noexcept requires (CC::Float<T>) {
+	template<CC::Float F = TT::ToFloat<T>>
+	constexpr Mat4<F> inverse() const noexcept {
 
-		Mat4 ret = *this;
+		Mat4<F> ret = *this;
 		ret.invert();
 
 		return ret;
@@ -833,10 +997,12 @@ public:
 	}
 
 	constexpr void setIdentity() noexcept {
+
 		v[0] = {1, 0, 0, 0};
 		v[1] = {0, 1, 0, 0};
 		v[2] = {0, 0, 1, 0};
 		v[3] = {0, 0, 0, 1};
+
 	}
 
 	constexpr X trace() const noexcept {
@@ -845,11 +1011,14 @@ public:
 
 	template<CC::Arithmetic A>
 	constexpr Mat4& operator=(const Mat4<A>& m) noexcept {
+
 		v[0] = m[0];
 		v[1] = m[1];
 		v[2] = m[2];
 		v[3] = m[3];
+
 		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
@@ -873,6 +1042,11 @@ public:
 	}
 
 	template<CC::Arithmetic A>
+	constexpr Mat4& operator/=(A a) noexcept {
+		return divide(a);
+	}
+
+	template<CC::Arithmetic A>
 	constexpr bool operator==(const Mat4<A>& m) const noexcept {
 		return v[0] == m[0] && v[1] == m[1] && v[2] == m[2] && v[3] == m[3];
 	}
@@ -890,10 +1064,13 @@ public:
 
 	template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C>
 	constexpr Mat4& translate(A x, B y, C z) noexcept {
+
 		v[3] += v[0] * x;
 		v[3] += v[1] * y;
 		v[3] += v[2] * z;
+
 		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
@@ -928,10 +1105,13 @@ public:
 
 	template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C>
 	constexpr Mat4& scale(A x, B y, C z) noexcept {
+
 		v[0] *= x;
 		v[1] *= y;
 		v[2] *= z;
+
 		return *this;
+
 	}
 
 	template<CC::Arithmetic A>
@@ -1057,55 +1237,208 @@ public:
 
 template<CC::Matrix A, CC::Matrix B> requires CC::EqualMatrixRank<A, B>
 constexpr auto operator+(A m, const B& n) noexcept {
-	m += n;
-	return m;
+
+	TT::CommonMatrixType<A, B> mx = m;
+	return mx += n;
+
 }
 
 template<CC::Matrix A, CC::Matrix B> requires CC::EqualMatrixRank<A, B>
 constexpr auto operator-(A m, const B& n) noexcept {
-	m -= n;
-	return m;
+
+	TT::CommonMatrixType<A, B> mx = m;
+	return mx -= n;
+
 }
 
 template<CC::Matrix A, CC::Matrix B> requires CC::EqualMatrixRank<A, B>
 constexpr auto operator*(A m, const B& n) noexcept {
-	m *= n;
-	return m;
+
+	TT::CommonMatrixType<A, B> mx = m;
+	return mx *= n;
+
+}
+
+template<CC::Matrix A, CC::Arithmetic B>
+constexpr auto operator*(A m, B b) noexcept {
+
+	TT::SizedMatrix<A, TT::CommonType<typename A::Type, B>> mx = m;
+	return mx *= b;
+
+}
+
+template<CC::Matrix A, CC::Arithmetic B>
+constexpr auto operator*(B b, A m) noexcept {
+	return m * b;
+}
+
+template<CC::Matrix A, CC::Arithmetic B>
+constexpr auto operator/(A m, B b) noexcept {
+
+	TT::SizedMatrix<A, TT::CommonType<typename A::Type, B>> mx = m;
+	return mx /= b;
+
 }
 
 
 template<CC::Arithmetic A, CC::Arithmetic B>
-constexpr auto operator*(const Mat2<A>& m, const Vec2<B>& v) noexcept {
+constexpr Vec2<TT::CommonType<A, B>> operator*(const Mat2<A>& m, const Vec2<B>& v) noexcept {
 
 	auto x = m[0][0] * v[0] + m[1][0] * v[1];
 	auto y = m[0][1] * v[0] + m[1][1] * v[1];
 
-	return Vec2<TT::CommonType<A, B>>(x, y);
+	return { x, y };
 
 }
 
 template<CC::Arithmetic A, CC::Arithmetic B>
-constexpr auto operator*(const Mat3<A>& m, const Vec3<B>& v) noexcept {
+constexpr Vec3<TT::CommonType<A, B>> operator*(const Mat3<A>& m, const Vec3<B>& v) noexcept {
 
 	auto x = m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2];
 	auto y = m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2];
 	auto z = m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2];
 
-	return Vec3<TT::CommonType<A, B>>(x, y, z);
+	return { x, y, z };
 
 }
 
 template<CC::Arithmetic A, CC::Arithmetic B>
-constexpr auto operator*(const Mat4<A>& m, const Vec4<B>& v) noexcept {
+constexpr Vec4<TT::CommonType<A, B>> operator*(const Mat4<A>& m, const Vec4<B>& v) noexcept {
 
 	auto x = m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2] + m[3][0] * v[3];
 	auto y = m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2] + m[3][1] * v[3];
 	auto z = m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2] + m[3][2] * v[3];
 	auto w = m[0][3] * v[0] + m[1][3] * v[1] + m[2][3] * v[2] + m[3][3] * v[3];
 
-	return Vec4<TT::CommonType<A, B>>(x, y, z, w);
+	return { x, y, z, w };
 
 }
+
+
+
+template<CC::IntegralMatrix A, class B> requires (CC::Integral<B> || (CC::IntegralMatrix<B> && CC::EqualMatrixRank<A, B>))
+constexpr A& operator&=(A& a, const B& b) noexcept {
+
+	for (SizeT i = 0; i < A::Size; i++) {
+
+		if constexpr (CC::IntegralMatrix<B>) {
+			a[i] &= b[i];
+		} else {
+			a[i] &= b;
+		}
+
+	}
+
+	return a;
+
+}
+
+template<CC::IntegralMatrix A, class B> requires (CC::Integral<B> || (CC::IntegralMatrix<B> && CC::EqualMatrixRank<A, B>))
+constexpr void operator|=(A& a, const B& b) noexcept {
+
+	for (SizeT i = 0; i < A::Size; i++) {
+
+		if constexpr (CC::IntegralMatrix<B>) {
+			a[i] |= b[i];
+		} else {
+			a[i] |= b;
+		}
+
+	}
+
+	return a;
+
+}
+
+template<CC::IntegralMatrix A, class B> requires (CC::Integral<B> || (CC::IntegralMatrix<B> && CC::EqualMatrixRank<A, B>))
+constexpr void operator^=(A& a, const B& b) noexcept {
+
+	for (SizeT i = 0; i < A::Size; i++) {
+
+		if constexpr (CC::IntegralMatrix<B>) {
+			a[i] ^= b[i];
+		} else {
+			a[i] ^= b;
+		}
+
+	}
+
+	return a;
+
+}
+
+
+template<CC::IntegralMatrix A, class B> requires (CC::Integral<B> || (CC::IntegralMatrix<B> && CC::EqualMatrixRank<A, B>))
+constexpr A operator&(A a, const B& b) noexcept {
+	return a &= b;
+}
+
+template<CC::IntegralMatrix A, class B> requires (CC::Integral<B> || (CC::IntegralMatrix<B> && CC::EqualMatrixRank<A, B>))
+constexpr A operator|(A a, const B& b) noexcept {
+	return a |= b;
+}
+
+template<CC::IntegralMatrix A, class B> requires(CC::Integral<B> || (CC::IntegralMatrix<B> && CC::EqualMatrixRank<A, B>))
+constexpr A operator^(A a, const B& b) noexcept {
+	return a ^= b;
+}
+
+template<CC::IntegralMatrix A>
+constexpr A operator~(A a) noexcept {
+
+	for (SizeT i = 0; i < A::Size; i++) {
+		a[i] = ~a[i];
+	}
+
+	return a;
+
+}
+
+
+template<CC::IntegralMatrix A, class B> requires (CC::Integral<B> || (CC::IntegralMatrix<B> && CC::EqualMatrixRank<A, B>))
+constexpr A& operator<<=(A& a, const B& b) noexcept {
+
+	for (SizeT i = 0; i < A::Size; i++) {
+
+		if constexpr (CC::IntegralMatrix<B>) {
+			a[i] <<= b[i];
+		} else {
+			a[i] <<= b;
+		}
+
+	}
+
+	return a;
+
+}
+
+template<CC::IntegralMatrix A, class B> requires (CC::Integral<B> || (CC::IntegralMatrix<B> && CC::EqualMatrixRank<A, B>))
+constexpr A& operator>>=(A& a, const B& b) noexcept {
+
+	for (SizeT i = 0; i < A::Size; i++) {
+
+		if constexpr (CC::IntegralMatrix<B>) {
+			a[i] >>= b[i];
+		} else {
+			a[i] >>= b;
+		}
+
+	}
+
+	return a;
+
+}
+
+template<CC::IntegralMatrix A, class B> requires (CC::Integral<B> || (CC::IntegralMatrix<B> && CC::EqualMatrixRank<A, B>))
+constexpr A operator<<(A a, const B& b) noexcept {
+	return a <<= b;
+}
+
+template<CC::IntegralMatrix A, class B> requires (CC::Integral<B> || (CC::IntegralMatrix<B> && CC::EqualMatrixRank<A, B>))
+constexpr A operator>>(A a, const B& b) noexcept {
+	return a >>= b;
+}
+
 
 
 #define MATRIX_DEFINE_NDTS(name, dim, type, suffix) typedef Mat##dim<type> name##dim##suffix;
