@@ -157,7 +157,7 @@ public:
 
 		constexpr Iterator() noexcept : cpIdx(0), sp(nullptr) {}
 		constexpr Iterator(SizeT cpIndex, pointer p) noexcept : cpIdx(cpIndex), sp(p) {}
-		constexpr Iterator(const Iterator<true>& it) noexcept requires(Const) : Iterator(it.cpIdx, it.sp) {}
+		constexpr Iterator(const Iterator<true>& it) noexcept requires ( Const) : Iterator(it.cpIdx, it.sp) {}
 		constexpr Iterator(const Iterator<true>& it) noexcept requires (!Const) = delete;
 
 		constexpr reference operator*() const noexcept { return *sp; }

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "truetype/truetype.hpp"
 #include "image/image.hpp"
 #include "math/bezier.hpp"
 #include "math/math.hpp"

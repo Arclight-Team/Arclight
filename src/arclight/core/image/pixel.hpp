@@ -205,7 +205,7 @@ public:
 
 	using Format = PixelFormat<P>;
 	constexpr static u32 Size = Format::BytesPerPixel;
-	using PackedT = TT::UnsignedFromSize<Size>;
+	using PackedT = TT::UnsignedFromMinSize<Size>;
 	using PixelT = PixelStorage<P, ColorT>;
 
 	constexpr PixelStorage() {
@@ -652,7 +652,7 @@ private:
 #ifdef ARC_PIXEL_EXACT
 		return inBits ? static_cast<T>(Math::round(value * ((1 << outBits) - 1) / static_cast<float>((1 << inBits) - 1))) : 0;
 #else
-		return static_cast<TT::UnsignedFromSize<sizeof(T) + 1>>(value << outBits) >> inBits;
+		return static_cast<TT::UnsignedFromMinSize<sizeof(T) + 1>>(value << outBits) >> inBits;
 #endif
 
 	}
