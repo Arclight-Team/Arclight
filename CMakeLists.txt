@@ -108,9 +108,9 @@ project (${PROJECT_NAME})
 	endif()
 
 
-######################
-### PLATFORM SCAN ####
-######################
+#######################
+#### PLATFORM SCAN ####
+#######################
 
 	if(WIN32)
 		list(APPEND ARCLIGHT_PLATFORMS "win32")
@@ -205,9 +205,9 @@ project (${PROJECT_NAME})
 	endforeach()
 
 
-######################
-##### MODULE DEPS ####
-######################
+#######################
+##### MODULE DEPS #####
+#######################
 
 	message("Looking for dependencies")
 
