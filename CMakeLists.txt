@@ -4,9 +4,9 @@ set(PROJECT_NAME arclight)
 project (${PROJECT_NAME})
 
 
-######################
-#### PROJECT SETUP ###
-######################
+#######################
+#### PROJECT SETUP ####
+#######################
 
 	# Define Debug/Release
 	add_compile_definitions(ARC_DEBUG=$<CONFIG:Debug>)
