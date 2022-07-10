@@ -46,5 +46,5 @@ constexpr void __arc_assert(bool condition, const std::source_location& srcLocat
 	#define arc_force_assert(msg, ...)  do {} while (false)
 #else
 	#define arc_assert(cond, msg, ...)	do {__arc_assert(!!(cond), std::source_location::current(), (msg), ##__VA_ARGS__);} while (false)
-	#define arc_force_assert(msg, ...)	arc_assert(false, msg, __VA_ARGS__)
+	#define arc_force_assert(msg, ...)	arc_assert(false, msg, ##__VA_ARGS__)
 #endif

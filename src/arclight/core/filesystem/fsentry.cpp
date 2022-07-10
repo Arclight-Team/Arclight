@@ -7,6 +7,8 @@
  */
 
 #include "fsentry.hpp"
+#include "arcbuild.hpp"
+#include "util/unsupportedoperationexception.hpp"
 
 #include <chrono>
 #include <filesystem>
@@ -151,13 +153,21 @@ umax FSEntry::getHardLinkCount() const {
 
 
 u64 FSEntry::getLastModifiedTime() const {
+#ifndef ARC_COMPILER_GCC
 	return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::clock_cast<std::chrono::system_clock>(entry.last_write_time()).time_since_epoch()).count();
+#else
+	throw UnsupportedOperationException();
+#endif
 }
 
 
 
 void FSEntry::setLastModifiedTime(u64 nanos) {
+#ifndef ARC_COMPILER_GCC
 	std::filesystem::last_write_time(entry.path(), std::chrono::clock_cast<std::chrono::file_clock>(std::chrono::sys_time{std::chrono::milliseconds{nanos}}));
+#else
+	throw UnsupportedOperationException();
+#endif
 }
 
 

@@ -13,6 +13,7 @@
 #include "common/typetraits.hpp"
 
 #include <stdexcept>
+#include <algorithm>
 #include <vector>
 #include <string>
 #include <span>
