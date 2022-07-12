@@ -178,6 +178,8 @@ project (${PROJECT_NAME})
 	include_directories("${ARCLIGHT_MODULE_CORE_PATH}")
 
 	foreach(Platform ${ARCLIGHT_PLATFORMS})
+		file(GLOB SOURCES RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${ARCLIGHT_MODULE_PLATFORM_PATH}${Platform}/*.cpp)
+		list(APPEND APPLICATION_SOURCES ${SOURCES})
 		include_directories(${ARCLIGHT_MODULE_PLATFORM_PATH}${Platform})
 	endforeach()
 
