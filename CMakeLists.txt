@@ -4,9 +4,9 @@ set(PROJECT_NAME arclight)
 project (${PROJECT_NAME})
 
 
-######################
-#### PROJECT SETUP ###
-######################
+#######################
+#### PROJECT SETUP ####
+#######################
 
 	# Define Debug/Release
 	add_compile_definitions(ARC_DEBUG=$<CONFIG:Debug>)
@@ -108,9 +108,9 @@ project (${PROJECT_NAME})
 	endif()
 
 
-######################
-### PLATFORM SCAN ####
-######################
+#######################
+#### PLATFORM SCAN ####
+#######################
 
 	if(WIN32)
 		list(APPEND ARCLIGHT_PLATFORMS "win32")
@@ -178,6 +178,8 @@ project (${PROJECT_NAME})
 	include_directories("${ARCLIGHT_MODULE_CORE_PATH}")
 
 	foreach(Platform ${ARCLIGHT_PLATFORMS})
+		file(GLOB SOURCES RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${ARCLIGHT_MODULE_PLATFORM_PATH}${Platform}/*.cpp)
+		list(APPEND APPLICATION_SOURCES ${SOURCES})
 		include_directories(${ARCLIGHT_MODULE_PLATFORM_PATH}${Platform})
 	endforeach()
 
@@ -186,11 +188,6 @@ project (${PROJECT_NAME})
 	list(APPEND APPLICATION_SOURCES ${SOURCES})
 	file(GLOB SOURCES RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${ARCLIGHT_MODULE_CORE_PATH}/*.cpp)
 	list(APPEND APPLICATION_SOURCES ${SOURCES})
-
-	foreach(Platform ${ARCLIGHT_PLATFORMS})
-		file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${ARCLIGHT_MODULE_PLATFORM_PATH}/${Platform}/*.cpp)
-		list(APPEND APPLICATION_SOURCES ${SOURCES})
-	endforeach()
 
 	foreach(ModulePath ${MODULE_PATHS})
 
@@ -205,9 +202,9 @@ project (${PROJECT_NAME})
 	endforeach()
 
 
-######################
-##### MODULE DEPS ####
-######################
+#######################
+##### MODULE DEPS #####
+#######################
 
 	message("Looking for dependencies")
 

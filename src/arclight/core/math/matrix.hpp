@@ -136,7 +136,7 @@ public:
 	template<CC::Arithmetic A>
 	constexpr Mat2& divide(A a) noexcept {
 
-		arc_assert(!Math::isZero(s), "Mat2 divided by 0");
+		arc_assert(!Math::isZero(a), "Mat2 divided by 0");
 
 		v[0] /= a;
 		v[1] /= a;
@@ -365,7 +365,7 @@ public:
 	template<CC::Arithmetic A>
 	constexpr Mat3& divide(A a) noexcept {
 
-		arc_assert(!Math::isZero(s), "Mat3 divided by 0");
+		arc_assert(!Math::isZero(a), "Mat3 divided by 0");
 
 		v[0] /= a;
 		v[1] /= a;
@@ -868,7 +868,7 @@ public:
 	template<CC::Arithmetic A>
 	constexpr Mat4& divide(A a) noexcept {
 
-		arc_assert(!Math::isZero(s), "Mat4 divided by 0");
+		arc_assert(!Math::isZero(a), "Mat4 divided by 0");
 
 		v[0] /= a;
 		v[1] /= a;

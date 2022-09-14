@@ -176,8 +176,8 @@ namespace CC {
 			constexpr static bool Value = false;
 		};
 
-		template<template<class> class T, class U>
-		struct NestedType<T<U>> {
+		template<template<class...> class T, class... U>
+		struct NestedType<T<U...>> {
 			constexpr static bool Value = true;
 		};
 
@@ -186,8 +186,10 @@ namespace CC {
 
 	/* Misc concepts */
 	template<class T>
-	concept BaseType = !PointerType<T> && !ReferenceType<T> && !MemberPointerType<T> && !Void<T> && !CVType<T> &&
-					   !ArrayType<T>;
+	concept BaseType = !PointerType<T> && !ReferenceType<T> && !MemberPointerType<T> && !Void<T> && !CVType<T> && !ArrayType<T>;
+
+	template<class A, class B>
+	concept EqualSize = sizeof(A) == sizeof(B);
 
 	template<class T>
 	concept NestedType = Detail::NestedType<T>::Value;

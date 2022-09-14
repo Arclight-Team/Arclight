@@ -90,7 +90,6 @@ namespace ArcRuntime {
 
 	}
 
-#endif
 
 
 
@@ -137,3 +136,5 @@ void ArcRuntime::shutdown() noexcept {
 	Log::closeLogFile();
 
 }
+
+#endif

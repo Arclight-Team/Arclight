@@ -356,7 +356,7 @@ std::vector<FSEntry> Directory::listEntries(Sorting sorting, bool recursive) con
 
 			} else if constexpr (Bool::one(S, Sorting::TypeAscending, Sorting::TypeDescending)) {
 
-				if(a.getType() == FSEntry::File) {
+				if(a.getType() == FSEntry::Type::File) {
 
 					std::string extA = a.getPath().getExtension();
 					std::string extB = b.getPath().getExtension();
@@ -379,7 +379,7 @@ std::vector<FSEntry> Directory::listEntries(Sorting sorting, bool recursive) con
 
 			} else if constexpr (Bool::one(S, Sorting::SizeAscending, Sorting::SizeDescending)) {
 
-				if(a.getType() == FSEntry::File) {
+				if(a.getType() == FSEntry::Type::File) {
 
 					return false;
 
@@ -409,7 +409,7 @@ std::vector<FSEntry> Directory::listEntries(Sorting sorting, bool recursive) con
 			break;
 
 		case Sorting::NameDescending:
-			std::sort(entries.begin(), entries.end(), [lessPredicate] (const FSEntry& a, const FSEntry& b) { return lessPredicate.template operator()<Sorting::NameAscending>(a, b); });
+			std::sort(entries.begin(), entries.end(), [lessPredicate] (const FSEntry& a, const FSEntry& b) { return lessPredicate.template operator()<Sorting::NameDescending>(a, b); });
 			break;
 
 		case Sorting::TypeAscending:

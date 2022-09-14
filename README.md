@@ -34,6 +34,7 @@ The following features have been fully implemented:
 - Mathematics (Vectors, Matrices, Quaternions, etc.)
 - Fastest C++20 Noise library for Perlin, Simplex and Worley noise up to 4D
 - Logging & Debugging
+- Command-line argument parser
 - Timing utilities
 - Byte/Bit readers/writers
 - Unicode conversion support
@@ -67,7 +68,6 @@ Planned features:
 - OS information query
 - Full 3D render engine
 - Unified code examples
-- Command-line argument parser
 - Image encoding
 - Video streaming
 

@@ -11,7 +11,7 @@
 #include "filesystem/path.hpp"
 #include "util/destructionguard.hpp"
 
-#include <ShObjIdl_core.h>
+#include <shobjidl.h>
 
 
 

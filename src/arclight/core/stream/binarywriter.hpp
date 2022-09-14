@@ -37,10 +37,10 @@ public:
 	}
 
 	template<CC::Arithmetic T>
-	constexpr void write(const std::span<T>& dest) noexcept {
+	constexpr void write(const std::span<T>& src) noexcept {
 
-		for (SizeT i = 0; i < dest.size(); i++) {
-			write<T>(dest[i]);
+		for (SizeT i = 0; i < src.size(); i++) {
+			write<T>(src[i]);
 		}
 
 	}
