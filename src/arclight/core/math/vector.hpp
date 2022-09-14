@@ -434,36 +434,6 @@ public:
 		return divide(s);
 	}
 
-	template<CC::IntegralParam I>
-	constexpr Vec3 operator<<(I i) const noexcept requires (CC::Integral<T>) {
-
-		Vec3 v;
-		v.shiftLeft(i);
-
-		return *this;
-
-	}
-
-	template<CC::IntegralParam I>
-	constexpr Vec3 operator>>(I i) const noexcept requires (CC::Integral<T>) {
-
-		Vec3 v;
-		v.shiftRight(i);
-
-		return *this;
-
-	}
-
-	template<CC::IntegralParam I>
-	constexpr Vec3& operator<<=(I i) const noexcept requires (CC::Integral<T>) {
-		return shiftLeft(i);
-	}
-
-	template<CC::IntegralParam I>
-	constexpr Vec3& operator>>=(I i) const noexcept requires (CC::Integral<T>) {
-		return shiftRight(i);
-	}
-
 
 	template<CC::Arithmetic A>
 	constexpr bool operator==(const Vec3<A>& v) const noexcept {
@@ -717,36 +687,6 @@ public:
 	template<CC::Arithmetic A>
 	constexpr Vec4& operator/=(A s) noexcept {
 		return divide(s);
-	}
-
-	template<CC::IntegralParam I>
-	constexpr Vec4 operator<<(I i) const noexcept requires (CC::Integral<T>) {
-
-		Vec4 v;
-		v.shiftLeft(i);
-
-		return *this;
-
-	}
-
-	template<CC::IntegralParam I>
-	constexpr Vec4 operator>>(I i) const noexcept requires (CC::Integral<T>) {
-
-		Vec4 v;
-		v.shiftRight(i);
-
-		return *this;
-
-	}
-
-	template<CC::IntegralParam I>
-	constexpr Vec4& operator<<=(I i) const noexcept requires (CC::Integral<T>) {
-		return shiftLeft(i);
-	}
-
-	template<CC::IntegralParam I>
-	constexpr Vec4& operator>>=(I i) const noexcept requires (CC::Integral<T>) {
-		return shiftRight(i);
 	}
 
 

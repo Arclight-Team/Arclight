@@ -12,8 +12,8 @@ project (${PROJECT_NAME})
 	add_compile_definitions(ARC_DEBUG=$<CONFIG:Debug>)
 	add_compile_definitions(ARC_RELEASE=$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>)
 
-	# Enable C++20
-	set(CMAKE_CXX_STANDARD 20)
+	# Enable C++23
+	set(CMAKE_CXX_STANDARD 23)
 	set(CMAKE_CXX_EXTENSIONS off)
 	set(CMAKE_CXX_STANDARD_REQUIRED true)
 

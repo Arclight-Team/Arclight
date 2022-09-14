@@ -12,6 +12,7 @@
 #include "common/concepts.hpp"
 #include "types.hpp"
 
+#include <exception>
 #include <typeinfo>
 #include <new>
 

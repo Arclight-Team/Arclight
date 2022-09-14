@@ -1089,18 +1089,30 @@ public:
 
 	}
 
-	constexpr void resize(SizeT count, SizeT units = Traits::MaxDecomposed) {
+	constexpr void resize(SizeT count, Codepoint fillCP = ' ') {
 
-		SizeT prevSize = size();
-		SizeT prevStart = str.size();
+		if (count < size()) {
 
-		str.resize(count * units);
-		//restoreDistanceRange(prevSize, prevStart, prevSize + c)
+			SizeT offset = getOffsetDirect(count);
+			str.resize(offset);
+			restoreDistanceRange(0, 0, count);
 
-	}
+		} else if (count > size()) {
 
-	constexpr void resizeBytes(SizeT count) {
-		str.resize(count);
+			CharT decomposed[Traits::MaxDecomposed];
+			SizeT cpSize = Unicode::encode<E>(fillCP, decomposed);
+
+			SizeT oldSize = str.size();
+			str.resize(oldSize + count * cpSize);
+
+			for (SizeT i = 0; i < count; i++) {
+				std::copy_n(decomposed, cpSize, str.data() + oldSize + i * cpSize);
+			}
+
+		}
+
+		restoreDistanceRange(0, 0, count);
+
 	}
 
 	constexpr void swap(UnicodeString<E>& other) noexcept(noexcept(str.swap(other.str)) && noexcept(Base::distances.swap(other.distances))) {
