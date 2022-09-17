@@ -14,11 +14,25 @@
 
 
 /*
+	Defines ARC_NO_INLINE
+	Forces the compiler to not inline a certain function.
+*/
+#ifdef ARC_COMPILER_MSVC
+	#define ARC_NO_INLINE	__declspec(noinline)
+#elif defined(ARC_COMPILER_CLANG) || defined(ARC_COMPILER_GCC)
+	#define ARC_NO_INLINE	__attribute__((noinline))
+#else
+	#define ARC_NO_INLINE
+#endif
+
+
+
+/*
 	Defines ARC_FORCE_INLINE
 	Forces the compiler to inline a certain function.
 */
 #ifdef ARC_COMPILER_MSVC
-	#define ARC_FORCE_INLINE	__forceinline
+	#define ARC_FORCE_INLINE	[[msvc::forceinline]]
 #elif defined(ARC_COMPILER_CLANG) || defined(ARC_COMPILER_GCC)
 	#define ARC_FORCE_INLINE	__attribute__((always_inline)) inline
 #else
