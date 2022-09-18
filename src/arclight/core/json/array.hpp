@@ -14,20 +14,19 @@
 #include "util/log.hpp"
 
 
-class JsonArray;
-
-std::ostream& operator<<(std::ostream& os, JsonObject& object);
-std::ostream& operator<<(std::ostream& os, JsonArray& array);
 
 class JsonArray {
+private:
+
+	using ItemContainer = std::vector<JsonValue>;
+	using ItemIterator = ItemContainer::iterator;
+	using ItemConstIterator = ItemContainer::const_iterator;
+
 public:
 
 	using StringType = Json::StringType;
 	using Type = Json::Type;
 
-	using ItemContainer = std::vector<JsonValue>;
-	using ItemIterator = ItemContainer::iterator;
-	using ItemConstIterator = ItemContainer::const_iterator;
 
 	JsonArray();
 
