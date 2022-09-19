@@ -181,6 +181,17 @@ namespace CC {
 			constexpr static bool Value = true;
 		};
 
+
+		template<class T, template<class...> class P>
+		struct SpecializationOf {
+			static constexpr bool Value = false;
+		};
+
+		template<template<class...> class P, class... Args>
+		struct SpecializationOf<P<Args...>, P> {
+			static constexpr bool Value = true;
+		};
+
 	}
 
 
@@ -193,6 +204,9 @@ namespace CC {
 
 	template<class T>
 	concept NestedType = Detail::NestedType<T>::Value;
+
+	template<class T, template<class...> class P>
+	concept SpecializationOf = Detail::SpecializationOf<T, P>::Value;
 
 	template<class F, class... A>
 	concept Invocable = std::is_invocable_v<F, A...>;

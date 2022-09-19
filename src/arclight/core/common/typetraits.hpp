@@ -253,6 +253,22 @@ namespace TT {
 		};
 
 
+		template<SizeT N, auto T, auto... Pack>
+		struct ValuePackHelper {
+			static constexpr decltype(T) Value = ValuePackHelper<N - 1, Pack...>::Value;
+		};
+
+		template<auto T, auto... Pack>
+		struct ValuePackHelper<0, T, Pack...> {
+			static constexpr decltype(T) Value = T;
+		};
+
+		template<SizeT N, auto... Pack> requires (sizeof...(Pack) >= N)
+		struct NthPackValue {
+			static constexpr auto Value = ValuePackHelper<N, Pack...>::Value;
+		};
+
+
 		template<SizeT, class>
 		struct NthInnerType {};
 
@@ -404,6 +420,9 @@ namespace TT {
 
 	template<CC::NestedType T>
 	using InnerType = NthInnerType<0, T>;
+
+	template<SizeT N, auto... Pack>
+	static constexpr auto NthPackValue = Detail::NthPackValue<N, Pack...>::Value;
 
 
 	/* Type Tag */
