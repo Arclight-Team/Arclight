@@ -9,6 +9,7 @@
 #pragma once
 
 #include "common/concepts.hpp"
+#include "common/exception.hpp"
 #include "types.hpp"
 
 #include <stdexcept>
@@ -22,23 +23,27 @@
 #include <algorithm>
 
 
-class ArgumentParserException : public std::runtime_error {
+class ArgumentParserException : public ArclightException {
 
 public:
 
-	template<class... Args>
-	explicit ArgumentParserException(const std::string& msg, Args&&... args) : std::runtime_error(String::format(msg, std::forward<Args>(args)...)) {}
+	using ArclightException::ArclightException;
 
-	explicit ArgumentParserException(const std::string& msg) : std::runtime_error(msg) {}
+	template<class... Args>
+	explicit ArgumentParserException(const std::string& msg, Args&&... args) : ArclightException(String::format(msg, std::forward<Args>(args)...)) {}
+
+	virtual const char* name() const noexcept override { return "Argument Parser Exception"; }
 
 };
 
 
-class ArgumentLayoutException : public std::runtime_error {
+class ArgumentLayoutException : public ArclightException {
 
 public:
 
-	explicit ArgumentLayoutException(const std::string& cause, std::string_view layout, SizeT pos) noexcept : std::runtime_error("Syntax error: " + cause), layout(layout), position(pos) {}
+	explicit ArgumentLayoutException(const std::string& cause, std::string_view layout, SizeT pos) noexcept : ArclightException("Syntax error: " + cause), layout(layout), position(pos) {}
+
+	virtual const char* name() const noexcept override { return "Argument Layout Exception"; }
 
 	constexpr std::string_view getLayout() const noexcept {
 		return layout;

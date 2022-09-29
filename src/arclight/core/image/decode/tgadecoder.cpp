@@ -8,7 +8,8 @@
 
 #include "tgadecoder.hpp"
 #include "util/bool.hpp"
-#include "util/unsupportedoperationexception.hpp"
+#include "util/string.hpp"
+#include "common/exception.hpp"
 
 
 
@@ -396,7 +397,7 @@ void TGADecoder::parseColorMapImageData(const TGAHeader& hdr) {
 
 	case 24:
 	case 32:
-		throw UnsupportedOperationException("Color map TGA format with %d-bits indices is not supported", hdr.imageSpec.pixelDepth);
+		throw UnsupportedOperationException(String::format("Color map TGA format with %d-bits indices is not supported", hdr.imageSpec.pixelDepth));
 
 	default:
 		throw ImageDecoderException("Invalid pixel format");

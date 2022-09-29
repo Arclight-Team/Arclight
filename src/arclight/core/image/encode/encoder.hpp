@@ -13,6 +13,7 @@
 #include "image/rawimage.hpp"
 #include "common/concepts.hpp"
 #include "common/typetraits.hpp"
+#include "common/exception.hpp"
 
 #include <span>
 #include <optional>
@@ -48,9 +49,10 @@ namespace CC {
 
 
 
-class ImageEncoderException : public std::runtime_error {
+class ImageEncoderException : public ArclightException {
 
 public:
-	explicit ImageEncoderException(const std::string& msg) : std::runtime_error(msg) {}
+	using ArclightException::ArclightException;
+	virtual const char* name() const noexcept override { return "Image Encoder Exception"; }
 
 };

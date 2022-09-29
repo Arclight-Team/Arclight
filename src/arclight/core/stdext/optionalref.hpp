@@ -10,6 +10,7 @@
 
 #include "common/typetraits.hpp"
 #include "common/concepts.hpp"
+#include "common/exception.hpp"
 
 #include <stdexcept>
 
@@ -17,13 +18,11 @@
 /*
 	Exception for bad OptionalRef access
 */
-class BadOptionalRefException : public std::exception {
+class BadOptionalRefException : public ArclightException {
 
 public:
-
-	virtual const char* what() const noexcept {
-		return "Illegal optional access";
-	}
+	virtual const char* name() const noexcept override { return "Bad OptionalRef Exception"; }
+	virtual const char* what() const noexcept override { return "Illegal optional access"; }
 
 };
 

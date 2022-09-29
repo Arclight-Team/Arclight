@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "common/exception.hpp"
 #include "render/gle/shaderprogram.hpp"
 
 #include <stdexcept>
@@ -15,10 +16,11 @@
 
 
 //Exception that indicates that an error in the shader loader occured
-class ShaderLoaderException : public std::runtime_error {
+class ShaderLoaderException : public ArclightException {
 
 public:
-	ShaderLoaderException(const std::string& msg) : std::runtime_error(msg) {}
+	using ArclightException::ArclightException;
+	virtual const char* name() const noexcept override { return "Shader Loader Exception"; }
 
 };
 

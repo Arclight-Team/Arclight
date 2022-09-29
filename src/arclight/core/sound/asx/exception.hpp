@@ -7,12 +7,15 @@
  */
 
 #pragma once
+
 #include "common.hpp"
+#include "common/exception.hpp"
 
 #include "util/bool.hpp"
 #include <fmod_errors.h>
 #include <source_location>
 #include <stdexcept>
+
 
 
 // ASX - Arclight FMOD wrapper
@@ -24,13 +27,12 @@ namespace ASX
 		inline std::source_location loc;
 	}
 
-	class ASXException : public std::runtime_error
+	class ASXException : public ArclightException
 	{
 	public:
 
-		ASXException(const std::string& message) :
-			std::runtime_error(message)
-		{}
+		using ArclightException::ArclightException;
+		virtual const char* name() const noexcept override { return "ASX Exception"; }
 
 	};
 

@@ -8,7 +8,7 @@
 
 #include "fsentry.hpp"
 #include "arcbuild.hpp"
-#include "util/unsupportedoperationexception.hpp"
+#include "common/exception.hpp"
 
 #include <chrono>
 #include <filesystem>

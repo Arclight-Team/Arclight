@@ -13,6 +13,7 @@
 #include "math/vector.hpp"
 #include "math/rectangle.hpp"
 #include "types.hpp"
+#include "common/exception.hpp"
 
 #include <vector>
 #include <span>
@@ -25,10 +26,11 @@ enum class ImageScaling {
 };
 
 
-class ImageException : public std::runtime_error {
+class ImageException : public ArclightException {
 
 public:
-	explicit ImageException(const std::string& msg) : std::runtime_error(msg) {}
+	using ArclightException::ArclightException;
+	virtual const char* name() const noexcept override { return "Image Exception"; }
 
 };
 

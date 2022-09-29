@@ -96,6 +96,13 @@
 
 
 /*
+	Disable stacktraces
+	ARC_DISABLE_STACKTRACES: Disables stacktraces
+*/
+//#define ARC_DISABLE_STACKTRACES
+
+
+/*
 	Log directory path
 */
 #define ARC_LOG_DIRECTORY "log"

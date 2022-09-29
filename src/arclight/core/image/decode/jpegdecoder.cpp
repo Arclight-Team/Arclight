@@ -12,7 +12,7 @@
 #include "time/profiler.hpp"
 #include "util/bool.hpp"
 #include "util/assert.hpp"
-#include "util/unsupportedoperationexception.hpp"
+#include "common/exception.hpp"
 
 #include <map>
 

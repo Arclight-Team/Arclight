@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "common/exception.hpp"
 #include "debug.hpp"
 
 #include <array>
@@ -15,11 +16,13 @@
 
 
 
-class MathSyntaxException : public std::runtime_error {
+class MathSyntaxException : public ArclightException {
 
 public:
 
-	explicit MathSyntaxException(const std::string& cause, std::string_view expr, SizeT pos) noexcept : std::runtime_error("Syntax error: " + cause), expression(expr), position(pos) {}
+	MathSyntaxException(const std::string& cause, std::string_view expr, SizeT pos) noexcept : ArclightException("Syntax error: " + cause), expression(expr), position(pos) {}
+
+	virtual const char* name() const noexcept override { return "Math Syntax Exception"; }
 
 	constexpr std::string_view getExpression() const noexcept {
 		return expression;

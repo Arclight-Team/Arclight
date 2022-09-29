@@ -113,6 +113,18 @@ namespace TT {
 		};
 
 
+		template<class From, class To>
+		struct CopyQualifiers {
+
+			using _C = TT::Conditional<CC::ConstType<From>, TT::AddConst<To>, To>;
+			using _V = TT::Conditional<CC::VolatileType<From>, TT::AddVolatile<_C>, _C>;
+			using _L = TT::Conditional<CC::LValueRefType<From>, TT::AddLValueRef<_V>, _V>;
+			using _R = TT::Conditional<CC::RValueRefType<From>, TT::AddRValueRef<_L>, _L>;
+			using Type = TT::Conditional<CC::PointerType<From>, TT::AddPointer<_R>, _R>;
+
+		};
+
+
 		template<CC::Arithmetic T>
 		struct ToInteger {
 
@@ -316,6 +328,10 @@ namespace TT {
 	template<SizeT N, class... Pack> requires (N < sizeof...(Pack))
 	constexpr inline SizeT SizeofN = Detail::SizeofN<N, Pack...>;
 
+
+	/* Copies top-level qualifiers */
+	template<class From, class To>
+	using CopyQualifiers = typename Detail::CopyQualifiers<From, To>::Type;
 
 	/* Conditionally adds the const qualifier to T */
 	template<bool B, class T>

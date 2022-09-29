@@ -9,7 +9,7 @@
 #pragma once
 
 #include "types.hpp"
-#include "util/unsupportedoperationexception.hpp"
+#include "common/exception.hpp"
 
 #include <span>
 #include <memory>

@@ -12,11 +12,17 @@
 #include "util/bits.hpp"
 #include "util/log.hpp"
 #include "util/destructionguard.hpp"
+#include "common/exception.hpp"
 #include "types.hpp"
 
 #ifdef ARC_WINDOW_MODULE
 	#include <GLFW/glfw3.h>
 #endif
+
+#ifdef ARC_FONT_MODULE
+	#include "font/fontbackend.hpp"
+#endif
+
 
 
 namespace ArcRuntime {
@@ -57,7 +63,10 @@ namespace ArcRuntime {
 
 		} catch (const std::exception& e) {
 
-			Log::error("Runtime", "Exception has been thrown before main: %s", e.what());
+			Log::error("Runtime", "Exception has been thrown before main.");
+			Exception::print(e);
+			Exception::printStackTrace(e);
+
 			return initReturnBase + 1;
 
 		}
@@ -68,7 +77,7 @@ namespace ArcRuntime {
 		try {
 #endif
 
-			i32 ret = Bits::cast<i32>(arcMain(args));
+			i32 ret = static_cast<i32>(arcMain(args));
 
 			if (ret) {
 
@@ -80,8 +89,16 @@ namespace ArcRuntime {
 #if !ARC_DEBUG
 		} catch (const std::exception& e) {
 
-			Log::error("Runtime", "The application has thrown an exception: %s", e.what());
+			Log::error("Runtime", "The application has thrown an exception.");
+			Exception::print(e);
+			Exception::printStackTrace(e);
+
 			return initReturnBase + 2;
+
+		} catch (...) {
+
+			Log::error("Runtime", "The application has thrown an exception of unknown type.");
+			return initReturnBase + 3;
 
 		}
 #endif
@@ -116,6 +133,15 @@ bool ArcRuntime::initialize() noexcept {
 
 #endif
 
+#ifdef ARC_FONT_MODULE
+
+	if (!FontBackend::init()) {
+		Log::error("ArcRT", "Failed to initialize font module");
+		return false;
+	}
+
+#endif
+
 	Log::info("Runtime", "Ready");
 
 	return true;
@@ -127,6 +153,10 @@ bool ArcRuntime::initialize() noexcept {
 void ArcRuntime::shutdown() noexcept {
 
 	Log::info("Runtime", "Shutting down runtime");
+
+#ifdef ARC_FONT_MODULE
+	FontBackend::shutdown();
+#endif
 
 #ifdef ARC_WINDOW_MODULE
 	glfwTerminate();

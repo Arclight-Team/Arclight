@@ -11,6 +11,7 @@
 #include "image/image.hpp"
 #include "util/bitmaskenum.hpp"
 #include "util/identifier.hpp"
+#include "common/exception.hpp"
 
 #include <memory>
 #include <stdexcept>
@@ -18,10 +19,11 @@
 
 
 
-class BadTextureCompositeException : public std::runtime_error {
+class BadTextureCompositeException : public ArclightException {
 
 public:
-	BadTextureCompositeException() : std::runtime_error("Bad texture composite") {}
+	BadTextureCompositeException() : ArclightException("Bad texture composite") {}
+	virtual const char* name() const noexcept override { return "Bad Texture Composite Exception"; }
 
 };
 
