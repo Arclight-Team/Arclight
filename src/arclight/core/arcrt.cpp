@@ -24,6 +24,8 @@
 #endif
 
 
+#include "os/messagebox.hpp"
+
 
 namespace ArcRuntime {
 	extern bool platformInit();
@@ -33,6 +35,7 @@ namespace ArcRuntime {
 #ifdef ARC_USE_ARCRT
 
 	extern u32 arcMain(const std::vector<std::string>& args);
+	static void showExceptionMessageBox(const std::string& ex, const std::string& st) noexcept;
 
 	int main(int argc, char** argv) {
 
@@ -44,6 +47,7 @@ namespace ArcRuntime {
 
 		std::set_terminate([]() {
 			Log::error("Runtime", "An unhandled exception has been thrown, terminating.");
+			showExceptionMessageBox("Unhandled Exception", "<Untraceable>");
 			ArcRuntime::shutdown();
 		});
 
@@ -66,6 +70,7 @@ namespace ArcRuntime {
 			Log::error("Runtime", "Exception has been thrown before main.");
 			Exception::print(e);
 			Exception::printStackTrace(e);
+			showExceptionMessageBox(Exception::getMessage(e), Exception::getStackTrace(e));
 
 			return initReturnBase + 1;
 
@@ -92,12 +97,15 @@ namespace ArcRuntime {
 			Log::error("Runtime", "The application has thrown an exception.");
 			Exception::print(e);
 			Exception::printStackTrace(e);
+			showExceptionMessageBox(Exception::getMessage(e), Exception::getStackTrace(e));
 
 			return initReturnBase + 2;
 
 		} catch (...) {
 
 			Log::error("Runtime", "The application has thrown an exception of unknown type.");
+			showExceptionMessageBox("Object-Type Exception", "<Untraceable>");
+
 			return initReturnBase + 3;
 
 		}
@@ -106,6 +114,24 @@ namespace ArcRuntime {
 		return 0;
 
 	}
+
+
+	static void showExceptionMessageBox(const std::string& ex, const std::string& st) noexcept {
+
+#ifdef ARC_SHOW_CRASH_MESSAGEBOX
+
+		try {
+
+#ifdef ARC_OS_WINDOWS
+			MessageBox::create("Arclight - Application terminated", "The application has been terminated.\nAn unhandled exception has been thrown.\n" + ex + "\n" + st, MessageBox::Type::Accept, MessageBox::Icon::Error);
+#endif
+
+		} catch (...) {}
+
+#endif
+
+	}
+
 
 
 

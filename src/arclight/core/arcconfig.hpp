@@ -96,6 +96,13 @@
 
 
 /*
+	Show message box upon crash
+	ARC_SHOW_CRASH_MESSAGEBOX: Displays a message box when the application crashes
+*/
+#define ARC_SHOW_CRASH_MESSAGEBOX
+
+
+/*
 	Disable stacktraces
 	ARC_DISABLE_STACKTRACES: Disables stacktraces
 */
