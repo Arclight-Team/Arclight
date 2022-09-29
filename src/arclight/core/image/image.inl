@@ -100,6 +100,16 @@ constexpr u64 Image<P>::pixelCount() const {
 }
 
 template<Pixel P>
+constexpr u8* Image<P>::getImageData() {
+	return Bits::toByteArray(getImageBuffer().data());
+}
+
+template<Pixel P>
+constexpr const u8* Image<P>::getImageData() const {
+	return Bits::toByteArray(getImageBuffer().data());
+}
+
+template<Pixel P>
 constexpr std::span<typename Image<P>::PixelType> Image<P>::getImageBuffer() {
 	return std::span{pixels.get(), pixelCount()};
 }

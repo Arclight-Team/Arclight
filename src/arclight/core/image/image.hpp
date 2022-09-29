@@ -65,6 +65,8 @@ public:
 	constexpr u32 getHeight() const;
 	constexpr u64 pixelCount() const;
 
+	constexpr u8* getImageData();
+	constexpr const u8* getImageData() const;
 	constexpr std::span<PixelType> getImageBuffer();
 	constexpr std::span<const PixelType> getImageBuffer() const;
 
