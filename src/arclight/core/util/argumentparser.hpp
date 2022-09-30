@@ -41,11 +41,11 @@ class ArgumentLayoutException : public ArclightException {
 
 public:
 
-	explicit ArgumentLayoutException(const std::string& cause, std::string_view layout, SizeT pos) noexcept : ArclightException("Syntax error: " + cause), layout(layout), position(pos) {}
+	explicit ArgumentLayoutException(const std::string& cause, const std::string& layout, SizeT pos) noexcept : ArclightException("Syntax error: " + cause), layout(layout), position(pos) {}
 
 	virtual const char* name() const noexcept override { return "Argument Layout Exception"; }
 
-	constexpr std::string_view getLayout() const noexcept {
+	constexpr const std::string& getLayout() const noexcept {
 		return layout;
 	}
 
@@ -55,7 +55,7 @@ public:
 
 private:
 
-	std::string_view layout;
+	std::string layout;
 	SizeT position;
 
 };
@@ -71,6 +71,8 @@ namespace CC {
 
 class ArgumentParser {
 
+private:
+
 	enum class TokenType {
 		SectionOpener,		// < [
 		SectionCloser,		// > ]
@@ -84,22 +86,24 @@ class ArgumentParser {
 	struct Token {
 
 		constexpr Token() noexcept : Token("", TokenType::End) {}
-		constexpr Token(std::string_view str, TokenType type) : str(str), type(type) {}
+		constexpr Token(const std::string& str, TokenType type) : str(str), type(type) {}
 
-		std::string_view str;
+		std::string str;
 		TokenType type;
 
 	};
 
 	struct Argument {
 
-		enum Type {
+		enum class Type {
 			Flag,
 			Int,
 			UInt,
 			Word,
 			String,
 		};
+
+		using enum Type;
 
 		std::vector<std::string> names;
 		Type type = Type::Flag;
@@ -115,11 +119,13 @@ class ArgumentParser {
 
 	struct Section {
 
-		enum Type {
+		enum class Type {
 			None,
 			Argument,
 			Container
 		};
+
+		using enum Type;
 
 		bool optional;
 		Operator op;
@@ -149,11 +155,80 @@ class ArgumentParser {
 
 public:
 
-	ArgumentParser(const std::vector<std::string>& args, std::string_view layout) : arguments(args), layout(layout), argCursor(1), cursor(0), tokenStart(0) {
-		parse();
+	inline ArgumentParser() noexcept : argCursor(1), cursor(0), tokenStart(0) {}
+
+	inline ArgumentParser(const std::vector<std::string>& args, const std::string& layout) : argCursor(1), cursor(0), tokenStart(0) {
+		parse(args, layout);
 	}
 
-	ArgumentParser(int argc, char* argv[], std::string_view layout) : layout(layout), argCursor(1), cursor(0), tokenStart(0) {
+	inline ArgumentParser(int argc, char* argv[], const std::string& layout) : argCursor(1), cursor(0), tokenStart(0) {
+		parse(argc, argv, layout);
+	}
+
+
+	inline void parse() {
+		parseArguments();
+	}
+
+	inline void parse(const std::vector<std::string>& args, const std::string& layout) {
+		this->layout = layout;
+		arguments = args;
+		parseArguments();
+	}
+
+	inline void parse(int argc, char* argv[], const std::string& layout) {
+		this->layout = layout;
+		setArguments(argc, argv);
+		parseArguments();
+	}
+
+
+	inline bool contains(const std::string& name) const {
+		return aliases.contains(name);
+	}
+
+
+	inline i32 getInt(const std::string& name) const {
+		return getValue<i32>(name);
+	}
+
+	inline u32 getUInt(const std::string& name) const {
+		return getValue<u32>(name);
+	}
+
+	inline std::string getString(const std::string& name) const {
+		return getValue<std::string>(name);
+	}
+
+	inline i32 getInt(const std::string& name, i32 defaultValue) const {
+		return getValue<i32>(name);
+	}
+
+	inline u32 getUInt(const std::string& name, u32 defaultValue) const {
+		return getValue<u32>(name);
+	}
+
+	inline std::string getString(const std::string& name, const std::string& defaultValue) const {
+		return getValue<std::string>(name, defaultValue);
+	}
+
+
+	inline bool getFlag(const std::string& name) const {
+		return flags.contains(name);
+	}
+
+
+	constexpr const std::vector<std::string>& getArguments() const {
+		return arguments;
+	}
+
+	constexpr const std::string& getLayout() const {
+		return layout;
+	}
+
+private:
+
+	constexpr void setArguments(int argc, char* argv[]) {
 
 		try {
 
@@ -169,63 +244,46 @@ public:
 
 		}
 
-		parse();
-
 	}
 
 
-	template<CC::ArgumentType T>
-	T get(const std::string& name) const {
+	template<class T>
+	T getValueUnsafe(const std::string& name) const {
 
-		if (!aliases.contains(name)) {
-			throw ArgumentParserException("Argument \"" + name + "\" does not exist");
+		ValueT value = values.at(aliases.at(name));
+
+		if (!std::holds_alternative<T>(value)) {
+			throw ArgumentParserException("Argument \"" + name + "\" does not hold given type");
 		}
 
-		return getValue<T>(name);
+		return std::get<T>(value);
 
 	}
 
-	template<CC::ArgumentType T>
-	T get(const std::string& name, const T& defaultValue) const {
+	template<class T>
+	T getValue(const std::string& name, const T& defaultValue) const {
 
 		if (!aliases.contains(name)) {
 			return defaultValue;
 		}
 
-		return getValue<T>(name);
+		return getValueUnsafe<T>(name);
 
 	}
 
-
-	bool getFlag(const std::string& name) const {
-		return flags.contains(name);
-	}
-
-
-	std::vector<std::string> getArguments() const {
-		return arguments;
-	}
-
-private:
-
-	template<CC::ArgumentType T>
+	template<class T>
 	T getValue(const std::string& name) const {
 
-		// Type needs to be part of the ArgumentValueT variant
-		using Type = TT::Conditional<CC::Integer<T>, TT::Conditional<CC::SignedType<T>, i32, u32>, T>;
-
-		ValueT value = values.at(aliases.at(name));
-
-		if (!std::holds_alternative<Type>(value)) {
-			throw ArgumentParserException("Argument \"" + name + "\" does not hold given type");
+		if (!aliases.contains(name)) {
+			throw ArgumentParserException("Argument \"" + name + "\" does not exist");
 		}
 
-		return std::get<Type>(value);
+		return getValueUnsafe<T>(name);
 
 	}
 
 
-	void parse() {
+	void parseArguments() {
 
 		std::vector<Section> sections; // Current sections
 		Argument arg; // Temporary argument data
@@ -290,9 +348,9 @@ private:
 					layoutState = LayoutState::Section;
 
 					// Helper lambda to parse the next argument and set the right state if successful or not
-					auto parseArgument = [&](bool optional) {
+					auto doParse = [&](bool optional) {
 
-						if (parseNextArgument(arg)) { // If argument matches
+						if (parseArgument(arg)) { // If argument matches
 
 							states[depth - 1] = State::Match;
 
@@ -320,19 +378,19 @@ private:
 								throw ArgumentParserException("Arguments not matching layout");
 							}
 
-							parseArgument(last.optional);
+							doParse(last.optional);
 
 						} else if (states[depth - 1] == State::MatchOpt) { // Optional matching state
 
 							if (last.op == Operator::Or) {
-								parseArgument(true);
+								doParse(true);
 							} else {
-								parseArgument(last.optional);
+								doParse(last.optional);
 							}
 
 						} else if (last.op != Operator::Or) { // Matching state (ignored if the operator is Or)
 
-							parseArgument(last.optional);
+							doParse(last.optional);
 
 						}
 
@@ -476,9 +534,11 @@ private:
 						arg.type = map[tokenStr];
 
 						layoutState = LayoutState::Section;
+
 					}
 
 					break;
+
 				}
 			}
 
@@ -494,7 +554,7 @@ private:
 
 	}
 
-	bool parseNextArgument(const Argument& arg) {
+	bool parseArgument(const Argument& arg) {
 
 		SizeT cur = argCursor;
 
@@ -616,7 +676,7 @@ private:
 		tokenStart = cursor;
 		TokenType type = scanNextToken();
 
-		return { std::string_view(layout.begin() + tokenStart, layout.begin() + cursor), type };
+		return { std::string(layout.begin() + tokenStart, layout.begin() + cursor), type };
 
 	}
 
@@ -668,12 +728,12 @@ private:
 	}
 
 
-	std::vector<std::string> arguments;
-	SizeT argCursor;
-
-	std::string_view layout;
 	SizeT cursor;
 	SizeT tokenStart;
+	SizeT argCursor;
+
+	std::string layout;
+	std::vector<std::string> arguments;
 
 	std::unordered_set<std::string> flags;
 	std::unordered_map<std::string, ValueT> values;
