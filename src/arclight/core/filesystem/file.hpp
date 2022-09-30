@@ -33,10 +33,8 @@ public:
 	};
 
 	File();
-	File(FSEntry entry, u32 flags = File::In);
 	File(const Path& path, u32 flags = File::In);
 
-	bool open();
 	bool open(const Path& path, u32 flags = File::In);
 	void close();
 
@@ -71,13 +69,13 @@ public:
 	bool rename(const Path& to);
 	bool remove();
 
-	Path getPath() const;
-	FSEntry getFSEntry() const;
+	Path path() const;
+	FSEntry fsEntry() const;
 
 private:
 
 	mutable std::fstream stream;
-	FSEntry entry;
+	Path filePath;
 	u32 openFlags;
 
 };

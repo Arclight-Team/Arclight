@@ -36,34 +36,31 @@ constexpr static std::ios::openmode convertFlagsToStdFlags(u32 flags) {
 
 
 
-File::File() : File(Path(), File::In) {}
-File::File(FSEntry entry, u32 flags) : entry(std::move(entry)), openFlags(flags) {};
-File::File(const Path& path, u32 flags) : File(FSEntry(path), flags) {};
+File::File() : openFlags(0) {}
 
+File::File(const Path& path, u32 flags) : filePath(path), openFlags(flags) { open(path, flags); };
 
-
-bool File::open() {
-
-	arc_assert((openFlags & File::In) || (openFlags & File::Out), "Invalid file flags requested: %02X", openFlags);
-
-	if (isOpen()) {
-		Log::warn("File", "Attempting to open stream that has already been opened. Opened: '%s'", getPath().toString().c_str());
-		return false;
-	}
-
-	stream.open(getPath().toString(), convertFlagsToStdFlags(openFlags));
-
-	return isOpen();
-
-}
 
 
 bool File::open(const Path& path, u32 flags) {
 
-	entry = FSEntry(path);
+	filePath = path;
 	openFlags = flags;
 
-	return open();
+	if (!flags) {
+		return false;
+	}
+
+	if (isOpen()) {
+
+		Log::warn("File", "Attempting to open stream that has already been opened. Opened: '%s'", filePath.toString().c_str());
+		return true;
+
+	}
+
+	stream.open(path.toString(), convertFlagsToStdFlags(flags));
+
+	return isOpen();
 
 }
 
@@ -72,7 +69,7 @@ bool File::open(const Path& path, u32 flags) {
 void File::close() {
 
 	if (!isOpen()) {
-		Log::warn("File", "Attempting to close stream that is already closed (Path = '%s')", getPath().toString().c_str());
+		Log::warn("File", "Attempting to close stream that is already closed (Path = '%s')", path().toString().c_str());
 		return;
 	}
 
@@ -83,8 +80,6 @@ void File::close() {
 
 
 std::string File::readChars(u64 count) {
-
-	arc_assert(isOpen(), "Attempted to read from an unopened file");
 
 	std::string text;
 	text.resize(count);
@@ -98,8 +93,6 @@ std::string File::readChars(u64 count) {
 
 std::string File::readWord() {
 
-	arc_assert(isOpen(), "Attempted to read from an unopened file");
-
 	std::string word;
 	stream >> word;
 
@@ -111,8 +104,6 @@ std::string File::readWord() {
 
 std::string File::readLine() {
 
-	arc_assert(isOpen(), "Attempted to read from an unopened file");
-
 	std::string line;
 	std::getline(stream, line);
 
@@ -123,8 +114,6 @@ std::string File::readLine() {
 
 
 std::string File::readAllText() {
-
-	arc_assert(isOpen(), "Attempted to read from an unopened file");
 
 	seekFromEnd(0);
 	auto fileSize = stream.tellg();
@@ -140,28 +129,18 @@ std::string File::readAllText() {
 
 
 void File::write(const std::string& text) {
-
-	arc_assert(isOpen(), "Attempted to write to an unopened file");
-
 	stream << text;
-
 }
 
 
 
 void File::writeLine(const std::string& line) {
-
-	arc_assert(isOpen(), "Attempted to write to an unopened file");
-
 	stream << line << '\n';
-
 }
 
 
 
 SizeT File::read(const std::span<u8>& data) {
-
-	arc_assert(isOpen(), "Attempted to read from an unopened file");
 
 	stream.read(reinterpret_cast<char*>(data.data()), data.size());
 	return stream.gcount();
@@ -170,18 +149,12 @@ SizeT File::read(const std::span<u8>& data) {
 
 
 void File::write(const std::span<const u8>& data) {
-
-	arc_assert(isOpen(), "Attempted to write to an unopened file");
-
 	stream.write(reinterpret_cast<const char*>(data.data()), data.size());
-
 }
 
 
 
 std::vector<u8> File::readAll() {
-
-	arc_assert(isOpen(), "Attempted to read from an unopened file");
 
 	std::vector<u8> bytes(size());
 	stream.read(reinterpret_cast<char*>(bytes.data()), bytes.size());
@@ -193,37 +166,25 @@ std::vector<u8> File::readAll() {
 
 
 void File::seek(i64 offset) {
-
-	arc_assert(isOpen(), "Attempted to seek in an unopened file");
 	stream.seekg(offset, std::ios::cur);
-
 }
 
 
 
 void File::seekTo(u64 offset) {
-
-	arc_assert(isOpen(), "Attempted to seek in an unopened file");
-	stream.seekg(offset, std::ios::beg);
-
+	stream.seekg(static_cast<i64>(offset), std::ios::beg);
 }
 
 
 
 void File::seekFromEnd(u64 offset) {
-
-	arc_assert(isOpen(), "Attempted to seek in an unopened file");
-	stream.seekg(offset, std::ios::end);
-
+	stream.seekg(static_cast<i64>(offset), std::ios::end);
 }
 
 
 
 u64 File::getPosition() const {
-
-	arc_assert(isOpen(), "Attempted to seek in an unopened file");
 	return stream.tellg();
-
 }
 
 
@@ -241,13 +202,13 @@ u32 File::getStreamFlags() const {
 
 
 u64 File::size() const {
-	return std::filesystem::file_size(getPath().getHandle());
+	return std::filesystem::file_size(path().getHandle());
 }
 
 
 
 bool File::exists() const {
-	return entry.exists();
+	return fsEntry().exists();
 }
 
 
@@ -255,7 +216,7 @@ bool File::exists() const {
 bool File::create() {
 
 	try {
-		std::ofstream dummyStream(getPath().toString(), std::ios::out | std::ios::app);
+		std::ofstream dummyStream(path().toString(), std::ios::out | std::ios::app);
 	} catch (const std::exception&) {
 		return false;
 	}
@@ -280,7 +241,7 @@ bool File::copy(const Path& where, FSCopyExisting copyExisting) const {
 	}
 
 	try {
-		std::filesystem::copy_file(getPath().getHandle(), where.getHandle(), options);
+		std::filesystem::copy_file(path().getHandle(), where.getHandle(), options);
 	} catch (const std::exception&) {
 		return false;
 	}
@@ -292,23 +253,23 @@ bool File::copy(const Path& where, FSCopyExisting copyExisting) const {
 
 
 bool File::rename(const Path& to) {
-	return entry.rename(to);
+	return fsEntry().rename(to);
 }
 
 
 
 bool File::remove() {
-	return entry.remove();
+	return fsEntry().remove();
 }
 
 
 
-Path File::getPath() const {
-	return entry.getPath();
+Path File::path() const {
+	return filePath;
 }
 
 
 
-FSEntry File::getFSEntry() const {
-	return entry;
+FSEntry File::fsEntry() const {
+	return FSEntry(filePath);
 }

@@ -14,8 +14,7 @@
 
 GLE::ShaderProgram ShaderLoader::fromFiles(const Path& vsPath, const Path& fsPath) {
 
-	File vsFile;
-	vsFile.open(vsPath, File::In | File::Text);
+	File vsFile(vsPath, File::In | File::Text);
 
 	if (!vsFile.isOpen()) {
 		throw ShaderLoaderException(std::string("Failed to open vertex shader file ") + vsPath.toString().c_str());
@@ -24,8 +23,7 @@ GLE::ShaderProgram ShaderLoader::fromFiles(const Path& vsPath, const Path& fsPat
 	const std::string vs = vsFile.readAllText();
 	vsFile.close();
 
-	File fsFile;
-	fsFile.open(fsPath, File::In | File::Text);
+	File fsFile(fsPath, File::In | File::Text);
 
 	if (!fsFile.isOpen()) {
 		throw ShaderLoaderException(std::string("Failed to open fragment shader file ") + fsPath.toString().c_str());
@@ -42,8 +40,7 @@ GLE::ShaderProgram ShaderLoader::fromFiles(const Path& vsPath, const Path& fsPat
 
 GLE::ShaderProgram ShaderLoader::fromFiles(const Path& vsPath, const Path& gsPath, const Path& fsPath) {
 
-	File vsFile;
-	vsFile.open(vsPath, File::In | File::Text);
+	File vsFile(vsPath, File::In | File::Text);
 
 	if (!vsFile.isOpen()) {
 		throw ShaderLoaderException(std::string("Failed to open vertex shader file ") + vsPath.toString().c_str());
@@ -52,8 +49,7 @@ GLE::ShaderProgram ShaderLoader::fromFiles(const Path& vsPath, const Path& gsPat
 	const std::string vs = vsFile.readAllText();
 	vsFile.close();
 
-	File fsFile;
-	fsFile.open(fsPath, File::In | File::Text);
+	File fsFile(fsPath, File::In | File::Text);
 
 	if (!fsFile.isOpen()) {
 		throw ShaderLoaderException(std::string("Failed to open fragment shader file ") + fsPath.toString().c_str());
@@ -62,8 +58,7 @@ GLE::ShaderProgram ShaderLoader::fromFiles(const Path& vsPath, const Path& gsPat
 	const std::string fs = fsFile.readAllText();
 	fsFile.close();
 
-	File gsFile;
-	gsFile.open(gsPath, File::In | File::Text);
+	File gsFile(gsPath, File::In | File::Text);
 
 	if (!gsFile.isOpen()) {
 		throw ShaderLoaderException(std::string("Failed to open geometry shader file ") + gsPath.toString().c_str());
@@ -130,8 +125,7 @@ GLE::ShaderProgram ShaderLoader::fromString(const std::string& vs, const std::st
 
 void ShaderLoader::addShader(GLE::ShaderProgram& program, const Path& path, GLE::ShaderType type) {
 
-	File file;
-	file.open(path, File::In | File::Text);
+	File file(path, File::In | File::Text);
 
 	if (!file.isOpen()) {
 		throw ShaderLoaderException(std::string("Failed to open shader file ") + path.toString().c_str());
