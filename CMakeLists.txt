@@ -338,7 +338,7 @@ project (${PROJECT_NAME})
 ###### PLATFORM ######
 ######################
 
-	set(WIN_NO_CONSOLE TRUE)
+	set(WIN_NO_CONSOLE FALSE)
 
 	if(WIN32)
 

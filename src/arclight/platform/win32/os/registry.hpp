@@ -78,6 +78,8 @@ namespace OS::Registry {
 		bool setBinary(const std::string& value, const std::vector<u8>& data);
 		bool setStringArray(const std::string& value, const std::vector<std::string>& data);
 
+		bool hasValue(const std::string& value);
+
 		bool rename(const std::string& newName);
 		bool renameSubkey(const std::string& subkey, const std::string& newName);
 

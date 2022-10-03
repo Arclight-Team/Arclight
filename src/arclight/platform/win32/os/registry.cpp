@@ -324,6 +324,17 @@ namespace OS::Registry {
 	}
 
 
+	bool Key::hasValue(const std::string& value) {
+
+		if (!isReadable()) {
+			return false;
+		}
+
+		return !RegQueryValueExW(handle->key, Unicode::convertString<Unicode::UTF8, Unicode::UTF16LE>(value).c_str(), nullptr, nullptr, nullptr, nullptr);
+
+	}
+
+
 	bool Key::rename(const std::string& newName) {
 
 		if (!isWritable()) {
