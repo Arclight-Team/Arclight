@@ -7,12 +7,14 @@
  */
 
 #include "os.hpp"
+#include "registry.hpp"
 #include "types.hpp"
 #include "locale/unicode.hpp"
 
 #include <vector>
 
 #include "Windows.h"
+#include "Shlwapi.h"
 
 
 
@@ -92,5 +94,56 @@ bool OS::shutdown(bool force) {
 
 	u32 forceFlags = force ? EWX_FORCE : 0;
 	return ExitWindowsEx(EWX_POWEROFF | EWX_FORCEIFHUNG | forceFlags, SHTDN_REASON_MINOR_OTHER);
+
+}
+
+
+
+static std::string dispatchPath(Path path) {
+
+	std::string pathStr = path.toAbsolute().toNativeString();
+
+	for (char c : pathStr) {
+
+		if (c == ' ') {
+
+			pathStr.resize(pathStr.size() + 2, '"');
+			std::copy_backward(pathStr.begin(), pathStr.end() - 2, pathStr.end() - 1);
+			pathStr[0] = '"';
+			break;
+
+		}
+
+	}
+
+	return pathStr;
+
+}
+
+
+
+bool OS::addToStartup(const std::string& name, const Path& path, bool allUsers) {
+
+	std::optional<OS::Registry::Key> key = OS::Registry::openKey(allUsers ? OS::Registry::RootKey::LocalMachine : OS::Registry::RootKey::CurrentUser, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", OS::Registry::KeyAccess::Write);
+
+	if (key.has_value()) {
+		return key->setString(name, dispatchPath(path));
+	}
+
+	return false;
+
+}
+
+
+
+bool OS::removeFromStartup(const std::string& name, bool allUsers) {
+
+	std::optional<OS::Registry::Key> key = OS::Registry::openKey(allUsers ? OS::Registry::RootKey::LocalMachine : OS::Registry::RootKey::CurrentUser, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", OS::Registry::KeyAccess::Write);
+
+	if (key.has_value()) {
+		return key->eraseValue(name);
+	}
+
+	return false;
 
 }

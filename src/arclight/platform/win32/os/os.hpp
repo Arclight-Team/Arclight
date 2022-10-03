@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "process.hpp"
+
 #include <string>
 #include <optional>
 
@@ -24,5 +26,8 @@ namespace OS {
 	bool logout();
 	bool restart(bool force = false);
 	bool shutdown(bool force = false);
+
+	bool addToStartup(const std::string& name, const Path& path = Process::getCurrentProcess().getExecutablePath(), bool allUsers = false);
+	bool removeFromStartup(const std::string& name, bool allUsers = false);
 
 }
