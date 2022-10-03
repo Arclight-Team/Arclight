@@ -72,11 +72,11 @@ public:
 						a = p.getAlpha();
 					}
 
-//                    Log::info("ConvFilter", "(%i, %i)", x, y);
+//                    LogI("ConvFilter").print("(%i, %i)", x, y);
 					for (u32 offY = 0; offY < 3; offY++) {
 						for (u32 offX = 0; offX < 3; offX++) {
 							calcPX<P, E>(buffer, convMat, channels, x + offX, y + offY, offX, offY, r, g, b, a, sumChecked);
-//                            Log::info("ConvFilter", "(%i, %i, %i), (%i, %i), %i", r, g, b, offX, offY, sumChecked);
+//                            LogI("ConvFilter").print("(%i, %i, %i), (%i, %i), %i", r, g, b, offX, offY, sumChecked);
 						}
 					}
 

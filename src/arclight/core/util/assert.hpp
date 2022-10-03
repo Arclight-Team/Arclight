@@ -25,12 +25,12 @@ constexpr void __arc_assert(bool condition, const std::source_location& srcLocat
 
 		try {
 
-			Log::error("Assert", "Assertion failed in file '" + std::string(srcLocation.file_name()) + "' [" + std::to_string(srcLocation.line()) + ":" + std::to_string(srcLocation.column()) + "] in function '" + std::string(srcLocation.function_name()) + "':");
-			Log::error("Assert", "\t" + message, std::forward<Args>(args)...);
+			LogE("Assert").print("Assertion failed in file '" + std::string(srcLocation.file_name()) + "' [" + std::to_string(srcLocation.line()) + ":" + std::to_string(srcLocation.column()) + "] in function '" + std::string(srcLocation.function_name()) + "':");
+			LogE("Assert").print("\t" + message, std::forward<Args>(args)...);
 
 		} catch(...) {
 
-			Log::error("Assert", "Fatal error: Failed to assert");
+			LogE("Assert") << "Fatal error: Failed to assert";
 
 		}
 

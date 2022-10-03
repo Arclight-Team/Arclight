@@ -171,7 +171,7 @@ void TGADecoder::decode(std::span<const u8> data) {
 	hdr.imageSpec.imageDescriptor = reader.read<u8>();
 
 	if (getImageReservedBits(hdr.imageSpec))
-		Log::warn("TGADecoder", "ImageDescriptor reserved bits are not zero");
+		LogW("TGADecoder") << "ImageDescriptor reserved bits are not zero";
 
 	// Read image ID
 	id.resize(hdr.idLength);

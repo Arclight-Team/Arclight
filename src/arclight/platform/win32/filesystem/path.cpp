@@ -44,7 +44,7 @@ Path Path::getApplicationDirectory() {
 					If this changes in future windows versions, long path names could fail since it would require to allocate fairly large buffers
 					This is why we stop here with an error.
 				*/
-				Log::error("Path", "Failed to query application directory path: Path too long");
+				LogE("Path") << "Failed to query application directory path: Path too long";
 				return Path();
 
 			}
@@ -57,7 +57,7 @@ Path Path::getApplicationDirectory() {
 
 	} catch (std::exception& e) {
 
-		Log::error("Path", "Failed to query application directory path: %s", e.what());
+		LogE("Path").print("Failed to query application directory path: %s", e.what());
 		return Path();
 
 	}

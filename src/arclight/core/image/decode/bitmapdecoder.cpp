@@ -134,7 +134,7 @@ SizeT BitmapDecoder::parseHeader() {
 	u32 dataOffset = reader.read<u32>();
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("Bitmap Loader", "Header: 0x%X, Size: 0x%X, Reserved1: 0x%X, Reserved2: 0x%X, Offset: 0x%X", signature, fileSize, reserved1, reserved2, dataOffset);
+	LogI("Bitmap Loader").print("Header: 0x%X, Size: 0x%X, Reserved1: 0x%X, Reserved2: 0x%X, Offset: 0x%X", signature, fileSize, reserved1, reserved2, dataOffset);
 #endif
 
 	constexpr u16 headerMagic = 0x4D42;
@@ -197,7 +197,7 @@ void BitmapDecoder::parseInfoHeader() {
 	bitmap.importantColors = reader.read<u32>();
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("Bitmap Loader", "InfoSize: 0x%X, Width: 0x%X, Height: 0x%X, Planes: 0x%X, BPP: 0x%X, Compression: 0x%X, ImageSize: 0x%X, PPMX: 0x%X, PPMY: 0x%X, PaletteColors: 0x%X, ImportantColors: 0x%X",
+	LogI("Bitmap Loader").print("InfoSize: 0x%X, Width: 0x%X, Height: 0x%X, Planes: 0x%X, BPP: 0x%X, Compression: 0x%X, ImageSize: 0x%X, PPMX: 0x%X, PPMY: 0x%X, PaletteColors: 0x%X, ImportantColors: 0x%X",
 	headerSize, width, height, planes, bitmap.bitsPerPixel, compression, imageSize, bitmap.pixelsPerMeterX, bitmap.pixelsPerMeterY, bitmap.paletteColors, bitmap.importantColors);
 #endif
 
@@ -238,10 +238,10 @@ void BitmapDecoder::parseInfoHeader() {
 		bitmap.blueGamma = reader.read<u32>();
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("Bitmap Loader", "RedMask: 0x%X, GreenMask: 0x%X, BlueMask: 0x%X, AlphaMask: 0x%X, RedGamma: 0x%X, GreenGamma: 0x%X, BlueGamma: 0x%X",
+		LogI("Bitmap Loader").print("RedMask: 0x%X, GreenMask: 0x%X, BlueMask: 0x%X, AlphaMask: 0x%X, RedGamma: 0x%X, GreenGamma: 0x%X, BlueGamma: 0x%X",
 		bitmap.redMask, bitmap.greenMask, bitmap.blueMask, bitmap.alphaMask, bitmap.redGamma, bitmap.greenGamma, bitmap.blueGamma);
 
-		Log::info("Bitmap Loader", "ColorSpace: 0x%X, CIEEndpoint0: [0x%X, 0x%X, 0x%X], CIEEndpoint1: [0x%X, 0x%X, 0x%X], CIEEndpoint2: [0x%X, 0x%X, 0x%X]",
+		LogI("Bitmap Loader").print("ColorSpace: 0x%X, CIEEndpoint0: [0x%X, 0x%X, 0x%X], CIEEndpoint1: [0x%X, 0x%X, 0x%X], CIEEndpoint2: [0x%X, 0x%X, 0x%X]",
 		colorSpace, bitmap.endpoint0.x, bitmap.endpoint0.y, bitmap.endpoint0.z, bitmap.endpoint1.x, bitmap.endpoint1.y, bitmap.endpoint1.z, bitmap.endpoint2.x, bitmap.endpoint2.y, bitmap.endpoint2.z);
 #endif
 
@@ -279,7 +279,7 @@ void BitmapDecoder::parseInfoHeader() {
 			u32 reserved = reader.read<u32>();
 
 #ifdef ARC_IMAGE_DEBUG
-			Log::info("Bitmap Loader", "RenderIntent: 0x%X, ProfileDataOffset: 0x%X, ProfileDataSize: 0x%X, Reserved: 0x%X",
+			LogI("Bitmap Loader").print("RenderIntent: 0x%X, ProfileDataOffset: 0x%X, ProfileDataSize: 0x%X, Reserved: 0x%X",
 			renderIntent, profileDataOffset, profileDataSize, reserved);
 #endif
 

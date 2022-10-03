@@ -93,7 +93,7 @@ void SpriteGroup::prepareCTTable(const CTAllocationTable& prev, bool forceRecalc
 	}
 
 	if (ctReferences.size() > prev.size()) {
-		Log::warn("Spring", "Cannot allocate %d group CTs, requested %d", ctReferences.size(), prev.size());
+		LogW("Spring").print("Cannot allocate %d group CTs, requested %d", ctReferences.size(), prev.size());
 	}
 
 	ctBindings.clear();

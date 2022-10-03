@@ -105,6 +105,19 @@ public:
 
 };
 
+
+template<CC::Arithmetic A>
+RawLog& operator<<(RawLog& log, const Circle<A>& circle) {
+
+	log << "Circle[";
+	log << "[" << circle.origin.x << ", " << circle.origin.y << "], ";
+	log << "R = " << circle.radius << "]";
+
+	return log;
+
+}
+
+
 using CircleB     = Circle<bool>;
 using CircleC     = Circle<i8>;
 using CircleS     = Circle<i16>;

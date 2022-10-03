@@ -48,14 +48,14 @@ void RenderCursor::setCurrent(CursorID id) {
 
 		} else {
 
-			Log::warn("Cursor", "Failed to activate cursor with ID = %d", id);
+			LogW("Cursor").print("Failed to activate cursor with ID = %d", id);
 
 		}
 
 
 	} else {
 
-		Log::warn("Cursor", "Failed to find matching cursor with ID = %d", id);
+		LogW("Cursor").print("Failed to find matching cursor with ID = %d", id);
 
 	}
 
@@ -87,7 +87,7 @@ bool RenderCursor::set(CursorID id, const Image<Pixel::RGBA8>& image, const Vec2
 
 	if (!c) {
 
-		Log::error("Cursor", "Failed to create image cursor");
+		LogE("Cursor") << "Failed to create image cursor";
 		return false;
 
 	}
@@ -140,7 +140,7 @@ bool RenderCursor::set(CursorID id, StandardCursor cursor) {
 
 	if (!c) {
 
-		Log::error("Cursor", "Failed to create standard cursor");
+		LogE("Cursor") << "Failed to create standard cursor";
 		return false;
 
 	}
@@ -172,7 +172,7 @@ void RenderCursor::destroy(CursorID id) noexcept {
 		}
 
 	} catch (const std::exception& e) {
-		Log::error("Cursor", "An exception has been thrown during cursor destruction: %s", e.what());
+		LogE("Cursor").print("An exception has been thrown during cursor destruction: %s", e.what());
 	}
 
 }
@@ -192,7 +192,7 @@ void RenderCursor::destroyAll() noexcept {
 		cursors.clear();
 
 	} catch (const std::exception& e) {
-		Log::error("Cursor", "An exception has been thrown during cursor destruction: %s", e.what());
+		LogE("Cursor").print("An exception has been thrown during cursor destruction: %s", e.what());
 	}
 
 }

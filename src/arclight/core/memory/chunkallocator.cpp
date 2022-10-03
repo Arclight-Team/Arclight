@@ -68,7 +68,7 @@ void ChunkAllocator::create(AddressT blockSize, AlignT blockAlign, AddressT chun
 		head = reinterpret_cast<Storage*>(heap);
 
 #ifdef ARC_ALLOCATOR_DEBUG_LOG
-		Log::debug("Chunk Allocator", "Chunk created at %p. Block size: %d, chunk size: %d,", heap, alignedSize, totalSize);
+		LogD("Chunk Allocator").print("Chunk created at %p. Block size: %d, chunk size: %d,", heap, alignedSize, totalSize);
 #endif
 
 	}
@@ -87,7 +87,7 @@ void ChunkAllocator::clear() noexcept {
 		::operator delete(chunk, std::align_val_t(blockAlign));
 
 	#ifdef ARC_ALLOCATOR_DEBUG_LOG
-		Log::debug("Chunk Allocator", "Chunk destroyed at %p.", heap);
+		LogD("Chunk Allocator").print("Chunk destroyed at %p.", heap);
 	#endif
 
 		chunk = nextChunk;
@@ -122,7 +122,7 @@ void ChunkAllocator::clear() noexcept {
 		head = reinterpret_cast<Storage*>(chunk);
 
 #ifdef ARC_ALLOCATOR_DEBUG_LOG
-			Log::debug("Chunk Allocator", "Chunk created at %p. Block size: %d, chunk size: %d,", heap, blockSize, chunkSize);
+			LogD("Chunk Allocator").print("Chunk created at %p. Block size: %d, chunk size: %d,", heap, blockSize, chunkSize);
 #endif
 
 	}
@@ -134,7 +134,7 @@ void ChunkAllocator::clear() noexcept {
 	head = head->next;
 
 #ifdef ARC_ALLOCATOR_DEBUG_LOG
-	Log::debug("Chunk Allocator", "Chunk %p allocated memory at %p.", heap, allocPtr);
+	LogD("Chunk Allocator").print("Chunk %p allocated memory at %p.", heap, allocPtr);
 #endif
 
 	return allocPtr;
@@ -152,7 +152,7 @@ void ChunkAllocator::deallocate(void* ptr) noexcept {
 		head = storagePtr;
 
 #ifdef ARC_ALLOCATOR_DEBUG_LOG
-		Log::debug("Chunk Allocator", "Chunk %p deallocated memory at %p.", heap, ptr);
+		LogD("Chunk Allocator").print("Chunk %p deallocated memory at %p.", heap, ptr);
 #endif
 
 	}

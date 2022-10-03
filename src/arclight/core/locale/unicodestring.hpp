@@ -1723,6 +1723,34 @@ private:
 };
 
 
+template<Unicode::Encoding E>
+RawLog& operator<<(RawLog& log, const UnicodeString<E>& ustr) {
+
+	SizeT length = ustr.length();
+
+	bool uppercase = log.getBuffer().flags() | std::ios::uppercase;
+
+	log << RawLog::Upper;
+
+	for (SizeT i = 0; i < length; i++) {
+
+		log << "U+" << ustr[i];
+
+		if (i != length - 1) {
+			log << " ";
+		}
+
+	}
+
+	if (!uppercase) {
+		log << RawLog::NoUpper;
+	}
+
+	return log;
+
+}
+
+
 using U8String = UnicodeString<Unicode::UTF8>;
 using U16String = UnicodeString<Unicode::UTF16>;
 using U32String = UnicodeString<Unicode::UTF32>;

@@ -13,8 +13,9 @@
 #include "image/image.hpp"
 #include "stream/binaryreader.hpp"
 #include "math/matrix.hpp"
-#include "debug.hpp"
+#include "util/log.hpp"
 #include "time/profiler.hpp"
+#include "locale/unicodestring.hpp"
 
 
 class JPEGDecoder : public IImageDecoder {

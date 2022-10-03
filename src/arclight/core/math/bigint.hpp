@@ -945,3 +945,9 @@ template<char... Chars>
 constexpr BigInt operator""_big() {
     return BigInt(String::fromChars(Chars...));
 }
+
+
+
+RawLog& operator<<(RawLog& log, const BigInt& bigInt) {
+	return log << bigInt.toString();
+}

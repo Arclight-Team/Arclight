@@ -273,7 +273,7 @@ std::string Path::getAnnotatedPathPrefix(char annotation) {
 		return annotatedPrefixes[annotation];
 	}
 
-	Log::warn("Path", "Illegally annotated path [%c]", annotation);
+	LogW("Path").print("Illegally annotated path [%c]", annotation);
 
 	return "";
 	
@@ -285,7 +285,7 @@ void Path::setAnnotatedPathPrefix(char annotation, const std::string& prefix) {
 
 	if (std::string("./<>:/\\|?*").find(annotation) != std::string::npos) {
 		
-		Log::warn("Path", "Cannot set annotated path prefix for annotation %c", annotation);
+		LogW("Path").print("Cannot set annotated path prefix for annotation %c", annotation);
 		return;
 
 	} else {
@@ -294,4 +294,10 @@ void Path::setAnnotatedPathPrefix(char annotation, const std::string& prefix) {
 
 	}
 
+}
+
+
+
+RawLog& operator<<(RawLog& log, const Path& path) {
+	return log << path.toString();
 }

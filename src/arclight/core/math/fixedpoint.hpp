@@ -460,6 +460,30 @@ public:
 	}
 
 
+	constexpr std::string toString() const noexcept {
+
+		auto [integer, fract] = split();
+
+		std::string str = std::to_string(integer);
+
+		if (fract == 0) {
+			return str;
+		}
+
+		str += '.';
+
+		while (fract != 0) {
+			I n = fract * 10;
+			I whole = n >> Shift;
+			fract = Bits::mask(n, 0, Shift);
+			str += '0' + whole;
+		}
+
+		return str;
+
+	}
+
+
 	constexpr static FixedPoint fromRaw(I i) noexcept {
 
 		FixedPoint f;
@@ -610,4 +634,11 @@ constexpr FixedPoint<I, F> operator^(FixedPoint<I, F> a, U b) noexcept {
 template<CC::Integer I, SizeT F, CC::Integer T>
 constexpr FixedPoint<I, F> operator^(T a, FixedPoint<I, F> b) noexcept {
 	return b.bitXor(a);
+}
+
+
+
+template<CC::Integer I, SizeT F>
+RawLog& operator<<(RawLog& log, const FixedPoint<I, F>& fix) {
+	return log << fix.toString();
 }

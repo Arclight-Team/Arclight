@@ -15,16 +15,10 @@
 
 #include <iostream>
 
-#define LOG_DEBUG "D"
-#define LOG_INFO  "I"
-#define LOG_WARN  "W"
-#define LOG_ERROR "E"
-
-
 
 namespace Log {
 
-	File logfile;
+	File logFile;
 
 
 	void init() noexcept {
@@ -33,16 +27,15 @@ namespace Log {
 
 		try {
 			std::ios_base::sync_with_stdio(false);
-		} catch (const std::exception&) {
-	#if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
+		} catch (const std::exception &) {
+#if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
 			arc_abort();
-	#endif
+#endif
 		}
 
 #endif
 
 	}
-
 
 	void openLogFile(Path path) noexcept {
 
@@ -51,31 +44,30 @@ namespace Log {
 			bool dirCreated = Directory(path).create();
 
 			if (!dirCreated) {
-				Log::error("Log", "Failed to create log file directory '%s'", path.toString().c_str());
+				LogE("Log").print("Failed to create log file directory '%s'", path.toString().c_str());
 				return;
 			}
 
 			path.append("log_" + Time::getTimestamp() + ".txt");
-			logfile.open(path, File::Out);
+			logFile.open(path, File::Out);
 
-			if (!logfile.isOpen()) {
-				Log::error("Log", "Failed to open log file '%s'", path.toString().c_str());
+			if (!logFile.isOpen()) {
+				LogE("Log").print("Failed to open log file '%s'", path.toString().c_str());
 			}
 
-		} catch (const std::exception&) {
+		} catch (const std::exception &) {
 #if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
 			arc_abort();
 #endif
 		}
 
 	}
-
 
 	void closeLogFile() noexcept {
 
 		try {
-			logfile.close();
-		} catch (const std::exception&) {
+			logFile.close();
+		} catch (const std::exception &) {
 #if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
 			arc_abort();
 #endif
@@ -83,44 +75,105 @@ namespace Log {
 
 	}
 
+}
 
-	void print(const std::string& level, const std::string& subsystem, const std::string& message) noexcept {
 
-		try {
+void RawLog::flush() noexcept {
 
-			std::string line = "[" + level + ": " + subsystem + "] " + message;
-			std::cout << line << std::endl;
+	try {
 
-			if (logfile.isOpen()) {
-				logfile.writeLine(line);
-			}
+		std::string str = buffer.str();
+		buffer.str("");
 
-		} catch (const std::exception&) {
-			//There's literally nothing we can do here
-#if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
-			arc_abort();
-#endif
+		std::cout << str;
+
+		if (!str.empty() && str.back() == '\n') {
+			str.pop_back();
 		}
 
+		if (Log::logFile.isOpen()) {
+			Log::logFile.writeLine(str);
+		}
+
+	} catch(const std::exception& e) {
+		// There's literally nothing we can do here
+#if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
+		arc_abort();
+#endif
 	}
 
-	void debug(const std::string& subsystem, const std::string& message) noexcept {
-		print(LOG_DEBUG, subsystem, message);
+}
+
+
+RawLog& RawLog::operator<<(Token token) {
+
+	switch(token) {
+		case Token::Endl:
+			buffer << '\n';
+			flush();
+			break;
+		case Token::Dec:
+			buffer << std::dec;
+			break;
+		case Token::Hex:
+			buffer << std::hex;
+			break;
+		case Token::Upper:
+			buffer << std::uppercase;
+			break;
+		case Token::NoUpper:
+			buffer << std::nouppercase;
+			break;
+		case Token::BoolAlpha:
+			buffer << std::boolalpha;
+			break;
+		case Token::NoBoolAlpha:
+			buffer << std::noboolalpha;
+			break;
+		case Token::Forward:
+			reversed = false;
+			break;
+		case Token::Reversed:
+			reversed = true;
+			break;
+		case Token::Flush:
+			flush();
+			break;
+		default:
+			arc_force_assert("Invalid Log token");
+			break;
 	}
 
+	return *this;
 
-	void info(const std::string& subsystem, const std::string& message) noexcept {
-		print(LOG_INFO, subsystem, message);
+}
+
+RawLog& RawLog::operator<<(TabToken tab) {
+
+	const std::string& str = buffer.str();
+
+	SizeT pos = str.find_last_of('\n');
+
+	if (pos == std::string::npos) {
+		pos = 0;
+	} else {
+		pos++;
 	}
 
+	SizeT align = (str.length() - pos) % tab.width;
 
-	void warn(const std::string& subsystem, const std::string& message) noexcept {
-		print(LOG_WARN, subsystem, message);
+	for (SizeT i = 0; i < align; i++) {
+		buffer << tab.c;
 	}
 
+	return *this;
 
-	void error(const std::string& subsystem, const std::string& message) noexcept {
-		print(LOG_ERROR, subsystem, message);
-	}
+}
+
+RawLog& RawLog::operator<<(const std::type_info& info) {
+
+	buffer << info.name();
+
+	return *this;
 
 }

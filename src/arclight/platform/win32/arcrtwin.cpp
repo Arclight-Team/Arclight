@@ -22,12 +22,12 @@ namespace ArcRuntime {
 		commctrl.dwICC = ICC_WIN95_CLASSES | ICC_USEREX_CLASSES | ICC_STANDARD_CLASSES | ICC_PAGESCROLLER_CLASS | ICC_NATIVEFNTCTL_CLASS | ICC_LINK_CLASS | ICC_INTERNET_CLASSES | ICC_DATE_CLASSES | ICC_COOL_CLASSES;
 
 		if (!InitCommonControlsEx(&commctrl)) {
-			Log::error("Runtime", "Failed to initialize CommCtrl");
+			LogE("Runtime") << "Failed to initialize CommCtrl";
 			return false;
 		}
 
 		if (CoInitialize(0)) {
-			Log::error("Runtime", "Failed to initialize COM");
+			LogE("Runtime") << "Failed to initialize COM";
 			return false;
 		}
 

@@ -47,22 +47,22 @@ namespace {
 
 template<typename... Args>
 inline void debug(const std::string& msg, Args&&... args) {
-	Log::debug(logSystemName, msg, std::forward<Args>(args)...);
+	LogD(logSystemName).print(msg, std::forward<Args>(args)...);
 }
 
 template<typename... Args>
 inline void info(const std::string& msg, Args&&... args) {
-	Log::info(logSystemName, msg, std::forward<Args>(args)...);
+	LogI(logSystemName).print(msg, std::forward<Args>(args)...);
 }
 
 template<typename... Args>
 inline void warn(const std::string& msg, Args&&... args) {
-	Log::warn(logSystemName, msg, std::forward<Args>(args)...);
+	LogW(logSystemName).print(msg, std::forward<Args>(args)...);
 }
 
 template<typename... Args>
 inline void error(const std::string& msg, Args&&... args) {
-	Log::error(logSystemName, msg, std::forward<Args>(args)...);
+	LogE(logSystemName).print(msg, std::forward<Args>(args)...);
 }
 
 GUI_END

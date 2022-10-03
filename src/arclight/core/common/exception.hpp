@@ -113,7 +113,7 @@ namespace Exception {
 
 	template<class Exception>
 	void print(Exception&& ex) noexcept {
-		Log::error("Exception", getMessage(std::forward<Exception>(ex)));
+		LogE("Exception") << getMessage(std::forward<Exception>(ex));
 	}
 
 	template<class Exception>
@@ -146,7 +146,7 @@ namespace Exception {
 
 	template<class Exception>
 	void printStackTrace(Exception&& ex) noexcept {
-		Log::error("Exception", getStackTrace(std::forward<Exception>(ex)));
+		LogE("Exception") << getStackTrace(std::forward<Exception>(ex));
 	}
 
 }

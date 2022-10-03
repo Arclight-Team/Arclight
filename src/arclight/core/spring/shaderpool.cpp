@@ -37,7 +37,7 @@ std::shared_ptr<ShaderHandle> ShaderPool::get(const Path& vsPath, const Path& fs
 		}
 
 	} catch (const std::exception& e) {
-		Log::error("Spring", "Failed to obtain shader instance: %s", e.what());
+		LogE("Spring").print("Failed to obtain shader instance: %s", e.what());
 	}
 
 	return nullptr;

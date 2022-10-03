@@ -46,7 +46,7 @@ Window::~Window() {
 void Window::setWindowConfig(const WindowConfig& config) {
 
 	if (isOpen()) {
-		Log::warn("Window", "Window config will have no effect until re-opening the window");
+		LogW("Window") << "Window config will have no effect until re-opening the window";
 		return;
 	}
 
@@ -102,7 +102,7 @@ void Window::setWindowConfig(const WindowConfig& config) {
 bool Window::create(u32 w, u32 h, const std::string& title) {
 
 	if (isOpen()) {
-		Log::warn("Window", "Cannot open window that is already open");
+		LogW("Window") << "Cannot open window that is already open";
 		return true;
 	}
 
@@ -125,7 +125,7 @@ bool Window::create(u32 w, u32 h, const std::string& title) {
 		setupSyncCallback();
 
 	} else {
-		Log::error("Window", "Failed to create window");
+		LogE("Window") << "Failed to create window";
 	}
 
 	return isOpen();
@@ -136,7 +136,7 @@ bool Window::create(u32 w, u32 h, const std::string& title) {
 bool Window::createNoContext(u32 w, u32 h, const std::string& title) {
 
 	if (isOpen()) {
-		Log::warn("Window", "Cannot open window that is already open");
+		LogW("Window") << "Cannot open window that is already open";
 		return true;
 	}
 
@@ -156,7 +156,7 @@ bool Window::createNoContext(u32 w, u32 h, const std::string& title) {
 
 	}
 	else {
-		Log::error("Window", "Failed to create window");
+		LogE("Window") << "Failed to create window";
 	}
 
 	return isOpen();
@@ -168,12 +168,12 @@ bool Window::createNoContext(u32 w, u32 h, const std::string& title) {
 bool Window::createFullscreen(const std::string& title, u32 monitorID) {
 
 	if (isOpen()) {
-		Log::warn("Window", "Cannot open window that is already open");
+		LogW("Window") << "Cannot open window that is already open";
 		return true;
 	}
 
 	if (monitorID >= monitorCount || connectedMonitors[monitorID] == nullptr) {
-		Log::error("Window", "No valid monitor with ID=%d found", monitorID);
+		LogE("Window").print("No valid monitor with ID=%d found", monitorID);
 		return false;
 	}
 
@@ -211,7 +211,7 @@ bool Window::createFullscreen(const std::string& title, u32 monitorID) {
 		setupSyncCallback();
 
 	} else {
-		Log::error("Window", "Failed to create window");
+		LogE("Window") << "Failed to create window";
 	}
 
 	return isOpen();
@@ -223,7 +223,7 @@ bool Window::createFullscreen(const std::string& title, u32 monitorID) {
 void Window::close() {
 
 	if (!isOpen()) {
-		Log::warn("Window", "Cannot close window that is not open");
+		LogW("Window") << "Cannot close window that is not open";
 		return;
 	}
 
@@ -270,7 +270,7 @@ void Window::setFullscreen(u32 monitorID) {
 	}
 
 	if (monitorID >= monitorCount || connectedMonitors[monitorID] == nullptr) {
-		Log::error("Window", "No valid monitor with ID=%d found", monitorID);
+		LogE("Window").print("No valid monitor with ID=%d found", monitorID);
 		return;
 	}
 

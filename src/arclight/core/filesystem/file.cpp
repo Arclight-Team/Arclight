@@ -18,7 +18,7 @@ constexpr static std::ios::openmode convertFlagsToStdFlags(u32 flags) {
 	std::ios::openmode mode = static_cast<std::ios::openmode>(0);
 
 	if(!flags) {
-		Log::warn("File", "File flags cannot be 0, resorting to File::In");
+		LogW("File") << "File flags cannot be 0, resorting to File::In";
 		return std::ios::in;
 	}
 
@@ -53,7 +53,7 @@ bool File::open(const Path& path, u32 flags) {
 
 	if (isOpen()) {
 
-		Log::warn("File", "Attempting to open stream that has already been opened. Opened: '%s'", filePath.toString().c_str());
+		LogW("File").print("Attempting to open stream that has already been opened. Opened: '%s'", filePath.toString().c_str());
 		return true;
 
 	}
@@ -69,7 +69,7 @@ bool File::open(const Path& path, u32 flags) {
 void File::close() {
 
 	if (!isOpen()) {
-		Log::warn("File", "Attempting to close stream that is already closed (Path = '%s')", path().toString().c_str());
+		LogW("File").print("Attempting to close stream that is already closed (Path = '%s')", path().toString().c_str());
 		return;
 	}
 

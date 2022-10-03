@@ -286,6 +286,20 @@ constexpr auto operator&(const Rectangle<A>& a, const Rectangle<B>& b) {
 }
 
 
+template<CC::Arithmetic A>
+RawLog& operator<<(RawLog& log, const Rectangle<A>& rect) {
+
+	log << "Rect[";
+	log << rect.x << ", ";
+	log << rect.y << ", ";
+	log << rect.w << ", ";
+	log << rect.h << "]";
+
+	return log;
+
+}
+
+
 using RectB     = Rectangle<bool>;
 using RectC     = Rectangle<i8>;
 using RectS     = Rectangle<i16>;

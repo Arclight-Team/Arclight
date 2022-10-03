@@ -9,7 +9,7 @@
 #pragma once
 
 #include "common/exception.hpp"
-#include "debug.hpp"
+#include "util/log.hpp"
 
 #include <array>
 #include <string_view>
@@ -75,19 +75,19 @@ public:
 
 	void parse() {
 
-		ArcDebug() << expression;
+		LogD() << expression;
 
 		u32 level = 0;
 		cursor = 0;
 		tokenStart = 0;
 
 		Token token = tokenize();
-		ArcDebug() << "Token" << token.str;
+		LogD() << "Token" << token.str;
 
 		while (token.type != TokenType::End) {
 
 			token = tokenize();
-			ArcDebug() << "Token" << token.str;
+			LogD() << "Token" << token.str;
 
 		}
 
@@ -189,9 +189,9 @@ public:
 		}
 
 		if (!hasDecimal || (hasDecimal && !y)) {
-			Log::info("MathExpr", "Constant [Int]   %c%d", negative ? '-' : '+', x);
+			LogI("MathExpr").print("Constant [Int]   %c%d", negative ? '-' : '+', x);
 		} else {
-			Log::info("MathExpr", "Constant [Float] %c%d.%d", negative ? '-' : '+', x, y);
+			LogI("MathExpr").print("Constant [Float] %c%d.%d", negative ? '-' : '+', x, y);
 		}
 
 	}

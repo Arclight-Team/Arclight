@@ -25,7 +25,7 @@ public:
 		try {
 			dtor();
 		} catch (...) {
-			Log::error("Guard", "Fatal exception thrown in destructor");
+			LogE("Guard") << "Fatal exception thrown in destructor";
 		}
 
 	}

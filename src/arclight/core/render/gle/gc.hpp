@@ -54,22 +54,22 @@ namespace __Detail {
 
 template<typename... Args>
 inline void debug(const std::string& msg, Args&&... args) noexcept {
-	Log::debug(__Detail::logSystemName, msg, std::forward<Args>(args)...);
+	LogD(__Detail::logSystemName).print(msg, std::forward<Args>(args)...);
 }
 
 template<typename... Args>
 inline void info(const std::string& msg, Args&&... args) noexcept {
-	Log::info(__Detail::logSystemName, msg, std::forward<Args>(args)...);
+	LogI(__Detail::logSystemName).print(msg, std::forward<Args>(args)...);
 }
 
 template<typename... Args>
 inline void warn(const std::string& msg, Args&&... args) noexcept {
-	Log::warn(__Detail::logSystemName, msg, std::forward<Args>(args)...);
+	LogW(__Detail::logSystemName).print(msg, std::forward<Args>(args)...);
 }
 
 template<typename... Args>
 inline void error(const std::string& msg, Args&&... args) noexcept {
-	Log::error(__Detail::logSystemName, msg, std::forward<Args>(args)...);
+	LogE(__Detail::logSystemName).print(msg, std::forward<Args>(args)...);
 }
 
 

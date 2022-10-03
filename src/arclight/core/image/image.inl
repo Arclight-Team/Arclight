@@ -153,12 +153,12 @@ template<Pixel P>
 constexpr void Image<P>::resize(ImageScaling scaling, u32 w, u32 h) {
 
 	if (!width || !height) {
-		Log::error("Image", "Cannot resize zero-dimensioned image");
+		LogE("Image") << "Cannot resize zero-dimensioned image";
 		return;
 	}
 
 	if(!w) {
-		Log::error("Image", "Cannot resize image to a width of 0");
+		LogE("Image") << "Cannot resize image to a width of 0";
 		return;
 	}
 

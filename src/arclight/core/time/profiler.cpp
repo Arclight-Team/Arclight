@@ -32,9 +32,9 @@ void Profiler::stop(const std::string& name) {
 	double delta = timer.getElapsedTime(unit);
 
 	if (name.empty()) {
-		Log::info("Profiler", "Measured %0." + std::to_string(resolution) + "f" + Time::getUnitSuffix(unit), delta);
+		LogI("Profiler").print("Measured %0." + std::to_string(resolution) + "f" + Time::getUnitSuffix(unit), delta);
 	} else {
-		Log::info("Profiler", "%-10s Measured %0." + std::to_string(resolution) + "f" + Time::getUnitSuffix(unit), name.c_str(), delta);
+		LogI("Profiler").print("%-10s Measured %0." + std::to_string(resolution) + "f" + Time::getUnitSuffix(unit), name.c_str(), delta);
 	}
 
 }

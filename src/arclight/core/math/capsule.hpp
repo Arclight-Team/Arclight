@@ -182,6 +182,19 @@ public:
 
 };
 
+
+template<CC::Arithmetic A>
+RawLog& operator<<(RawLog& log, const Capsule<A>& cap) {
+
+	log << "Capsule[";
+	log << "[" << +cap.origin.x << ", " << cap.origin.y << ", " << cap.origin.z << "], ";
+	log << "R = " << cap.radius << ", H = " << cap.height << "]";
+
+	return log;
+
+}
+
+
 using CapsuleB     = Capsule<bool>;
 using CapsuleC     = Capsule<i8>;
 using CapsuleS     = Capsule<i16>;

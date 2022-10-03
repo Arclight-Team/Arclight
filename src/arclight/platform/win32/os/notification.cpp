@@ -68,7 +68,7 @@ static void setIconInternal(NotificationHandle& handle, const Image<Pixel::RGBA8
 	iconInfo.hbmMask = CreateBitmap(iIcon.getWidth(), iIcon.getHeight(), 1, 1, nullptr);
 
 	if (!iconInfo.hbmColor || !iconInfo.hbmMask) {
-		Log::error("Notification", "Failed to create notification icon");
+		LogE("Notification") << "Failed to create notification icon";
 		return;
 	}
 

@@ -12,7 +12,7 @@
 #include "render/gle/gle.hpp"
 #include "render/utility/shaderloader.hpp"
 #include "time/profiler.hpp"
-#include "debug.hpp"
+#include "util/log.hpp"
 
 
 
@@ -374,7 +374,7 @@ void SpriteRenderer::setGroupCount(u32 shaderID, u32 count) {
 void SpriteRenderer::registerShader(u32 shaderID, const SpringShader& shader) {
 
 	if (shaders.contains(shaderID)) {
-		Log::warn("Spring", "Failed to register shader %d: ID already in use", shaderID);
+		LogW("Spring").print("Failed to register shader %d: ID already in use", shaderID);
 		return;
 	}
 
@@ -390,7 +390,7 @@ void SpriteRenderer::unregisterShader(u32 shaderID) {
 	auto shIt = shaders.find(shaderID);
 
 	if (shIt == shaders.end()) {
-		Log::warn("Spring", "Failed to unregister shader %d: ID not found", shaderID);
+		LogW("Spring").print("Failed to unregister shader %d: ID not found", shaderID);
 		return;
 	}
 

@@ -16,7 +16,7 @@ void KeyTrigger::addKey(u32 key) {
 	arc_assert(key != invalidKey, "Cannot use invalid key in key trigger");
 	
 	if (keyCount == maxTriggerKeys) {
-		Log::warn("Input Trigger", "Tried to add key to trigger exceeding the key trigger max count");
+		LogW("Input Trigger") << "Tried to add key to trigger exceeding the key trigger max count";
 		return;
 	}
 

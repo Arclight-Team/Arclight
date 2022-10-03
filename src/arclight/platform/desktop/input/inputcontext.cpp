@@ -24,7 +24,7 @@ InputContext::InputContext() : enabled(true), currentState(0) {
 void InputContext::addState(u32 stateID, bool disablePropagation) {
 
 	if (stateAdded(stateID)) {
-		Log::warn("Input Context", "State with ID %d does already exist", stateID);
+		LogW("Input Context").print("State with ID %d does already exist", stateID);
 		return;
 	}
 
@@ -37,7 +37,7 @@ void InputContext::addState(u32 stateID, bool disablePropagation) {
 void InputContext::removeState(u32 stateID) {
 
 	if (!stateAdded(stateID)) {
-		Log::warn("Input Context", "State with ID %d doesn't exist", stateID);
+		LogW("Input Context").print("State with ID %d doesn't exist", stateID);
 		return;
 	}
 
@@ -52,7 +52,7 @@ void InputContext::switchState(u32 stateID) {
 	if (stateAdded(stateID)) {
 		currentState = stateID;
 	} else {
-		Log::warn("Input Context", "State with ID %d doesn't exist", stateID);
+		LogW("Input Context").print("State with ID %d doesn't exist", stateID);
 	}
 
 }
@@ -136,7 +136,7 @@ void InputContext::addBoundStateAction(u32 stateID, KeyAction action, const KeyT
 void InputContext::setBinding(KeyAction action, const KeyTrigger& binding) {
 
 	if (!actionAdded(action)) {
-		Log::warn("Input Context", "Cannot set action binding without a default action trigger");
+		LogW("Input Context") << "Cannot set action binding without a default action trigger";
 		return;
 	}
 
@@ -166,7 +166,7 @@ void InputContext::setBinding(KeyAction action, const KeyTrigger& binding) {
 void InputContext::restoreBinding(KeyAction action) {
 
 	if (!actionAdded(action)) {
-		Log::warn("Input Context", "Cannot restore action binding without a default action trigger");
+		LogW("Input Context") << "Cannot restore action binding without a default action trigger";
 		return;
 	}
 

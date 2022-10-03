@@ -20,7 +20,7 @@ Thread::Thread() {}
 Thread::~Thread() {
 
 	if (!done()) {
-		Log::warn("Thread", "Thread has not been finished manually, force-finishing it");
+		LogW("Thread") << "Thread has not been finished manually, force-finishing it";
 		finish();
 	}
 
@@ -42,13 +42,13 @@ Thread& Thread::operator=(Thread&& thread) noexcept {
 		//To keep noexcept, we must ensure we terminate the task properly (to prevent fatal crashes when stack-unwinding)
 		try {
 
-			Log::error("Thread", "Thread cannot be move-target while running, force-finishing it");
+			LogE("Thread") << "Thread cannot be move-target while running, force-finishing it";
 			finish();
 
 		} catch (std::exception& e) {
 
 			//The thread is terminated anyways so we just perform the move.
-			Log::error("Thread", "Fatal error: Exception caught while terminating thread on move assignment\n%s", e.what());
+			LogE("Thread").print("Fatal error: Exception caught while terminating thread on move assignment\n%s", e.what());
 			arc_abort();
 
 		}

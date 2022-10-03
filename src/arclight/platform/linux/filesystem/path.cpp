@@ -36,7 +36,7 @@ Path Path::getApplicationDirectory() {
 				//If length exceeds 0x10000 bytes, cancel
 				if(length >= 0x10000) {
 
-					Log::error("Path", "Failed to query application directory path: Path name exceeds 0x10000 bytes");
+					LogE("Path") << "Failed to query application directory path: Path name exceeds 0x10000 bytes");
 					return Path();
 
 				}
@@ -48,7 +48,7 @@ Path Path::getApplicationDirectory() {
 			} else if (readLength == -1) {
 
 				//Error occured while reading the symlink
-				Log::error("Path", "Failed to query application directory path: Cannot read symbolic link");
+				LogE("Path") << "Failed to query application directory path: Cannot read symbolic link";
 				return Path();
 
 			} else {
@@ -64,7 +64,7 @@ Path Path::getApplicationDirectory() {
 
 	} catch (std::exception& e) {
 
-		Log::error("Path", "Failed to query application directory path: %s", e.what());
+		LogE("Path").print("Failed to query application directory path: %s", e.what());
 		return Path();
 
 	}

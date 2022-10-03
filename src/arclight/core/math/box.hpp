@@ -153,6 +153,19 @@ public:
 
 };
 
+
+template<CC::Arithmetic A>
+RawLog& operator<<(RawLog& log, const Box<A>& box) {
+
+	log << "Box[";
+	log << "[" << box.origin.x << ", " << box.origin.y << ", " << box.origin.z << "], ";
+	log << "[" << box.size.x << ", " << box.size.y << ", " << box.size.z << "]]";
+
+	return log;
+
+}
+
+
 using BoxB     = Box<bool>;
 using BoxC     = Box<i8>;
 using BoxS     = Box<i16>;

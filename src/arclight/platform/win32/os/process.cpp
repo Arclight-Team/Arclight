@@ -34,8 +34,8 @@ namespace Detail
 
 		if (!snapshot.valid()) {
 
-			Log::error("Process", "Failed to create snapshot of all processes:");
-			Log::error("Process", getSystemErrorMessage());
+			LogE("Process") << "Failed to create snapshot of all processes:";
+			LogE("Process") << getSystemErrorMessage();
 
 			return;
 		}
@@ -46,8 +46,8 @@ namespace Detail
 		// Fetch first process
 		if (!Process32First(snapshot, &pe32)) {
 
-			Log::error("Process", "Failed to fetch first process:");
-			Log::error("Process", getSystemErrorMessage());
+			LogE("Process") << "Failed to fetch first process:";
+			LogE("Process") << getSystemErrorMessage();
 
 			return;
 		}
@@ -76,7 +76,7 @@ Process::Process() {
 bool Process::start() {
 
 	if (startInfo.executable.isEmpty()) {
-		Log::error("Process", "Executable path is empty");
+		LogE("Process") << "Executable path is empty";
 		return false;
 	}
 
@@ -101,8 +101,8 @@ bool Process::start() {
 	PROCESS_INFORMATION pi{};
 
 	if (!CreateProcessW(nullptr, commandLine.data(), 0, 0, true, creationFlags, environment, currentDirectory.c_str(), &si, &pi)) {
-		Log::error("Process", "Failed to start process:");
-		Log::error("Process", getSystemErrorMessage());
+		LogE("Process") << "Failed to start process:";
+		LogE("Process") << getSystemErrorMessage();
 		return false;
 	}
 
@@ -125,8 +125,8 @@ bool Process::kill() {
 
 	if (!TerminateProcess(*processHandle, -1)) {
 		
-		Log::error("Process", "Failed to kill process:");
-		Log::error("Process", getSystemErrorMessage());
+		LogE("Process") << "Failed to kill process:";
+		LogE("Process") << getSystemErrorMessage();
 
 		releaseHandles();
 
@@ -172,8 +172,8 @@ Process::HandleT Process::getHandle() {
 		if (Bool::any(err, ERROR_ACCESS_DENIED, ERROR_INVALID_PARAMETER))
 			return nullptr;
 
-		Log::error("Process", "Failed to open process from ID:");
-		Log::error("Process", getSystemErrorMessage());
+		LogE("Process") << "Failed to open process from ID:";
+		LogE("Process") << getSystemErrorMessage();
 	
 		return nullptr;
 	}
@@ -324,8 +324,8 @@ Path Process::getModuleFileName(HandleT handle) {
 
 	if (!GetModuleFileNameW(HMODULE(handle), path.data(), path.size())) {
 
-		Log::error("Process", "Could not fetch module name:");
-		Log::error("Process", getSystemErrorMessage());
+		LogE("Process") << "Could not fetch module name:";
+		LogE("Process") << getSystemErrorMessage();
 
 		return {};
 	}
@@ -347,8 +347,8 @@ Path Process::getProcessFileName(HandleT handle) {
 
 	if (!GetModuleBaseNameW(handle, nullptr, path.data(), path.size())) {
 
-		Log::error("Process", "Could not fetch process name:");
-		Log::error("Process", getSystemErrorMessage());
+		LogE("Process") << "Could not fetch process name:";
+		LogE("Process") << getSystemErrorMessage();
 
 		return {};
 	}

@@ -20,7 +20,7 @@ bool TextureSet::add(Id32 id, const Path& path, bool hasAlpha) {
 
 	if (isAdded(id)) {
 
-		Log::error("Spring", "Texture with ID = %d already added", id);
+		LogE("Spring").print("Texture with ID = %d already added", id);
 		return false;
 
 	}

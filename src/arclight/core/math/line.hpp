@@ -135,6 +135,18 @@ public:
 };
 
 
+template<CC::Float F>
+RawLog& operator<<(RawLog& log, const Line<F>& line) {
+
+	log << "Line[";
+	log << "[" << line.start.x << ", " << line.start.y << "], ";
+	log << "[" << line.end.x << ", " << line.end.y << "]]";
+
+	return log;
+
+}
+
+
 
 using LineF     = Line<float>;
 using LineD     = Line<double>;

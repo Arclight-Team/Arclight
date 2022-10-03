@@ -1051,6 +1051,22 @@ namespace Math {
 }
 
 
+template<CC::Vector V>
+RawLog& operator<<(RawLog& log, const V& vec) {
+
+	log << "Vec" << V::Size << "[";
+
+	for(u32 i = 0; i < V::Size - 1; i++) {
+		log << vec[i] <<  ", ";
+	}
+
+	log << vec[V::Size - 1] << "]";
+
+	return log;
+
+}
+
+
 
 #define VECTOR_DEFINE_NDTS(name, dim, type, suffix) typedef Vec##dim<type> name##dim##suffix;
 

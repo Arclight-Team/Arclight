@@ -8,7 +8,7 @@
 
 #include "jpegdecoder.hpp"
 #include "arcintrinsic.hpp"
-#include "debug.hpp"
+#include "util/log.hpp"
 #include "time/profiler.hpp"
 #include "util/bool.hpp"
 #include "util/assert.hpp"
@@ -217,7 +217,7 @@ void JPEGDecoder::decode(std::span<const u8> data) {
 				break;
 
 			default:
-				//Log::error("JPEG Decoder", "Unknown marker 0x%X", marker);
+				//LogE("JPEG Decoder").print("Unknown marker 0x%X", marker);
 				reader.seek(-1);
 				break;
 
@@ -290,7 +290,7 @@ void JPEGDecoder::parseApplicationSegment0() {
 		u8 thumbnailH = reader.read<u8>();
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Decoder", "[APP0 JFIF] Major: %d, Minor: %d, Density: 0x%X, DensityX: %d, DensityY: %d, ThumbnailW: %d, ThumbnailH: %d",
+		LogI("JPEG Decoder").print("[APP0 JFIF] Major: %d, Minor: %d, Density: 0x%X, DensityX: %d, DensityY: %d, ThumbnailW: %d, ThumbnailH: %d",
 				  major, minor, density, densityX, densityY, thumbnailW, thumbnailH);
 #endif
 
@@ -318,14 +318,14 @@ void JPEGDecoder::parseApplicationSegment0() {
 		u8 format = reader.read<u8>();
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Decoder", "[APP0 JFXX] ThumbnailFormat: 0x%X", format);
+		LogI("JPEG Decoder").print("[APP0 JFXX] ThumbnailFormat: 0x%X", format);
 #endif
 
 		switch (format) {
 
 			case 0x10:
 				//TODO: Embedded JPEG
-				Log::warn("JPEG Decoder", "Embedded JPEG thumbnails unsupported");
+				LogW("JPEG Decoder") << "Embedded JPEG thumbnails unsupported";
 				reader.seekTo(segmentEnd);
 				break;
 
@@ -383,7 +383,7 @@ void JPEGDecoder::parseApplicationSegment0() {
 	} else {
 
 		//Unknown, skip
-		Log::warn("JPEG Decoder", "Unknown APP0 segment found: %s", app0String);
+		LogW("JPEG Decoder").print("Unknown APP0 segment found: %s", app0String);
 		reader.seekTo(segmentEnd);
 
 	}
@@ -426,7 +426,7 @@ void JPEGDecoder::parseHuffmanTable() {
 		bool dc = type == 0;
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Decoder", "[DHT] Class: %s, ID: %d", dc ? "DC" : "AC", id);
+		LogI("JPEG Decoder").print("[DHT] Class: %s, ID: %d", dc ? "DC" : "AC", id);
 #endif
 
 		if (type > 1 || id > 3) {
@@ -475,7 +475,7 @@ void JPEGDecoder::parseHuffmanTable() {
 
 				if (v > 0xF) {
 
-					Log::warn("JPEG Decoder", "Illegal DC symbol 0x%02X, overriding", v);
+					LogW("JPEG Decoder").print("Illegal DC symbol 0x%02X, overriding", v);
 					v = 0x0;
 
 				}
@@ -554,7 +554,7 @@ void JPEGDecoder::parseHuffmanTable() {
 	} while (offset != length);
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Decoder", "[DHT] Tables read: %d", count);
+	LogI("JPEG Decoder").print("[DHT] Tables read: %d", count);
 #endif
 
 }
@@ -584,7 +584,7 @@ void JPEGDecoder::parseArithmeticConditioning() {
 		bool dc = type == 0;
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Decoder", "[DAC] Class: %s, ID: %d", dc ? "DC" : "AC", id);
+		LogI("JPEG Decoder").print("[DAC] Class: %s, ID: %d", dc ? "DC" : "AC", id);
 #endif
 
 		if (type > 1 || id > 3) {
@@ -608,7 +608,7 @@ void JPEGDecoder::parseArithmeticConditioning() {
 			dcc.active = true;
 
 #ifdef ARC_IMAGE_DEBUG
-			Log::info("JPEG Decoder", "[DAC] LowerBound: %d, UpperBound: %d", dcc.lowerBound, dcc.upperBound);
+			LogI("JPEG Decoder").print("[DAC] LowerBound: %d, UpperBound: %d", dcc.lowerBound, dcc.upperBound);
 #endif
 
 		} else {
@@ -622,7 +622,7 @@ void JPEGDecoder::parseArithmeticConditioning() {
 			acc.active = true;
 
 #ifdef ARC_IMAGE_DEBUG
-			Log::info("JPEG Decoder", "[DAC] Kx: %d", acc.kx);
+			LogI("JPEG Decoder").print("[DAC] Kx: %d", acc.kx);
 #endif
 
 		}
@@ -632,7 +632,7 @@ void JPEGDecoder::parseArithmeticConditioning() {
 	} while (offset != length);
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Decoder", "[DAC] Tables read: %d", count);
+	LogI("JPEG Decoder").print("[DAC] Tables read: %d", count);
 #endif
 
 }
@@ -657,7 +657,7 @@ void JPEGDecoder::parseQuantizationTable() {
 		u8 id = setting & 0xF;
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Decoder", std::string("[DQT] Table %d, ") + (precision ? "16 bit" : "8 bit"), id);
+		LogI("JPEG Decoder").print(std::string("[DQT] Table %d, ") + (precision ? "16 bit" : "8 bit"), id);
 #endif
 
 		if (precision > 1 || id > 3) {
@@ -694,7 +694,7 @@ void JPEGDecoder::parseQuantizationTable() {
 	} while (offset != length);
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Decoder", "[DQT] Tables read: %d", count);
+	LogI("JPEG Decoder").print("[DQT] Tables read: %d", count);
 #endif
 
 }
@@ -713,7 +713,7 @@ void JPEGDecoder::parseRestartInterval() {
 	restartEnabled = restartInterval;
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Decoder", "[DRI] RestartInterval: %d", restartInterval);
+	LogI("JPEG Decoder").print("[DRI] RestartInterval: %d", restartInterval);
 #endif
 
 }
@@ -725,7 +725,7 @@ void JPEGDecoder::parseComment() {
 	u16 length = verifySegmentLength();
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Decoder", "[COM] Comment: " + std::string(reinterpret_cast<const char*>(reader.head()), length - 2));
+	LogI("JPEG Decoder").print("[COM] Comment: " + std::string(reinterpret_cast<const char*>(reader.head()), length - 2));
 #endif
 
 	comment.assign(reinterpret_cast<const char8_t*>(reader.head()), length - 2);
@@ -745,7 +745,7 @@ void JPEGDecoder::parseNumberOfLines() {
 	u16 lines = reader.read<u16>();
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Decoder", "[DNL] Lines: %d", lines);
+	LogI("JPEG Decoder").print("[DNL] Lines: %d", lines);
 #endif
 
 	if (!lines) {
@@ -774,7 +774,7 @@ void JPEGDecoder::parseFrameHeader() {
 	u8 components = reader.read<u8>();
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Decoder", "[SOF] Bits: %d, Lines: %d, Samples: %d, Components: %d", frame.bits, frame.lines, frame.samples, components);
+	LogI("JPEG Decoder").print("[SOF] Bits: %d, Lines: %d, Samples: %d, Components: %d", frame.bits, frame.lines, frame.samples, components);
 #endif
 
 	switch (frame.type) {
@@ -838,7 +838,7 @@ void JPEGDecoder::parseFrameHeader() {
 		FrameComponent component(s >> 4, s & 0xF, q);
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Decoder", "[SOF] Component: %d, SX: %d, SY: %d, QTableIndex: %d", id, component.samplesX, component.samplesY, q);
+		LogI("JPEG Decoder").print("[SOF] Component: %d, SX: %d, SY: %d, QTableIndex: %d", id, component.samplesX, component.samplesY, q);
 #endif
 
 		if (!Math::inRange(component.samplesX, 1, 4) || !Math::inRange(component.samplesY, 1, 4) || q > 3 || (frame.type == FrameType::Lossless && q != 0)) {
@@ -873,7 +873,7 @@ void JPEGDecoder::parseScanHeader() {
 	u8 components = reader.read<u8>();
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Decoder", "[SOS] Images: %d", components);
+	LogI("JPEG Decoder").print("[SOS] Images: %d", components);
 #endif
 
 	if (!Math::inRange(components, 1, 4)) {
@@ -893,7 +893,7 @@ void JPEGDecoder::parseScanHeader() {
 		u8 acTableID = ids & 0xF;
 
 #ifdef ARC_IMAGE_DEBUG
-		Log::info("JPEG Decoder", "[SOS] Component %d: ID: %d, DCID: %d, ACID: %d", i + 1, componentID, dcTableID, acTableID);
+		LogI("JPEG Decoder").print("[SOS] Component %d: ID: %d, DCID: %d, ACID: %d", i + 1, componentID, dcTableID, acTableID);
 #endif
 
 		if (!frame.components.contains(componentID)) {
@@ -953,7 +953,7 @@ void JPEGDecoder::parseScanHeader() {
 	scan.approximationLow = approx & 0xF;
 
 #ifdef ARC_IMAGE_DEBUG
-	Log::info("JPEG Decoder", "[SOS] SStart: %d, SEnd: %d, ApproxHigh: %d, ApproxLow: %d", scan.spectralStart, scan.spectralEnd, scan.approximationHigh, scan.approximationLow);
+	LogI("JPEG Decoder").print("[SOS] SStart: %d, SEnd: %d, ApproxHigh: %d, ApproxLow: %d", scan.spectralStart, scan.spectralEnd, scan.approximationHigh, scan.approximationLow);
 #endif
 
 	switch (frame.type) {
@@ -1015,7 +1015,7 @@ void JPEGDecoder::parseScanHeader() {
 				//Pre-calculate initial prediction
 				if (frame.bits - 1 < scan.pointTransform) {
 
-					Log::warn("JPEG Decoder", "Specified point transform rounded to 0");
+					LogW("JPEG Decoder") << "Specified point transform rounded to 0";
 					scan.pointTransform = 0;
 
 				}
@@ -1111,7 +1111,7 @@ void JPEGDecoder::resolveTargetFormat() {
 				break;
 
 			default:
-				ArcDebug() << "Unknown format";
+				LogD() << "Unknown format";
 				break;
 
 		}
@@ -1131,7 +1131,7 @@ void JPEGDecoder::resolveTargetFormat() {
 				break;
 
 			default:
-				ArcDebug() << "Unknown format";
+				LogD() << "Unknown format";
 				break;
 
 		}
@@ -1477,7 +1477,7 @@ void JPEGDecoder::decodeHuffmanBlock(JPEG::ScanComponent& component) {
 
 			} else {
 
-				Log::warn("JPEG Decoder", "Bad AC symbol, skipping");
+				LogW("JPEG Decoder") << "Bad AC symbol, skipping";
 				coefficient++;
 
 			}
@@ -1495,7 +1495,7 @@ void JPEGDecoder::decodeHuffmanBlock(JPEG::ScanComponent& component) {
 			if (coefficient >= 64) {
 
 				//Oh no
-				Log::warn("JPEG Decoder", "AC symbol overflow, stream corrupted");
+				LogW("JPEG Decoder") << "AC symbol overflow, stream corrupted";
 				break;
 
 			}
@@ -1590,7 +1590,7 @@ void JPEGDecoder::decodeArithmeticBlock(JPEG::ScanComponent& component) {
 			while (!arithmeticDecoder.decodeACBin(component, baseBin + 1)) {
 
 				if (k == 63) {
-					Log::warn("JPEG Decoder", "Bad AC symbol, skipping");
+					LogW("JPEG Decoder") << "Bad AC symbol, skipping";
 					return;
 				}
 

@@ -46,7 +46,7 @@ namespace ArcRuntime {
 		});
 
 		std::set_terminate([]() {
-			Log::error("Runtime", "An unhandled exception has been thrown, terminating.");
+			LogE("Runtime") << "An unhandled exception has been thrown, terminating.";
 			showExceptionMessageBox("Unhandled Exception", "<Untraceable>");
 			ArcRuntime::shutdown();
 		});
@@ -67,7 +67,7 @@ namespace ArcRuntime {
 
 		} catch (const std::exception& e) {
 
-			Log::error("Runtime", "Exception has been thrown before main.");
+			LogE("Runtime") <<"Exception has been thrown before main.";
 			Exception::print(e);
 			Exception::printStackTrace(e);
 			showExceptionMessageBox(Exception::getMessage(e), Exception::getStackTrace(e));
@@ -86,7 +86,7 @@ namespace ArcRuntime {
 
 			if (ret) {
 
-				Log::error("Runtime", "Application exited with an error");
+				LogE("Runtime") << "Application exited with an error";
 				return ret;
 
 			}
@@ -94,7 +94,7 @@ namespace ArcRuntime {
 #if !ARC_DEBUG
 		} catch (const std::exception& e) {
 
-			Log::error("Runtime", "The application has thrown an exception.");
+			LogE("Runtime") << "The application has thrown an exception.";
 			Exception::print(e);
 			Exception::printStackTrace(e);
 			showExceptionMessageBox(Exception::getMessage(e), Exception::getStackTrace(e));
@@ -103,7 +103,7 @@ namespace ArcRuntime {
 
 		} catch (...) {
 
-			Log::error("Runtime", "The application has thrown an exception of unknown type.");
+			LogE("Runtime") << "The application has thrown an exception of unknown type.";
 			showExceptionMessageBox("Object-Type Exception", "<Untraceable>");
 
 			return initReturnBase + 3;
@@ -138,7 +138,7 @@ namespace ArcRuntime {
 
 bool ArcRuntime::initialize() noexcept {
 
-	Log::info("Runtime", "Initializing runtime");
+	LogI("Runtime") << "Initializing runtime";
 
 	//Platform init
 	if (!ArcRuntime::platformInit()) {
@@ -153,7 +153,7 @@ bool ArcRuntime::initialize() noexcept {
 #ifdef ARC_WINDOW_MODULE
 
 	if (!glfwInit()) {
-		Log::error("ArcRT", "Failed to initialize GLFW");
+		LogE("ArcRT") << "Failed to initialize GLFW";
 		return false;
 	}
 
@@ -162,13 +162,13 @@ bool ArcRuntime::initialize() noexcept {
 #ifdef ARC_FONT_MODULE
 
 	if (!FontBackend::init()) {
-		Log::error("ArcRT", "Failed to initialize font module");
+		LogE("ArcRT") << "Failed to initialize font module";
 		return false;
 	}
 
 #endif
 
-	Log::info("Runtime", "Ready");
+	LogI("Runtime") << "Ready";
 
 	return true;
 
@@ -178,7 +178,7 @@ bool ArcRuntime::initialize() noexcept {
 
 void ArcRuntime::shutdown() noexcept {
 
-	Log::info("Runtime", "Shutting down runtime");
+	LogI("Runtime") << "Shutting down runtime";
 
 #ifdef ARC_FONT_MODULE
 	FontBackend::shutdown();
@@ -188,7 +188,7 @@ void ArcRuntime::shutdown() noexcept {
 	glfwTerminate();
 #endif
 
-	Log::info("Runtime", "Bye");
+	LogI("Runtime") << "Bye";
 	Log::closeLogFile();
 
 }

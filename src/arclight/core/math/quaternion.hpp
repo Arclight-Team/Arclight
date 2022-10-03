@@ -405,6 +405,20 @@ constexpr auto operator/(Quaternion<F> q, A scalar) {
 }
 
 
+template<CC::Float F>
+RawLog& operator<<(RawLog& log, const Quaternion<F>& quat) {
+
+	log << "Quat[";
+	log << quat.w << ", ";
+	log << quat.x << ", ";
+	log << quat.y << ", ";
+	log << quat.z << "]";
+
+	return log;
+
+}
+
+
 
 #define QUATERNION_DEFINE_NTS(name, type, suffix) typedef Quaternion<type> name##suffix;
 

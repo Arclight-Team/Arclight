@@ -106,6 +106,19 @@ public:
 
 };
 
+
+template<CC::Arithmetic A>
+RawLog& operator<<(RawLog& log, const Sphere<A>& sphere) {
+
+	log << "Sphere[";
+	log << "[" << sphere.origin.x << ", " << sphere.origin.y << ", " << sphere.origin.z << "], ";
+	log << "R = " << sphere.radius << "]";
+
+	return log;
+
+}
+
+
 using SphereB     = Sphere<bool>;
 using SphereC     = Sphere<i8>;
 using SphereS     = Sphere<i16>;

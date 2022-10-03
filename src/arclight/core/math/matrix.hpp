@@ -1452,6 +1452,34 @@ constexpr A operator>>(A a, const B& b) noexcept {
 }
 
 
+template<CC::Matrix M>
+RawLog& operator<<(RawLog& log, const M& mat) {
+
+	log << "Mat" << M::Size << "[";
+
+	for (u32 i = 0; i < M::Size; i++) {
+
+		log << "[";
+
+		for (u32 j = 0; j < M::Size - 1; j++) {
+			log << mat[j][i] <<  ", ";
+		}
+
+		log << mat[M::Size - 1][i];
+
+		if (i != M::Size - 1) {
+			log << "], ";
+		} else {
+			log << "]]";
+		}
+
+	}
+
+	return log;
+
+}
+
+
 
 #define MATRIX_DEFINE_NDTS(name, dim, type, suffix) typedef Mat##dim<type> name##dim##suffix;
 

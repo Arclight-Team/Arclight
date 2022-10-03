@@ -20,7 +20,7 @@ namespace ASX
 	bool System::initialize() {
 				
 		if (initialized()) {
-			Log::warn("ASS", "System already initialized");
+			LogW("ASS") << "System already initialized";
 			return true;
 		}
 
@@ -49,7 +49,7 @@ namespace ASX
 	void System::shutdown() {
 
 		if (!initialized()) {
-			Log::warn("ASS", "System not initialized");
+			LogW("ASS") << "System not initialized";
 			return;
 		}
 

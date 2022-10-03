@@ -60,14 +60,14 @@ void FileDialog::setDirectory(const Path& path) {
 	void* pItem = nullptr;
 
 	if (!SUCCEEDED(SHCreateItemFromParsingName(std::wstring(str.begin(), str.end()).c_str(), nullptr, IID_IShellItem, &pItem))) {
-		Log::error("File Dialog", "Failed to create directory shell item");
+		LogE("File Dialog") << "Failed to create directory shell item";
 		return;
 	}
 
 	IShellItem* item = reinterpret_cast<IShellItem*>(pItem);
 
 	if (!SUCCEEDED(handle->dialog->SetFolder(item))) {
-		Log::error("File Dialog", "Failed to set default directory");
+		LogE("File Dialog") << "Failed to set default directory";
 	}
 
 	item->Release();
@@ -83,7 +83,7 @@ void FileDialog::setTitle(const std::string& title) {
 	}
 
 	if (!SUCCEEDED(handle->dialog->SetTitle(std::wstring(title.begin(), title.end()).c_str()))) {
-		Log::error("File Dialog", "Failed to set dialog title");
+		LogE("File Dialog") << "Failed to set dialog title";
 	}
 
 }
@@ -97,7 +97,7 @@ void FileDialog::setButtonText(const std::string& text) {
 	}
 
 	if (!SUCCEEDED(handle->dialog->SetOkButtonLabel(std::wstring(text.begin(), text.end()).c_str()))) {
-		Log::error("File Dialog", "Failed to set button text");
+		LogE("File Dialog") << "Failed to set button text";
 	}
 
 }
@@ -111,7 +111,7 @@ void FileDialog::setFilenameLabel(const std::string& text) {
 	}
 
 	if (!SUCCEEDED(handle->dialog->SetFileNameLabel(std::wstring(text.begin(), text.end()).c_str()))) {
-		Log::error("File Dialog", "Failed to set filename label");
+		LogE("File Dialog") << "Failed to set filename label";
 	}
 
 }
@@ -125,7 +125,7 @@ void FileDialog::setInitialFilename(const std::string& filename) {
 	}
 
 	if (!SUCCEEDED(handle->dialog->SetFileName(std::wstring(filename.begin(), filename.end()).c_str()))) {
-		Log::error("File Dialog", "Failed to set initial filename");
+		LogE("File Dialog") << "Failed to set initial filename";
 	}
 
 }
@@ -139,7 +139,7 @@ void FileDialog::setDefaultExtension(const std::string& ext) {
 	}
 
 	if (!SUCCEEDED(handle->dialog->SetDefaultExtension(std::wstring(ext.begin(), ext.end()).c_str()))) {
-		Log::error("File Dialog", "Failed to set default extension");
+		LogE("File Dialog") << "Failed to set default extension";
 	}
 
 }
@@ -193,12 +193,12 @@ void FileDialog::setFileFilters(const std::vector<FileFilter>& filters, SizeT se
 	}
 
 	if (!SUCCEEDED(handle->dialog->SetFileTypes(convertedFilter.size(), convertedFilter.data()))) {
-		Log::error("File Dialog", "Failed to set file types");
+		LogE("File Dialog") << "Failed to set file types";
 		return;
 	}
 
 	if (!SUCCEEDED(handle->dialog->SetFileTypeIndex(selected + 1))) {
-		Log::error("File Dialog", "Failed to set file type index");
+		LogE("File Dialog") << "Failed to set file type index";
 	}
 
 }
@@ -343,7 +343,7 @@ bool FileDialog::show() {
 	}
 
 	if(!SUCCEEDED(handle->dialog->SetOptions(dialogOptions))) {
-		Log::error("File Dialog", "Failed to set options");
+		LogE("File Dialog") << "Failed to set options";
 		return false;
 	}
 
@@ -469,7 +469,7 @@ void FileDialog::createHandle() {
 	}
 
 	if(!SUCCEEDED(result)) {
-		Log::error("File Dialog", "Failed to create dialog instance");
+		LogE("File Dialog") << "Failed to create dialog instance";
 		handle.reset();
 	}
 

@@ -36,7 +36,7 @@ InputSystem::~InputSystem() {
 void InputSystem::connect(const Window& window) {
 
 	if (!window.isOpen()) {
-		Log::warn("Input System", "Cannot connect input system to a closed window");
+		LogW("Input System") << "Cannot connect input system to a closed window";
 		return;
 	}
 
@@ -48,7 +48,7 @@ void InputSystem::connect(const Window& window) {
 	if (handle) {
 		handle->userPtr.input = this;
 	} else {
-		Log::error("Input System", "Impossible state: Window open with invalid handle");
+		LogE("Input System") << "Impossible state: Window open with invalid handle";
 		return;
 	}
 
@@ -178,7 +178,7 @@ void InputSystem::onFrameStart() {
 InputContext& InputSystem::createContext(u32 id) {
 
 	if (inputContexts.contains(id)) {
-		Log::warn("Input System", "Input context with ID %d already exists", id);
+		LogW("Input System").print("Input context with ID %d already exists", id);
 		return inputContexts[id];
 	}
 
@@ -210,7 +210,7 @@ const InputContext& InputSystem::getContext(u32 id) const {
 void InputSystem::destroyContext(u32 id) {
 
 	if (!inputContexts.contains(id)) {
-		Log::warn("Input System", "Input context with ID %d doesn't exist", id);
+		LogW("Input System").print("Input context with ID %d doesn't exist", id);
 		return;
 	}
 
@@ -223,7 +223,7 @@ void InputSystem::destroyContext(u32 id) {
 void InputSystem::enableContext(u32 id) {
 
 	if (!inputContexts.contains(id)) {
-		Log::warn("Input System", "Input context with ID %d doesn't exist", id);
+		LogW("Input System").print("Input context with ID %d doesn't exist", id);
 		return;
 	}
 
@@ -236,7 +236,7 @@ void InputSystem::enableContext(u32 id) {
 void InputSystem::disableContext(u32 id) {
 
 	if (!inputContexts.contains(id)) {
-		Log::warn("Input System", "Input context with ID %d doesn't exist", id);
+		LogW("Input System").print("Input context with ID %d doesn't exist", id);
 		return;
 	}
 
@@ -331,7 +331,7 @@ void InputSystem::updateContinuous(u32 ticks) {
 		if ((i / 2) > ticks) {
 
 			//Prevents auto-clicks and mouse abuse
-			Log::error("Input System", "Detected non-human generated input");
+			LogE("Input System") << "Detected non-human generated input";
 			resetEventCounts();
 			return;
 
@@ -361,7 +361,7 @@ KeyState InputSystem::getKeyState(Key key) const {
 
 	} else {
 
-		Log::warn("Input System", "Attempted to query key state for unknown key %d", key);
+		LogW("Input System").print("Attempted to query key state for unknown key %d", key);
 		return KeyState::Released;
 
 	}

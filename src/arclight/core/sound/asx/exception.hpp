@@ -63,14 +63,14 @@ namespace ASX
 
 #if ARC_DEBUG
 
-				Log::error("ASX", "FMOD failed with:");
+				LogE("ASX") << "FMOD failed with:";
 
-				Log::error("ASX", FMOD_ErrorString(code));
+				LogE("ASX") << FMOD_ErrorString(code);
 
-				Log::error("ASX", "> in '%s'",
+				LogE("ASX").print("> in '%s'",
 					__DebugLocation::loc.function_name());
 
-				Log::error("ASX", "> at line [%d,%d] in '%s'",
+				LogE("ASX").print("> at line [%d,%d] in '%s'",
 					__DebugLocation::loc.line(),
 					__DebugLocation::loc.column(),
 					__DebugLocation::loc.file_name());

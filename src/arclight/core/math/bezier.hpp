@@ -440,6 +440,28 @@ private:
 };
 
 
+template<u32 D, CC::Float F>
+RawLog& operator<<(RawLog& log, const Bezier<D, F>& bezier) {
+
+	log << "Bezier[";
+
+	for (u32 i = 0; const Vec2<F>& point : bezier.controlPoints) {
+
+		log << "[" << point.x << ", " << point.y;
+
+		if (i++ == bezier.Order) {
+			log << "]]";
+		} else {
+			log << "], ";
+		}
+
+	}
+
+	return log;
+
+}
+
+
 
 #define BEZIER_DEFINE_NDTS(name, degree, type, suffix) typedef Bezier<degree, type> name##degree##suffix;
 

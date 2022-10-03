@@ -194,19 +194,19 @@ namespace arc
 				if (parser.isLoaded()) {
 
 					if (parser.getWidth() <= 0) {
-						Log::error("arcTexture2D", "Invalid texture width (%d) in %s", parser.getWidth(), path.toString().c_str());
+						LogE("arcTexture2D").print("Invalid texture width (%d) in %s", parser.getWidth(), path.toString().c_str());
 					}
 
 					if (parser.getHeight() <= 0) {
-						Log::error("arcTexture2D", "Invalid texture height (%d) in %s", parser.getHeight(), path.toString().c_str());
+						LogE("arcTexture2D").print("Invalid texture height (%d) in %s", parser.getHeight(), path.toString().c_str());
 					}
 
 					if (parser.getChannels() < 1 || parser.getChannels() > 4) {
-						Log::error("arcTexture2D", "Invalid number of channels (%d) in %s", parser.getChannels(), path.toString().c_str());
+						LogE("arcTexture2D").print("Invalid number of channels (%d) in %s", parser.getChannels(), path.toString().c_str());
 					}
 				}
 				else {
-					Log::error("arcTexture2D", "Failed to load texture %s", path.toString().c_str());
+					LogE("arcTexture2D").print("Failed to load texture %s", path.toString().c_str());
 				}
 
 				return false;
@@ -217,7 +217,7 @@ namespace arc
 			setData(parser.getWidth(), parser.getHeight(), parser.getImageFormat(srgb), parser.getSourceFormat(), GLE::TextureSourceType::UByte, parser.getData());
 			generateMipmaps();
 
-			Log::info("arcTexture2D", "Loaded texture %s", path.toString().c_str());
+			LogI("arcTexture2D").print("Loaded texture %s", path.toString().c_str());
 
 			return true;
 
@@ -242,19 +242,19 @@ namespace arc
 				if (parser.isLoaded()) {
 
 					if (parser.getWidth() <= 0) {
-						Log::error("arcTextureHDR", "Invalid texture width (%d) in %s", parser.getWidth(), path.toString().c_str());
+						LogE("arcTextureHDR").print("Invalid texture width (%d) in %s", parser.getWidth(), path.toString().c_str());
 					}
 
 					if (parser.getHeight() <= 0) {
-						Log::error("arcTextureHDR", "Invalid texture height (%d) in %s", parser.getHeight(), path.toString().c_str());
+						LogE("arcTextureHDR").print("Invalid texture height (%d) in %s", parser.getHeight(), path.toString().c_str());
 					}
 
 					if (parser.getChannels() < 1 || parser.getChannels() > 4) {
-						Log::error("arcTextureHDR", "Invalid number of channels (%d) in %s", parser.getChannels(), path.toString().c_str());
+						LogE("arcTextureHDR").print("Invalid number of channels (%d) in %s", parser.getChannels(), path.toString().c_str());
 					}
 				}
 				else {
-					Log::error("arcTextureHDR", "Failed to load texture %s", path.toString().c_str());
+					LogE("arcTextureHDR").print("Failed to load texture %s", path.toString().c_str());
 				}
 
 				return false;
@@ -269,7 +269,7 @@ namespace arc
 			setMinFilter(GLE::TextureFilter::Bilinear, false);
 			setMagFilter(GLE::TextureFilter::Bilinear);
 
-			Log::info("arcTextureHDR", "Loaded texture %s", path.toString().c_str());
+			LogI("arcTextureHDR").print("Loaded texture %s", path.toString().c_str());
 
 			return true;
 
@@ -300,7 +300,7 @@ namespace arc
 		bool parse(const aiMaterial* material, const Path& path) {
 
 			if (!material) {
-				Log::error("arcMesh", "Material is null");
+				LogE("arcMesh") << "Material is null";
 				return false;
 			}
 
@@ -587,27 +587,27 @@ namespace arc
 		void dumpNode(const ITreeNode<T>& node) {
 
 			std::string indents(level, ' ');
-			Log::info("...", indents + "Node { [%d] - '%s' }", node.getID(), node.getName().c_str());
+			LogI("...").print(indents + "Node { [%d] - '%s' }", node.getID(), node.getName().c_str());
 
 			level += tabLevel;
 			indents += indent;
 
 			if (node.getParent()) {
-				Log::info("...", indents + "Parent - { [%d] - '%s' }", node.getParent()->getID(), node.getParent()->getName().c_str());
+				LogI("...").print(indents + "Parent - { [%d] - '%s' }", node.getParent()->getID(), node.getParent()->getName().c_str());
 			}
 			else {
-				Log::info("...", indents + "Parent - none");
+				LogI("...").print(indents + "Parent - none");
 			}
 
 			if (node.getNextSibling()) {
-				Log::info("...", indents + "Next - { [%d] - '%s' }", node.getNextSibling()->getID(), node.getNextSibling()->getName().c_str());
+				LogI("...").print(indents + "Next - { [%d] - '%s' }", node.getNextSibling()->getID(), node.getNextSibling()->getName().c_str());
 			}
 			else {
-				Log::info("...", indents + "Next - none");
+				LogI("...").print(indents + "Next - none");
 			}
 
 			if (node.getChildCount()) {
-				Log::info("...", indents + "Children [%d]:", node.getChildCount());
+				LogI("...").print(indents + "Children [%d]:", node.getChildCount());
 
 				for (auto& n : node.getChildren()) {
 					level += tabLevel;
@@ -762,7 +762,7 @@ namespace arc
 		bool parse(const aiNode* rootNode) {
 
 			if (!rootNode) {
-				Log::error("arcMesh", "Root node is null");
+				LogE("arcMesh") << "Root node is null";
 				return false;
 			}
 
@@ -788,7 +788,7 @@ namespace arc
 			// create bone map [name -> bone]
 			for (u32 i = 0; i < count; i++) {
 				if (boneMap.contains(bones[i]->mName.C_Str())) {
-					Log::error("arcBoneCollection", "Duplicate bone '%s'", bones[i]->mName.C_Str());
+					LogE("arcBoneCollection").print("Duplicate bone '%s'", bones[i]->mName.C_Str());
 					return false;
 				}
 				boneMap[bones[i]->mName.C_Str()] = bones[i];
@@ -1040,7 +1040,7 @@ namespace arc
 		bool parse(const aiMesh* mesh, u32 meshID, NodeCollection& nodes) {
 
 			if (!mesh) {
-				Log::error("arcMesh", "Mesh is null");
+				LogE("arcMesh") << "Mesh is null";
 				return false;
 			}
 
@@ -1151,7 +1151,7 @@ namespace arc
 				for (const auto& [vertex, weight] : vertexWeights) {
 
 					if (vertex >= mesh->mNumVertices) {
-						Log::error("arcMesh", "Invalid vertex ID in vertex weight map");
+						LogE("arcMesh") << "Invalid vertex ID in vertex weight map";
 						return false;
 						//continue;
 					}
@@ -1436,32 +1436,32 @@ namespace arc
 			/*aiScene* scene = (aiScene*)"tua madre";*/
 
 			if (!parser.isLoaded()) {
-				Log::error("arcModel", parser.getErrorString());
+				LogE("arcModel") << parser.getErrorString();
 				return false;
 			}
 
 			if (!nodes.parse(parser.getRootNode())) {
-				Log::error("arcModel", "Failed to parse nodes");
+				LogE("arcModel") << "Failed to parse nodes";
 				return false;
 			}
 
 #if ARC_DEBUG
-			//Log::info("arcModel", "Node tree:");
+			//LogI("arcModel") << "Node tree:";
 			//ITreeNodeDumper::dumpNode(nodes.getRoot());
 #endif
 
 			if (!parseMaterials(parser)) {
-				Log::error("arcModel", "Failed to parse materials");
+				LogE("arcModel") << "Failed to parse materials";
 				return false;
 			}
 
 			if (!parseMeshes(parser)) {
-				Log::error("arcModel", "Failed to parse meshes");
+				LogE("arcModel") << "Failed to parse meshes";
 				return false;
 			}
 
 #if ARC_DEBUG
-			//Log::info("arcModel", "Bone tree for first mesh:");
+			//LogI("arcModel") << "Bone tree for first mesh:";
 			//ITreeNodeDumper::dumpNode(meshes[0].getRootBone());
 #endif
 

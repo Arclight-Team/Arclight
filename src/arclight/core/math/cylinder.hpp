@@ -170,6 +170,19 @@ public:
 
 };
 
+
+template<CC::Arithmetic A>
+RawLog& operator<<(RawLog& log, const Cylinder<A>& cylinder) {
+
+	log << "Cylinder[";
+	log << "[" << cylinder.origin.x << ", " << cylinder.origin.y << ", " << cylinder.origin.z << "], ";
+	log << "R = " << cylinder.radius << ", H = " << cylinder.height << "]";
+
+	return log;
+
+}
+
+
 using CylinderB     = Cylinder<bool>;
 using CylinderC     = Cylinder<i8>;
 using CylinderS     = Cylinder<i16>;
