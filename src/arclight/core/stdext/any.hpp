@@ -10,6 +10,7 @@
 
 #include "common/typetraits.hpp"
 #include "common/concepts.hpp"
+#include "common/exception.hpp"
 #include "types.hpp"
 
 #include <exception>
@@ -20,13 +21,14 @@
 /*
 	Exception thrown if the Any holds a different type
 */
-class BadAnyAccess : public std::exception {
+class BadAnyAccess : public ArclightException {
 
 public:
 
-	virtual const char* what() const noexcept override {
-		return "Bad any access";
-	}
+	using ArclightException::ArclightException;
+
+	BadAnyAccess() : ArclightException("Bad any access") {}
+	virtual const char* name() const noexcept override { return "Bad Any Access Exception";	}
 
 };
 
