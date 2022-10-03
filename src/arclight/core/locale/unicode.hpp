@@ -10,6 +10,7 @@
 
 #include "util/bits.hpp"
 #include "util/string.hpp"
+#include "common/exception.hpp"
 #include "types.hpp"
 
 #include <string>
@@ -108,25 +109,132 @@ namespace Unicode {
 
 	};
 
+
 	template<CC::Char C, bool FlipEndianess = false>
 	constexpr Encoding TypeEncoding = fromCharType<C, FlipEndianess>();
 
 	template<Unicode::Encoding E> struct UTFEncodingTraits {};
 
-	template<> struct UTFEncodingTraits<Unicode::UTF8>    { using Type = char8_t;  constexpr static SizeT MaxDecomposed = 4; };
-	template<> struct UTFEncodingTraits<Unicode::UTF16LE> { using Type = char16_t; constexpr static SizeT MaxDecomposed = 2; };
-	template<> struct UTFEncodingTraits<Unicode::UTF16BE> { using Type = char16_t; constexpr static SizeT MaxDecomposed = 2; };
-	template<> struct UTFEncodingTraits<Unicode::UTF32LE> { using Type = char32_t; constexpr static SizeT MaxDecomposed = 1; };
-	template<> struct UTFEncodingTraits<Unicode::UTF32BE> { using Type = char32_t; constexpr static SizeT MaxDecomposed = 1; };
-
-
+	template<> struct UTFEncodingTraits<Unicode::UTF8>    { using Type = char8_t;  constexpr static SizeT MaxDecomposed = 4; constexpr static SizeT MinUnitSize = 1; };
+	template<> struct UTFEncodingTraits<Unicode::UTF16LE> { using Type = char16_t; constexpr static SizeT MaxDecomposed = 2; constexpr static SizeT MinUnitSize = 2; };
+	template<> struct UTFEncodingTraits<Unicode::UTF16BE> { using Type = char16_t; constexpr static SizeT MaxDecomposed = 2; constexpr static SizeT MinUnitSize = 2; };
+	template<> struct UTFEncodingTraits<Unicode::UTF32LE> { using Type = char32_t; constexpr static SizeT MaxDecomposed = 1; constexpr static SizeT MinUnitSize = 4; };
+	template<> struct UTFEncodingTraits<Unicode::UTF32BE> { using Type = char32_t; constexpr static SizeT MaxDecomposed = 1; constexpr static SizeT MinUnitSize = 4; };
 
 	using Codepoint = char32_t;
 
 
+	template<Encoding E, CC::Char T>
+	consteval bool isCharEncodable() {
+		return sizeof(T) == sizeof(typename UTFEncodingTraits<E>::Type);
+	}
+
+
+	//UTF encoded size of next codepoint
+	template<Encoding E, CC::Char T>
+	constexpr SizeT getEncodedSize(const T* p) noexcept requires (isCharEncodable<E, T>()) {
+
+		if constexpr (isUTF8<E>()) {
+
+			T c = *p;
+
+			if ((c & 0x80) != 0x80) {
+				return 1;
+			} else if ((c & 0xE0) != 0xE0) {
+				return 2;
+			} else if ((c & 0xF0) != 0xF0) {
+				return 3;
+			} else {
+				return 4;
+			}
+
+		} else if constexpr (isUTF16<E>()) {
+
+			T c = *p;
+
+			if ((c & 0xF800) != 0xD800) {
+				return 1;
+			} else {
+				return 2;
+			}
+
+		} else {
+
+			return 1;
+
+		}
+
+	}
+
+	//UTF encoded size of previous codepoint
+	template<Encoding E, CC::Char T>
+	constexpr SizeT getEncodedSizeBackwards(const T* p) noexcept requires (isCharEncodable<E, T>()) {
+
+		if constexpr (isUTF8<E>()) {
+
+			if ((*(p - 1) & 0x80) == 0x00) {
+				return 1;
+			} else if ((*(p - 2) & 0xC0) == 0xC0) {
+				return 2;
+			} else if ((*(p - 3) & 0xE0) == 0xE0) {
+				return 3;
+			} else {
+				return 4;
+			}
+
+		} else if constexpr (isUTF16<E>()) {
+
+			T c = *(p - 1);
+
+			if ((c & 0xF800) != 0xD800) {
+				return 1;
+			} else {
+				return 2;
+			}
+
+		} else {
+
+			return 1;
+
+		}
+
+	}
+
+	//UTF decoded size of codepoint
+	template<Encoding E>
+	constexpr SizeT getDecodedSize(Codepoint cp) noexcept {
+
+		if constexpr (isUTF8<E>()) {
+
+			if (cp < 0x80) {
+				return 1;
+			} else if (cp < 0x800) {
+				return 2;
+			} else if (cp < 0x10000) {
+				return 3;
+			} else {
+				return 4;
+			}
+
+		} else if constexpr (isUTF16<E>()) {
+
+			if (cp < 0x10000) {
+				return 1;
+			} else {
+				return 2;
+			}
+
+		} else {
+
+			return 1;
+
+		}
+
+	}
+
 	//Codepoint to UTF
-	template<Encoding E, class T>
-	constexpr SizeT encode(Codepoint codepoint, T* p) noexcept requires CC::Equal<T, typename UTFEncodingTraits<E>::Type> {
+	template<Encoding E, CC::Char T>
+	constexpr SizeT encode(Codepoint codepoint, T* p) noexcept requires (isCharEncodable<E, T>()) {
 
 		if constexpr (isUTF8<E>()) {
 
@@ -205,8 +313,8 @@ namespace Unicode {
 	}
 
 	//UTF to codepoint
-	template<Encoding E, class T>
-	constexpr Codepoint decode(const T* p, SizeT& count) noexcept requires CC::Equal<T, typename UTFEncodingTraits<E>::Type> {
+	template<Encoding E, CC::Char T>
+	constexpr Codepoint decode(const T* p, SizeT& count) noexcept requires (isCharEncodable<E, T>()) {
 
 		if constexpr (isUTF8<E>()) {
 
@@ -281,8 +389,8 @@ namespace Unicode {
 	}
 
 	//UTF to codepoint
-	template<Encoding E, class T>
-	constexpr Codepoint decode(const T* p) noexcept requires CC::Equal<T, typename UTFEncodingTraits<E>::Type> {
+	template<Encoding E, CC::Char T>
+	constexpr Codepoint decode(const T* p) noexcept requires (isCharEncodable<E, T>()) {
 
 		[[maybe_unused]] SizeT count;
 		return decode<E>(p, count);
@@ -290,8 +398,8 @@ namespace Unicode {
 	}
 
 	//UTF to UTF
-	template<Encoding From, Encoding To, class SrcT, class DstT>
-	constexpr SizeT transcode(const SrcT* s, DstT* d, SizeT& decoded) noexcept requires (CC::Equal<SrcT, typename UTFEncodingTraits<From>::Type> && CC::Equal<DstT, typename UTFEncodingTraits<To>::Type>) {
+	template<Encoding From, Encoding To, CC::Char SrcT, CC::Char DstT>
+	constexpr SizeT transcode(const SrcT* s, DstT* d, SizeT& decoded) noexcept requires (isCharEncodable<From, SrcT>() && isCharEncodable<To, DstT>()) {
 
 		if constexpr (From == To) {
 
@@ -309,8 +417,8 @@ namespace Unicode {
 
 	}
 
-	template<Encoding From, Encoding To, class SrcT, class DstT>
-	constexpr SizeT transcode(const SrcT* s, DstT* d) noexcept requires (CC::Equal<SrcT, typename UTFEncodingTraits<From>::Type> && CC::Equal<DstT, typename UTFEncodingTraits<To>::Type>) {
+	template<Encoding From, Encoding To, CC::Char SrcT, CC::Char DstT>
+	constexpr SizeT transcode(const SrcT* s, DstT* d) noexcept requires (isCharEncodable<From, SrcT>() && isCharEncodable<To, DstT>()) {
 
 		[[maybe_unused]] SizeT decodedCPs;
 		return transcode<From, To>(s, d, decodedCPs);
@@ -318,8 +426,8 @@ namespace Unicode {
 	}
 
 	//Returns the size of the codepoint encoded in From if converted to To
-	template<Encoding From, Encoding To, class T>
-	constexpr SizeT getTranscodedSize(const T* p) noexcept requires CC::Equal<T, typename UTFEncodingTraits<From>::Type> {
+	template<Encoding From, Encoding To, CC::Char T>
+	constexpr SizeT getTranscodedSize(const T* p) noexcept requires (isCharEncodable<From, T>()) {
 
 		if constexpr (isEquivalentEncoding<From, To>()) {
 			return getEncodedSize<From>(p);
@@ -329,106 +437,114 @@ namespace Unicode {
 
 	}
 
-	//UTF encoded size of next codepoint
-	template<Encoding E, class T>
-	constexpr SizeT getEncodedSize(const T* p) noexcept requires CC::Equal<T, typename UTFEncodingTraits<E>::Type> {
 
-		if constexpr (isUTF8<E>()) {
+	template<CC::Char SrcCharT, Unicode::Encoding Src, CC::Char DestCharT, Unicode::Encoding Dest>
+	constexpr std::basic_string<DestCharT> convert(std::basic_string_view<SrcCharT> src) {
 
-			T c = *p;
+		constexpr SizeT SrcMinUnitSize = Unicode::UTFEncodingTraits<Src>::MinUnitSize;
+		constexpr SizeT DestMinUnitSize = Unicode::UTFEncodingTraits<Dest>::MinUnitSize;
+		constexpr SizeT AssemblyUnits = SrcMinUnitSize / sizeof(SrcCharT);
 
-			if ((c & 0x80) != 0x80) {
-				return 1;
-			} else if ((c & 0xE0) != 0xE0) {
-				return 2;
-			} else if ((c & 0xF0) != 0xF0) {
-				return 3;
+		using SrcUnit = typename Unicode::UTFEncodingTraits<Src>::Type;
+
+		//Destination char unit mismatch
+		if constexpr (DestMinUnitSize != sizeof(DestCharT)) {
+			throw UnsupportedOperationException("Alternative destination char encodings not yet supported");
+		}
+
+		//Calculate the new string size
+		SizeT size = 0;
+		SizeT offset = 0;
+
+		while (offset < src.size()) {
+
+			//Input needs to be assembled in advance
+			if constexpr (SrcMinUnitSize > sizeof(SrcCharT)) {
+
+				//Bad assembly, cancel
+				if (offset + AssemblyUnits > src.size()) {
+					break;
+				}
+
+				SrcUnit units[Unicode::UTFEncodingTraits<Src>::MaxDecomposed];
+				units[0] = Bits::assemble<SrcUnit>(src.data() + offset);
+
+				SizeT count = Unicode::getEncodedSize<Src>(units);
+				SizeT margin = count * AssemblyUnits;
+
+				if (offset + margin > src.size()) {
+					//Bad unicode coding, stop the conversion here
+					break;
+				}
+
+				for (SizeT i = 1; i < count; i++) {
+					units[i] = Bits::assemble<SrcUnit>(src.data() + offset + i * AssemblyUnits);
+				}
+
+				size += Unicode::getTranscodedSize<Src, Dest>(units);
+				offset += margin;
+
 			} else {
-				return 4;
+
+				SizeT margin = Unicode::getEncodedSize<Src>(src.data() + offset);
+
+				if (offset + margin > src.size()) {
+					//Bad unicode coding, stop the conversion here
+					break;
+				}
+
+				size += Unicode::getTranscodedSize<Src, Dest>(src.data() + offset);
+				offset += margin;
+
 			}
-
-		} else if constexpr (isUTF16<E>()) {
-
-			T c = *p;
-
-			if ((c & 0xF8) != 0xD8) {
-				return 1;
-			} else {
-				return 2;
-			}
-
-		} else {
-
-			return 1;
 
 		}
+
+		//Convert
+		std::basic_string<DestCharT> convertedString(size, 0);
+		SizeT offsetIn = 0;
+		SizeT offsetOut = 0;
+
+		while (offsetIn < src.size()) {
+
+			//Input needs to be assembled in advance
+			if constexpr (SrcMinUnitSize > sizeof(SrcCharT)) {
+
+				SrcUnit units[Unicode::UTFEncodingTraits<Src>::MaxDecomposed];
+				units[0] = Bits::assemble<SrcUnit>(src.data() + offsetIn);
+
+				SizeT count = Unicode::getEncodedSize<Src>(units);
+				SizeT margin = count * AssemblyUnits;
+
+				for (SizeT i = 1; i < count; i++) {
+					units[i] = Bits::assemble<SrcUnit>(src.data() + offsetIn + i * AssemblyUnits);
+				}
+
+				offsetIn += margin;
+				offsetOut += Unicode::transcode<Src, Dest>(units, convertedString.data() + offsetOut);
+
+			} else {
+
+				Codepoint cp = Unicode::decode<Src>(src.data() + offsetIn);
+				offsetIn += Unicode::getDecodedSize<Src>(cp);
+				offsetOut += Unicode::encode<Dest>(cp, convertedString.data() + offsetOut);
+
+			}
+
+		}
+
+		return convertedString;
 
 	}
 
-	//UTF encoded size of previous codepoint
-	template<Encoding E, class T>
-	constexpr SizeT getEncodedSizeBackwards(const T* p) noexcept requires CC::Equal<T, typename UTFEncodingTraits<E>::Type> {
-
-		if constexpr (isUTF8<E>()) {
-
-			if ((*(p - 1) & 0x80) == 0x00) {
-				return 1;
-			} else if ((*(p - 2) & 0xC0) == 0xC0) {
-				return 2;
-			} else if ((*(p - 3) & 0xE0) == 0xE0) {
-				return 3;
-			} else {
-				return 4;
-			}
-
-		} else if constexpr (isUTF16<E>()) {
-
-			T c = *(p - 1);
-
-			if ((c & 0xF8) != 0xD8) {
-				return 1;
-			} else {
-				return 2;
-			}
-
-		} else {
-
-			return 1;
-
-		}
-
+	template<Unicode::Encoding Src, Unicode::Encoding Dest>
+	constexpr std::string convertString(std::wstring_view src) {
+		return convert<wchar_t, Src, char, Dest>(src);
 	}
 
-	//UTF encoded size of next codepoint
-	template<Encoding E>
-	constexpr SizeT getDecodedSize(Codepoint cp) noexcept {
-
-		if constexpr (isUTF8<E>()) {
-
-			if (cp < 0x80) {
-				return 1;
-			} else if (cp < 0x800) {
-				return 2;
-			} else if (cp < 0x10000) {
-				return 3;
-			} else {
-				return 4;
-			}
-
-		} else if constexpr (isUTF16<E>()) {
-
-			if (cp < 0x10000) {
-				return 1;
-			} else {
-				return 2;
-			}
-
-		} else {
-
-			return 1;
-
-		}
-
+	template<Unicode::Encoding Src, Unicode::Encoding Dest>
+	constexpr std::wstring convertString(std::string_view src) {
+		return convert<char, Src, wchar_t, Dest>(src);
 	}
 
 }

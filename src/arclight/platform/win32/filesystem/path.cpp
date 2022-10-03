@@ -9,6 +9,7 @@
 #include "filesystem/path.hpp"
 #include "util/assert.hpp"
 #include "util/log.hpp"
+#include "locale/unicode.hpp"
 #include "types.hpp"
 
 #include <string>
@@ -50,7 +51,7 @@ Path Path::getApplicationDirectory() {
 
 		}
 		
-		std::wstring str(filename.data());
+		std::string str = Unicode::convertString<Unicode::UTF16LE, Unicode::UTF8>(filename.data());
 
 		return Path(std::filesystem::path(str)).parent();
 
@@ -121,10 +122,10 @@ Path Path::getFolderPath(Folder folder) {
 
 	if (SUCCEEDED(SHGetKnownFolderPath(kfid, KF_FLAG_DEFAULT , nullptr, &pathCharArray))) {
 
-		std::wstring wstr(pathCharArray);
+		std::string pathString = Unicode::convertString<Unicode::UTF16LE, Unicode::UTF8>(pathCharArray);
 		CoTaskMemFree(pathCharArray);
 
-		return Path(std::string(wstr.begin(), wstr.end()));
+		return Path(pathString);
 
 	}
 
