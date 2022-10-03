@@ -178,11 +178,14 @@ public:
 
 		};
 
-		if (CC::ReverseIterable<T> && reversed) {
-			exec(container.rbegin(), container.rend());
-		} else {
-			exec(container.begin(), container.end());
+		if constexpr (CC::ReverseIterable<T>) {
+			if (reversed) {
+				exec(container.rbegin(), container.rend());
+				return *this;
+			}
 		}
+		
+		exec(container.begin(), container.end());
 
 		return *this;
 
