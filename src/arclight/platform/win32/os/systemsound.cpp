@@ -12,7 +12,7 @@
 
 
 
-void SystemSound::play(const std::string& sound) {
+void OS::SystemSound::play(const std::string& sound) {
 
 	if (sound == "Info") {
 		MessageBeep(MB_ICONINFORMATION);

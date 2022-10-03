@@ -12,7 +12,7 @@
 
 
 
-namespace SystemSound {
+namespace OS::SystemSound {
 
 	void play(const std::string& sound);
 

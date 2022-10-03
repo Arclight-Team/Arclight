@@ -10,6 +10,7 @@
 #include "registry.hpp"
 #include "types.hpp"
 #include "locale/unicode.hpp"
+#include "filesystem/fsentry.hpp"
 
 #include <vector>
 
@@ -145,5 +146,51 @@ bool OS::removeFromStartup(const std::string& name, bool allUsers) {
 	}
 
 	return false;
+
+}
+
+
+
+bool OS::launch(LaunchAction action, const Path& path, const std::string& params, bool switchCWD) {
+
+	std::wstring verb;
+
+	switch (action) {
+
+		default:
+		case LaunchAction::Default: 	break;
+		case LaunchAction::Edit:		verb = L"edit";			break;
+		case LaunchAction::Explore:		verb = L"explore";		break;
+		case LaunchAction::Find:		verb = L"find";			break;
+		case LaunchAction::Open:		verb = L"open";			break;
+		case LaunchAction::Print:		verb = L"print";		break;
+		case LaunchAction::Properties:	verb = L"properties";	break;
+		case LaunchAction::RunAsAdmin:	verb = L"runas";		break;
+
+	}
+
+
+	std::wstring file = Unicode::convertString<Unicode::UTF8, Unicode::UTF16LE>(path.toNativeString());
+	std::wstring parameters = params.empty() ? std::wstring() : Unicode::convertString<Unicode::UTF8, Unicode::UTF16LE>(params);
+	std::wstring wdPath;
+
+	if (switchCWD) {
+
+		Path p = path;
+		wdPath = Unicode::convertString<Unicode::UTF8, Unicode::UTF16LE>(FSEntry(path).isFile() ? path.parent().toAbsolute().toNativeString() : p.toAbsolute().toNativeString());
+
+	}
+
+	SHELLEXECUTEINFOW info;
+	info.cbSize = sizeof(SHELLEXECUTEINFOW);
+	info.fMask = SEE_MASK_DEFAULT | SEE_MASK_NO_CONSOLE;
+	info.hwnd = nullptr;
+	info.lpVerb = action == LaunchAction::Default ? nullptr : verb.c_str();
+	info.lpFile = file.c_str();
+	info.lpParameters = params.empty() ? nullptr : parameters.c_str();
+	info.lpDirectory = wdPath.c_str();
+	info.nShow = SW_NORMAL;
+
+	return ShellExecuteExW(&info);
 
 }

@@ -30,4 +30,17 @@ namespace OS {
 	bool addToStartup(const std::string& name, const Path& path = Process::getCurrentProcess().getExecutablePath(), bool allUsers = false);
 	bool removeFromStartup(const std::string& name, bool allUsers = false);
 
+	enum class LaunchAction {
+		Default,
+		Edit,
+		Explore,
+		Find,
+		Open,
+		Print,
+		Properties,
+		RunAsAdmin
+	};
+
+	bool launch(LaunchAction action, const Path& path, const std::string& params = "", bool switchCWD = false);
+
 }

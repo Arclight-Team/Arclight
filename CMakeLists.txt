@@ -249,6 +249,20 @@ project (${PROJECT_NAME})
 
 	endif()
 
+	# FreeType for font
+	if("arclight.font" IN_LIST MODULE_LIST)
+
+		# Use the correct .lib
+		set(FREETYPE_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/lib/FreeType/bin/x64/$<IF:$<CONFIG:Debug>,DebugStatic,ReleaseStatic>/freetype.lib)
+		add_compile_definitions(ARC_FONT_MODULE)
+
+		include_directories("lib/FreeType/include")
+		list(APPEND APPLICATION_LIBS ${FREETYPE_LIBRARY})
+
+		message("\tAdded dependency 'freetype'")
+
+	endif()
+
 	# Bullet for physics
 	if("arclight.physics" IN_LIST MODULE_LIST)
 
@@ -324,25 +338,41 @@ project (${PROJECT_NAME})
 ###### PLATFORM ######
 ######################
 
+	set(WIN_NO_CONSOLE TRUE)
+
 	if(WIN32)
 
 		# We only support windows icons yet
 		list(APPEND APPLICATION_SOURCES "win_resource.rc" "arclight.exe.manifest")
-		#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
-		#set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 
 		# Force Unicode
 		add_compile_definitions(UNICODE _UNICODE)
 
+		# Add libraries
 		list(APPEND APPLICATION_LIBS ComCtl32.lib Bcrypt.lib)
 
-	endif()
+		# Disables the console
+		if(WIN_NO_CONSOLE)
 
+			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:mainCRTStartup")
+			add_executable (${PROJECT_NAME} WIN32 ${APPLICATION_SOURCES})
+
+		else()
+
+			add_executable (${PROJECT_NAME} ${APPLICATION_SOURCES})
+
+		endif()
+
+	else()
+
+		# Create the executable and link
+		add_executable (${PROJECT_NAME} ${APPLICATION_SOURCES})
+
+	endif()
 
 ######################
 #### FINALIZATION ####
 ######################
 
-	# Create the executable and link
-	add_executable (${PROJECT_NAME} ${APPLICATION_SOURCES})
+	# Link libraries
 	target_link_libraries(${PROJECT_NAME} ${APPLICATION_LIBS})
