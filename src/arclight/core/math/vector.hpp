@@ -496,7 +496,7 @@ public:
 		divide(length());
 	}
 
-	constexpr Vec3& normalized() const noexcept {
+	constexpr Vec3 normalized() const noexcept {
 		return normalize(*this);
 	}
 
@@ -752,7 +752,7 @@ public:
 		divide(length());
 	}
 
-	constexpr Vec4& normalized() const noexcept {
+	constexpr Vec4 normalized() const noexcept {
 		return normalize(*this);
 	}
 
