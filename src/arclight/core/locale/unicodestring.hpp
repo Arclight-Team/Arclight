@@ -1730,7 +1730,7 @@ RawLog& operator<<(RawLog& log, const UnicodeString<E>& ustr) {
 
 	bool uppercase = log.getBuffer().flags() | std::ios::uppercase;
 
-	log << RawLog::Upper;
+	log << Log::Upper;
 
 	for (SizeT i = 0; i < length; i++) {
 
@@ -1743,7 +1743,7 @@ RawLog& operator<<(RawLog& log, const UnicodeString<E>& ustr) {
 	}
 
 	if (!uppercase) {
-		log << RawLog::NoUpper;
+		log << Log::NoUpper;
 	}
 
 	return log;
