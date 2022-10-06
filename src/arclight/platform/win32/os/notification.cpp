@@ -7,6 +7,7 @@
  */
 
 #include "notification.hpp"
+#include "locale/unicode.hpp"
 #include "util/destructionguard.hpp"
 
 #include <unordered_set>
@@ -103,7 +104,7 @@ Notification::Options Notification::getOptions() const {
 
 void Notification::setTitle(const std::string& title) {
 
-	std::wstring str(title.begin(), title.end());
+	std::wstring str = Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(title);
 
 	if (str.size() > 63) {
 		str.resize(63);
@@ -118,7 +119,7 @@ void Notification::setTitle(const std::string& title) {
 
 void Notification::setText(const std::string& text) {
 
-	std::wstring str(text.begin(), text.end());
+	std::wstring str = Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(text);
 
 	if (str.size() > 255) {
 		str.resize(255);
@@ -133,7 +134,7 @@ void Notification::setText(const std::string& text) {
 
 void Notification::setTooltip(const std::string& tooltip) {
 
-	std::wstring str(tooltip.begin(), tooltip.end());
+	std::wstring str = Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(tooltip);
 
 	if (str.size() > 127) {
 		str.resize(127);

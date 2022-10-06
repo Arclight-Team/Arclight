@@ -8,6 +8,7 @@
 
 #include "messagebox.hpp"
 #include "util/assert.hpp"
+#include "locale/unicode.hpp"
 
 #include <Windows.h>
 #undef MessageBox
@@ -93,7 +94,7 @@ MessageBox::Result MessageBox::show() {
 		flags |= MB_TASKMODAL;
 	}
 
-	i32 result = MessageBoxW(nullptr, std::wstring(text.begin(), text.end()).c_str(), std::wstring(title.begin(), title.end()).c_str(), flags);
+	i32 result = MessageBoxW(nullptr, Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(text).c_str(), Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(title).c_str(), flags);
 
 	switch (result) {
 

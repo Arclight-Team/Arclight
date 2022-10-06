@@ -7,6 +7,7 @@
  */
 
 #include "filedialog.hpp"
+#include "locale/unicode.hpp"
 #include "util/log.hpp"
 #include "filesystem/path.hpp"
 #include "util/destructionguard.hpp"
@@ -59,7 +60,7 @@ void FileDialog::setDirectory(const Path& path) {
 
 	void* pItem = nullptr;
 
-	if (!SUCCEEDED(SHCreateItemFromParsingName(std::wstring(str.begin(), str.end()).c_str(), nullptr, IID_IShellItem, &pItem))) {
+	if (!SUCCEEDED(SHCreateItemFromParsingName(Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(str).c_str(), nullptr, IID_IShellItem, &pItem))) {
 		LogE("File Dialog") << "Failed to create directory shell item";
 		return;
 	}
@@ -82,7 +83,7 @@ void FileDialog::setTitle(const std::string& title) {
 		return;
 	}
 
-	if (!SUCCEEDED(handle->dialog->SetTitle(std::wstring(title.begin(), title.end()).c_str()))) {
+	if (!SUCCEEDED(handle->dialog->SetTitle(Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(title).c_str()))) {
 		LogE("File Dialog") << "Failed to set dialog title";
 	}
 
@@ -96,7 +97,7 @@ void FileDialog::setButtonText(const std::string& text) {
 		return;
 	}
 
-	if (!SUCCEEDED(handle->dialog->SetOkButtonLabel(std::wstring(text.begin(), text.end()).c_str()))) {
+	if (!SUCCEEDED(handle->dialog->SetOkButtonLabel(Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(text).c_str()))) {
 		LogE("File Dialog") << "Failed to set button text";
 	}
 
@@ -110,7 +111,7 @@ void FileDialog::setFilenameLabel(const std::string& text) {
 		return;
 	}
 
-	if (!SUCCEEDED(handle->dialog->SetFileNameLabel(std::wstring(text.begin(), text.end()).c_str()))) {
+	if (!SUCCEEDED(handle->dialog->SetFileNameLabel(Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(text).c_str()))) {
 		LogE("File Dialog") << "Failed to set filename label";
 	}
 
@@ -124,7 +125,7 @@ void FileDialog::setInitialFilename(const std::string& filename) {
 		return;
 	}
 
-	if (!SUCCEEDED(handle->dialog->SetFileName(std::wstring(filename.begin(), filename.end()).c_str()))) {
+	if (!SUCCEEDED(handle->dialog->SetFileName(Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(filename).c_str()))) {
 		LogE("File Dialog") << "Failed to set initial filename";
 	}
 
@@ -138,7 +139,7 @@ void FileDialog::setDefaultExtension(const std::string& ext) {
 		return;
 	}
 
-	if (!SUCCEEDED(handle->dialog->SetDefaultExtension(std::wstring(ext.begin(), ext.end()).c_str()))) {
+	if (!SUCCEEDED(handle->dialog->SetDefaultExtension(Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(ext).c_str()))) {
 		LogE("File Dialog") << "Failed to set default extension";
 	}
 
@@ -186,8 +187,8 @@ void FileDialog::setFileFilters(const std::vector<FileFilter>& filters, SizeT se
 		std::replace(fullPattern.begin(), fullPattern.end(), ' ', ';');
 
 		SizeT offset = wideStrings.size();
-		wideStrings.emplace_back(std::wstring(filter.text.begin(), filter.text.end()));
-		wideStrings.emplace_back(std::wstring(fullPattern.begin(), fullPattern.end()));
+		wideStrings.emplace_back(Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(filter.text));
+		wideStrings.emplace_back(Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(fullPattern));
 		convertedFilter.emplace_back(COMDLG_FILTERSPEC {wideStrings[offset].c_str(), wideStrings[offset + 1].c_str()});
 
 	}
