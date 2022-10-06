@@ -9,6 +9,7 @@
 #pragma once
 
 #include "common.hpp"
+#include "common/typetraits.hpp"
 #include "stdext/any.hpp"
 
 
@@ -20,11 +21,12 @@ public:
 	using Type = Json::Type;
 	using IntegerType = Json::IntegerType;
 	using FloatType = Json::FloatType;
+	using Data = FastAny<TT::MaxType<StringType, FloatType, IntegerType, bool, JsonObject, JsonArray>>;
 
 	constexpr JsonValue() noexcept : type(Type::None), integer(false) {}
 
 	template<CC::JsonString T>
-	JsonValue(const T& string) noexcept : type(Type::String), data(StringType(string)), integer(false) {}
+	constexpr JsonValue(const T& string) noexcept : type(Type::String), data(StringType(string)), integer(false) {}
 
 	template<CC::JsonNumber T> requires(CC::Float<TT::RemoveCVRef<T>>)
 	constexpr JsonValue(T number) noexcept : type(Type::Number), data(FloatType(number)), integer(false) {}
@@ -40,13 +42,6 @@ public:
 	JsonValue(const JsonObject& object) noexcept;
 	JsonValue(const JsonArray& array) noexcept;
 
-	constexpr Any& getData() noexcept {
-		return data;
-	}
-
-	constexpr const Any& getData() const noexcept {
-		return data;
-	}
 
 	constexpr Type getType() const noexcept {
 		return type;
@@ -61,6 +56,16 @@ public:
 	JsonObject toObject() const;
 	JsonArray toArray() const;
 	bool toBoolean() const;
+
+	template<CC::JsonNumber T>
+	T toNumber(T defaultValue) const {
+		return defaultCast<T>(defaultValue);
+	}
+
+	StringType toString(const StringType& defaultValue) const;
+	JsonObject toObject(const JsonObject& defaultValue) const;
+	JsonArray toArray(const JsonArray& defaultValue) const;
+	bool toBoolean(bool defaultValue) const;
 
 	constexpr bool isString() const noexcept {
 		return type == Type::String;
@@ -121,7 +126,32 @@ private:
 
 	}
 
-	Any data;
+	template<CC::JsonValue Value>
+	Value defaultCast(const Value& v) const {
+
+		constexpr Type targetType = Json::typeOf<Value>();
+
+		// Implement string casting
+		if (targetType != type) {
+			return v;
+		}
+
+		// Convert to appropriate numeric type
+		if constexpr (targetType == Type::Number) {
+
+			if (integer) {
+				return static_cast<Value>(data.unsafeCast<IntegerType>());
+			} else {
+				return static_cast<Value>(data.unsafeCast<FloatType>());
+			}
+
+		} else {
+			return data.unsafeCast<Value>();
+		}
+
+	}
+
+	Data data;
 	Type type;
 	bool integer;
 

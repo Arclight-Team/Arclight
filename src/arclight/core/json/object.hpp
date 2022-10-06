@@ -20,6 +20,8 @@ private:
 	using ItemContainer = std::map<Json::StringType, JsonValue>;
 	using ItemIterator = ItemContainer::iterator;
 	using ItemConstIterator = ItemContainer::const_iterator;
+	using ItemReverseIterator = ItemContainer::reverse_iterator;
+	using ItemConstReverseIterator = ItemContainer::const_reverse_iterator;
 
 public:
 
@@ -27,23 +29,33 @@ public:
 	using Type = Json::Type;
 	
 
-	JsonObject();
+	JsonObject() = default;
 
 	template<CC::JsonValue T>
 	JsonObject(const StringType& name, const T& value) {
-		emplace(name) = value;
+		emplace(name, value);
 	}
 
+	bool contains(const StringType& name) const;
 
-	JsonValue& emplace(const StringType& name);
+	template<class... Args>
+	JsonValue& emplace(const StringType& name, Args&&... args) {
+		return *items.try_emplace(name, std::forward<Args>(args)...).first;
+	}
+
+	template<class... Args>
+	JsonValue& emplace(StringType&& name, Args&&... args) {
+		return *items.try_emplace(std::move(name), std::forward<Args>(args)...).first;
+	}
+
 	JsonValue& operator[](const StringType& name);
+	const JsonValue& operator[](const StringType& name) const;
 
-	JsonObject& insert(const StringType& name, const JsonValue& value);
+	void insert(const StringType& name, const JsonValue& value);
 
 	template<CC::JsonValue T>
 	JsonObject& insert(const StringType& name, const T& value) {
-		emplace(name) = value;
-		return *this;
+		return emplace(name, value);
 	}
 
 	template<CC::JsonValue T>
@@ -57,13 +69,26 @@ public:
 
 	ItemIterator begin();
 	ItemConstIterator begin() const;
+	ItemConstIterator cbegin() const;
+
 	ItemIterator end();
 	ItemConstIterator end() const;
+	ItemConstIterator cend() const;
+
+	ItemReverseIterator rbegin();
+	ItemConstReverseIterator rbegin() const;
+	ItemConstReverseIterator crbegin() const;
+
+	ItemReverseIterator rend();
+	ItemConstReverseIterator rend() const;
+	ItemConstReverseIterator crend() const;
 
 private:
 
+	inline static JsonValue nullValue;
+
 	friend class JsonDocument;
 
-	ItemContainer items;
+	ItemContainer items{};
 
 };

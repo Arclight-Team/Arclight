@@ -33,3 +33,20 @@ JsonArray JsonValue::toArray() const {
 bool JsonValue::toBoolean() const {
 	return safeCast<bool>();
 }
+
+
+auto JsonValue::toString(const StringType& defaultValue) const -> StringType {
+	return defaultCast<StringType>(defaultValue);
+}
+
+JsonObject JsonValue::toObject(const JsonObject& defaultValue) const {
+	return defaultCast<JsonObject>(defaultValue);
+}
+
+JsonArray JsonValue::toArray(const JsonArray& defaultValue) const {
+	return defaultCast<JsonArray>(defaultValue);
+}
+
+bool JsonValue::toBoolean(bool defaultValue) const {
+	return defaultCast<bool>(defaultValue);
+}

@@ -102,6 +102,27 @@ namespace TT {
 	/* Implementation of new TTs */
 	namespace Detail {
 
+		template<class T, class U, class... V>
+		struct MinType {
+			using Type = MinType<MinType<T, U>, V...>;
+		};
+
+		template<class T, class U>
+		struct MinType<T, U> {
+			using Type = TT::Conditional<sizeof(T) <= sizeof(U), T, U>;
+		};
+
+		template<class T, class U, class... V>
+		struct MaxType {
+			using Type = MaxType<MaxType<T, U>, V...>;
+		};
+
+		template<class T, class U>
+		struct MaxType<T, U> {
+			using Type = TT::Conditional<sizeof(T) >= sizeof(U), T, U>;
+		};
+
+
 		template<class T, class... Pack>
 		struct IsAnyOf {
 			constexpr static bool Value = (std::is_same_v<T, Pack> || ...);
@@ -405,11 +426,11 @@ namespace TT {
 
 
 	/* Selects a type depending on the size */
-	template<class T, class U>
-	using MinType = TT::Conditional<sizeof(T) <= sizeof(U), T, U>;
+	template<class T, class... U>
+	using MinType = typename Detail::MinType<T, U...>::Type;
 
-	template<class T, class U>
-	using MaxType = TT::Conditional<sizeof(T) >= sizeof(U), T, U>;
+	template<class T, class... U>
+	using MaxType = typename Detail::MaxType<T, U...>::Type;
 
 
 	/* Returns the type after arithmetic promotion */

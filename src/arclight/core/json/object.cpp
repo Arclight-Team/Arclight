@@ -10,21 +10,26 @@
 
 
 
-JsonObject::JsonObject() {}
-
-
-
-JsonValue& JsonObject::emplace(const StringType& name) {
-	return items[name];
+bool JsonObject::contains(const StringType& name) const {
+	return items.contains(name);
 }
 
 JsonValue& JsonObject::operator[](const StringType& name) {
-	return emplace(name);
+	return items[name];
 }
 
-JsonObject& JsonObject::insert(const StringType& name, const JsonValue& value) {
-	emplace(name) = value;
-	return *this;
+const JsonValue& JsonObject::operator[](const StringType& name) const {
+
+	if (!contains(name)) {
+		return nullValue;
+	} else {
+		return items.at(name);
+	}
+
+}
+
+void JsonObject::insert(const StringType& name, const JsonValue& value) {
+	items.insert_or_assign(name, value);
 }
 
 
@@ -45,10 +50,42 @@ auto JsonObject::begin() const -> ItemConstIterator {
 	return items.begin();
 }
 
+auto JsonObject::cbegin() const -> ItemConstIterator {
+	return items.cbegin();
+}
+
 auto JsonObject::end() -> ItemIterator {
 	return items.end();
 }
 
 auto JsonObject::end() const -> ItemConstIterator {
 	return items.end();
+}
+
+auto JsonObject::cend() const -> ItemConstIterator {
+	return items.cend();
+}
+
+auto JsonObject::rbegin() -> ItemReverseIterator {
+	return items.rbegin();
+}
+
+auto JsonObject::rbegin() const -> ItemConstReverseIterator {
+	return items.rbegin();
+}
+
+auto JsonObject::crbegin() const -> ItemConstReverseIterator {
+	return items.crbegin();
+}
+
+auto JsonObject::rend() -> ItemReverseIterator {
+	return items.rend();
+}
+
+auto JsonObject::rend() const -> ItemConstReverseIterator {
+	return items.rend();
+}
+
+auto JsonObject::crend() const -> ItemConstReverseIterator {
+	return items.crend();
 }

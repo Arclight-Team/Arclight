@@ -104,3 +104,6 @@ private:
 	static inline std::unordered_map<char, std::string> annotatedPrefixes;
 
 };
+
+class RawLog;
+RawLog& operator<<(RawLog& log, const Path& path);
