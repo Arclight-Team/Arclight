@@ -68,8 +68,7 @@ namespace ArcRuntime {
 		} catch (const std::exception& e) {
 
 			LogE("Runtime") <<"Exception has been thrown before main.";
-			Exception::print(e);
-			Exception::printStackTrace(e);
+			LogE("Runtime") << e;
 			showExceptionMessageBox(Exception::getMessage(e), Exception::getStackTrace(e));
 
 			return initReturnBase + 1;

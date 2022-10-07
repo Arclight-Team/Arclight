@@ -11,6 +11,7 @@
 #include "string.hpp"
 #include "filesystem/path.hpp"
 #include "memory/memory.hpp"
+#include "locale/unicode.hpp"
 
 #include <sstream>
 #include <string>
@@ -109,10 +110,9 @@ public:
 
 
 	RawLog& operator<<(Token token);
-
 	RawLog& operator<<(TabToken tab);
-
 	RawLog& operator<<(const std::type_info& info);
+	RawLog& operator<<(const std::exception& e);
 
 
 	template<class A, class B>
@@ -135,6 +135,19 @@ public:
 			buffer << Memory::pointerAddress(value);
 		} else {
 			buffer << value;
+		}
+
+		return *this;
+
+	}
+
+	template<CC::Char C>
+	RawLog& operator<<(const C* charArray) {
+
+		if constexpr (!CC::Equal<C, char>) {
+			buffer << Unicode::convert<C, Unicode::fromCharType<C>(), char, Unicode::UTF8>(charArray);
+		} else {
+			buffer << charArray;
 		}
 
 		return *this;

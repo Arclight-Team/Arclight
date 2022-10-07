@@ -35,7 +35,7 @@ namespace Unicode {
 	template<Encoding E>
 	consteval ByteOrder byteOrderFromEncoding() noexcept {
 
-		if(E == UTF16LE || E == UTF32LE) {
+		if (E == UTF16LE || E == UTF32LE) {
 			return ByteOrder::Little;
 		} else if (E == UTF16BE || E == UTF32BE) {
 			return ByteOrder::Big;
@@ -81,11 +81,9 @@ namespace Unicode {
 	template<CC::Char C, bool FlipEndianess = false>
 	consteval Encoding fromCharType() noexcept {
 
-		if constexpr (CC::Equal<C, char8_t>) {
+		constexpr SizeT s = sizeof(C);
 
-			return Encoding::UTF8;
-
-		} else if constexpr (CC::Equal<C, char16_t>) {
+		if constexpr (s == 2) {
 
 			if constexpr (FlipEndianess) {
 				return LittleEndian ? Encoding::UTF16BE : Encoding::UTF16LE;
@@ -93,7 +91,7 @@ namespace Unicode {
 				return Encoding::UTF16;
 			}
 
-		} else if constexpr (CC::Equal<C, char32_t>) {
+		} else if constexpr (s == 4) {
 
 			if constexpr (FlipEndianess) {
 				return LittleEndian ? Encoding::UTF32BE : Encoding::UTF32LE;

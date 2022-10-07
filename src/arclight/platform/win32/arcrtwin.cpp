@@ -26,8 +26,13 @@ namespace ArcRuntime {
 			return false;
 		}
 
-		if (CoInitialize(0)) {
+		if (CoInitialize(nullptr)) {
 			LogE("Runtime") << "Failed to initialize COM";
+			return false;
+		}
+
+		if (!SetConsoleOutputCP(CP_UTF8)) {
+			LogE("Runtime") << "Console failed to switch to Unicode";
 			return false;
 		}
 

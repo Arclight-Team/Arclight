@@ -9,7 +9,6 @@
 #pragma once
 
 #include "typetraits.hpp"
-#include "util/log.hpp"
 #include "stacktrace.hpp"
 
 #include <stdexcept>
@@ -112,11 +111,6 @@ namespace Exception {
 	}
 
 	template<class Exception>
-	void print(Exception&& ex) noexcept {
-		LogE("Exception") << getMessage(std::forward<Exception>(ex));
-	}
-
-	template<class Exception>
 	std::string getStackTrace(Exception&& ex) noexcept {
 
 		try {
@@ -142,11 +136,6 @@ namespace Exception {
 
 		}
 
-	}
-
-	template<class Exception>
-	void printStackTrace(Exception&& ex) noexcept {
-		LogE("Exception") << getStackTrace(std::forward<Exception>(ex));
 	}
 
 }

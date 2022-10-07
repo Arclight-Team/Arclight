@@ -177,3 +177,11 @@ RawLog& RawLog::operator<<(const std::type_info& info) {
 	return *this;
 
 }
+
+RawLog& RawLog::operator<<(const std::exception& e) {
+
+	buffer << Exception::getMessage(e);
+	buffer << Exception::getStackTrace(e);
+	return *this;
+
+}

@@ -51,13 +51,6 @@ bool File::open(const Path& path, u32 flags) {
 		return false;
 	}
 
-	if (isOpen()) {
-
-		LogW("File").print("Attempting to open stream that has already been opened. Opened: '%s'", filePath.toString().c_str());
-		return true;
-
-	}
-
 	stream.open(path.toString(), convertFlagsToStdFlags(flags));
 
 	return isOpen();
@@ -67,14 +60,7 @@ bool File::open(const Path& path, u32 flags) {
 
 
 void File::close() {
-
-	if (!isOpen()) {
-		LogW("File").print("Attempting to close stream that is already closed (Path = '%s')", path().toString().c_str());
-		return;
-	}
-
 	stream.close();
-
 }
 
 
