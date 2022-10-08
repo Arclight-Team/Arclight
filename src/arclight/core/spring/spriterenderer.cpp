@@ -21,7 +21,7 @@ void SpriteRenderer::initialize() {
 	typeBuffer.create();
 	sharedBuffer.create();
 
-	ShaderStage stage(shaderPool.get("@/shaders/spring/spring_rect_opaque.vs", "@/shaders/spring/spring_rect_opaque.fs"), ShaderStage::PipelineFlags::Textures | ShaderStage::PipelineFlags::Culling);
+	ShaderStage stage(shaderPool.get("@/shaders/spring/spring_rect_opaque.vs"_path, "@/shaders/spring/spring_rect_opaque.fs"_path), ShaderStage::PipelineFlags::Textures | ShaderStage::PipelineFlags::Culling);
 	SpringShader shader(stage);
 
 	registerShader(Spring::baseShaderID, shader);

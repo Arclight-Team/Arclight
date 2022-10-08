@@ -7,17 +7,19 @@
  */
 
 #include "path.hpp"
+
+#include <utility>
 #include "util/log.hpp"
 
 
 
 Path::Path() : path("") {}
 
-Path::Path(const char* path) : Path(std::string(path)) {}
+Path::Path(const char* path, bool annotated) : Path(std::string(path), true) {}
 
-Path::Path(const std::string& path) : path(convertAnnotatedPath(path)) {}
+Path::Path(const std::string& path, bool annotated) : path(annotated ? convertAnnotatedPath(path) : path) {}
 
-Path::Path(const std::filesystem::path& path) : path(path) {}
+Path::Path(std::filesystem::path path) : path(std::move(path)) {}
 
 
 

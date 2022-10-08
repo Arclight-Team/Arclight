@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "util/fixedchararray.hpp"
+
 #include <filesystem>
 #include <unordered_map>
 
@@ -20,9 +22,9 @@ public:
 	constexpr static auto separator = std::filesystem::path::preferred_separator;
 
 	Path();
-	Path(const char* path);
-	Path(const std::string& path);
-	explicit Path(const std::filesystem::path& path);
+	Path(const char* path, bool annotated = false);
+	Path(const std::string& path, bool annotated = false);
+	explicit Path(std::filesystem::path path);
 
 	Path& set(Path&& path);
 	Path& set(const Path& path);
@@ -107,3 +109,10 @@ private:
 
 class RawLog;
 RawLog& operator<<(RawLog& log, const Path& path);
+
+
+//Defaults to annotated paths
+template<FixedCharArray A>
+inline Path operator""_path() {
+    return Path(A.data, true);
+}
