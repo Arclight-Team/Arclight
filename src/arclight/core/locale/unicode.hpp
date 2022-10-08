@@ -107,6 +107,12 @@ namespace Unicode {
 
 	};
 
+	template<CC::Char C> struct TypedChar { using Type = C; };
+	template<> struct TypedChar<char> { using Type = char8_t; };
+	template<> struct TypedChar<unsigned char> { using Type = char8_t; };
+	template<> struct TypedChar<signed char> { using Type = char8_t; };
+	template<> struct TypedChar<wchar_t> { using Type = TT::Conditional<sizeof(wchar_t) == 1, char8_t, TT::Conditional<sizeof(wchar_t) == 2, char16_t, char32_t>>; };
+
 
 	template<CC::Char C, bool FlipEndianess = false>
 	constexpr Encoding TypeEncoding = fromCharType<C, FlipEndianess>();
@@ -128,23 +134,34 @@ namespace Unicode {
 	}
 
 
+	constexpr u8 utf8SequenceSize[256] = {
+	    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+		4, 4, 4, 4, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1
+	};
+
+
 	//UTF encoded size of next codepoint
 	template<Encoding E, CC::Char T>
 	constexpr SizeT getEncodedSize(const T* p) noexcept requires (isCharEncodable<E, T>()) {
 
 		if constexpr (isUTF8<E>()) {
 
-			T c = *p;
-
-			if ((c & 0x80) != 0x80) {
-				return 1;
-			} else if ((c & 0xE0) != 0xE0) {
-				return 2;
-			} else if ((c & 0xF0) != 0xF0) {
-				return 3;
-			} else {
-				return 4;
-			}
+			u8 c = *p;
+			return utf8SequenceSize[c];
 
 		} else if constexpr (isUTF16<E>()) {
 
@@ -236,7 +253,7 @@ namespace Unicode {
 
 		if constexpr (isUTF8<E>()) {
 
-			if(codepoint < 0x80) {
+			if (codepoint < 0x80) {
 
 				p[0] = codepoint & 0xFF;
 				return 1;
@@ -316,9 +333,9 @@ namespace Unicode {
 
 		if constexpr (isUTF8<E>()) {
 
-			T c0 = p[0];
+			u8 c0 = p[0];
 
-			if(c0 < 0x80) {
+			if (c0 < 0x80) {
 
 				count = 1;
 				return c0;
@@ -326,17 +343,17 @@ namespace Unicode {
 			} else if (c0 < 0xE0) {
 
 				count = 2;
-				return (c0 & 0x1F) << 6 | p[1] & 0x3F;
+				return Codepoint(c0 & 0x1F) << 6 | p[1] & 0x3F;
 
 			} else if (c0 < 0xF0) {
 
 				count = 3;
-				return (c0 & 0x0F) << 12 | (p[1] & 0x3F) << 6 | p[2] & 0x3F;
+				return Codepoint(c0 & 0x0F) << 12 | Codepoint(p[1] & 0x3F) << 6 | p[2] & 0x3F;
 
 			} else {
 
 				count = 4;
-				return (c0 & 0x07) << 18 | (p[1] & 0x3F) << 12 | (p[2] & 0x3F) << 6 | p[3] & 0x3F;
+				return Codepoint(c0 & 0x07) << 18 | Codepoint(p[1] & 0x3F) << 12 | Codepoint(p[2] & 0x3F) << 6 | p[3] & 0x3F;
 
 			}
 
@@ -360,7 +377,7 @@ namespace Unicode {
 
 				//Assume we have a low-surrogate in c1
 				count = 2;
-				return (c0 & 0x3FF) << 10 | (c1 & 0x3FF);
+				return Codepoint(c0 & 0x3FF) << 10 | (c1 & 0x3FF);
 
 			} else {
 
@@ -500,6 +517,7 @@ namespace Unicode {
 
 		//Convert
 		std::basic_string<DestCharT> convertedString(size, 0);
+		SizeT decoded = 0;
 		SizeT offsetIn = 0;
 		SizeT offsetOut = 0;
 
@@ -523,8 +541,8 @@ namespace Unicode {
 
 			} else {
 
-				Codepoint cp = Unicode::decode<Src>(src.data() + offsetIn);
-				offsetIn += Unicode::getDecodedSize<Src>(cp);
+				Codepoint cp = Unicode::decode<Src>(src.data() + offsetIn, decoded);
+				offsetIn += decoded;
 				offsetOut += Unicode::encode<Dest>(cp, convertedString.data() + offsetOut);
 
 			}
