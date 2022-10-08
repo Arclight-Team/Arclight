@@ -89,6 +89,6 @@ private:
 
 	friend class JsonDocument;
 
-	ItemContainer items{};
+	ItemContainer items;
 
 };

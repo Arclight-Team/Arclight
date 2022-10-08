@@ -26,21 +26,21 @@ public:
 	constexpr JsonValue() noexcept : type(Type::None), integer(false) {}
 
 	template<CC::JsonString T>
-	constexpr JsonValue(const T& string) noexcept : type(Type::String), data(StringType(string)), integer(false) {}
+	constexpr JsonValue(const T& string) : type(Type::String), data(StringType(string)), integer(false) {}
 
 	template<CC::JsonNumber T> requires(CC::Float<TT::RemoveCVRef<T>>)
-	constexpr JsonValue(T number) noexcept : type(Type::Number), data(FloatType(number)), integer(false) {}
+	constexpr JsonValue(T number) : type(Type::Number), data(FloatType(number)), integer(false) {}
 
 	template<CC::JsonNumber T> requires(CC::Integer<TT::RemoveCVRef<T>>)
-	constexpr JsonValue(T number) noexcept : type(Type::Number), data(IntegerType(number)), integer(true) {}
+	constexpr JsonValue(T number) : type(Type::Number), data(IntegerType(number)), integer(true) {}
 
 	template<CC::JsonBoolean T>
-	constexpr JsonValue(T boolean) noexcept : type(Type::Boolean), data(boolean), integer(false) {}
+	constexpr JsonValue(T boolean) : type(Type::Boolean), data(boolean), integer(false) {}
 
 	constexpr JsonValue(std::nullptr_t) noexcept : type(Type::Null), integer(false) {}
 
-	JsonValue(const JsonObject& object) noexcept;
-	JsonValue(const JsonArray& array) noexcept;
+	JsonValue(const JsonObject& object);
+	JsonValue(const JsonArray& array);
 
 
 	constexpr Type getType() const noexcept {

@@ -12,9 +12,9 @@
 
 
 
-JsonValue::JsonValue(const JsonObject& object) noexcept : type(Type::Object), data(object), integer(false) {}
+JsonValue::JsonValue(const JsonObject& object) : type(Type::Object), data(object), integer(false) {}
 
-JsonValue::JsonValue(const JsonArray& array) noexcept : type(Type::Array), data(array), integer(false) {}
+JsonValue::JsonValue(const JsonArray& array) : type(Type::Array), data(array), integer(false) {}
 
 
 

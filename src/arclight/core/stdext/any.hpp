@@ -11,6 +11,7 @@
 #include "common/typetraits.hpp"
 #include "common/concepts.hpp"
 #include "common/exception.hpp"
+#include "math/math.hpp"
 #include "types.hpp"
 
 #include <exception>
@@ -45,10 +46,15 @@ public:
 	to avoid dynamic allocations for performance-critical situations.
 	As long as the type satisfies size/alignment constraints and has a noexcept move constructor, SBO is utilized.
 */
-template<bool NonCopyable, SizeT Size = 16, AlignT Align = 8>
+template<bool NonCopyable, SizeT Size = 16, AlignT Align = alignof(void*)>
 class GenericAny {
 	
 public:
+
+	constexpr static AlignT MinimumStorageAlignment = alignof(void*);
+
+	static_assert(Align >= MinimumStorageAlignment, "Any does not satisfy minimum storage alignment constraints");
+
 
 	/*
 		Default constructor
@@ -480,5 +486,5 @@ using NoncopyableAny = GenericAny<true>;
 /*
 	FastAny for optimizing access to Ts
 */
-template<class T> using FastAny = GenericAny<false, sizeof(T), alignof(T)>;
-template<class T> using FastNoncopyableAny = GenericAny<true, sizeof(T), alignof(T)>;
+template<class T> using FastAny = GenericAny<false, sizeof(T), Math::max(Any::MinimumStorageAlignment, alignof(T))>;
+template<class T> using FastNoncopyableAny = GenericAny<true, sizeof(T), Math::max(Any::MinimumStorageAlignment, alignof(T))>;

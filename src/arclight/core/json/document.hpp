@@ -27,8 +27,8 @@ public:
 	static constexpr u32 IndentationLevel = 2;
 	static constexpr char IndentationChar = ' ';
 
-	JsonDocument() noexcept;
-	JsonDocument(const JsonObject& root) noexcept;
+	JsonDocument() = default;
+	JsonDocument(const JsonObject& root);
 	JsonDocument(const StringView& json);
 
 	void read(const StringView& json);
@@ -39,6 +39,8 @@ public:
 
 	void setRoot(const JsonObject& root);
 	const JsonObject& getRoot();
+
+	static JsonDocument fromFile(const Path& path);
 
 private:
 

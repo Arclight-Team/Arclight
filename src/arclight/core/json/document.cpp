@@ -7,12 +7,12 @@
  */
 
 #include "document.hpp"
+#include "filesystem/path.hpp"
+#include "filesystem/file.hpp"
 
 
 
-JsonDocument::JsonDocument() noexcept {}
-
-JsonDocument::JsonDocument(const JsonObject& root) noexcept : root(root) {}
+JsonDocument::JsonDocument(const JsonObject& root) : root(root) {}
 
 JsonDocument::JsonDocument(const StringView& json) {
 	read(json);
@@ -74,6 +74,15 @@ void JsonDocument::setRoot(const JsonObject& root) {
 
 const JsonObject& JsonDocument::getRoot() {
 	return root;
+}
+
+
+
+JsonDocument JsonDocument::fromFile(const Path& path) {
+
+	File file(path, File::Text | File::In);
+	return JsonDocument(file.readAllText());
+
 }
 
 
