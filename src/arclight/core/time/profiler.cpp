@@ -38,3 +38,15 @@ void Profiler::stop(const std::string& name) {
 	}
 
 }
+
+
+
+ScopedProfiler::ScopedProfiler(const std::string& name, Time::Unit unit, u32 resolution) : Profiler(unit, resolution), name(name) {
+	start();
+}
+
+
+
+ScopedProfiler::~ScopedProfiler() {
+	stop(name);
+}

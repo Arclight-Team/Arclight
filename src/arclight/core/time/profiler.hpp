@@ -35,3 +35,19 @@ private:
 	u32 resolution;
 
 };
+
+
+class ScopedProfiler : private Profiler
+{
+public:
+
+	explicit ScopedProfiler(const std::string& name = "", Time::Unit unit = Time::Unit::Microseconds, u32 resolution = 3);
+	~ScopedProfiler();
+		
+	using Profiler::setResolution;
+
+private:
+
+	std::string name;
+
+};
