@@ -52,7 +52,7 @@ void SpriteRenderer::render() {
 
 				SpriteGroup& group = getGroup(sprite.shaderID, sprite.groupID);
 
-				group.getBatch().createSprite(id, sprite.typeID, sprite.getPosition(), calculateSpriteTransform(sprite));
+				group.getBatch().createSprite(id, typeBuffer.getTypeIndex(sprite.typeID), sprite.getPosition(), calculateSpriteTransform(sprite));
 				group.addCTReference(getCompositeTextureID(sprite));
 
 				sprite.prevTypeID = sprite.typeID;
@@ -72,7 +72,7 @@ void SpriteRenderer::render() {
 				SpriteGroup& newGroup = getGroup(sprite.shaderID, newGroupID);
 
 				oldGroup.getBatch().purgeSprite(id);
-				newGroup.getBatch().createSprite(id, sprite.typeID, sprite.position, calculateSpriteTransform(sprite));
+				newGroup.getBatch().createSprite(id, typeBuffer.getTypeIndex(sprite.typeID), sprite.position, calculateSpriteTransform(sprite));
 
 				u32 oldCTID = textureToCompositeID[getType(sprite.prevTypeID).textureID];
 				u32 newCTID = textureToCompositeID[getType(sprite.typeID).textureID];
