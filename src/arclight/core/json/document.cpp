@@ -538,20 +538,23 @@ void JsonDocument::writeValue(StringType& string, const JsonValue& value, bool c
 		break;
 
 	case Json::Type::Number:
-	
+	{
+		std::ostringstream os;
+
 		if (value.isInteger()) {
 
-			auto n = value.toNumber<Json::IntegerType>();
-			string += std::to_string(n);
+			os << +value.toNumber<Json::IntegerType>();
+			string += os.str();
 
 		} else {
 
-			auto f = value.toNumber<Json::FloatType>();
-			string += std::to_string(f);
+			os << value.toNumber<Json::FloatType>();
+			string += os.str();
 
 		}
 
 		break;
+	}
 
 	case Json::Type::Object:
 		writeObject(string, value.toObject(), compact, level + 1);

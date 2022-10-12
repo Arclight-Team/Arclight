@@ -7,6 +7,7 @@
  */
 
 #include "object.hpp"
+#include "document.hpp"
 
 
 
@@ -88,4 +89,18 @@ auto JsonObject::rend() const -> ItemConstReverseIterator {
 
 auto JsonObject::crend() const -> ItemConstReverseIterator {
 	return items.crend();
+}
+
+
+
+JsonObject JsonObject::fromJson(const StringView& json) {
+	return JsonDocument(json).getRoot();
+}
+
+auto JsonObject::toJson(const JsonObject& object, bool compact) -> StringType {
+	return JsonDocument(object).write(compact);
+}
+
+auto JsonObject::toJson(bool compact) -> StringType {
+	return toJson(*this, compact);
 }

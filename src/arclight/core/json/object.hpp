@@ -26,6 +26,7 @@ private:
 public:
 
 	using StringType = Json::StringType;
+	using StringView = Json::StringView;
 	using Type = Json::Type;
 	
 
@@ -82,6 +83,10 @@ public:
 	ItemReverseIterator rend();
 	ItemConstReverseIterator rend() const;
 	ItemConstReverseIterator crend() const;
+
+	static JsonObject fromJson(const StringView& json);
+	static StringType toJson(const JsonObject& object, bool compact = false);
+	StringType toJson(bool compact = false);
 
 private:
 

@@ -48,7 +48,7 @@ public:
 	void insert(std::initializer_list<T> list) {
 
 		for (SizeT i = 0; i < list.size(); i++)
-			append(list[i]);
+			append(list.begin()[i]);
 
 	}
 
