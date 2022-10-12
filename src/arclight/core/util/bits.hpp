@@ -352,6 +352,15 @@ namespace Bits {
 
 	}
 
+	template<CC::Float F, CC::Integer J>
+	constexpr F assemble(J* js) noexcept requires (sizeof(F) / sizeof(J) * sizeof(J) == sizeof(F)) {
+
+		using U = TT::MakeUnsigned<TT::ToInteger<F>>;
+
+		return cast<F>(assemble<U>(js));
+
+	}
+
 	template<CC::Integer I, CC::Integer J>
 	constexpr I assemble(J* js, SizeT max) noexcept requires (sizeof(I) / sizeof(J) * sizeof(J) == sizeof(I)) {
 
@@ -385,6 +394,15 @@ namespace Bits {
 
 	}
 
+	template<CC::Float F, CC::Integer J>
+	constexpr F assemble(J* js, SizeT max) noexcept requires (sizeof(F) / sizeof(J) * sizeof(J) == sizeof(F)) {
+
+		using U = TT::MakeUnsigned<TT::ToInteger<F>>;
+
+		return cast<F>(assemble<U>(js, max));
+
+	}
+
 	template<CC::Integer I, CC::Integer... J>
 	constexpr void disassemble(I i, J&... js) noexcept requires (TT::IsAllSame<J...> && (TT::SizeofN<0, J...> * sizeof...(J)) == sizeof(I)) {
 		((js = cast<J>(TT::MakeUnsigned<J>(i & ~static_cast<J>(0))), i >>= (TT::SizeofN<0, J...> * 8)), ...);
@@ -410,6 +428,15 @@ namespace Bits {
 		}
 
 	}
+	
+	template<CC::Float F, CC::Integer J>
+	constexpr void disassemble(F f, J* js) noexcept requires (sizeof(F) / sizeof(J) * sizeof(J) == sizeof(F)) {
+
+		using U = TT::MakeUnsigned<TT::ToSizedInteger<F>>;
+
+		disassemble(cast<U>(f), js);
+
+	}
 
 	template<CC::Integer I, CC::Integer J>
 	constexpr SizeT disassemble(I i, J* js, SizeT max) noexcept requires (sizeof(I) / sizeof(J) * sizeof(J) == sizeof(I)) {
@@ -428,6 +455,15 @@ namespace Bits {
 		}
 
 		return max;
+
+	}
+
+	template<CC::Float F, CC::Integer J>
+	constexpr void disassemble(F f, J* js, SizeT max) noexcept requires (sizeof(F) / sizeof(J) * sizeof(J) == sizeof(F)) {
+
+		using U = TT::MakeUnsigned<TT::ToSizedInteger<F>>;
+
+		disassemble(cast<U>(f), js, max);
 
 	}
 
