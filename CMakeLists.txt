@@ -267,13 +267,8 @@ project (${PROJECT_NAME})
 	if("arclight.physics" IN_LIST MODULE_LIST)
 
 		# Use the correct bullet .libs
-		if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-			set(BULLET_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/lib/Debug)
-			set(BULLET_LIBRARIES ${BULLET_LIB_DIR}/BulletCollision_Debug.lib ${BULLET_LIB_DIR}/BulletDynamics_Debug.lib ${BULLET_LIB_DIR}/LinearMath_Debug.lib)
-		else()
-			set(BULLET_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/lib/Release)
-			set(BULLET_LIBRARIES ${BULLET_LIB_DIR}/BulletCollision.lib ${BULLET_LIB_DIR}/BulletDynamics.lib ${BULLET_LIB_DIR}/LinearMath.lib)
-		endif()
+		set(BULLET_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/lib/$<IF:$<CONFIG:Debug>,Debug,Release>)
+		set(BULLET_LIBRARIES ${BULLET_LIB_DIR}/BulletCollision_Debug.lib ${BULLET_LIB_DIR}/BulletDynamics$<$<CONFIG:Debug>,_Debug>.lib ${BULLET_LIB_DIR}/LinearMath$<$<CONFIG:Debug>,_Debug>.lib)
 
 		include_directories("lib/bullet3/include/bullet")
 		list(APPEND APPLICATION_LIBS ${BULLET_LIBRARIES})
@@ -286,12 +281,8 @@ project (${PROJECT_NAME})
 	if("arclight.render" IN_LIST MODULE_LIST OR "arclight.render.model" IN_LIST MODULE_LIST)
 
 		# Use the correct assimp .lib
-		if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-			set(ASSIMP_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/lib/Debug/assimp-vc142-mtd.lib)
-		else()
-			set(ASSIMP_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/lib/Release/assimp-vc142-mt.lib)
-		endif()
-
+		set(ASSIMP_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/lib/$<IF:$<CONFIG:Debug>,Debug/assimp-vc142-mtd.lib,Release/assimp-vc142-mt.lib>)
+		
 		include_directories("lib/assimp/include")
 		list(APPEND APPLICATION_LIBS ${ASSIMP_LIBRARY})
 
