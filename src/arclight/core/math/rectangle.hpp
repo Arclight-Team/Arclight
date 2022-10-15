@@ -118,7 +118,7 @@ public:
 		setSize(size.x, size.y);
 	}
 
-	constexpr void setSize(A x, A y) {
+	constexpr void setSize(A w, A h) {
 		this->w = w;
 		this->h = h;
 	}
