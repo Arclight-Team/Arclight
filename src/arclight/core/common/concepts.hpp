@@ -18,7 +18,7 @@ namespace CC {
 	template<class T, class U>
 	concept Equal = std::same_as<T, U>;
 
-	template<class Base, class Derived>
+	template<class Derived, class Base>
 	concept BaseOf = std::derived_from<Derived, Base>;
 
 	template<class From, class To>

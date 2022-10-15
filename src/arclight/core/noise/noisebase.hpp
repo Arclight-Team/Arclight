@@ -218,6 +218,6 @@ private:
 namespace CC {
 
 	template<class T>
-	concept NoiseType = BaseOf<NoiseBase, T>;
+	concept NoiseType = BaseOf<T, NoiseBase>;
 
 }

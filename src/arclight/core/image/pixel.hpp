@@ -422,7 +422,7 @@ public:
 namespace CC {
 
 	template<class T>
-	concept PixelStorageType = CC::BaseOf<PixelStorage<T::PixelType, typename T::ColorType>, T>;
+	concept PixelStorageType = CC::BaseOf<T, PixelStorage<T::PixelType, typename T::ColorType>>;
 
 }
 

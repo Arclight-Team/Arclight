@@ -40,7 +40,7 @@ protected:
 namespace CC {
 
 	template<class T>
-	concept ImageEncoder = CC::BaseOf<IImageEncoder, T> && requires (T&& t, RawImage&& i) {
+	concept ImageEncoder = CC::BaseOf<T, IImageEncoder> && requires (T&& t, RawImage&& i) {
 		t.encode(i);											//Encode function
 		{ t.getBuffer() } -> CC::Equal<const std::vector<u8>&>;	//Buffer retrieval function
 	};

@@ -94,7 +94,7 @@ namespace Exception {
 
 			} else {
 
-				if constexpr (CC::BaseOf<std::exception, TT::RemoveCV<TT::RemovePointer<TT::RemoveCVRef<Exception>>>>) {
+				if constexpr (CC::BaseOf<TT::RemoveCV<TT::RemovePointer<TT::RemoveCVRef<Exception>>>, std::exception>) {
 					return std::string("Std Exception: ") + std::bind(&std::exception::what, ex)();
 				}
 
