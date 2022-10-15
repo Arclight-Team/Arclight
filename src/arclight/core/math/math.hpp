@@ -223,7 +223,7 @@ namespace Math {
 	template<CC::Float F>
 	constexpr bool isInfinity(F value) {
 
-		if (std::is_constant_evaluated() && std::numeric_limits<F>::has_infinity()) {
+		if (std::is_constant_evaluated() && std::numeric_limits<F>::has_infinity) {
 			return value == std::numeric_limits<F>::infinity() || value == -std::numeric_limits<F>::infinity();
 		}
 
@@ -234,7 +234,7 @@ namespace Math {
 	template<CC::Float F>
 	constexpr bool isPositiveInfinity(F value) {
 
-		if (std::is_constant_evaluated() && std::numeric_limits<F>::has_infinity()) {
+		if (std::is_constant_evaluated() && std::numeric_limits<F>::has_infinity) {
 			return value == std::numeric_limits<F>::infinity();
 		}
 
@@ -245,7 +245,7 @@ namespace Math {
 	template<CC::Float F>
 	constexpr bool isNegativeInfinity(F value) {
 
-		if (std::is_constant_evaluated() && std::numeric_limits<F>::has_infinity()) {
+		if (std::is_constant_evaluated() && std::numeric_limits<F>::has_infinity) {
 			return value == -std::numeric_limits<F>::infinity();
 		}
 
