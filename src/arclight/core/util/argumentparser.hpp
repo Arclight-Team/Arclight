@@ -201,11 +201,11 @@ public:
 	}
 
 	inline i32 getInt(const std::string& name, i32 defaultValue) const {
-		return getValue<i32>(name);
+		return getValue<i32>(name, defaultValue);
 	}
 
 	inline u32 getUInt(const std::string& name, u32 defaultValue) const {
-		return getValue<u32>(name);
+		return getValue<u32>(name, defaultValue);
 	}
 
 	inline std::string getString(const std::string& name, const std::string& defaultValue) const {

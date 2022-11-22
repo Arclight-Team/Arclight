@@ -331,3 +331,7 @@ private:
 	}
 
 };
+
+
+template<class A, CC::Equal<A>... B>
+Array(A, B...) -> Array<A, sizeof...(B) + 1>;
