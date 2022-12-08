@@ -229,24 +229,39 @@ namespace OS::Registry {
 
 	}
 
-	u32 Key::getDWord(const std::string& value) const {
-		return std::get<u32>(getValue(value).content);
+	std::optional<u32> Key::getDWord(const std::string& value) const {
+
+		Value v = getValue(value);
+		return v.type == Type::DWord || v.type == Type::DWordBE ? std::get<u32>(getValue(value).content) : std::optional<u32>{};
+
 	}
 
-	u64 Key::getQWord(const std::string& value) const {
-		return std::get<u64>(getValue(value).content);
+	std::optional<u64> Key::getQWord(const std::string& value) const {
+
+		Value v = getValue(value);
+		return v.type == Type::QWord ? std::get<u64>(getValue(value).content) : std::optional<u64>{};
+
 	}
 
-	std::string Key::getString(const std::string& value) const {
-		return std::get<std::string>(getValue(value).content);
+	std::optional<std::string> Key::getString(const std::string& value) const {
+
+		Value v = getValue(value);
+		return v.type == Type::String || v.type == Type::Link || v.type == Type::ExpandableString ? std::get<std::string>(getValue(value).content) : std::optional<std::string>{};
+
 	}
 
-	std::vector<u8> Key::getBinary(const std::string& value) const {
-		return std::get<std::vector<u8>>(getValue(value).content);
+	std::optional<std::vector<u8>> Key::getBinary(const std::string& value) const {
+
+		Value v = getValue(value);
+		return v.type == Type::Binary ? std::get<std::vector<u8>>(getValue(value).content) : std::optional<std::vector<u8>>{};
+
 	}
 
-	std::vector<std::string> Key::getStringArray(const std::string& value) const {
-		return std::get<std::vector<std::string>>(getValue(value).content);
+	std::optional<std::vector<std::string>> Key::getStringArray(const std::string& value) const {
+
+		Value v = getValue(value);
+		return v.type == Type::MultiString ? std::get<std::vector<std::string>>(getValue(value).content) : std::optional<std::vector<std::string>>{};
+
 	}
 
 

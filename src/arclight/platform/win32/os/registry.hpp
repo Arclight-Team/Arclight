@@ -66,11 +66,11 @@ namespace OS::Registry {
 		Type getType(const std::string& value) const;
 
 		Value getValue(const std::string& value) const;
-		u32 getDWord(const std::string& value) const;
-		u64 getQWord(const std::string& value) const;
-		std::string getString(const std::string& value) const;
-		std::vector<u8> getBinary(const std::string& value) const;
-		std::vector<std::string> getStringArray(const std::string& value) const;
+		std::optional<u32> getDWord(const std::string& value) const;
+		std::optional<u64> getQWord(const std::string& value) const;
+		std::optional<std::string> getString(const std::string& value) const;
+		std::optional<std::vector<u8>> getBinary(const std::string& value) const;
+		std::optional<std::vector<std::string>> getStringArray(const std::string& value) const;
 
 		bool setDWord(const std::string& value, u32 data, bool bigEndian = false);
 		bool setQWord(const std::string& value, u64 data);
