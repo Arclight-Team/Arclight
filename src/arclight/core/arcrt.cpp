@@ -67,7 +67,7 @@ namespace ArcRuntime {
 
 		} catch (const std::exception& e) {
 
-			LogE("Runtime") <<"Exception has been thrown before main.";
+			LogE("Runtime") << "Exception has been thrown before main.";
 			LogE("Runtime") << e;
 			showExceptionMessageBox(Exception::getMessage(e), Exception::getStackTrace(e));
 
@@ -85,7 +85,7 @@ namespace ArcRuntime {
 
 			if (ret) {
 
-				LogE("Runtime") << "Application exited with an error";
+				LogD("Runtime") << "Application exited with an error";
 				return ret;
 
 			}
@@ -137,7 +137,7 @@ namespace ArcRuntime {
 
 bool ArcRuntime::initialize() noexcept {
 
-	LogI("Runtime") << "Initializing runtime";
+	LogD("Runtime") << "Initializing runtime";
 
 	//Platform init
 	if (!ArcRuntime::platformInit()) {
@@ -167,7 +167,7 @@ bool ArcRuntime::initialize() noexcept {
 
 #endif
 
-	LogI("Runtime") << "Ready";
+	LogD("Runtime") << "Ready";
 
 	return true;
 
@@ -177,7 +177,7 @@ bool ArcRuntime::initialize() noexcept {
 
 void ArcRuntime::shutdown() noexcept {
 
-	LogI("Runtime") << "Shutting down runtime";
+	LogD("Runtime") << "Shutting down runtime";
 
 #ifdef ARC_FONT_MODULE
 	FontBackend::shutdown();
@@ -187,7 +187,7 @@ void ArcRuntime::shutdown() noexcept {
 	glfwTerminate();
 #endif
 
-	LogI("Runtime") << "Bye";
+	LogD("Runtime") << "Bye";
 	Log::closeLogFile();
 
 }

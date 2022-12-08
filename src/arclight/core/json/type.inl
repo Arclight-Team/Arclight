@@ -52,26 +52,26 @@ namespace Json {
 		
 		switch (type) {
 
-		case Type::None:
-			return "None";
+			case Type::None:
+				return "None";
 
-		case Type::String:
-			return "String";
+			case Type::String:
+				return "String";
 
-		case Type::Number:
-			return "Number";
+			case Type::Number:
+				return "Number";
 
-		case Type::Object:
-			return "Object";
+			case Type::Object:
+				return "Object";
 
-		case Type::Array:
-			return "Array";
+			case Type::Array:
+				return "Array";
 
-		case Type::Boolean:
-			return "Boolean";
+			case Type::Boolean:
+				return "Boolean";
 
-		case Type::Null:
-			return "Null";
+			case Type::Null:
+				return "Null";
 
 		}
 
