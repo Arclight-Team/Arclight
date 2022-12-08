@@ -17,6 +17,7 @@
 
 
 class JsonDocument {
+
 public:
 
 	using StringType = Json::StringType;
@@ -32,7 +33,7 @@ public:
 	JsonDocument(const StringView& json);
 
 	void read(const StringView& json);
-	StringType write(bool compact = false);
+	StringType write(bool compact = false) const;
 
 	void clear();
 	bool empty() const;
@@ -103,10 +104,12 @@ private:
 	void readArray(Iterator& it, JsonArray& array);
 	void readObject(Iterator& it, JsonObject& object);
 
-	void writeValue(StringType& string, const JsonValue& value, bool compact,  u32 level);
-	void writeArray(StringType& string, const JsonArray& array, bool compact, u32 level);
-	void writeObject(StringType& string, const JsonObject& object, bool compact, u32 level);
+	void writeValue(StringType& string, const JsonValue& value, bool compact, u32 level) const;
+	void writeArray(StringType& string, const JsonArray& array, bool compact, u32 level) const;
+	void writeObject(StringType& string, const JsonObject& object, bool compact, u32 level) const;
 
 	JsonObject root;
 
 };
+
+RawLog& operator<<(RawLog& log, const JsonDocument& document);

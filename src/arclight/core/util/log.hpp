@@ -204,6 +204,12 @@ public:
 
 	}
 
+	// Redirect rvalues to lvalue calls
+	template<class T>
+	RawLog& operator<<(T&& t) && {
+	    return *this << t;
+	}
+
 protected:
 
 	void flush() noexcept;
@@ -213,6 +219,7 @@ protected:
 	bool reversed;
 
 };
+
 
 
 template<char C>

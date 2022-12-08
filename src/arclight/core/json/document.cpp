@@ -9,6 +9,7 @@
 #include "document.hpp"
 #include "filesystem/path.hpp"
 #include "filesystem/file.hpp"
+#include "util/log.hpp"
 
 
 
@@ -46,7 +47,7 @@ void JsonDocument::read(const StringView& json) {
 
 }
 
-auto JsonDocument::write(bool compact) -> StringType {
+auto JsonDocument::write(bool compact) const -> StringType {
 
 	StringType string;
 
@@ -418,31 +419,31 @@ void JsonDocument::readArray(Iterator& it, JsonArray& array) {
 
 		switch (step) {
 
-		case ReadStepValue:
-		{
-			JsonValue value;
+			case ReadStepValue:
+			{
+				JsonValue value;
 
-			readValue(it, value);
+				readValue(it, value);
 
-			array.append(value);
+				array.append(value);
 
-			step++;
-			break;
-		}
+				step++;
+				break;
+			}
 
-		case ReadStepComma:
-		{
-			bool closed;
+			case ReadStepComma:
+			{
+				bool closed;
 
-			if (!readComma(it, ']', closed))
-				throw JsonSyntaxError("Expected a comma separator or a closing character");
+				if (!readComma(it, ']', closed))
+					throw JsonSyntaxError("Expected a comma separator or a closing character");
 
-			if (closed)
-				return;
+				if (closed)
+					return;
 
-			step = ReadStepValue;
-			break;
-		}
+				step = ReadStepValue;
+				break;
+			}
 
 		}
 
@@ -466,60 +467,60 @@ void JsonDocument::readObject(Iterator& it, JsonObject& object) {
 
 		switch (step) {
 
-		case ReadStepName:
-		{
-			bool closed;
-			StringType name;
+			case ReadStepName:
+			{
+				bool closed;
+				StringType name;
 
-			if (!readName(it, name, closed))
-				throw JsonSyntaxError("Expected a member name definition");
+				if (!readName(it, name, closed))
+					throw JsonSyntaxError("Expected a member name definition");
 
-			if (closed)
-				return;
+				if (closed)
+					return;
 
-			auto it = object.items.try_emplace(name);
-			if (!it.second)
-				throw JsonSyntaxError("Duplicate member name found");
+				auto it = object.items.try_emplace(name);
+				if (!it.second)
+					throw JsonSyntaxError("Duplicate member name found");
 
-			item = it.first;
-			step++;
-			break;
-		}
+				item = it.first;
+				step++;
+				break;
+			}
 
-		case ReadStepColon:
-		{
-			if (!readColon(it))
-				throw JsonSyntaxError("Expected a name:value separator character");
+			case ReadStepColon:
+			{
+				if (!readColon(it))
+					throw JsonSyntaxError("Expected a name:value separator character");
 
-			step++;
-			break;
-		}
+				step++;
+				break;
+			}
 
-		case ReadStepValue:
-		{
-			JsonValue value;
+			case ReadStepValue:
+			{
+				JsonValue value;
 
-			readValue(it, value);
+				readValue(it, value);
 
-			item->second = value;
+				item->second = value;
 
-			step++;
-			break;
-		}
+				step++;
+				break;
+			}
 
-		case ReadStepComma:
-		{
-			bool closed;
+			case ReadStepComma:
+			{
+				bool closed;
 
-			if (!readComma(it, '}', closed))
-				throw JsonSyntaxError("Expected a comma separator or a closing character");
+				if (!readComma(it, '}', closed))
+					throw JsonSyntaxError("Expected a comma separator or a closing character");
 
-			if (closed)
-				return;
+				if (closed)
+					return;
 
-			step = ReadStepName;
-			break;
-		}
+				step = ReadStepName;
+				break;
+			}
 
 		}
 
@@ -529,54 +530,52 @@ void JsonDocument::readObject(Iterator& it, JsonObject& object) {
 
 
 
-void JsonDocument::writeValue(StringType& string, const JsonValue& value, bool compact, u32 level) {
+void JsonDocument::writeValue(StringType& string, const JsonValue& value, bool compact, u32 level) const {
 
 	switch (value.getType()) {
 
-	case Json::Type::String:
-		string += '"' + value.toString() + '"';
-		break;
+		case Json::Type::String:
+			string += '"' + value.toString() + '"';
+			break;
 
-	case Json::Type::Number:
-	{
-		std::ostringstream os;
+		case Json::Type::Number:
 
-		if (value.isInteger()) {
+			if (value.isInteger()) {
 
-			os << +value.toNumber<Json::IntegerType>();
-			string += os.str();
+				auto n = value.toNumber<Json::IntegerType>();
+				string += std::to_string(n);
 
-		} else {
+			} else {
 
-			os << value.toNumber<Json::FloatType>();
-			string += os.str();
+				auto f = value.toNumber<Json::FloatType>();
+				string += std::to_string(f);
 
-		}
+			}
 
-		break;
-	}
+			break;
 
-	case Json::Type::Object:
-		writeObject(string, value.toObject(), compact, level + 1);
-		break;
+		case Json::Type::Object:
+			writeObject(string, value.toObject(), compact, level + 1);
+			break;
 
-	case Json::Type::Array:
-		writeArray(string, value.toArray(), compact, level + 1);
-		break;
+		case Json::Type::Array:
+			writeArray(string, value.toArray(), compact, level + 1);
+			break;
 
-	case Json::Type::Boolean:
-		string += value.toBoolean() ? "true" : "false";
-		break;
+		case Json::Type::Boolean:
+			string += value.toBoolean() ? "true" : "false";
+			break;
 
-	case Json::Type::Null:
-		string += "null";
-		break;
+		case Json::Type::Null:
+		case Json::Type::None:
+			string += "null";
+			break;
 
 	}
 
 }
 
-void JsonDocument::writeArray(StringType& string, const JsonArray& array, bool compact, u32 level) {
+void JsonDocument::writeArray(StringType& string, const JsonArray& array, bool compact, u32 level) const {
 
 	StringType lineTab(level * IndentationLevel, IndentationChar);
 	StringType lastTab = "";
@@ -612,7 +611,7 @@ void JsonDocument::writeArray(StringType& string, const JsonArray& array, bool c
 
 }
 
-void JsonDocument::writeObject(StringType& string, const JsonObject& object, bool compact, u32 level) {
+void JsonDocument::writeObject(StringType& string, const JsonObject& object, bool compact, u32 level) const {
 
 	StringType lineTab(level * IndentationLevel, ' ');
 	StringType lastTab = "";
@@ -650,5 +649,15 @@ void JsonDocument::writeObject(StringType& string, const JsonObject& object, boo
 	}
 
 	string += '}';
+
+}
+
+
+
+RawLog& operator<<(RawLog& log, const JsonDocument& document) {
+
+	log << document.write();
+
+	return log;
 
 }
