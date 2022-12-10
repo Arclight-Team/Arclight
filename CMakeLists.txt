@@ -345,6 +345,8 @@ project (${PROJECT_NAME})
 		# Disables the console
 		if(WIN_NO_CONSOLE)
 
+			add_compile_definitions(ARC_WIN_DISABLE_CONSOLE)
+
 			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:mainCRTStartup")
 			add_executable (${PROJECT_NAME} WIN32 ${APPLICATION_SOURCES})
 

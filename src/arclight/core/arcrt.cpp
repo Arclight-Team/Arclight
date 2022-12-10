@@ -94,8 +94,7 @@ namespace ArcRuntime {
 		} catch (const std::exception& e) {
 
 			LogE("Runtime") << "The application has thrown an exception.";
-			Exception::print(e);
-			Exception::printStackTrace(e);
+			LogE("Runtime") << e;
 			showExceptionMessageBox(Exception::getMessage(e), Exception::getStackTrace(e));
 
 			return initReturnBase + 2;
@@ -146,7 +145,10 @@ bool ArcRuntime::initialize() noexcept {
 
 	//Initialize Log
 	Log::init();
+
+#ifndef ARC_ARCRT_DISABLE_LOG_FILE
 	Log::openLogFile(std::string(ARC_PATH_ROOT) + ARC_LOG_DIRECTORY);
+#endif
 
 
 #ifdef ARC_WINDOW_MODULE
@@ -188,7 +190,10 @@ void ArcRuntime::shutdown() noexcept {
 #endif
 
 	LogD("Runtime") << "Bye";
+
+#ifndef ARC_ARCRT_DISABLE_LOG_FILE
 	Log::closeLogFile();
+#endif
 
 }
 

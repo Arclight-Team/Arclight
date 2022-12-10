@@ -96,6 +96,13 @@
 
 
 /*
+	Disables log file creation in ArcRT
+	ARC_ARCRT_DISABLE_LOG_FILE: Disables log file creation in ArcRT
+*/
+//#define ARC_ARCRT_DISABLE_LOG_FILE
+
+
+/*
 	Show message box upon crash
 	ARC_SHOW_CRASH_MESSAGEBOX: Displays a message box when the application crashes
 */

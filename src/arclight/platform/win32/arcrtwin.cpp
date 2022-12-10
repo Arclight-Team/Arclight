@@ -31,10 +31,12 @@ namespace ArcRuntime {
 			return false;
 		}
 
+#ifndef ARC_WIN_DISABLE_CONSOLE
 		if (!SetConsoleOutputCP(CP_UTF8)) {
 			LogE("Runtime") << "Console failed to switch to Unicode";
 			return false;
 		}
+#endif
 
 		return true;
 
