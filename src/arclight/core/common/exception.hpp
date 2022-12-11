@@ -22,10 +22,10 @@ public:
 
 	ArclightException() noexcept : ArclightException("Internal error") {}
 	explicit ArclightException(const char* msg) noexcept : st(1), message(msg) {}
-	explicit ArclightException(const std::string& msg) : st(1), message(msg.c_str()) {}
+	explicit ArclightException(const std::string& msg) : st(1), message(msg) {}
 
 	virtual const char* what() const noexcept override {
-		return message;
+		return message.c_str();
 	}
 
 	virtual const char* name() const noexcept {
@@ -39,7 +39,7 @@ public:
 private:
 
 	Stacktrace st;
-	const char* message;
+	std::string message;
 
 };
 
