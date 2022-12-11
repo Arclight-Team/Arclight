@@ -222,24 +222,31 @@ protected:
 
 
 
+class FlushLog : public RawLog {
+
+public:
+
+	inline ~FlushLog() {
+		buffer << '\n';
+	}
+
+};
+
+
 template<char C>
-class PrefixedLog : public RawLog {
+class PrefixedLog : public FlushLog {
 
 public:
 
 	static constexpr char Char = C;
 
 
-	inline PrefixedLog() : RawLog() {
+	inline PrefixedLog() : FlushLog() {
 		printPrefix();
 	}
 
-	explicit inline PrefixedLog(const std::string& name) : RawLog(), name(name) {
+	explicit inline PrefixedLog(const std::string& name) : FlushLog(), name(name) {
 		printPrefix();
-	}
-
-	inline ~PrefixedLog() {
-		buffer << '\n';
 	}
 
 	
@@ -268,6 +275,7 @@ private:
 
 
 using LogR = RawLog;
+using LogF = FlushLog;
 using LogI = PrefixedLog<'I'>;
 using LogW = PrefixedLog<'W'>;
 using LogE = PrefixedLog<'E'>;
