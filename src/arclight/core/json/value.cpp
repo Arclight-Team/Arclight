@@ -12,41 +12,50 @@
 
 
 
-JsonValue::JsonValue(const JsonObject& object) : type(Type::Object), data(object), integer(false) {}
-
-JsonValue::JsonValue(const JsonArray& array) : type(Type::Array), data(array), integer(false) {}
-
-
+bool JsonValue::toBoolean() const {
+	return safeCast<bool>();
+}
 
 auto JsonValue::toString() const -> StringType {
 	return safeCast<StringType>();
 }
 
-JsonObject JsonValue::toObject() const {
-	return safeCast<JsonObject>();
+JsonArray& JsonValue::toArray() {
+	return const_cast<JsonArray&>(std::as_const(*this).toArray());
 }
 
-JsonArray JsonValue::toArray() const {
-	return safeCast<JsonArray>();
+JsonObject& JsonValue::toObject() {
+	return const_cast<JsonObject&>(std::as_const(*this).toObject());
 }
 
-bool JsonValue::toBoolean() const {
-	return safeCast<bool>();
+const JsonArray& JsonValue::toArray() const {
+	return safeCastRef<JsonArray>();
 }
 
+const JsonObject& JsonValue::toObject() const {
+	return safeCastRef<JsonObject>();
+}
+
+bool JsonValue::toBoolean(bool defaultValue) const {
+	return defaultCast<bool>(defaultValue);
+}
 
 auto JsonValue::toString(const StringType& defaultValue) const -> StringType {
 	return defaultCast<StringType>(defaultValue);
 }
 
-JsonObject JsonValue::toObject(const JsonObject& defaultValue) const {
-	return defaultCast<JsonObject>(defaultValue);
+JsonArray& JsonValue::toArray(JsonArray& defaultValue) {
+	return const_cast<JsonArray&>(std::as_const(*this).toArray(defaultValue));
 }
 
-JsonArray JsonValue::toArray(const JsonArray& defaultValue) const {
-	return defaultCast<JsonArray>(defaultValue);
+JsonObject& JsonValue::toObject(JsonObject& defaultValue) {
+	return const_cast<JsonObject&>(std::as_const(*this).toObject(defaultValue));
 }
 
-bool JsonValue::toBoolean(bool defaultValue) const {
-	return defaultCast<bool>(defaultValue);
+const JsonArray& JsonValue::toArray(const JsonArray& defaultValue) const {
+	return defaultCastRef<JsonArray>(defaultValue);
+}
+
+const JsonObject& JsonValue::toObject(const JsonObject& defaultValue) const {
+	return defaultCastRef<JsonObject>(defaultValue);
 }

@@ -39,8 +39,8 @@ public:
 
 	constexpr JsonValue(std::nullptr_t) noexcept : type(Type::Null), integer(false) {}
 
-	JsonValue(const JsonObject& object);
-	JsonValue(const JsonArray& array);
+	template<class T, class U = TT::RemoveCVRef<T>> requires (CC::Equal<U, JsonArray> || CC::Equal<U, JsonObject>)
+	JsonValue(T&& t) : type(CC::Equal<U, JsonArray> ? Type::Array : Type::Object), data(std::forward<T>(t)), integer(false) {}
 
 
 	constexpr Type getType() const noexcept {
@@ -52,20 +52,24 @@ public:
 		return safeCast<T>();
 	}
 
-	StringType toString() const;
-	JsonObject toObject() const;
-	JsonArray toArray() const;
 	bool toBoolean() const;
+	StringType toString() const;
+	JsonArray& toArray();
+	JsonObject& toObject();
+	const JsonArray& toArray() const;
+	const JsonObject& toObject() const;
 
 	template<CC::JsonNumber T>
 	T toNumber(T defaultValue) const {
 		return defaultCast<T>(defaultValue);
 	}
 
-	StringType toString(const StringType& defaultValue) const;
-	JsonObject toObject(const JsonObject& defaultValue) const;
-	JsonArray toArray(const JsonArray& defaultValue) const;
 	bool toBoolean(bool defaultValue) const;
+	StringType toString(const StringType& defaultValue) const;
+	JsonArray& toArray(JsonArray& defaultValue);
+	JsonObject& toObject(JsonObject& defaultValue);
+	const JsonArray& toArray(const JsonArray& defaultValue) const;
+	const JsonObject& toObject(const JsonObject& defaultValue) const;
 
 	constexpr bool isString() const noexcept {
 		return type == Type::String;
@@ -99,19 +103,34 @@ public:
 		return type == Type::Null;
 	}
 
+	constexpr bool isValid() const noexcept {
+		return type != Type::None;
+	}
+
 private:
 
 	template<CC::JsonValue Out>
-	Out safeCast() const {
-		
+	const Out& safeCastRef() const {
+
 		constexpr Type targetType = Json::typeOf<Out>();
 
-		// Implement string casting
 		if (targetType != type) {
 			throw JsonTypeCastException(type, targetType);
 		}
 
-		// Convert to appropriate numeric type
+		return data.unsafeCast<Out>();
+
+	}
+
+	template<CC::JsonValue Out>
+	Out safeCast() const {
+
+		constexpr Type targetType = Json::typeOf<Out>();
+
+		if (targetType != type) {
+			throw JsonTypeCastException(type, targetType);
+		}
+
 		if constexpr (targetType == Type::Number) {
 
 			if (integer) {
@@ -127,16 +146,27 @@ private:
 	}
 
 	template<CC::JsonValue Value>
-	Value defaultCast(const Value& v) const {
+	const Value& defaultCastRef(const Value& v) const {
 
 		constexpr Type targetType = Json::typeOf<Value>();
 
-		// Implement string casting
 		if (targetType != type) {
 			return v;
 		}
 
-		// Convert to appropriate numeric type
+		return data.unsafeCast<Value>();
+
+	}
+
+	template<CC::JsonValue Value>
+	Value defaultCast(const Value& v) const {
+
+		constexpr Type targetType = Json::typeOf<Value>();
+
+		if (targetType != type) {
+			return v;
+		}
+
 		if constexpr (targetType == Type::Number) {
 
 			if (integer) {

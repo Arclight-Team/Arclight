@@ -39,7 +39,9 @@ public:
 	bool empty() const;
 
 	void setRoot(const JsonObject& root);
-	const JsonObject& getRoot();
+
+	JsonObject& getRoot();
+	const JsonObject& getRoot() const;
 
 	static JsonDocument fromFile(const Path& path);
 

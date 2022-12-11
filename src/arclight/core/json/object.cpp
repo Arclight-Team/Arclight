@@ -15,25 +15,20 @@ bool JsonObject::contains(const StringType& name) const {
 	return items.contains(name);
 }
 
-JsonValue& JsonObject::operator[](const StringType& name) {
-	return items[name];
-}
-
-const JsonValue& JsonObject::operator[](const StringType& name) const {
-
-	if (!contains(name)) {
-		return nullValue;
-	} else {
-		return items.at(name);
-	}
-
-}
 
 void JsonObject::insert(const StringType& name, const JsonValue& value) {
 	items.insert_or_assign(name, value);
 }
 
+const JsonValue& JsonObject::operator[](const StringType& name) const {
 
+	if (!contains(name)) {
+		throw JsonValueNotFoundException(name);
+	} else {
+		return items.at(name);
+	}
+
+}
 
 void JsonObject::clear() {
 	items.clear();

@@ -31,15 +31,15 @@ void JsonDocument::read(const StringView& json) {
 
 		switch (it.cur[0]) {
 
-		case ' ':
-		case '\t':
-		case '\r':
-		case '\n':
-			break;
+			case ' ':
+			case '\t':
+			case '\r':
+			case '\n':
+				break;
 
-		case '{':
-			readObject(it, root);
-			break;
+			case '{':
+				readObject(it, root);
+				break;
 
 		}
 
@@ -73,7 +73,11 @@ void JsonDocument::setRoot(const JsonObject& root) {
 	this->root = root;
 }
 
-const JsonObject& JsonDocument::getRoot() {
+JsonObject& JsonDocument::getRoot() {
+	return root;
+}
+
+const JsonObject& JsonDocument::getRoot() const {
 	return root;
 }
 

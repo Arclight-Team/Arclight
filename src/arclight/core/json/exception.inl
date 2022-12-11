@@ -6,29 +6,58 @@
  *	 exception.inl
  */
 
+#include "common/exception.hpp"
 #include "util/string.hpp"
-#include <string>
-#include <stdexcept>
 
 
 
-class JsonTypeCastException : public std::runtime_error
+class JsonException : public ArclightException
 {
 public:
+	using ArclightException::ArclightException;
 
-	JsonTypeCastException() noexcept : JsonTypeCastException("Error while performing type cast") {}
-	explicit JsonTypeCastException(const std::string& msg) noexcept : std::runtime_error(msg) {}
-	explicit JsonTypeCastException(Json::Type source, Json::Type target) noexcept : 
-		JsonTypeCastException(String::format("Invalid type cast from %s to %s", Json::typeName(source), Json::typeName(target))) {}
+	virtual const char* name() const noexcept override { return "Json Exception"; }
 
 };
 
 
-class JsonSyntaxError : public std::runtime_error
+
+class JsonValueNotFoundException : public JsonException
 {
 public:
 
-	JsonSyntaxError() noexcept : JsonSyntaxError("Syntax error while parsing JSON data") {}
-	explicit JsonSyntaxError(const std::string& msg) noexcept : std::runtime_error(msg) {}
+	explicit JsonValueNotFoundException(const std::string& valueName) noexcept :
+		JsonException(String::format("Value '%s' not found", valueName.c_str())) {}
+
+	virtual const char* name() const noexcept override { return "Json Value Not Found Exception"; }
+
+};
+
+
+
+class JsonTypeCastException : public JsonException
+{
+public:
+
+	using JsonException::JsonException;
+
+	JsonTypeCastException() noexcept : JsonException("Error while performing type cast") {}
+
+	explicit JsonTypeCastException(Json::Type source, Json::Type target) noexcept :
+		JsonTypeCastException(String::format("Invalid type cast from %s to %s", Json::typeName(source), Json::typeName(target))) {}
+
+	virtual const char* name() const noexcept override { return "Json Type Cast Exception"; }
+
+};
+
+
+class JsonSyntaxError : public JsonException
+{
+public:
+
+	using JsonException::JsonException;
+	JsonSyntaxError() noexcept : JsonException("Syntax error while parsing JSON data") {}
+
+	virtual const char* name() const noexcept override { return "Json Syntax Error"; }
 
 };

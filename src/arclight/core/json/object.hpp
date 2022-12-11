@@ -49,9 +49,6 @@ public:
 		return *items.try_emplace(std::move(name), std::forward<Args>(args)...).first;
 	}
 
-	JsonValue& operator[](const StringType& name);
-	const JsonValue& operator[](const StringType& name) const;
-
 	void insert(const StringType& name, const JsonValue& value);
 
 	template<CC::JsonValue T>
@@ -59,10 +56,8 @@ public:
 		return emplace(name, value);
 	}
 
-	template<CC::JsonValue T>
-	JsonObject& operator()(const StringType& name, const T& value) {
-		return insert(name, value);
-	}
+
+	const JsonValue& operator[](const StringType& name) const;
 
 
 	void clear();

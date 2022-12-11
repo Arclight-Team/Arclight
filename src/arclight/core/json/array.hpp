@@ -10,8 +10,8 @@
 
 #include "common.hpp"
 #include "object.hpp"
+
 #include <vector>
-#include "util/log.hpp"
 
 
 
@@ -21,6 +21,8 @@ private:
 	using ItemContainer = std::vector<JsonValue>;
 	using ItemIterator = ItemContainer::iterator;
 	using ItemConstIterator = ItemContainer::const_iterator;
+	using ItemReverseIterator = ItemContainer::reverse_iterator;
+	using ItemConstReverseIterator = ItemContainer::const_reverse_iterator;
 
 public:
 
@@ -52,15 +54,9 @@ public:
 
 	}
 
-	template<CC::JsonValue... Args>
-	JsonArray& operator()(Args&&... args) {
-		(append(std::forward<Args>(args)), ...);
-		return *this;
-	}
-
 	JsonValue& operator[](SizeT index);
 	const JsonValue& operator[](SizeT index) const;
-	
+
 
 	constexpr void clear() {
 		items.clear();
@@ -70,22 +66,21 @@ public:
 		return items.empty();
 	}
 
+	ItemIterator begin();
+	ItemConstIterator begin() const;
+	ItemConstIterator cbegin() const;
 
-	constexpr ItemIterator begin() {
-		return items.begin();
-	}
+	ItemIterator end();
+	ItemConstIterator end() const;
+	ItemConstIterator cend() const;
 
-	constexpr ItemConstIterator begin() const {
-		return items.begin();
-	}
+	ItemReverseIterator rbegin();
+	ItemConstReverseIterator rbegin() const;
+	ItemConstReverseIterator crbegin() const;
 
-	constexpr ItemIterator end() {
-		return items.end();
-	}
-
-	constexpr ItemConstIterator end() const {
-		return items.end();
-	}
+	ItemReverseIterator rend();
+	ItemConstReverseIterator rend() const;
+	ItemConstReverseIterator crend() const;
 
 private:
 
