@@ -300,6 +300,18 @@ void Path::setAnnotatedPathPrefix(char annotation, const std::string& prefix) {
 
 
 
+Path operator+(const Path& a, const Path& b) {
+	return Path(a) += b;
+}
+
+
+
+Path operator/(const Path& a, const Path& b) {
+	return Path(a) /= b;
+}
+
+
+
 RawLog& operator<<(RawLog& log, const Path& path) {
 	return log << path.toString();
 }

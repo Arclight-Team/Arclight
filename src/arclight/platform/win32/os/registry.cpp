@@ -154,7 +154,7 @@ namespace OS::Registry {
 			{
 				u32 v = Bits::assemble<u32>(buffer.data(), Math::min(buffer.size(), 4));
 
-				if (BigEndian ^ (typedType == Type::DWordBE)) {
+				if (BigEndian != (typedType == Type::DWordBE)) {
 					v = Bits::swap(v);
 				}
 

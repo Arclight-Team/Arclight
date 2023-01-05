@@ -21,31 +21,31 @@ public:
 
 	using HandleT = void*;
 
-	constexpr static HandleT InvalidHandle = HandleT(-1);
+	inline static HandleT InvalidHandle = HandleT(reinterpret_cast<HandleT>(-1));
 
 
-	constexpr Handle() : handle(0) {}
-	constexpr Handle(HandleT handle) : handle(handle) {}
+	Handle() : handle(InvalidHandle) {}
+	Handle(HandleT handle) : handle(handle) {}
 
 	// Removes the current handle
-	constexpr void close() {
+	void close() {
 		handle = nullptr;
 	}
 
 	// Acquires a new handle
-	constexpr void acquire(HandleT handle) {
+	void acquire(HandleT handle) {
 		this->handle = handle;
 	}
 
-	constexpr static bool valid(HandleT handle) {
-		return handle && handle != InvalidHandle;
+	static bool valid(HandleT handle) {
+		return handle != InvalidHandle;
 	}
 
-	constexpr bool valid() const {
+	bool valid() const {
 		return valid(handle);
 	}
 
-	constexpr operator HandleT() const {
+	operator HandleT() const {
 		return handle;
 	}
 
@@ -60,8 +60,8 @@ public:
 class SafeHandle : public Handle {
 public:
 
-	constexpr SafeHandle() = default;
-	constexpr SafeHandle(HandleT handle) : Handle(handle) {}
+	SafeHandle() = default;
+	SafeHandle(HandleT handle) : Handle(handle) {}
 
 	inline ~SafeHandle() {
 		close();
@@ -70,11 +70,11 @@ public:
 	SafeHandle(const SafeHandle&) = delete;
 	SafeHandle& operator=(const SafeHandle&) = delete;
 
-	constexpr SafeHandle(SafeHandle&& other) noexcept :
+	SafeHandle(SafeHandle&& other) noexcept :
 		Handle(std::exchange(other.handle, nullptr))
 	{}
 
-	constexpr SafeHandle& operator=(SafeHandle&& rhs) noexcept {
+	SafeHandle& operator=(SafeHandle&& rhs) noexcept {
 
 		this->handle = std::exchange(rhs.handle, nullptr);
 
@@ -93,9 +93,15 @@ public:
 /*
 	Accessing system errors and localized messages
 */
+namespace OS {
 
-u32 getSystemError();
+	//Returns the latest system error code
+	u32 getSystemError();
 
-std::string getSystemMessage(u32 messageID);
+	//Returns the given error code's system message
+	std::string getSystemMessage(u32 messageID);
 
-std::string getSystemErrorMessage();
+	//Returns the latest system error message
+	std::string getSystemErrorMessage();
+
+}

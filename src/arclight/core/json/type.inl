@@ -22,7 +22,7 @@ namespace Json {
 
 	};
 
-	template<CC::JsonValue V>
+	template<CC::JsonType V>
 	constexpr Type typeOf() {
 
 		if constexpr (CC::JsonNull<V>) {
@@ -43,7 +43,7 @@ namespace Json {
 
 	}
 
-	template<CC::JsonValue V>
+	template<CC::JsonType V>
 	constexpr Type typeOf(const V& value) {
 		return typeOf<V>();
 	}

@@ -71,6 +71,15 @@ public:
 
 	operator std::string() const;
 
+	template<class S>
+	Path& operator+=(const S& src) requires requires (Path&& p, S&& s) { p.concat(s); } {
+		return concat(src);
+	}
+
+	template<class S>
+	Path& operator/=(const S& src) requires requires (Path&& p, S&& s) { p.append(s); } {
+		return append(src);
+	}
 
 	const std::filesystem::path& getHandle() const;
 
@@ -100,12 +109,52 @@ public:
 	static std::string getAnnotatedPathPrefix(char annotation);
 	static void setAnnotatedPathPrefix(char annotation, const std::string& prefix);
 
+	template<CC::Char C>
+	constexpr static std::basic_string<C> quote(const std::basic_string<C>& path) {
+
+		constexpr C whitespace(' ');
+		constexpr C quotation('\"');
+		constexpr C backslash('\\');
+
+		if (!path.contains(whitespace)) {
+			return path;
+		}
+
+		std::basic_string<C> s = path;
+		bool escaped = false;
+
+		for (SizeT i = 0; i < s.size(); i++) {
+
+			C c = s[i];
+
+			if ((c == quotation || c == backslash) && !escaped) {
+
+				escaped = false;
+				s.insert(i, std::basic_string<C>(1, backslash));
+				i++;
+
+			} else if (s[i] == backslash) {
+				escaped = true;
+			} else {
+				escaped = false;
+			}
+
+		}
+
+		return quotation + s + quotation;
+
+	}
+
 private:
 
 	std::filesystem::path path;
 	static inline std::unordered_map<char, std::string> annotatedPrefixes;
 
 };
+
+Path operator+(const Path& a, const Path& b);
+Path operator/(const Path& a, const Path& b);
+
 
 class RawLog;
 RawLog& operator<<(RawLog& log, const Path& path);

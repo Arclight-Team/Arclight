@@ -20,25 +20,25 @@
 */
 struct ProcessInfo {
 
-	inline ProcessInfo() :
-		basePriority(0),
-		processID(0), parentID(0), threadID(0), moduleID(0),
-		handleCount(0), threadCount(0)
-	{}
+	inline ProcessInfo() : basePriority(0), processID(0), parentID(0), threadCount(0) {}
 
 	Path executable;
-
 	u64 basePriority;
-
 	u32 processID;
 	u32 parentID;
-	u32 threadID;
-	u32 moduleID;
-
-	u32 handleCount;
 	u32 threadCount;
 
 };
+
+enum class ProcessConsoleMode {
+
+	Inherit,		// Inherit from parent, child process dies with parent
+	New,			// New, visible console separate from parent
+	Invisible,		// Invisible console separate from parent
+	Detached		// No console
+
+};
+
 
 /*
 	Parameters required to start a new process
@@ -47,82 +47,78 @@ struct ProcessStartInfo {
 
 	Path executable;
 	Path workingDirectory;
-	std::wstring arguments;
+	std::string arguments;
+	std::vector<std::string> environment;
 
-	bool createWindow = true;
+	ProcessConsoleMode conMode = ProcessConsoleMode::Inherit;
+	bool separateGroup = false;		// Ignored with ProcessConsoleMode::New
+	bool moduleAsArgv0 = true;
+
+	bool attachStdIn = false;
+	bool attachStdOut = false;
+	bool attachStdError = false;
 
 };
 
-class Process : public ProcessInfo
-{
+class Process {
+
 public:
+
+	constexpr static u32 invalidProcessID = -1;
 	
 	using HandleT = Handle::HandleT;
-
 
 	Process();
 
 	Process(Process&&) = default;
 	Process& operator=(Process&&) = default;
 
-	bool start();
+	bool start(const ProcessStartInfo& startInfo);
 	bool kill();
 	bool waitForExit(u32 milliseconds = -1);
+	bool active() const;
+	bool isCurrent() const;
+	void release();
+	u32 getResultCode() const;
+
+	std::string readStdout(SizeT maxSize = 32768);
+	std::string readStderr(SizeT maxSize = 32768);
+	bool writeStdin(std::string_view str);
 
 	HandleT getHandle();
 	Path getExecutablePath();
 
-	HandleT getMainWindowHandle();
-	std::string getMainWindowTitle();
+	HandleT getMainWindowHandle() const;
 
 	inline HandleT getHandle() const {
 		return processHandle->handle;
 	}
 
-	inline Path getExecutablePath() const {
-		return executable;
-	}
-
-	inline HandleT getMainWindowHandle() const {
-		return windowHandle;
-	}
-
-	inline std::string getMainWindowTitle()const {
-		return windowTitle;
-	}
-
 	static u32 getCurrentProcessID();
 	static Process getCurrentProcess();
-	static std::vector<Process> getProcesses();
-	static std::vector<Process> getProcesses(const std::string& name);
+	static Path getCurrentExecutablePath();
 
 	static Process getProcessByID(u32 id);
 	static std::vector<u32> getProcessIDs();
-	static std::vector<u32> getProcessIDs(const std::string& name);
+	static std::vector<Process> getProcesses();
 
-	static Path getModuleFileName(HandleT handle);
-	static Path getProcessFileName(HandleT handle);
-	static std::string getWindowTitle(HandleT handle);
-
-
-	ProcessStartInfo startInfo;
+	static Path getExecutablePath(HandleT handle);
 
 private:
 
-	void createHandles();
-	void releaseHandles();
+	void createHandle();
+	void openFromID(u32 id);
 
-	void openFromInfo(const ProcessInfo& info);
-	void openFromID(u32 processID);
+	std::string readOutputPipe(HandleT pipe, SizeT maxSize);
 
 	static std::vector<u32> enumerateProcessIDs();
-	static std::vector<u32> enumerateProcessIDs(const std::string& name);
 	static std::vector<ProcessInfo> enumerateProcessInformation();
-	static std::vector<ProcessInfo> enumerateProcessInformation(const std::string& name);
 
 	std::unique_ptr<SafeHandle> processHandle;
-	std::unique_ptr<SafeHandle> threadHandle;
-	Handle windowHandle;
-	std::string windowTitle;
+	std::unique_ptr<SafeHandle> pipeInHandle;
+	std::unique_ptr<SafeHandle> pipeOutHandle;
+	std::unique_ptr<SafeHandle> pipeErrorHandle;
+
+	u32 processID;
 
 };

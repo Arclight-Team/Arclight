@@ -32,7 +32,7 @@ public:
 
 	JsonObject() = default;
 
-	template<CC::JsonValue T>
+	template<CC::JsonType T>
 	JsonObject(const StringType& name, const T& value) {
 		emplace(name, value);
 	}
@@ -51,7 +51,7 @@ public:
 
 	void insert(const StringType& name, const JsonValue& value);
 
-	template<CC::JsonValue T>
+	template<CC::JsonType T>
 	JsonObject& insert(const StringType& name, const T& value) {
 		return emplace(name, value);
 	}

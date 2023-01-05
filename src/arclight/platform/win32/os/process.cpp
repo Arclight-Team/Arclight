@@ -10,10 +10,10 @@
 #include "util/log.hpp"
 #include "util/bits.hpp"
 #include "util/bool.hpp"
+#include "util/destructionguard.hpp"
 
 #include <functional>
 
-#define NOMINMAX
 #include <Windows.h>
 #include <TlHelp32.h>
 #include <Psapi.h>
@@ -35,19 +35,19 @@ namespace Detail
 		if (!snapshot.valid()) {
 
 			LogE("Process") << "Failed to create snapshot of all processes:";
-			LogE("Process") << getSystemErrorMessage();
+			LogE("Process") << OS::getSystemErrorMessage();
 
 			return;
 		}
 
-		PROCESSENTRY32 pe32{};
+		PROCESSENTRY32W pe32{};
 		pe32.dwSize = sizeof(pe32);
 
 		// Fetch first process
-		if (!Process32First(snapshot, &pe32)) {
+		if (!Process32FirstW(snapshot, &pe32)) {
 
 			LogE("Process") << "Failed to fetch first process:";
-			LogE("Process") << getSystemErrorMessage();
+			LogE("Process") << OS::getSystemErrorMessage();
 
 			return;
 		}
@@ -58,7 +58,7 @@ namespace Detail
 				break;
 
 			// Fetch next process
-			if (!Process32Next(snapshot, &pe32))
+			if (!Process32NextW(snapshot, &pe32))
 				break;
 
 		}
@@ -69,54 +69,228 @@ namespace Detail
 
 
 
-Process::Process() {
-	createHandles();
+Process::Process() : processID(invalidProcessID) {
+	createHandle();
 }
 
-bool Process::start() {
+
+
+bool Process::start(const ProcessStartInfo& startInfo) {
 
 	if (startInfo.executable.isEmpty()) {
+
 		LogE("Process") << "Executable path is empty";
 		return false;
+
 	}
 
+	std::wstring executable = startInfo.executable.getHandle();
 	std::wstring commandLine;
-	commandLine = startInfo.executable.getHandle();
-	commandLine += L" " + startInfo.arguments;
 
-	std::wstring currentDirectory = startInfo.workingDirectory.getHandle();
+	LogI() << Unicode::convertString<Unicode::UTF16, Unicode::UTF8>(executable);
 
-	if (startInfo.workingDirectory.isEmpty())
-		currentDirectory = Path::getCurrentWorkingDirectory().getHandle();
+	if (startInfo.moduleAsArgv0) {
 
-	u32 creationFlags = 0;
-	if (!startInfo.createWindow)
-		creationFlags |= CREATE_NO_WINDOW;
+		std::string quoted = Path::quote(startInfo.executable.toNativeString());
 
-	void* environment = nullptr;
+		if (quoted.size() >= MAX_PATH) {
+
+			LogW("Process") << "Resulting module path exceeds MAX_PATH in argv[0], potentially unreliable";
+			quoted.resize(MAX_PATH);
+
+		}
+
+		std::string fullCMDL = quoted + " " + startInfo.arguments;
+		commandLine = Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(fullCMDL);
+
+	} else {
+
+		commandLine = Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(startInfo.arguments);
+
+	}
+
+	const wchar_t* cwdPath = nullptr;
+
+	if (!startInfo.workingDirectory.isEmpty()) {
+		cwdPath = Path::getCurrentWorkingDirectory().getHandle().c_str();
+	}
+
+	std::wstring environmentArray;
+	wchar_t* env = nullptr;
+
+	if (!startInfo.environment.empty()) {
+
+		std::vector<std::wstring> envSliced;
+		envSliced.reserve(startInfo.environment.size());
+
+		SizeT totalSize = 0;
+
+		for (const std::string& s : startInfo.environment) {
+
+			envSliced.emplace_back(Unicode::convertString<Unicode::UTF8, Unicode::UTF16>(s));
+			totalSize += envSliced.back().size() + 1;
+
+		}
+
+		// We already get the null terminator for free
+		environmentArray.resize(totalSize);
+		SizeT i = 0;
+
+		for (const std::wstring& w : envSliced) {
+
+			std::copy(w.begin(), w.end(), environmentArray.begin() + i);
+			i += w.size() + 1;
+
+		}
+
+		env = environmentArray.data();
+
+	}
+
+	u32 creationFlags = CREATE_UNICODE_ENVIRONMENT;
+
+	switch (startInfo.conMode) {
+
+		case ProcessConsoleMode::New:		creationFlags |= CREATE_NEW_CONSOLE;	break;
+		case ProcessConsoleMode::Invisible:	creationFlags |= CREATE_NO_WINDOW;		break;
+		case ProcessConsoleMode::Detached:	creationFlags |= DETACHED_PROCESS;		break;
+		default:	break;
+
+	}
+
+	if (startInfo.separateGroup) {
+		creationFlags |= CREATE_NEW_PROCESS_GROUP;
+	}
 
 	STARTUPINFO si{};
+	ZeroMemory(&si, sizeof(STARTUPINFO));
 	si.cb = sizeof(si);
+	si.dwFlags |= STARTF_USESTDHANDLES;
 
-	PROCESS_INFORMATION pi{};
+	SECURITY_ATTRIBUTES sa;
+	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+	sa.bInheritHandle = true;
+	sa.lpSecurityDescriptor = nullptr;
 
-	if (!CreateProcessW(nullptr, commandLine.data(), 0, 0, true, creationFlags, environment, currentDirectory.c_str(), &si, &pi)) {
-		LogE("Process") << "Failed to start process:";
-		LogE("Process") << getSystemErrorMessage();
-		return false;
+	SafeHandle pipeInRead;
+	SafeHandle pipeInWrite;
+	SafeHandle pipeOutRead;
+	SafeHandle pipeOutWrite;
+	SafeHandle pipeErrorRead;
+	SafeHandle pipeErrorWrite;
+
+	if (startInfo.attachStdIn) {
+
+		HandleT stdInPipeWrite;
+		HandleT stdInPipeRead;
+
+		if (!CreatePipe(&stdInPipeRead, &stdInPipeWrite, &sa, 0)) {
+
+			LogE("Process") << "Failed to redirect stdin";
+			return false;
+
+		}
+
+		pipeInRead.acquire(stdInPipeRead);
+		pipeInWrite.acquire(stdInPipeWrite);
+
+		if (!SetHandleInformation(stdInPipeWrite, HANDLE_FLAG_INHERIT, 0)) {
+
+			LogE("Process") << "Failed to redirect stdin";
+			return false;
+
+		}
+
+		si.hStdInput = stdInPipeRead;
+
 	}
 
-	processHandle->acquire(pi.hProcess);
-	threadHandle->acquire(pi.hThread);
-	windowHandle.close();
+	if (startInfo.attachStdOut) {
 
-	executable = getProcessFileName(pi.hProcess);
+		HandleT stdOutPipeWrite;
+		HandleT stdOutPipeRead;
+
+		if (!CreatePipe(&stdOutPipeRead, &stdOutPipeWrite, &sa, 0)) {
+
+			LogE("Process") << "Failed to redirect stdout";
+			return false;
+
+		}
+
+		pipeOutRead.acquire(stdOutPipeRead);
+		pipeOutWrite.acquire(stdOutPipeWrite);
+
+		if (!SetHandleInformation(stdOutPipeRead, HANDLE_FLAG_INHERIT, 0)) {
+
+			LogE("Process") << "Failed to redirect stdout";
+			return false;
+
+		}
+
+		si.hStdOutput = stdOutPipeWrite;
+
+	}
+
+	if (startInfo.attachStdError) {
+
+		HandleT stdErrorPipeWrite;
+		HandleT stdErrorPipeRead;
+
+		if (!CreatePipe(&stdErrorPipeRead, &stdErrorPipeWrite, &sa, 0)) {
+
+			LogE("Process") << "Failed to redirect stderr";
+			return false;
+
+		}
+
+		pipeErrorRead.acquire(stdErrorPipeRead);
+		pipeErrorWrite.acquire(stdErrorPipeWrite);
+
+		if (!SetHandleInformation(stdErrorPipeRead, HANDLE_FLAG_INHERIT, 0)) {
+
+			LogE("Process") << "Failed to redirect stderr";
+			return false;
+
+		}
+
+		si.hStdError = stdErrorPipeWrite;
+
+	}
+
+	PROCESS_INFORMATION pi{};
+	ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
+
+	// The const cast shouldn't be necessary, but here we go
+	if (!CreateProcessW(executable.c_str(), commandLine.data(), nullptr, nullptr, true, creationFlags, env, cwdPath, &si, &pi)) {
+
+		LogE("Process") << "Failed to start process:";
+		LogE("Process") << OS::getSystemErrorMessage();
+		return false;
+
+	}
+
+	CloseHandle(pi.hThread);
+
+	processHandle->acquire(pi.hProcess);
 	processID = pi.dwProcessId;
-	threadID = pi.dwThreadId;
+
+	if (pipeInWrite.valid()) {
+		pipeInHandle = std::make_unique<SafeHandle>(std::move(pipeInWrite));
+	}
+
+	if (pipeOutRead.valid()) {
+		pipeOutHandle = std::make_unique<SafeHandle>(std::move(pipeOutRead));
+	}
+
+	if (pipeErrorRead.valid()) {
+		pipeErrorHandle = std::make_unique<SafeHandle>(std::move(pipeErrorRead));
+	}
 
 	return true;
 
 }
+
+
 
 bool Process::kill() {
 
@@ -126,18 +300,20 @@ bool Process::kill() {
 	if (!TerminateProcess(*processHandle, -1)) {
 		
 		LogE("Process") << "Failed to kill process:";
-		LogE("Process") << getSystemErrorMessage();
+		LogE("Process") << OS::getSystemErrorMessage();
 
-		releaseHandles();
+		release();
 
 		return false;
 	}
 
-	releaseHandles();
+	release();
 
 	return true;
 
 }
+
+
 
 bool Process::waitForExit(u32 milliseconds) {
 
@@ -147,64 +323,133 @@ bool Process::waitForExit(u32 milliseconds) {
 	if (WaitForSingleObject(*processHandle, milliseconds) != WAIT_OBJECT_0)
 		return false;
 
-	releaseHandles();
+	release();
 
 	return true;
+
 }
 
-Process::HandleT Process::getHandle() {
 
-	if (processHandle->valid())
-		return *processHandle;
 
-	if (!processID)
-		return nullptr;
+bool Process::active() const {
 
-	u32 access = PROCESS_ALL_ACCESS;
+	DWORD res;
+	return processHandle->valid() && GetExitCodeProcess(processHandle->handle, &res) && res == STILL_ACTIVE;
 
-	SafeHandle handle(OpenProcess(access, false, processID));
+}
 
-	if (!handle.valid()) {
 
-		u32 err = getSystemError();
 
-		// PID is not valid or the process requires higher permissions
-		if (Bool::any(err, ERROR_ACCESS_DENIED, ERROR_INVALID_PARAMETER))
-			return nullptr;
+bool Process::isCurrent() const {
+	return processHandle && processID == getCurrentProcessID();
+}
 
-		LogE("Process") << "Failed to open process from ID:";
-		LogE("Process") << getSystemErrorMessage();
-	
-		return nullptr;
-	}
+
+
+void Process::release() {
 
 	processHandle->close();
-	*processHandle = std::move(handle);
-	
-	return *processHandle;
+
+	pipeInHandle.reset();
+	pipeOutHandle.reset();
+	pipeErrorHandle.reset();
+
+	processID = invalidProcessID;
 
 }
+
+
+
+u32 Process::getResultCode() const {
+
+	if (processHandle->valid()) {
+
+		LogE("Process") << "Attempted to obtain result code from invalid process";
+		return -1;
+
+	}
+
+	DWORD res;
+
+	if (!GetExitCodeProcess(processHandle->handle, &res)) {
+
+		LogE("Process") << "Failed to obtain result code from process";
+		return -1;
+
+	}
+
+	return res;
+
+}
+
+
+
+std::string Process::readStdout(SizeT maxSize) {
+
+	if (!pipeOutHandle) {
+
+		LogE("Process") << "Stdout pipe has not been opened";
+		return "";
+
+	}
+
+	return readOutputPipe(pipeOutHandle->handle, maxSize);
+
+}
+
+
+
+std::string Process::readStderr(SizeT maxSize) {
+
+	if (!pipeErrorHandle) {
+
+		LogE("Process") << "Stderr pipe has not been opened";
+		return "";
+
+	}
+
+	return readOutputPipe(pipeErrorHandle->handle, maxSize);
+
+}
+
+
+
+bool Process::writeStdin(std::string_view str) {
+
+	if (!pipeInHandle) {
+
+		LogE("Process") << "Stdin pipe has not been opened";
+		return false;
+
+	}
+
+	DWORD written;
+	return WriteFile(pipeInHandle->handle, str.data(), str.size(), &written, nullptr);
+
+}
+
+
+
+Process::HandleT Process::getHandle() {
+	return processHandle->valid() ? processHandle->handle : nullptr;
+}
+
+
 
 Path Process::getExecutablePath() {
 
-	if (!executable.isEmpty())
-		return executable;
-
 	HandleT handle = getHandle();
 
-	executable = getProcessFileName(handle);
-
-	return executable;
+	return handle ? (isCurrent() ? getCurrentExecutablePath() : getExecutablePath(handle)) : Path{};
 
 }
 
-Process::HandleT Process::getMainWindowHandle() {
 
-	if (windowHandle.valid())
-		return windowHandle;
 
-	static Handle findWindowHandle;
-	static u32 findWindowProcessID;
+Process::HandleT Process::getMainWindowHandle() const {
+
+	thread_local Handle findWindowHandle;
+	thread_local u32 findWindowProcessID;
 
 	findWindowHandle.close();
 	findWindowProcessID = processID;
@@ -232,217 +477,191 @@ Process::HandleT Process::getMainWindowHandle() {
 		return nullptr;
 	}
 
-	windowHandle = findWindowHandle;
-
-	return windowHandle;
+	return findWindowHandle;
 
 }
 
-std::string Process::getMainWindowTitle() {
 
-	if (!windowTitle.empty())
-		return windowTitle;
-
-	HandleT window = getMainWindowHandle();
-
-	if (!window)
-		return "";
-
-	windowTitle = getWindowTitle(window);
-
-	return windowTitle;
-
-}
 
 u32 Process::getCurrentProcessID() {
 	return GetCurrentProcessId();
 }
 
-std::vector<u32> Process::getProcessIDs() {
-	return enumerateProcessIDs();
-}
 
-std::vector<u32> Process::getProcessIDs(const std::string& name) {
-	return enumerateProcessIDs(name);
-}
 
 Process Process::getCurrentProcess() {
 	return getProcessByID(getCurrentProcessID());
 }
 
+
+
+Path Process::getCurrentExecutablePath() {
+
+	u32 length = 0x100;
+	std::wstring filename(length, L'\0');
+
+	while (GetModuleFileNameW(nullptr, filename.data(), length) == length) {
+
+		if(length < 0x8000) {
+
+			length *= 2;
+			filename.resize(length);
+
+		} else {
+
+			return {};
+
+		}
+
+	}
+
+	return Path(Unicode::convertString<Unicode::UTF16LE, Unicode::UTF8>(filename.data()));
+
+}
+
+
 Process Process::getProcessByID(u32 id) {
 
 	Process process;
-
 	process.openFromID(id);
 
 	return process;
 
 }
 
+
+
+std::vector<u32> Process::getProcessIDs() {
+	return enumerateProcessIDs();
+}
+
+
+
 std::vector<Process> Process::getProcesses() {
 
-	std::vector<Process> processes;
+	std::vector<ProcessInfo> list = enumerateProcessInformation();
+	std::vector<Process> processes(list.size());
 
-	auto list = enumerateProcessInformation();
-
-	processes.resize(list.size());
-
-	for (u32 i = 0; i < list.size(); i++) {
-
-		processes[i].openFromInfo(list[i]);
-		
+	for (SizeT i = 0; i < list.size(); i++) {
+		processes[i] = getProcessByID(list[i].processID);
 	}
 
 	return processes;
 
 }
 
-std::vector<Process> Process::getProcesses(const std::string& name) {
 
-	std::vector<Process> processes;
 
-	auto list = enumerateProcessInformation(name);
+Path Process::getExecutablePath(HandleT handle) {
 
-	processes.resize(list.size());
+	u32 length = 0x100;
+	std::wstring filename(length, L'\0');
 
-	for (u32 i = 0; i < list.size(); i++) {
+	while (true) {
 
-		processes[i].openFromInfo(list[i]);
+		DWORD len = filename.size();
+
+		if (!QueryFullProcessImageNameW(handle, 0, filename.data(), &len)) {
+
+			LogE("Process") << "Could not fetch executable path:";
+			LogE("Process") << OS::getSystemErrorMessage();
+
+			return {};
+
+		}
+
+		if (len != filename.size()) {
+
+			filename.resize(len);
+			break;
+
+		}
+
+		if (filename.size() >= 32768) {
+			return {};
+		}
+
+		filename.resize(filename.size() * 2);
 
 	}
 
-	return processes;
-
-}
-
-Path Process::getModuleFileName(HandleT handle) {
-
-	std::wstring path;
-
-	path.resize(2048);
-
-	if (!GetModuleFileNameW(HMODULE(handle), path.data(), path.size())) {
-
-		LogE("Process") << "Could not fetch module name:";
-		LogE("Process") << getSystemErrorMessage();
-
-		return {};
-	}
-
-	SizeT end = path.find_first_of(L'\0');
-
-	if (end != path.npos)
-		path = path.substr(0, end);
-
-	return Path(path);
-
-}
-
-Path Process::getProcessFileName(HandleT handle) {
-
-	std::wstring path;
-
-	path.resize(2048);
-
-	if (!GetModuleBaseNameW(handle, nullptr, path.data(), path.size())) {
-
-		LogE("Process") << "Could not fetch process name:";
-		LogE("Process") << getSystemErrorMessage();
-
-		return {};
-	}
-
-	SizeT end = path.find_first_of(L'\0');
-
-	if (end != path.npos)
-		path = path.substr(0, end);
-
-	return Path(path);
-
-}
-
-std::string Process::getWindowTitle(HandleT handle) {
-
-	u32 length = GetWindowTextLengthA(HWND(handle)) + 1;
-
-	std::string title;
-
-	title.resize(length);
-
-	GetWindowTextA(HWND(handle), title.data(), title.size());
-
-	return title;
+	return Path(Unicode::convertString<Unicode::UTF16, Unicode::UTF8>(filename));
 
 }
 
 
 
-void Process::createHandles() {
-
+void Process::createHandle() {
 	processHandle = std::make_unique<SafeHandle>();
-	threadHandle = std::make_unique<SafeHandle>();
-	windowHandle.close();
-
 }
 
-void Process::releaseHandles() {
 
-	processHandle->close();
-	threadHandle->close();
-	windowHandle.close();
 
-}
+void Process::openFromID(u32 id) {
 
-void Process::openFromInfo(const ProcessInfo& info) {
-	
-	releaseHandles();
-
-	executable = info.executable;
-	basePriority = info.basePriority;
-	processID = info.processID;
-	parentID = info.parentID;
-	threadID = info.threadID;
-	moduleID = info.moduleID;
-	handleCount = info.handleCount;
-	threadCount = info.threadCount;
+	release();
 
 	// Fetch process handle from process ID
-	getHandle();
-
-	// Fetch main window handle and title
-	getMainWindowTitle();
-
-}
-
-void Process::openFromID(u32 processID) {
-
-	releaseHandles();
-
-	this->processID = processID;
-
-	// Fetch process handle from process ID
-	HandleT handle = getHandle();
+	HandleT handle = OpenProcess(PROCESS_ALL_ACCESS, false, processID);
 
 	if (!handle)
 		return;
 
-	// Fetch executable path from process handle
-	getExecutablePath();
-
-	// Fetch main window handle and title
-	getMainWindowTitle();
+	processID = id;
+	processHandle->acquire(handle);
 
 }
+
+
+
+std::string Process::readOutputPipe(HandleT pipe, SizeT maxSize) {
+
+	constexpr SizeT bufferSize = 2048;
+	std::string str;
+
+	SizeT offset = 0;
+	i64 maxRead = maxSize;
+
+	while (maxRead > 0) {
+
+		SizeT toRead = maxSize < bufferSize ? maxSize : bufferSize;
+		str.resize(str.size() + toRead);
+
+		DWORD read = 0;
+		bool res = ReadFile(pipe, str.data() + offset, toRead, &read, nullptr);
+
+		if (!res) {
+
+			LogE("Process") << "Stdout pipe broken";
+			LogE("Process") << OS::getSystemErrorMessage();
+
+			str.resize(str.size() - toRead);
+			return str;
+
+		} else if (read != toRead) {
+
+			str.resize(str.size() - (toRead - read));
+			return str;
+
+		}
+
+		offset += read;
+		maxRead -= read;
+
+	}
+
+	return str;
+
+}
+
+
 
 std::vector<u32> Process::enumerateProcessIDs() {
 
 	std::vector<u32> list;
 
 	Detail::enumerateProcesses([&](const PROCESSENTRY32W& pe32) {
-
 		list.push_back(pe32.th32ProcessID);
-
 		return false;
 	});
 
@@ -450,30 +669,7 @@ std::vector<u32> Process::enumerateProcessIDs() {
 
 }
 
-std::vector<u32> Process::enumerateProcessIDs(const std::string& name) {
 
-	std::vector<u32> list;
-
-	Detail::enumerateProcesses([&](const PROCESSENTRY32W& pe32) {
-
-		std::wstring str;
-		str.resize(MAX_PATH);
-		str.assign(pe32.szExeFile);
-		str.shrink_to_fit();
-
-		Path path(str);
-
-		// TODO: case insensitive compare!!!!
-		if (path.getStem() == name) {
-			list.push_back(pe32.th32ProcessID);
-		}
-
-		return false;
-	});
-
-	return list;
-
-}
 
 std::vector<ProcessInfo> Process::enumerateProcessInformation() {
 
@@ -481,57 +677,27 @@ std::vector<ProcessInfo> Process::enumerateProcessInformation() {
 
 	Detail::enumerateProcesses([&](const PROCESSENTRY32W& pe32) {
 
-		std::wstring str;
-		str.resize(MAX_PATH);
-		str.assign(pe32.szExeFile);
-		str.shrink_to_fit();
+		HandleT handle = OpenProcess(PROCESS_QUERY_INFORMATION, false, pe32.th32ProcessID);
 
-		ProcessInfo& pi = list.emplace_back();
+		// Handle expired
+		if (!handle) {
+			return false;
+		}
 
-		pi.executable = Path(str);
+		ProcessInfo pi;
+		pi.executable = getExecutablePath(handle);
+
+		CloseHandle(handle);
+
 		pi.processID = pe32.th32ProcessID;
 		pi.parentID = pe32.th32ParentProcessID;
-		pi.moduleID = pe32.th32ModuleID;
-		pi.handleCount = pe32.cntUsage;
 		pi.threadCount = pe32.cntThreads;
 		pi.basePriority = pe32.pcPriClassBase;
 
-		return false;
-	});
-
-	return list;
-
-}
-
-std::vector<ProcessInfo> Process::enumerateProcessInformation(const std::string& name) {
-
-	std::vector<ProcessInfo> list;
-
-	Detail::enumerateProcesses([&](const PROCESSENTRY32W& pe32) {
-
-		std::wstring str;
-		str.resize(MAX_PATH);
-		str.assign(pe32.szExeFile);
-		str.shrink_to_fit();
-
-		Path path(str);
-
-		// TODO: case insensitive compare!!!!
-		if (path.getStem() == name) {
-
-			ProcessInfo& pi = list.emplace_back();
-
-			pi.executable = path;
-			pi.processID = pe32.th32ProcessID;
-			pi.parentID = pe32.th32ParentProcessID;
-			pi.moduleID = pe32.th32ModuleID;
-			pi.handleCount = pe32.cntUsage;
-			pi.threadCount = pe32.cntThreads;
-			pi.basePriority = pe32.pcPriClassBase;
-
-		}
+		list.emplace_back(pi);
 
 		return false;
+
 	});
 
 	return list;

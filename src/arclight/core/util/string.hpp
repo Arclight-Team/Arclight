@@ -17,20 +17,20 @@
 
 namespace String {
 
-	//Noexcept because the string is checked against any faults
-	constexpr std::string_view view(const std::string& str, SizeT start = 0, SizeT count = -1) noexcept {
+	template<CC::Char C>
+	constexpr std::basic_string_view<C> view(const std::basic_string<C>& str, SizeT start = 0, SizeT count = -1) noexcept {
 
 		if(start >= str.size()) {
-			return std::string_view();
+			return {};
 		}
 
 		if(count == -1) {
 			count = str.size() - start;
 		} else if (start + count >= str.size()) {
-			return std::string_view();
+			return {};
 		}
 
-		return std::string_view(&str[start], count);
+		return std::basic_string_view<C>(&str[start], count);
 
 	}
 

@@ -10,6 +10,7 @@
 #include "util/assert.hpp"
 #include "util/log.hpp"
 #include "locale/unicode.hpp"
+#include "os/process.hpp"
 #include "types.hpp"
 
 #include <string>
@@ -23,42 +24,14 @@
 
 Path Path::getApplicationDirectory() {
 
-	u32 length = 0x200;
-	std::vector<wchar_t> filename;
-
 	try {
 
-		filename.resize(length);
-
-		while(GetModuleFileNameW(nullptr, filename.data(), length) == length) {
-
-			if(length < 0x8000) {
-
-				length *= 2;
-				filename.resize(length);
-
-			} else {
-
-				/*
-					Ideally, this cannot happen because the windows path limit is specified to be 0x7FFF (excl. null terminator byte)
-					If this changes in future windows versions, long path names could fail since it would require to allocate fairly large buffers
-					This is why we stop here with an error.
-				*/
-				LogE("Path") << "Failed to query application directory path: Path too long";
-				return Path();
-
-			}
-
-		}
-		
-		std::string str = Unicode::convertString<Unicode::UTF16LE, Unicode::UTF8>(filename.data());
-
-		return Path(std::filesystem::path(str)).parent();
+		return Process::getCurrentExecutablePath().parent();
 
 	} catch (std::exception& e) {
 
 		LogE("Path").print("Failed to query application directory path: %s", e.what());
-		return Path();
+		return {};
 
 	}
 

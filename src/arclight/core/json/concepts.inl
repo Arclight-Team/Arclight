@@ -35,6 +35,6 @@ namespace CC {
 	concept JsonObject = CC::Equal<TT::RemoveCVRef<T>, ::JsonObject>;
 
 	template<class T>
-	concept JsonValue = JsonNull<T> || JsonBoolean<T> || JsonNumber<T> || JsonString<T> || JsonArray<T> || JsonObject<T>;
+	concept JsonType = JsonNull<T> || JsonBoolean<T> || JsonNumber<T> || JsonString<T> || JsonArray<T> || JsonObject<T>;
 
 }

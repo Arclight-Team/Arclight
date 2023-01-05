@@ -3,7 +3,7 @@
  *
  *	 This file is part of Arclight. All rights reserved.
  *
- *	 sha0.hpp
+ *	 sha1.hpp
  */
 
 #pragma once

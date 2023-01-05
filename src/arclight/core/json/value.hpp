@@ -15,6 +15,7 @@
 
 
 class JsonValue {
+
 public:
 
 	using StringType = Json::StringType;
@@ -109,7 +110,7 @@ public:
 
 private:
 
-	template<CC::JsonValue Out>
+	template<CC::JsonType Out>
 	const Out& safeCastRef() const {
 
 		constexpr Type targetType = Json::typeOf<Out>();
@@ -122,7 +123,7 @@ private:
 
 	}
 
-	template<CC::JsonValue Out>
+	template<CC::JsonType Out>
 	Out safeCast() const {
 
 		constexpr Type targetType = Json::typeOf<Out>();
@@ -145,7 +146,7 @@ private:
 
 	}
 
-	template<CC::JsonValue Value>
+	template<CC::JsonType Value>
 	const Value& defaultCastRef(const Value& v) const {
 
 		constexpr Type targetType = Json::typeOf<Value>();
@@ -158,7 +159,7 @@ private:
 
 	}
 
-	template<CC::JsonValue Value>
+	template<CC::JsonType Value>
 	Value defaultCast(const Value& v) const {
 
 		constexpr Type targetType = Json::typeOf<Value>();

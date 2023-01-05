@@ -201,7 +201,7 @@ namespace Math {
 	template<CC::Float F>
 	constexpr auto sign(F value) noexcept {
 
-		if constexpr (std::is_constant_evaluated()) {
+		if (std::is_constant_evaluated()) {
 			return less(value, F(0)) ? -1 : 1;
 		}
 
@@ -212,7 +212,7 @@ namespace Math {
 	template<CC::Arithmetic A>
 	constexpr auto copysign(A value, A sgn) noexcept {
 
-		if constexpr (std::is_constant_evaluated()) {
+		if (std::is_constant_evaluated()) {
 			return sign(value) == sign(sgn) ? value : -value;
 		}
 

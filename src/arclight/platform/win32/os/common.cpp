@@ -7,10 +7,8 @@
  */
 
 #include "common.hpp"
+#include "locale/unicode.hpp"
 
-#ifndef NOMINMAX
-#define NOMINMAX 1
-#endif
 #include <Windows.h>
 
 
@@ -19,7 +17,7 @@ void SafeHandle::close() {
 	if (valid()) {
 
 		CloseHandle(handle);
-		handle = nullptr;
+		handle = InvalidHandle;
 
 	}
 
@@ -34,29 +32,33 @@ void SafeHandle::acquire(HandleT handle) {
 
 
 
-u32 getSystemError() {
+u32 OS::getSystemError() {
 	return GetLastError();
 }
 
-std::string getSystemMessage(u32 messageID) {
+std::string OS::getSystemMessage(u32 messageID) {
 
-	std::string message;
-
-	message.resize(2048);
+	std::wstring message;
+	message.resize(128);
 
 	WORD language = LANG_USER_DEFAULT;
 
-	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, messageID, language, message.data(), message.size(), nullptr);
+	while (message.size() < 60000) {
 
-	SizeT end = message.find_first_of('\0');
+		u32 len = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, messageID, language, message.data(), message.size(), nullptr);
 
-	if (end != message.npos)
-		return message.substr(0, end);
+		if (len != 0) {
+			return Unicode::convertString<Unicode::UTF16, Unicode::UTF8>({ message.data(), len });
+		}
 
-	return message;
+		message.resize(message.size() * message.size());
+
+	}
+
+	return "Unknown error";
 
 }
 
-std::string getSystemErrorMessage() {
+std::string OS::getSystemErrorMessage() {
 	return getSystemMessage(getSystemError());
 }

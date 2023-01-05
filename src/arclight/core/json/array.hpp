@@ -32,7 +32,7 @@ public:
 
 	JsonArray();
 
-	template<CC::JsonValue T>
+	template<CC::JsonType T>
 	JsonArray(std::initializer_list<T> list) {
 		insert(list);
 	}
@@ -41,12 +41,12 @@ public:
 	JsonValue& emplace();
 	void append(const JsonValue& value);
 
-	template<CC::JsonValue T>
+	template<CC::JsonType T>
 	void append(const T& value) {
 		items.push_back(value);
 	}
 
-	template<CC::JsonValue T>
+	template<CC::JsonType T>
 	void insert(std::initializer_list<T> list) {
 
 		for (SizeT i = 0; i < list.size(); i++)
