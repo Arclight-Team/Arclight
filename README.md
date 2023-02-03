@@ -1,6 +1,6 @@
 <img src="assets/logo.png" height="150" align="right">
 
-# Arclight - High-performance C++20 ecosystem
+# Arclight - High-performance C++23 ecosystem
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/424f1b0554d8435e90b66ee8bcca0c36)](https://www.codacy.com/gh/Arclight-Team/Arclight/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Arclight-Team/Arclight&amp;utm_campaign=Badge_Grade)
 [![GitHub Stars](https://badgen.net/github/stars/Arclight-Team/Arclight)](https://github.com/Arclight-Team/Arclight/stargazers/)
@@ -12,7 +12,7 @@
 Arclight is an ecosystem intended to help developers in creating new C++ projects quickly without having to setup a common codebase everytime.
 It offers a wide range of features, ranging from basic utilities over image manipulation up to 3D rendering.
 
-Additionally, all code is written in C++20 by making heavy use of new concepts introduced in later C++ standards.
+Additionally, all code is written in C++23 by making heavy use of new concepts introduced in later C++ standards.
 No code cruft, no old libraries from over 20 years, no license confusion: Arclight unifies all aspects of application development into one toolbox.
 
 The code is not aimed towards a particular audience; Instead, everyone can write applications with it, no matter your level of profession or skill.
@@ -32,7 +32,7 @@ The following features have been fully implemented:
 - Advanced input management
 - Image manipulation library, with full .bmp support, baseline JPEG
 - Mathematics (Vectors, Matrices, Quaternions, etc.)
-- Fastest C++20 Noise library for Perlin, Simplex and Worley noise up to 4D
+- Fastest C++23 Noise library for Perlin, Simplex and Worley noise up to 4D
 - Logging & Debugging
 - Command-line argument parser
 - Timing utilities
@@ -97,8 +97,6 @@ Libraries go into `lib/LibraryName/`. Then, simply invoke CMake to build all of 
 The first release is expected to be in 2023. Until then, there will be a consistent, intuitive and well-tested API, examples for different use cases and removal of unused dependencies.
 We also plan an easy-to-use build system through Arclight Studio, a tool to manage different aspects of application development with Arclight and C++.
 With the first release the license will be revealed as well.
-
-Arclight will move to C++23 as soon as support improves for major compilers to ensure a modern and future-proof API.
 
 ## Support
 If you want to support this project, feel free to donate as soon as donation is set up.
