@@ -112,7 +112,7 @@ namespace OS::Registry {
 			return {Key::Type::None, {}};
 		}
 
-		DWORD type;
+		DWORD type = 0;
 		std::vector<u8> buffer(8);
 		DWORD bufferSize = buffer.size();
 		std::wstring valueStr = Unicode::convertString<Unicode::UTF8, Unicode::UTF16LE>(value);

@@ -15,110 +15,115 @@
 #include <memory>
 
 
-/*
-	Basic process information
-*/
-struct ProcessInfo {
 
-	inline ProcessInfo() : basePriority(0), processID(0), parentID(0), threadCount(0) {}
+namespace OS {
 
-	Path executable;
-	u64 basePriority;
-	u32 processID;
-	u32 parentID;
-	u32 threadCount;
+	/*
+		Basic process information
+	*/
+	struct ProcessInfo {
 
-};
+		inline ProcessInfo() : basePriority(0), processID(0), parentID(0), threadCount(0) {}
 
-enum class ProcessConsoleMode {
+		Path executable;
+		u64 basePriority;
+		u32 processID;
+		u32 parentID;
+		u32 threadCount;
 
-	Inherit,		// Inherit from parent, child process dies with parent
-	New,			// New, visible console separate from parent
-	Invisible,		// Invisible console separate from parent
-	Detached		// No console
+	};
 
-};
+	enum class ProcessConsoleMode {
+
+		Inherit,		// Inherit from parent, child process dies with parent
+		New,			// New, visible console separate from parent
+		Invisible,		// Invisible console separate from parent
+		Detached		// No console
+
+	};
 
 
-/*
-	Parameters required to start a new process
-*/
-struct ProcessStartInfo {
+	/*
+		Parameters required to start a new process
+	*/
+	struct ProcessStartInfo {
 
-	Path executable;
-	Path workingDirectory;
-	std::string arguments;
-	std::vector<std::string> environment;
+		Path executable;
+		Path workingDirectory;
+		std::string arguments;
+		std::vector<std::string> environment;
 
-	ProcessConsoleMode conMode = ProcessConsoleMode::Inherit;
-	bool separateGroup = false;		// Ignored with ProcessConsoleMode::New
-	bool moduleAsArgv0 = true;
+		ProcessConsoleMode conMode = ProcessConsoleMode::Inherit;
+		bool separateGroup = false;		// Ignored with ProcessConsoleMode::New
+		bool moduleAsArgv0 = true;
 
-	bool attachStdIn = false;
-	bool attachStdOut = false;
-	bool attachStdError = false;
+		bool attachStdIn = false;
+		bool attachStdOut = false;
+		bool attachStdError = false;
 
-};
+	};
 
-class Process {
+	class Process {
 
-public:
+	public:
 
-	constexpr static u32 invalidProcessID = -1;
-	
-	using HandleT = Handle::HandleT;
+		constexpr static u32 invalidProcessID = -1;
 
-	Process();
+		using HandleT = Handle::HandleT;
 
-	Process(Process&&) = default;
-	Process& operator=(Process&&) = default;
+		Process();
 
-	bool start(const ProcessStartInfo& startInfo);
-	bool kill();
-	bool waitForExit(u32 milliseconds = -1);
-	bool active() const;
-	bool isCurrent() const;
-	void release();
-	u32 getResultCode() const;
+		Process(Process&&) = default;
+		Process& operator=(Process&&) = default;
 
-	std::string readStdout(SizeT maxSize = 32768);
-	std::string readStderr(SizeT maxSize = 32768);
-	bool writeStdin(std::string_view str);
+		bool start(const ProcessStartInfo& startInfo);
+		bool kill();
+		bool waitForExit(u32 milliseconds = -1);
+		bool active() const;
+		bool isCurrent() const;
+		void release();
+		u32 getResultCode() const;
 
-	HandleT getHandle();
-	Path getExecutablePath();
+		std::string readStdout(SizeT maxSize = 32768) const;
+		std::string readStderr(SizeT maxSize = 32768) const;
+		bool writeStdin(std::string_view str);
 
-	HandleT getMainWindowHandle() const;
+		HandleT getHandle();
+		Path getExecutablePath();
 
-	inline HandleT getHandle() const {
-		return processHandle->handle;
-	}
+		HandleT getMainWindowHandle() const;
 
-	static u32 getCurrentProcessID();
-	static Process getCurrentProcess();
-	static Path getCurrentExecutablePath();
+		inline HandleT getHandle() const {
+			return processHandle->handle;
+		}
 
-	static Process getProcessByID(u32 id);
-	static std::vector<u32> getProcessIDs();
-	static std::vector<Process> getProcesses();
+		static u32 getCurrentProcessID();
+		static Process getCurrentProcess();
+		static Path getCurrentExecutablePath();
 
-	static Path getExecutablePath(HandleT handle);
+		static Process getProcessByID(u32 id);
+		static std::vector<u32> getProcessIDs();
+		static std::vector<Process> getProcesses();
 
-private:
+		static Path getExecutablePath(HandleT handle);
 
-	void createHandle();
-	void openFromID(u32 id);
+	private:
 
-	std::string readOutputPipe(HandleT pipe, SizeT maxSize);
+		void createHandle();
+		void openFromID(u32 id);
 
-	static std::vector<u32> enumerateProcessIDs();
-	static std::vector<ProcessInfo> enumerateProcessInformation();
+		static std::string readOutputPipe(HandleT pipe, SizeT maxSize);
 
-	std::unique_ptr<SafeHandle> processHandle;
-	std::unique_ptr<SafeHandle> pipeInHandle;
-	std::unique_ptr<SafeHandle> pipeOutHandle;
-	std::unique_ptr<SafeHandle> pipeErrorHandle;
+		static std::vector<u32> enumerateProcessIDs();
+		static std::vector<ProcessInfo> enumerateProcessInformation();
 
-	u32 processID;
+		std::unique_ptr<SafeHandle> processHandle;
+		std::unique_ptr<SafeHandle> pipeInHandle;
+		std::unique_ptr<SafeHandle> pipeOutHandle;
+		std::unique_ptr<SafeHandle> pipeErrorHandle;
 
-};
+		u32 processID;
+
+	};
+
+}

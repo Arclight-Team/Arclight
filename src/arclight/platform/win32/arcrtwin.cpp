@@ -7,39 +7,14 @@
  */
 
 #include "util/log.hpp"
-
-#include <Windows.h>
-#include <CommCtrl.h>
+#include "os/os.hpp"
 
 
 
 namespace ArcRuntime {
 
 	bool platformInit() {
-
-		INITCOMMONCONTROLSEX commctrl;
-		commctrl.dwSize = sizeof(commctrl);
-		commctrl.dwICC = ICC_WIN95_CLASSES | ICC_USEREX_CLASSES | ICC_STANDARD_CLASSES | ICC_PAGESCROLLER_CLASS | ICC_NATIVEFNTCTL_CLASS | ICC_LINK_CLASS | ICC_INTERNET_CLASSES | ICC_DATE_CLASSES | ICC_COOL_CLASSES;
-
-		if (!InitCommonControlsEx(&commctrl)) {
-			LogE("Runtime") << "Failed to initialize CommCtrl";
-			return false;
-		}
-
-		if (CoInitialize(nullptr)) {
-			LogE("Runtime") << "Failed to initialize COM";
-			return false;
-		}
-
-#ifndef ARC_WIN_DISABLE_CONSOLE
-		if (!SetConsoleOutputCP(CP_UTF8)) {
-			LogE("Runtime") << "Console failed to switch to Unicode";
-			return false;
-		}
-#endif
-
-		return true;
-
+		return OS::init();
 	}
 
 }

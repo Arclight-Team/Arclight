@@ -7,23 +7,39 @@
  */
 
 #include "systemsound.hpp"
+#include "util/assert.hpp"
 
 #include <Windows.h>
 
 
 
-void OS::SystemSound::play(const std::string& sound) {
+void OS::SystemSound::play(Sound sound) {
 
-	if (sound == "Info") {
-		MessageBeep(MB_ICONINFORMATION);
-	} else if (sound == "Warning") {
-		MessageBeep(MB_ICONWARNING);
-	} else if (sound == "Error") {
-		MessageBeep(MB_ICONERROR);
-	} else if (sound == "Question") {
-		MessageBeep(MB_ICONQUESTION);
-	} else if (sound == "Ok") {
-		MessageBeep(MB_OK);
+	switch (sound) {
+
+		case Sound::Info:
+			MessageBeep(MB_ICONINFORMATION);
+			break;
+
+		case Sound::Warning:
+			MessageBeep(MB_ICONWARNING);
+			break;
+
+		case Sound::Error:
+			MessageBeep(MB_ICONERROR);
+			break;
+
+		case Sound::Question:
+			MessageBeep(MB_ICONQUESTION);
+			break;
+
+		default:
+			arc_force_assert("Illegal sound parameter");
+
+		case Sound::Ok:
+			MessageBeep(MB_OK);
+			break;
+
 	}
 
 }

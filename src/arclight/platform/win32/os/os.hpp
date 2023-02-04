@@ -8,7 +8,8 @@
 
 #pragma once
 
-#include "process.hpp"
+#include "os/process.hpp"
+#include "filesystem/path.hpp"
 
 #include <string>
 #include <optional>
@@ -27,9 +28,6 @@ namespace OS {
 	bool restart(bool force = false);
 	bool shutdown(bool force = false);
 
-	bool addToStartup(const std::string& name, const Path& path = Process::getCurrentProcess().getExecutablePath(), bool allUsers = false);
-	bool removeFromStartup(const std::string& name, bool allUsers = false);
-
 	enum class LaunchAction {
 		Default,
 		Edit,
@@ -41,6 +39,10 @@ namespace OS {
 		RunAsAdmin
 	};
 
+	bool init();
+	void finish();
+
+	Process invoke(const std::string& command, const Path& cwd = "", bool enableRedirection = false);
 	bool launch(LaunchAction action, const Path& path, const std::string& params = "", bool switchCWD = false);
 
 }

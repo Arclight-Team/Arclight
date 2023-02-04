@@ -26,7 +26,7 @@ Path Path::getApplicationDirectory() {
 
 	try {
 
-		return Process::getCurrentExecutablePath().parent();
+		return OS::Process::getCurrentExecutablePath().parent();
 
 	} catch (std::exception& e) {
 

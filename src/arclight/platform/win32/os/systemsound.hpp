@@ -14,6 +14,14 @@
 
 namespace OS::SystemSound {
 
-	void play(const std::string& sound);
+	enum class Sound {
+		Info,
+		Warning,
+		Error,
+		Question,
+		Ok
+	};
+
+	void play(Sound sound);
 
 };

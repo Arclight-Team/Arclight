@@ -9,14 +9,16 @@
 #include "os.hpp"
 #include "registry.hpp"
 #include "types.hpp"
+#include "notification.hpp"
 #include "locale/unicode.hpp"
 #include "filesystem/fsentry.hpp"
+#include "util/log.hpp"
 
 #include <vector>
 
 #include "Windows.h"
 #include "Shlwapi.h"
-
+#include "Commctrl.h"
 
 
 std::optional<std::string> OS::Environment::getVariable(const std::string& var) {
@@ -123,29 +125,63 @@ static std::string dispatchPath(Path path) {
 
 
 
-bool OS::addToStartup(const std::string& name, const Path& path, bool allUsers) {
+bool OS::init() {
 
-	std::optional<OS::Registry::Key> key = OS::Registry::openKey(allUsers ? OS::Registry::RootKey::LocalMachine : OS::Registry::RootKey::CurrentUser, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", OS::Registry::KeyAccess::Write);
+	INITCOMMONCONTROLSEX commctrl;
+	commctrl.dwSize = sizeof(commctrl);
+	commctrl.dwICC = ICC_WIN95_CLASSES | ICC_USEREX_CLASSES | ICC_STANDARD_CLASSES | ICC_PAGESCROLLER_CLASS | ICC_NATIVEFNTCTL_CLASS | ICC_LINK_CLASS | ICC_INTERNET_CLASSES | ICC_DATE_CLASSES | ICC_COOL_CLASSES;
 
-	if (key.has_value()) {
-		return key->setString(name, dispatchPath(path));
+	if (!InitCommonControlsEx(&commctrl)) {
+		LogE("Runtime") << "Failed to initialize CommCtrl";
+		return false;
 	}
 
-	return false;
+	if (CoInitialize(nullptr)) {
+		LogE("Runtime") << "Failed to initialize COM";
+		return false;
+	}
+
+#ifndef ARC_WIN_DISABLE_CONSOLE
+	if (!SetConsoleOutputCP(CP_UTF8)) {
+		LogE("Runtime") << "Console failed to switch to Unicode";
+		return false;
+	}
+#endif
+
+	return true;
 
 }
 
 
 
-bool OS::removeFromStartup(const std::string& name, bool allUsers) {
+void OS::finish() {
 
-	std::optional<OS::Registry::Key> key = OS::Registry::openKey(allUsers ? OS::Registry::RootKey::LocalMachine : OS::Registry::RootKey::CurrentUser, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", OS::Registry::KeyAccess::Write);
+	CoUninitialize();
+	Notification::purgeAll();
 
-	if (key.has_value()) {
-		return key->eraseValue(name);
+}
+
+
+
+OS::Process OS::invoke(const std::string& command, const Path& cwd, bool enableRedirection) {
+
+	ProcessStartInfo info;
+	info.executable = "C:\\Windows\\System32\\cmd.exe";
+	info.moduleAsArgv0 = true;
+	info.attachStdIn = enableRedirection;
+	info.attachStdOut = enableRedirection;
+	info.attachStdError = enableRedirection;
+	info.arguments = "/Q /C \"" + command + "\"";
+	info.conMode = ProcessConsoleMode::Invisible;
+	info.workingDirectory = cwd;
+
+	Process p;
+
+	if (!p.start(info)) {
+		LogE("OS") << "Failed to invoke command '" << command << "'";
 	}
 
-	return false;
+	return p;
 
 }
 
