@@ -80,7 +80,7 @@ class ConcurrentQueue final {
 	private:
 
 		std::atomic<u64> index;
-		alignas(T) Byte data[sizeof(T)];
+		alignas(T) u8 data[sizeof(T)];
 
 	};
 

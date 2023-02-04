@@ -284,7 +284,7 @@ public:
 	/*
 		Returns the std::type_info struct of the underlying object
 	*/
-	const std::type_info& getTypeInfo() const noexcept {
+	constexpr const std::type_info& getTypeInfo() const noexcept {
 
 		if(!hasValue()) {
 			return typeid(void);

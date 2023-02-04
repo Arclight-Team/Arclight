@@ -8,6 +8,7 @@
 
 #include "thread.hpp"
 #include "util/log.hpp"
+#include "os/hardware.hpp"
 
 #include <chrono>
 #include <utility>
@@ -144,5 +145,5 @@ std::thread::id Thread::getID() const noexcept {
 
 
 u32 Thread::getHardwareThreadCount() noexcept {
-	return std::thread::hardware_concurrency();
+	return OS::Hardware::getHardwareConcurrency();
 }
