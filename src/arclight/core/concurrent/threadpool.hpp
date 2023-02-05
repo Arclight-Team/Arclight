@@ -17,40 +17,38 @@
 
 class ThreadPool {
 
-public:
-
 	constexpr static SizeT PriorityCount = 3;
 	constexpr static SizeT MaxPriority = PriorityCount - 1;
 	constexpr static u32 DynamicScale = 10;
 	constexpr static u32 MaxTasks = 512;
 
+public:
 
-	ThreadPool() : maxThreads(0) {}
+	ThreadPool();
 	~ThreadPool();
 
 	void create(SizeT threadCount = Thread::getHardwareThreadCount());
 	void destroy();
 
 	bool isActive() const;
+	SizeT getThreadCount() const;
 	SizeT getTotalTaskCount() const;
+	SizeT getMaxTaskCount() const;
 
+	void scale(SizeT threadCount);
 	void assistDispatch();
 
-	template<class Func, class... Args> requires ((!CC::LValueRefType<Args> && ...) && CC::Invocable<Func, Args&&...>)
-	Task run(u32 priority, Func&& func, Args&&... args) {
+	template<class Func, class... Args> requires CC::Invocable<Func, Args&&...>
+	Task addTask(u32 priority, Func&& func, Args&&... args) {
 
 		arc_assert(priority < PriorityCount, "Illegal thread priority %d", priority);
-
-		if (!isActive()) {
-
-			LogW("Thread Pool") << "Thread pool not created";
-			return {};
-
-		}
 
 		auto [task, exec] = TaskExecutable::createTask(func, std::forward<Args>(args)...);
 
 		while (!context->taskQueues[priority].push(std::move(exec)));
+
+		context->tasks.fetch_add(1);
+		context->tasks.notify_one();
 
 		return std::move(task);
 
@@ -60,23 +58,19 @@ private:
 
 	using TaskQueue = ConcurrentQueue<TaskExecutable, MaxTasks>;
 
-	class ThreadPoolContext {
-
-	public:
-
-		ThreadPoolContext() = default;
+	struct ThreadPoolContext {
 
 		TaskQueue taskQueues[PriorityCount];
-		std::atomic_flag active;
+		std::atomic_uint64_t tasks;
+		std::vector<std::atomic_flag> active;
 
 	};
 
-	static void threadMain(ThreadPoolContext* context);
+
+	static void threadMain(ThreadPoolContext* context, SizeT threadID);
+
 
 	std::vector<Thread> threads;
-	std::mutex scaleMutex;
-	SizeT maxThreads;
-
 	std::unique_ptr<ThreadPoolContext> context;
 
 };

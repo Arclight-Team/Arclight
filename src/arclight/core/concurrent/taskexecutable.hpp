@@ -21,7 +21,7 @@ public:
 	void execute() noexcept;
 	Task getTask() noexcept;
 
-	template<class Func, class... Args> requires ((!CC::LValueRefType<Args> && ...) && CC::Invocable<Func, Args&&...>)
+	template<class Func, class... Args> requires CC::Invocable<Func, Args&&...>
 	static std::pair<Task, TaskExecutable> createTask(Func&& func, Args&&... args) {
 
 		std::function<Any()> invocable = [func, ...args = std::move(args)]() -> Any {

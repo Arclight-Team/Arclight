@@ -28,7 +28,7 @@ public:
 	Thread(Thread&& thread) noexcept;
 	Thread& operator=(Thread&& thread) noexcept;
 
-	template<class Function, class... Args> requires ((!CC::LValueRefType<Args> && ...) && CC::Invocable<Function, Args&&...>)
+	template<class Function, class... Args> requires CC::Invocable<Function, Args&&...>
 	bool start(Function&& f, Args&&... args) {
 
 		//Start only if it's not running already

@@ -10,6 +10,8 @@
 
 
 
+ThreadPool::ThreadPool() : context(std::make_unique<ThreadPoolContext>()) {}
+
 ThreadPool::~ThreadPool() {
 	destroy();
 }
@@ -23,15 +25,14 @@ void ThreadPool::create(SizeT threadCount) {
 		return;
 	}
 
-	context = std::make_unique<ThreadPoolContext>();
-
-	maxThreads = threadCount;
 	threads.resize(threadCount);
+	context->active = std::vector<std::atomic_flag>(threadCount);
 
-	context->active.test_and_set();
+	for (SizeT i = 0; i < threadCount; i++) {
 
-	for (Thread& thread : threads) {
-		thread.start(threadMain, context.get());
+		context->active[i].test_and_set();
+		threads[i].start(threadMain, context.get(), i);
+
 	}
 
 }
@@ -44,21 +45,37 @@ void ThreadPool::destroy() {
 		return;
 	}
 
-	context->active.clear();
+	// If we support chained tasks at some point, lock here
+	while (context->tasks.load()) {
+		assistDispatch();
+	}
+
+	for (std::atomic_flag& f : context->active) {
+		f.clear();
+	}
+
+	context->tasks.fetch_add(1);
+	context->tasks.notify_all();
 
 	for (Thread& thread : threads) {
 		thread.finish();
 	}
 
 	threads.clear();
-	context.reset();
+	context->active.clear();
 
 }
 
 
 
 bool ThreadPool::isActive() const {
-	return context != nullptr;
+	return !threads.empty();
+}
+
+
+
+SizeT ThreadPool::getThreadCount() const {
+	return threads.size();
 }
 
 
@@ -69,13 +86,54 @@ SizeT ThreadPool::getTotalTaskCount() const {
 		return 0;
 	}
 
-	SizeT tasks;
+	return context->tasks.load();
 
-	for (const TaskQueue& queue : context->taskQueues) {
-		tasks += queue.size();
+}
+
+
+
+SizeT ThreadPool::getMaxTaskCount() const {
+	return MaxTasks;
+}
+
+
+
+void ThreadPool::scale(SizeT threadCount) {
+
+	if (!isActive()) {
+		return;
 	}
 
-	return tasks;
+	SizeT currentThreadCount = getThreadCount();
+
+	// Clear active flags
+	for (SizeT i = 0; i < currentThreadCount; i++) {
+		context->active[i].clear();
+	}
+
+	// Trick threads into active mode
+	context->tasks.fetch_add(1);
+	context->tasks.notify_all();
+
+	// Wait for thread termination
+	for (SizeT i = 0; i < currentThreadCount; i++) {
+		threads[i].finish();
+	}
+
+	// Restore previous state
+	context->tasks.fetch_sub(1);
+
+	// Resize to new thread count
+	threads.resize(threadCount);
+	context->active = std::vector<std::atomic_flag>(threadCount);
+
+	// Launch threads
+	for (SizeT i = 0; i < threadCount; i++) {
+
+		context->active[i].test_and_set();
+		threads[i].start(threadMain, context.get(), i);
+
+	}
 
 }
 
@@ -88,33 +146,31 @@ void ThreadPool::assistDispatch() {
 	}
 
 	TaskExecutable exec;
-	bool done = true;
 
-	do {
-
-		done = true;
+	while (context->tasks.load() > 0) {
 
 		for (TaskQueue& queue : context->taskQueues) {
 
 			if (queue.pop(exec)) {
 
+				context->tasks.fetch_sub(1);
 				exec.execute();
-				done = false;
+
 				break;
 
 			}
 
 		}
 
-	} while (!done);
+	}
 
 }
 
 
 
-void ThreadPool::threadMain(ThreadPoolContext* context) {
+void ThreadPool::threadMain(ThreadPoolContext* context, SizeT threadID) {
 
-	while (context->active.test()) {
+	while (context->active[threadID].test_and_set()) {
 
 		for (TaskQueue& queue : context->taskQueues) {
 
@@ -123,12 +179,16 @@ void ThreadPool::threadMain(ThreadPoolContext* context) {
 
 			if (success) {
 
+				context->tasks.fetch_sub(1);
 				exec.execute();
+
 				break;
 
 			}
 
 		}
+
+		context->tasks.wait(0);
 
 	}
 
