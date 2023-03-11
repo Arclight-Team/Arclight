@@ -121,7 +121,7 @@ namespace ArcRuntime {
 		try {
 
 #ifdef ARC_OS_WINDOWS
-			MessageBox::create("Arclight - Application terminated", "The application has been terminated.\nAn unhandled exception has been thrown.\n" + ex + "\n" + st, MessageBox::Type::Accept, MessageBox::Icon::Error);
+			OS::MessageBox::create("Arclight - Application terminated", "The application has been terminated.\nAn unhandled exception has been thrown.\n" + ex + "\n" + st, OS::MessageBox::Type::Accept, OS::MessageBox::Icon::Error);
 #endif
 
 		} catch (...) {}
