@@ -131,7 +131,7 @@ bool JsonDocument::readComment(Iterator& it) {
 
 }
 
-void JsonDocument::readString(Iterator& it, StringType& string) {
+void JsonDocument::readString(Iterator& it, StringType& string, bool name) {
 
 	if (it.cur[0] != '"')
 		throw JsonSyntaxError("Missing string opener");
@@ -169,6 +169,13 @@ void JsonDocument::readString(Iterator& it, StringType& string) {
 		} else {
 
 			switch (ch) {
+
+				// Names cannot contain tabs
+			case '\t':
+				if (!name)
+					break;
+				
+				throw JsonSyntaxError("Tab found inside name");
 
 				// String terminator
 			case '\"':
@@ -288,7 +295,7 @@ void JsonDocument::readValue(Iterator& it, JsonValue& value) {
 		{
 			StringType string;
 
-			readString(it, string);
+			readString(it, string, false);
 		
 			value = string;
 			return;
@@ -383,7 +390,7 @@ bool JsonDocument::readName(Iterator& it, StringType& name, bool& closed) {
 			return closed = true;
 
 		case '"':
-			readString(it, name);
+			readString(it, name, true);
 			return true;
 
 		}
