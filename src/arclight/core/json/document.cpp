@@ -131,15 +131,66 @@ bool JsonDocument::readComment(Iterator& it) {
 
 }
 
-bool JsonDocument::readString(Iterator& it, StringType& string) {
+void JsonDocument::readString(Iterator& it, StringType& string) {
 
 	if (it.cur[0] != '"')
-		return false;
+		throw JsonSyntaxError("Missing string opener");
+
+	bool stop = false;
+	bool escape = false;
+	bool terminated = false;
 
 	for (it.cur++; it.cur < it.end; it.cur++) {
 
 		auto ch = it.cur[0];
-		if (ch == '"')
+
+		if (escape) {
+
+			switch (ch) {
+
+			case '\"':
+			case '\\':
+			case '/':
+			case 'b':
+			case 'f':
+			case 'n':
+			case 'r':
+			case 't':
+				escape = false;
+				break;
+
+				// Invalid escape sequence
+			default:
+				throw JsonSyntaxError("Invalid escape sequence found");
+				return;
+
+			}
+
+		} else {
+
+			switch (ch) {
+
+				// String terminator
+			case '\"':
+				terminated = true;
+				[[fallthrough]];
+
+				// Strings cannot contain newlines
+			case '\n':
+			case '\r':
+				stop = true;
+				break;
+
+				// Escape sequence start
+			case '\\':
+				escape = true;
+				break;
+
+			}
+
+		}
+
+		if (stop)
 			break;
 
 		string += it.cur[0];
@@ -147,7 +198,13 @@ bool JsonDocument::readString(Iterator& it, StringType& string) {
 	}
 
 	// Unterminated string
-	return !it.overflown();
+	if (!terminated) {
+		throw JsonSyntaxError("Unterminated string sequence found");
+	}
+
+	if (it.overflown()) {
+		throw JsonSyntaxError("Unexpected EOF while reading string");
+	}
 
 }
 
@@ -231,9 +288,8 @@ void JsonDocument::readValue(Iterator& it, JsonValue& value) {
 		{
 			StringType string;
 
-			if (!readString(it, string))
-				throw JsonSyntaxError("Unexpected EOF while reading string");
-
+			readString(it, string);
+		
 			value = string;
 			return;
 		}
@@ -327,12 +383,8 @@ bool JsonDocument::readName(Iterator& it, StringType& name, bool& closed) {
 			return closed = true;
 
 		case '"':
-		{
-			if (!readString(it, name))
-				throw JsonSyntaxError("Unexpected EOF while reading string");
-
+			readString(it, name);
 			return true;
-		}
 
 		}
 

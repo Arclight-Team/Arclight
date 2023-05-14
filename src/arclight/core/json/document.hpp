@@ -97,7 +97,7 @@ private:
 	static constexpr u32 ReadStepComma = 3;
 
 	bool readComment(Iterator& it);
-	bool readString(Iterator& it, StringType& string);
+	void readString(Iterator& it, StringType& string);
 	bool readNumber(Iterator& it, JsonValue& value);
 	void readValue(Iterator& it, JsonValue& value);
 	bool readName(Iterator& it, StringType& name, bool& closed);
