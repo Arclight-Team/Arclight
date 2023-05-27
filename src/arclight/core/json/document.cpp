@@ -621,12 +621,40 @@ void JsonDocument::readObject(Iterator& it, JsonObject& object) {
 
 
 
+void JsonDocument::writeString(StringType& string, const StringType& value) const {
+
+	string += '"';
+
+	for (auto ch : value) {
+
+		switch (ch) {
+
+		case '\"': string += "\\\""; break;
+		case '\\': string += "\\\\"; break;
+		case '\b': string += "\b"; break;
+		case '\f': string += "\f"; break;
+		case '\n': string += "\n"; break;
+		case '\r': string += "\r"; break;
+		case '\t': string += "\t"; break;
+
+		default:
+			string += ch;
+			break;
+
+		}
+
+	}
+
+	string += '"';
+
+}
+
 void JsonDocument::writeValue(StringType& string, const JsonValue& value, bool compact, u32 level) const {
 
 	switch (value.getType()) {
 
 		case Json::Type::String:
-			string += '"' + value.toString() + '"';
+			writeString(string, value.toString());
 			break;
 
 		case Json::Type::Number:
@@ -725,7 +753,9 @@ void JsonDocument::writeObject(StringType& string, const JsonObject& object, boo
 		if (!compact)
 			string += '\n' + lineTab;
 
-		string += '"' + name + "\":";
+		writeString(string, name);
+
+		string += ':';
 
 		if (!compact)
 			string += ' ';
