@@ -24,7 +24,7 @@ public:
 	Path();
 	Path(const char* path, bool annotated = false);
 	Path(const std::string& path, bool annotated = false);
-	explicit Path(std::filesystem::path path);
+	explicit Path(const std::filesystem::path& path);
 
 	Path& set(Path&& path);
 	Path& set(const Path& path);

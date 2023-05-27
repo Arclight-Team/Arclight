@@ -19,7 +19,7 @@ Path::Path(const char* path, bool annotated) : Path(std::string(path), true) {}
 
 Path::Path(const std::string& path, bool annotated) : path(annotated ? convertAnnotatedPath(path) : path) {}
 
-Path::Path(std::filesystem::path path) : path(std::move(path)) {}
+Path::Path(const std::filesystem::path& path) : path(path) {}
 
 
 
@@ -222,13 +222,13 @@ bool Path::equivalent(const Path& other) const {
 
 
 Path Path::root() const {
-	return Path(std::filesystem::canonical(path).root_path());
+	return Path(path.root_path());
 }
 
 
 
 Path Path::parent() const {
-	return Path(std::filesystem::canonical(path).parent_path());
+	return Path(path.parent_path());
 }
 
 

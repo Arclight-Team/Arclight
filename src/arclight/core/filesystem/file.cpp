@@ -121,7 +121,7 @@ void File::write(const std::string& text) {
 
 
 void File::writeLine(const std::string& line) {
-	stream << line << '\n';
+	stream << line << std::endl;
 }
 
 
