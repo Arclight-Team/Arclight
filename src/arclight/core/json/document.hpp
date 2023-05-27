@@ -30,6 +30,7 @@ public:
 
 	JsonDocument() = default;
 	JsonDocument(const JsonObject& root);
+	JsonDocument(const JsonArray& root);
 	JsonDocument(const StringView& json);
 
 	void read(const StringView& json);
@@ -38,10 +39,10 @@ public:
 	void clear();
 	bool empty() const;
 
-	void setRoot(const JsonObject& root);
+	void setRoot(const JsonValue& root);
 
-	JsonObject& getRoot();
-	const JsonObject& getRoot() const;
+	JsonValue& getRoot();
+	const JsonValue& getRoot() const;
 
 	static JsonDocument fromFile(const Path& path);
 
@@ -106,11 +107,12 @@ private:
 	void readArray(Iterator& it, JsonArray& array);
 	void readObject(Iterator& it, JsonObject& object);
 
+	void writeString(StringType& string, const StringType& value) const;
 	void writeValue(StringType& string, const JsonValue& value, bool compact, u32 level) const;
 	void writeArray(StringType& string, const JsonArray& array, bool compact, u32 level) const;
 	void writeObject(StringType& string, const JsonObject& object, bool compact, u32 level) const;
 
-	JsonObject root;
+	JsonValue root;
 
 };
 

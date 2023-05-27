@@ -15,6 +15,8 @@
 
 JsonDocument::JsonDocument(const JsonObject& root) : root(root) {}
 
+JsonDocument::JsonDocument(const JsonArray& root) : root(root) {}
+
 JsonDocument::JsonDocument(const StringView& json) {
 	read(json);
 }
@@ -27,23 +29,7 @@ void JsonDocument::read(const StringView& json) {
 
 	Iterator it = { json.cbegin(), json.cend() };
 
-	for (; it.cur < it.end; it.cur++) {
-
-		switch (it.cur[0]) {
-
-			case ' ':
-			case '\t':
-			case '\r':
-			case '\n':
-				break;
-
-			case '{':
-				readObject(it, root);
-				break;
-
-		}
-
-	}
+	readValue(it, root, false);
 
 }
 
@@ -51,7 +37,7 @@ auto JsonDocument::write(bool compact) const -> StringType {
 
 	StringType string;
 
-	writeObject(string, root, compact, 1);
+	writeValue(string, root, compact, 0);
 
 	return string;
 
@@ -60,24 +46,24 @@ auto JsonDocument::write(bool compact) const -> StringType {
 
 
 void JsonDocument::clear() {
-	root.clear();
+	root = {};
 }
 
 bool JsonDocument::empty() const {
-	return root.empty();
-}
-
-
-
-void JsonDocument::setRoot(const JsonObject& root) {
-	this->root = root;
-}
-
-JsonObject& JsonDocument::getRoot() {
 	return root;
 }
 
-const JsonObject& JsonDocument::getRoot() const {
+
+
+void JsonDocument::setRoot(const JsonValue& root) {
+	this->root = root;
+}
+
+JsonValue& JsonDocument::getRoot() {
+	return root;
+}
+
+const JsonValue& JsonDocument::getRoot() const {
 	return root;
 }
 
