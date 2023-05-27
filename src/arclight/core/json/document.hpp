@@ -99,7 +99,7 @@ private:
 	bool readComment(Iterator& it);
 	void readString(Iterator& it, StringType& string, bool name);
 	bool readNumber(Iterator& it, JsonValue& value);
-	void readValue(Iterator& it, JsonValue& value);
+	bool readValue(Iterator& it, JsonValue& value, bool array);
 	bool readName(Iterator& it, StringType& name, bool& closed);
 	bool readComma(Iterator& it, char closingChar, bool& closed);
 	bool readColon(Iterator& it);

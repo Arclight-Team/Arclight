@@ -197,21 +197,21 @@ void JsonDocument::readString(Iterator& it, StringType& string, bool name) {
 
 		}
 
-		if (stop)
-			break;
+		if (stop) {
+
+			// Unterminated string
+			if (!terminated) {
+				throw JsonSyntaxError("Unterminated string sequence found");
+			}
+
+			return;
+		}
 
 		string += it.cur[0];
 
 	}
 
-	// Unterminated string
-	if (!terminated) {
-		throw JsonSyntaxError("Unterminated string sequence found");
-	}
-
-	if (it.overflown()) {
-		throw JsonSyntaxError("Unexpected EOF while reading string");
-	}
+	throw JsonSyntaxError("Unexpected EOF while reading string");
 
 }
 
@@ -273,7 +273,7 @@ bool JsonDocument::readNumber(Iterator& it, JsonValue& value) {
 
 }
 
-void JsonDocument::readValue(Iterator& it, JsonValue& value) {
+bool JsonDocument::readValue(Iterator& it, JsonValue& value, bool array) {
 
 	for (; it.cur < it.end; it.cur++) {
 
@@ -291,6 +291,13 @@ void JsonDocument::readValue(Iterator& it, JsonValue& value) {
 		case '\n':
 			break;
 
+		case ']': // Empty array
+
+			if (!array)
+				throw JsonSyntaxError("Invalid symbol found in value definition");
+
+			return true;
+
 		case '"': // String
 		{
 			StringType string;
@@ -298,7 +305,7 @@ void JsonDocument::readValue(Iterator& it, JsonValue& value) {
 			readString(it, string, false);
 		
 			value = string;
-			return;
+			return false;
 		}
 
 		case '{': // Object
@@ -308,7 +315,7 @@ void JsonDocument::readValue(Iterator& it, JsonValue& value) {
 			readObject(it, object);
 
 			value = object;
-			return;
+			return false;
 		}
 
 		case '[': // Array
@@ -318,7 +325,7 @@ void JsonDocument::readValue(Iterator& it, JsonValue& value) {
 			readArray(it, array);
 
 			value = array;
-			return;
+			return false;
 		}
 
 		case 't': // true
@@ -328,7 +335,7 @@ void JsonDocument::readValue(Iterator& it, JsonValue& value) {
 
 			it.cur += 3;
 			value = true;
-			return;
+			return false;
 		}
 
 		case 'f': // false
@@ -338,7 +345,7 @@ void JsonDocument::readValue(Iterator& it, JsonValue& value) {
 
 			it.cur += 4;
 			value = false;
-			return;
+			return false;
 		}
 
 		case 'n': // null
@@ -348,7 +355,7 @@ void JsonDocument::readValue(Iterator& it, JsonValue& value) {
 
 			it.cur += 3;
 			value = nullptr;
-			return;
+			return false;
 		}
 
 		default: // Number
@@ -356,7 +363,7 @@ void JsonDocument::readValue(Iterator& it, JsonValue& value) {
 			if (ch == '-' || Character::isDigit(ch)) {
 
 				if (readNumber(it, value))
-					return;
+					return false;
 
 			}
 
@@ -365,6 +372,8 @@ void JsonDocument::readValue(Iterator& it, JsonValue& value) {
 		}
 
 	}
+
+	throw JsonSyntaxError("Unexpected EOF while reading value");
 
 }
 
@@ -397,7 +406,7 @@ bool JsonDocument::readName(Iterator& it, StringType& name, bool& closed) {
 
 	}
 
-	return false;
+	throw JsonSyntaxError("Unexpected EOF while reading name");
 
 }
 
@@ -433,7 +442,7 @@ bool JsonDocument::readComma(Iterator& it, char closingChar, bool& closed) {
 
 	}
 
-	return false;
+	throw JsonSyntaxError("Unexpected EOF while reading comma");
 
 }
 
@@ -463,7 +472,7 @@ bool JsonDocument::readColon(Iterator& it) {
 
 	}
 
-	return false;
+	throw JsonSyntaxError("Unexpected EOF while reading colon");
 
 }
 
@@ -486,7 +495,16 @@ void JsonDocument::readArray(Iterator& it, JsonArray& array) {
 			{
 				JsonValue value;
 
-				readValue(it, value);
+				bool closed = readValue(it, value, true);
+				if (closed) {
+
+					// Unexpected comma after last element
+					if (!array.empty()) {
+						throw JsonSyntaxError("Unexpected comma separator after last array element");
+					}
+
+					return;
+				}
 
 				array.append(value);
 
@@ -511,6 +529,8 @@ void JsonDocument::readArray(Iterator& it, JsonArray& array) {
 		}
 
 	}
+
+	throw JsonSyntaxError("Unexpected EOF while reading array");
 
 }
 
@@ -538,8 +558,15 @@ void JsonDocument::readObject(Iterator& it, JsonObject& object) {
 				if (!readName(it, name, closed))
 					throw JsonSyntaxError("Expected a member name definition");
 
-				if (closed)
+				if (closed) {
+
+					// Unexpected comma after last element
+					if (!object.empty()) {
+						throw JsonSyntaxError("Unexpected comma separator after last object element");
+					}
+
 					return;
+				}
 
 				auto it = object.items.try_emplace(name);
 				if (!it.second)
@@ -563,8 +590,7 @@ void JsonDocument::readObject(Iterator& it, JsonObject& object) {
 			{
 				JsonValue value;
 
-				readValue(it, value);
-
+				readValue(it, value, false);
 				item->second = value;
 
 				step++;
@@ -588,6 +614,8 @@ void JsonDocument::readObject(Iterator& it, JsonObject& object) {
 		}
 
 	}
+
+	throw JsonSyntaxError("Unexpected EOF while reading object");
 
 }
 
