@@ -96,6 +96,13 @@
 
 
 /*
+	Silence ArcRT
+	ARC_ARCRT_SILENT: Silences all log messages coming from the runtime
+*/
+//#define ARC_ARCRT_SILENT
+
+
+/*
 	Disables log file creation in ArcRT
 	ARC_ARCRT_DISABLE_LOG_FILE: Disables log file creation in ArcRT
 */

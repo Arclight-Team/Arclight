@@ -37,7 +37,7 @@ namespace ArcRuntime {
 	extern u32 arcMain(const std::vector<std::string>& args);
 	static void showExceptionMessageBox(const std::string& ex, const std::string& st) noexcept;
 
-	int main(int argc, char** argv) {
+	int main(int argc, char* argv[]) {
 
 		constexpr u32 initReturnBase = 0x7000;
 
@@ -46,7 +46,9 @@ namespace ArcRuntime {
 		});
 
 		std::set_terminate([]() {
+#ifndef ARC_ARCRT_SILENT
 			LogE("Runtime") << "An unhandled exception has been thrown, terminating.";
+#endif
 			showExceptionMessageBox("Unhandled Exception", "<Untraceable>");
 			ArcRuntime::shutdown();
 		});
@@ -62,13 +64,15 @@ namespace ArcRuntime {
 			args.reserve(argc);
 
 			for (u32 i = 0; i < argc; i++) {
-				args.emplace_back(*(argv + i));
+				args.emplace_back(argv[i]);
 			}
 
 		} catch (const std::exception& e) {
 
+#ifndef ARC_ARCRT_SILENT
 			LogE("Runtime") << "Exception has been thrown before main.";
 			LogE("Runtime") << e;
+#endif
 			showExceptionMessageBox(Exception::getMessage(e), Exception::getStackTrace(e));
 
 			return initReturnBase + 1;
@@ -85,7 +89,9 @@ namespace ArcRuntime {
 
 			if (ret) {
 
+#ifndef ARC_ARCRT_SILENT
 				LogD("Runtime") << "Application exited with an error";
+#endif
 				return ret;
 
 			}
@@ -93,15 +99,19 @@ namespace ArcRuntime {
 #if !ARC_DEBUG
 		} catch (const std::exception& e) {
 
+#ifndef ARC_ARCRT_SILENT
 			LogE("Runtime") << "The application has thrown an exception.";
 			LogE("Runtime") << e;
+#endif
 			showExceptionMessageBox(Exception::getMessage(e), Exception::getStackTrace(e));
 
 			return initReturnBase + 2;
 
 		} catch (...) {
 
+#ifndef ARC_ARCRT_SILENT
 			LogE("Runtime") << "The application has thrown an exception of unknown type.";
+#endif
 			showExceptionMessageBox("Object-Type Exception", "<Untraceable>");
 
 			return initReturnBase + 3;
@@ -136,7 +146,9 @@ namespace ArcRuntime {
 
 bool ArcRuntime::initialize() noexcept {
 
+#ifndef ARC_ARCRT_SILENT
 	LogD("Runtime") << "Initializing runtime";
+#endif
 
 	//Platform init
 	if (!ArcRuntime::platformInit()) {
@@ -154,7 +166,9 @@ bool ArcRuntime::initialize() noexcept {
 #ifdef ARC_WINDOW_MODULE
 
 	if (!glfwInit()) {
+#ifndef ARC_ARCRT_SILENT
 		LogE("ArcRT") << "Failed to initialize GLFW";
+#endif
 		return false;
 	}
 
@@ -163,13 +177,17 @@ bool ArcRuntime::initialize() noexcept {
 #ifdef ARC_FONT_MODULE
 
 	if (!FontBackend::init()) {
+#ifndef ARC_ARCRT_SILENT
 		LogE("ArcRT") << "Failed to initialize font module";
+#endif
 		return false;
 	}
 
 #endif
 
+#ifndef ARC_ARCRT_SILENT
 	LogD("Runtime") << "Ready";
+#endif
 
 	return true;
 
@@ -179,7 +197,9 @@ bool ArcRuntime::initialize() noexcept {
 
 void ArcRuntime::shutdown() noexcept {
 
+#ifndef ARC_ARCRT_SILENT
 	LogD("Runtime") << "Shutting down runtime";
+#endif
 
 #ifdef ARC_FONT_MODULE
 	FontBackend::shutdown();
@@ -189,7 +209,9 @@ void ArcRuntime::shutdown() noexcept {
 	glfwTerminate();
 #endif
 
+#ifndef ARC_ARCRT_SILENT
 	LogD("Runtime") << "Bye";
+#endif
 
 #ifndef ARC_ARCRT_DISABLE_LOG_FILE
 	Log::closeLogFile();
