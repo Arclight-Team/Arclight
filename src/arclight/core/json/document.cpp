@@ -71,7 +71,10 @@ const JsonValue& JsonDocument::getRoot() const {
 
 JsonDocument JsonDocument::fromFile(const Path& path) {
 
-	File file(path, File::Text | File::In);
+	File file;
+
+	file.open(path, File::Text | File::In);
+
 	return JsonDocument(file.readAllText());
 
 }

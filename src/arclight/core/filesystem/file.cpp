@@ -38,22 +38,27 @@ constexpr static std::ios::openmode convertFlagsToStdFlags(u32 flags) {
 
 File::File() : openFlags(0) {}
 
-File::File(const Path& path, u32 flags) : filePath(path), openFlags(flags) { open(path, flags); };
+File::File(const Path& path, u32 flags) : filePath(path), openFlags(flags) {};
 
 
+bool File::open() {
+
+	if (!openFlags) {
+		return false;
+	}
+
+	stream.open(filePath.toString(), convertFlagsToStdFlags(openFlags));
+
+	return isOpen();
+
+}
 
 bool File::open(const Path& path, u32 flags) {
 
 	filePath = path;
 	openFlags = flags;
 
-	if (!flags) {
-		return false;
-	}
-
-	stream.open(path.toString(), convertFlagsToStdFlags(flags));
-
-	return isOpen();
+	return open();
 
 }
 

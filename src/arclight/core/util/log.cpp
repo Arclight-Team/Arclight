@@ -49,9 +49,8 @@ namespace Log {
 			}
 
 			path.append("log_" + Time::getTimestamp() + ".txt");
-			logFile.open(path, File::Out);
 
-			if (!logFile.isOpen()) {
+			if (!logFile.open(path, File::Out)) {
 				LogE("Log").print("Failed to open log file '%s'", path.toString().c_str());
 			}
 

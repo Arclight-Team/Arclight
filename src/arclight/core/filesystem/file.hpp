@@ -35,6 +35,7 @@ public:
 	File();
 	File(const Path& path, u32 flags = File::In);
 
+	bool open();
 	bool open(const Path& path, u32 flags = File::In);
 	void close();
 

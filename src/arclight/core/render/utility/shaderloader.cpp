@@ -16,7 +16,7 @@ GLE::ShaderProgram ShaderLoader::fromFiles(const Path& vsPath, const Path& fsPat
 
 	File vsFile(vsPath, File::In | File::Text);
 
-	if (!vsFile.isOpen()) {
+	if (!vsFile.open()) {
 		throw ShaderLoaderException(std::string("Failed to open vertex shader file ") + vsPath.toString().c_str());
 	}
 
@@ -25,7 +25,7 @@ GLE::ShaderProgram ShaderLoader::fromFiles(const Path& vsPath, const Path& fsPat
 
 	File fsFile(fsPath, File::In | File::Text);
 
-	if (!fsFile.isOpen()) {
+	if (!fsFile.open()) {
 		throw ShaderLoaderException(std::string("Failed to open fragment shader file ") + fsPath.toString().c_str());
 	}
 
@@ -42,7 +42,7 @@ GLE::ShaderProgram ShaderLoader::fromFiles(const Path& vsPath, const Path& gsPat
 
 	File vsFile(vsPath, File::In | File::Text);
 
-	if (!vsFile.isOpen()) {
+	if (!vsFile.open()) {
 		throw ShaderLoaderException(std::string("Failed to open vertex shader file ") + vsPath.toString().c_str());
 	}
 
@@ -51,7 +51,7 @@ GLE::ShaderProgram ShaderLoader::fromFiles(const Path& vsPath, const Path& gsPat
 
 	File fsFile(fsPath, File::In | File::Text);
 
-	if (!fsFile.isOpen()) {
+	if (!fsFile.open()) {
 		throw ShaderLoaderException(std::string("Failed to open fragment shader file ") + fsPath.toString().c_str());
 	}
 
@@ -127,7 +127,7 @@ void ShaderLoader::addShader(GLE::ShaderProgram& program, const Path& path, GLE:
 
 	File file(path, File::In | File::Text);
 
-	if (!file.isOpen()) {
+	if (!file.open()) {
 		throw ShaderLoaderException(std::string("Failed to open shader file ") + path.toString().c_str());
 	}
 
