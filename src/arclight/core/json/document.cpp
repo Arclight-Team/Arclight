@@ -50,7 +50,7 @@ void JsonDocument::clear() {
 }
 
 bool JsonDocument::empty() const {
-	return root;
+	return root.isNull();
 }
 
 

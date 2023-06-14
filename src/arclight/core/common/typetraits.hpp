@@ -166,12 +166,12 @@ namespace TT {
 		};
 
 		template<class T>
-		concept HasExposedInnerType = requires { T::Type; };
+		concept HasExposedInnerType = requires { typename T::Type; };
 
 		template<class T>
 		struct CommonArithmeticType {};
 
-		template<class T> requires(HasExposedInnerType<T>)
+		template<HasExposedInnerType T>
 		struct CommonArithmeticType<T> {
 
 			using Type = typename T::Type;

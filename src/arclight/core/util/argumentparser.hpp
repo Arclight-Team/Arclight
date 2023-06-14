@@ -10,6 +10,7 @@
 
 #include "common/concepts.hpp"
 #include "common/exception.hpp"
+#include "util/string.hpp"
 #include "types.hpp"
 
 #include <stdexcept>

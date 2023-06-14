@@ -92,7 +92,7 @@ public:
 
 private:
 
-	template<Pixel P> friend class Image;
+	template<Pixel> friend class Image;
 
 	u32 width;
 	u32 height;

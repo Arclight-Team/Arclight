@@ -8,11 +8,15 @@
 
 #pragma once
 
-#include "image/image.hpp"
+#include "image/pixel.hpp"
 #include "util/bitmaskenum.hpp"
 
 #include <memory>
 
+
+
+template<Pixel P>
+class Image;
 
 
 namespace OS {
@@ -63,6 +67,8 @@ namespace OS {
 		static void purgeAll();
 
 	private:
+
+		static void setIconInternal(class NotificationHandle& handle, u32 width, u32 height, const u8* image, bool isIcon);
 
 		void createHandle();
 

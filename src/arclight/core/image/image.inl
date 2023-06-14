@@ -111,12 +111,12 @@ constexpr const u8* Image<P>::getImageData() const {
 
 template<Pixel P>
 constexpr std::span<typename Image<P>::PixelType> Image<P>::getImageBuffer() {
-	return std::span{pixels.get(), pixelCount()};
+	return std::span{pixels.get(), static_cast<SizeT>(pixelCount())};
 }
 
 template<Pixel P>
 constexpr std::span<const typename Image<P>::PixelType> Image<P>::getImageBuffer() const {
-	return std::span{pixels.get(), pixelCount()};
+	return std::span{pixels.get(), static_cast<SizeT>(pixelCount())};
 }
 
 template<Pixel P>

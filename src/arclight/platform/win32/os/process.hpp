@@ -12,6 +12,7 @@
 #include "filesystem/path.hpp"
 
 #include <string>
+#include <vector>
 #include <memory>
 
 

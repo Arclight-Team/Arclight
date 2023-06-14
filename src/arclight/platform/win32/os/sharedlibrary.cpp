@@ -63,7 +63,7 @@ void* OS::SharedLibrary::getRawSymbol(std::string symbol) {
 
 	arc_assert(loaded(), "Library not loaded");
 
-	return static_cast<void*>(GetProcAddress(static_cast<HMODULE>(handle), symbol.data()));
+	return reinterpret_cast<void*>(GetProcAddress(static_cast<HMODULE>(handle), symbol.data()));
 
 }
 

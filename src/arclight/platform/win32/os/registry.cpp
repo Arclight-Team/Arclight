@@ -10,7 +10,9 @@
 #include "locale/unicode.hpp"
 #include "math/math.hpp"
 
-#define NOMINMAX
+#ifndef NOMINMAX
+	#define NOMINMAX
+#endif
 #include "Windows.h"
 
 

@@ -49,7 +49,7 @@ namespace OS {
 
 
 
-	static void setIconInternal(NotificationHandle& handle, const Image<Pixel::RGBA8>& icon, bool isIcon) {
+	void Notification::setIconInternal(NotificationHandle& handle, u32 width, u32 height, const u8* image, bool isIcon) {
 
 		ICONINFO iconInfo {true, 0, 0, nullptr, nullptr };
 
@@ -65,11 +65,8 @@ namespace OS {
 
 		});
 
-		Image<Pixel::BGRA8> iIcon = icon.convert<Pixel::BGRA8>();
-		iIcon.flipY();
-
-		iconInfo.hbmColor = CreateBitmap(iIcon.getWidth(), iIcon.getHeight(), 1, 32, iIcon.getImageBuffer().data());
-		iconInfo.hbmMask = CreateBitmap(iIcon.getWidth(), iIcon.getHeight(), 1, 1, nullptr);
+		iconInfo.hbmColor = CreateBitmap(width, height, 1, 32, image);
+		iconInfo.hbmMask = CreateBitmap(width, height, 1, 1, nullptr);
 
 		if (!iconInfo.hbmColor || !iconInfo.hbmMask) {
 			LogE("Notification") << "Failed to create notification icon";
@@ -162,18 +159,6 @@ namespace OS {
 			handle->data.dwInfoFlags = NIIF_NONE;
 		}
 
-	}
-
-
-
-	void Notification::setIcon(const Image<Pixel::RGBA8>& icon) {
-		setIconInternal(*handle, icon, true);
-	}
-
-
-
-	void Notification::setImage(const Image<Pixel::RGBA8>& icon) {
-		setIconInternal(*handle, icon, false);
 	}
 
 

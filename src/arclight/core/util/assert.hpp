@@ -44,7 +44,7 @@ constexpr void __arc_assert(bool condition, const std::source_location& srcLocat
 #if defined(ARC_FINAL_BUILD) || (defined(ARC_ASSERT_DEBUG) && ARC_RELEASE) || defined(ARC_ASSERT_NEVER)
 	#define arc_assert(cond, msg, ...)  do {} while (false)
 	#define arc_force_assert(msg, ...)  do {} while (false)
-#else
+#else // TODO __VA_OPT__ over MSVC extension
 	#define arc_assert(cond, msg, ...)	do {__arc_assert(!!(cond), std::source_location::current(), (msg), ##__VA_ARGS__);} while (false)
 	#define arc_force_assert(msg, ...)	arc_assert(false, msg, ##__VA_ARGS__)
 #endif

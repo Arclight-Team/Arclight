@@ -89,7 +89,7 @@ auto JsonObject::crend() const -> ItemConstReverseIterator {
 
 
 JsonObject JsonObject::fromJson(const StringView& json) {
-	return JsonDocument(json).getRoot();
+	return JsonDocument(json).getRoot().toObject();
 }
 
 auto JsonObject::toJson(const JsonObject& object, bool compact) -> StringType {

@@ -18,8 +18,8 @@ void Slider::createBool(const std::string& text, bool* variable) {
 
 	m_Text = text;
 	m_Variable = variable;
-	m_MinValue = 0ui64;
-	m_MaxValue = 1ui64;
+	m_MinValue = 0ULL;
+	m_MaxValue = 1ULL;
 	m_DataType = DataType_Bool;
 	m_ComponentCount = 1;
 
