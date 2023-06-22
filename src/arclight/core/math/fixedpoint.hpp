@@ -185,7 +185,7 @@ public:
 	}
 
 	constexpr FixedPoint& shiftRight(SizeT n) noexcept {
-		i <<= n;
+		i >>= n;
 		return *this;
 	}
 
