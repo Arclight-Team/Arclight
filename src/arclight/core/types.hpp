@@ -34,7 +34,7 @@ using AddressT  = uintptr_t;
 	using SystemT = u64;
 #elif ARC_MACHINE_BITS == 32
 	using SystemT = u32;
-#elif AARC_MACHINE_BITS == 16
+#elif ARC_MACHINE_BITS == 16
 	using SystemT = u16;
 #else
 	using SystemT = u32;
