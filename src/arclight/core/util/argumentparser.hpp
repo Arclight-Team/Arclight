@@ -158,12 +158,10 @@ public:
 
 	inline ArgumentParser() noexcept : argCursor(1), cursor(0), tokenStart(0) {}
 
-	inline ArgumentParser(const std::vector<std::string>& args, const std::string& layout) : argCursor(1), cursor(0), tokenStart(0) {
-		parse(args, layout);
-	}
+	inline ArgumentParser(const std::vector<std::string>& args, const std::string& layout) : argCursor(1), cursor(0), tokenStart(0), arguments(args), layout(layout) {}
 
-	inline ArgumentParser(int argc, char* argv[], const std::string& layout) : argCursor(1), cursor(0), tokenStart(0) {
-		parse(argc, argv, layout);
+	inline ArgumentParser(int argc, char* argv[], const std::string& layout) : argCursor(1), cursor(0), tokenStart(0), layout(layout) {
+		setArguments(argc, argv);
 	}
 
 
