@@ -89,6 +89,11 @@ namespace Math {
 		return std::min<std::common_type_t<A, B>>(a, b);
 	}
 
+	template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic... Args>
+	constexpr auto minmax(A a, B b, Args... args) {
+		return std::pair{min(a, b, args...), max(a, b, args...)};
+	}
+
 	template<class T>
 	constexpr auto ascOrder(T& a, T& b) {
 
@@ -269,6 +274,11 @@ namespace Math {
 	}
 
 	template<CC::Arithmetic A>
+	ARC_CMATH_CONSTEXPR std::pair<A, A> sincos(A radians) {
+		return {sin(radians), cos(radians)};
+	}
+
+	template<CC::Arithmetic A>
 	ARC_CMATH_CONSTEXPR auto tan(A radians) {
 		return std::tan(radians);
 	}
@@ -293,6 +303,11 @@ namespace Math {
 	template<CC::Arithmetic A>
 	ARC_CMATH_CONSTEXPR auto acos(A value) {
 		return std::acos(value);
+	}
+
+	template<CC::Arithmetic A>
+	ARC_CMATH_CONSTEXPR std::pair<A, A> asincos(A radians) {
+		return {asin(radians), acos(radians)};
 	}
 
 	template<CC::Arithmetic A>
