@@ -39,6 +39,100 @@ namespace String {
 		return {static_cast<char>(c)...};
 	}
 
+	template<CC::Char C>
+	constexpr std::basic_string<C> quote(std::basic_string_view<C> path) {
+
+		constexpr C whitespace(' ');
+		constexpr C quotation('\"');
+		constexpr C backslash('\\');
+
+		if (!path.contains(whitespace)) {
+			return std::basic_string<C>(path);
+		}
+
+		std::basic_string<C> s(path);
+		bool escaped = false;
+
+		for (SizeT i = 0; i < s.size(); i++) {
+
+			C c = s[i];
+
+			if ((c == quotation || c == backslash) && !escaped) {
+
+				escaped = false;
+				s.insert(i, std::basic_string<C>(1, backslash));
+				i++;
+
+			} else if (c == backslash) {
+				escaped = true;
+			} else {
+				escaped = false;
+			}
+
+		}
+
+		return quotation + s + quotation;
+
+	}
+
+	template<CC::Char C>
+	constexpr std::basic_string<C> quote(const C* path) {
+		return quote<C>(std::basic_string_view<C>(path));
+	}
+
+	template<CC::Char C>
+	constexpr std::basic_string<C> quote(const std::basic_string<C>& path) {
+		return quote<C>(std::basic_string_view<C>(path));
+	}
+
+	template<CC::Char C>
+	constexpr static std::basic_string<C> unquote(std::basic_string_view<C> path) {
+
+		constexpr C whitespace(' ');
+		constexpr C quotation('\"');
+		constexpr C backslash('\\');
+
+		if (path.size() < 2 || path[0] != quotation || path[path.size() - 1] != quotation) {
+			return std::basic_string<C>(path);
+		}
+
+		std::basic_string<C> s(path.substr(1, path.size() - 2));
+		bool escaped = false;
+
+		for (SizeT i = 0; i < s.size(); i++) {
+
+			C c = s[i];
+
+			if ((c == quotation || c == backslash) && escaped) {
+
+				escaped = false;
+				s.erase(i - 1, 1);
+
+				// Cannot underflow because it can only be escaped after one char at least
+				i--;
+
+			} else if (c == backslash) {
+				escaped = true;
+			} else {
+				escaped = false;
+			}
+
+		}
+
+		return s;
+
+	}
+
+	template<CC::Char C>
+	constexpr std::basic_string<C> unquote(const C* path) {
+		return unquote<C>(std::basic_string_view<C>(path));
+	}
+
+	template<CC::Char C>
+	constexpr std::basic_string<C> unquote(const std::basic_string<C>& path) {
+		return unquote<C>(std::basic_string_view<C>(path));
+	}
+
 	template<CC::Arithmetic A>
 	constexpr std::string toHexString(A a, bool upper = true, bool prefix = false) {
 
@@ -52,7 +146,7 @@ namespace String {
 		std::string s;
 		s.reserve(Size * 2 + prefix * 2);
 
-		if(prefix) {
+		if (prefix) {
 			s += "0x";
 		}
 

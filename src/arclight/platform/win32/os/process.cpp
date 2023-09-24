@@ -11,6 +11,7 @@
 #include "util/bits.hpp"
 #include "util/bool.hpp"
 #include "util/destructionguard.hpp"
+#include "util/string.hpp"
 
 #include <functional>
 
@@ -76,6 +77,9 @@ namespace OS {
 		createHandle();
 	}
 
+	Process::~Process() {
+		release();
+	}
 
 
 	bool Process::start(const ProcessStartInfo& startInfo) {
@@ -92,7 +96,7 @@ namespace OS {
 
 		if (startInfo.moduleAsArgv0) {
 
-			std::string quoted = Path::quote(startInfo.executable.toNativeString());
+			std::string quoted = ::String::quote(startInfo.executable.toNativeString());
 
 			if (quoted.size() >= MAX_PATH) {
 
@@ -320,13 +324,13 @@ namespace OS {
 
 	bool Process::waitForExit(u32 milliseconds) {
 
-		if (!processHandle->valid())
+		if (!processHandle->valid()) {
 			return false;
+		}
 
-		if (WaitForSingleObject(*processHandle, milliseconds) != WAIT_OBJECT_0)
+		if (WaitForSingleObject(*processHandle, milliseconds) != WAIT_OBJECT_0) {
 			return false;
-
-		release();
+		}
 
 		return true;
 
@@ -365,7 +369,7 @@ namespace OS {
 
 	u32 Process::getResultCode() const {
 
-		if (processHandle->valid()) {
+		if (!processHandle->valid()) {
 
 			LogE("Process") << "Attempted to obtain result code from invalid process";
 			return -1;
