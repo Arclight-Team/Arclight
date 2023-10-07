@@ -9,12 +9,12 @@
 #pragma once
 
 #include "timer.hpp"
+#include "common/concepts.hpp"
 
 #include <string>
 
 
-#define ARC_PROFILE_START(x) Profiler __profiler##x; __profiler##x.start();
-#define ARC_PROFILE_STOP(x) __profiler##x.stop(#x);
+#define arc_profile(...) __Profilers::ProfileStatement(__VA_ARGS__) << [&]() /* { ... }; */
 
 
 class Profiler {
@@ -51,3 +51,19 @@ private:
 	std::string name;
 
 };
+
+
+namespace __Profilers {
+
+	struct ProfileStatement : ScopedProfiler {
+
+		using ScopedProfiler::ScopedProfiler;
+
+		template<CC::Returns<void> F>
+		constexpr void operator<<(F&& func) {
+			func();
+		}
+
+	};
+
+}

@@ -9,7 +9,10 @@
 #pragma once
 
 #include "types.hpp"
+#include "util/assert.hpp"
 #include "common/typetraits.hpp"
+
+#include <iterator>
 
 
 template<class T, SizeT... N> requires(sizeof...(N) > 0)

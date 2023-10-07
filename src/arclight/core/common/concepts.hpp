@@ -217,6 +217,9 @@ namespace CC {
 	template<class T>
 	concept Exists = (sizeof(T), true);
 
+	template<class T, class... U>
+	concept AnyOf = (Equal<T, U> || ...);
+
 	template<class T>
 	concept Shape = requires(T s) { s.area(); };
 

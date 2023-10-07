@@ -13,6 +13,7 @@
 #include "util/bits.hpp"
 #include "common/typetraits.hpp"
 #include "common/concepts.hpp"
+#include "math/overflow.hpp"
 
 
 

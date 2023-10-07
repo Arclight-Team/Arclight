@@ -77,6 +77,8 @@ namespace OS {
 		Process(Process&&) = default;
 		Process& operator=(Process&&) = default;
 
+		~Process();
+
 		bool start(const ProcessStartInfo& startInfo);
 		bool kill();
 		bool waitForExit(u32 milliseconds = -1);
