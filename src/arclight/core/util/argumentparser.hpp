@@ -441,6 +441,19 @@ public:
 	void reset();
 
 
+	void setDescription(const std::string& name, u32 index, const std::string& description);
+
+	void setDescription(const std::string& name, const std::string& description);
+
+	const std::string& getDescription(const std::string& name, u32 index) const;
+
+	const std::string& getDescription(const std::string& name) const;
+
+	bool hasDescription(const std::string& name, u32 index) const;
+
+	bool hasDescription(const std::string& name) const;
+
+
 	bool containsValue(const std::string& name) const;
 
 	bool containsFlag(const std::string& name) const;
@@ -535,6 +548,10 @@ private:
 		bool dirty;
 
 	};
+
+	using Descriptions = std::unordered_map<u32, std::string>;
+
+	static constexpr u32 DefaultDescriptionID = -1;
 
 
 	constexpr void setArguments(int argc, char* argv[]) {
@@ -654,5 +671,6 @@ private:
 	std::unordered_set<std::string> flags;
 	std::unordered_map<std::string, ValueT> values;
 	std::unordered_map<std::string, std::string> aliases;
+	std::unordered_map<std::string, Descriptions> descriptions;
 
 };

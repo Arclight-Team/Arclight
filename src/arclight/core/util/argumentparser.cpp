@@ -72,6 +72,45 @@ void ArgumentParser::reset() {
 }
 
 
+void ArgumentParser::setDescription(const std::string& name, u32 index, const std::string& description) {
+	descriptions[name][index] = description;
+}
+
+void ArgumentParser::setDescription(const std::string& name, const std::string& description) {
+	setDescription(name, DefaultDescriptionID, description);
+}
+
+const std::string& ArgumentParser::getDescription(const std::string& name, u32 index) const {
+
+	try {
+
+		return descriptions.at(name).at(index);
+
+	} catch (...) {
+
+		if (index == DefaultDescriptionID) {
+			throw ArgumentParserException("Argument %s has no default description", name.c_str());
+		} else {
+			throw ArgumentParserException("Argument %s has no description at index %lu", name.c_str(), index);
+		}
+
+	}
+
+}
+
+const std::string& ArgumentParser::getDescription(const std::string& name) const {
+	return getDescription(name, DefaultDescriptionID);
+}
+
+bool ArgumentParser::hasDescription(const std::string& name, u32 index) const {
+	return !descriptions.contains(name) ? false : descriptions.at(name).contains(index);
+}
+
+bool ArgumentParser::hasDescription(const std::string& name) const {
+	return hasDescription(name, DefaultDescriptionID);
+}
+
+
 bool ArgumentParser::containsValue(const std::string& name) const {
 	return aliases.contains(name);
 }
