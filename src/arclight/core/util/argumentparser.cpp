@@ -332,16 +332,22 @@ void ArgumentParser::parseTree() {
 		auto& [state, dirty] = levels.back();
 
 
-		// Premature parent node specifics
+		// Premature parent node checks
+		// TODO Further optimizations
+
+		bool rootLevel = levels.size() == 1;
 
 		if (node.isParent()) {
 
-			bool isRoot = levels.size() < 2;
+			if (state == ParseLevel::MatchOpt && dirty) {
 
-			if (state == ParseLevel::Error && (isRoot || (!node.isOptional() && dirty))) {
+				// Dirty MatchOpt parent node counts as Match
+
+				state = ParseLevel::Match;
+
+			} else if (state == ParseLevel::Error && (rootLevel || (!node.isOptional() && dirty))) {
 
 				// Mandatory dirty parent node in Error is unrecoverable
-				// This case can be catched up later but we are saving process time
 
 				throw ArgumentParserException("Arguments not matching layout");
 
@@ -355,7 +361,7 @@ void ArgumentParser::parseTree() {
 
 			// Leave from root section
 
-			if (isRoot) {
+			if (rootLevel) {
 				break;
 			}
 
@@ -369,20 +375,20 @@ void ArgumentParser::parseTree() {
 		if (mainState == ParseLevel::Error) {
 
 			// If our node is in Error we have to:
-			// - Throw if the operator is not Or and if the node is dirty (something unnecessary got matched)
 			// - State update if the operator is Or (hopefully we get a Match/MatchOpt)
+			// - Else, throw if the node is dirty or root (something unnecessary got matched or fatal error in root)
 
-			if (node.op != Node::Or && dirty) {
-				throw ArgumentParserException("Arguments not matching layout");
-			} else {
+			if (node.op == Node::Or) {
 				updateState(node, mainState);
+			} else if (rootLevel || dirty) {
+				throw ArgumentParserException("Arguments not matching layout");
 			}
 
 		} else if (mainState == ParseLevel::Match) {
 
 			// If our node is in Match we have to:
 			// - State update if the operator is not Or (we are starting a new expression)
-			// - Throw if the operator is Or and the node is parent and dirty (unnecessarily matched something inside the node)
+			// - Else, throw if the node is parent and dirty (something unnecessary got matched)
 
 			if (node.op != Node::Or) {
 				updateState(node, mainState);
