@@ -200,3 +200,10 @@
 	ARC_FONT_SECURE: Enables safety checks against font instruction attacks
 */
 #define ARC_FONT_SECURE
+
+
+/*
+	ArgumentParser debugging
+	ARC_ARGPARSE_DEBUG: Prints argument tree during parsing for debugging
+*/
+#define ARC_ARGPARSE_DEBUG

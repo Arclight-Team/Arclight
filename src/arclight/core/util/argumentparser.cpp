@@ -347,6 +347,10 @@ void ArgumentParser::parseTree() {
 	};
 
 
+#ifdef ARC_ARGPARSE_DEBUG
+	LogD() << "ArgumentParser tree:";
+#endif
+
 	// Parse the layout tree with a depth-first postorder traverse
 
 	while (true) {
@@ -356,6 +360,14 @@ void ArgumentParser::parseTree() {
 		if (node.isParent() && !expanded) {
 
 			levels.emplace_back(ParseLevel::Match);
+
+#ifdef ARC_ARGPARSE_DEBUG
+
+			if (levels.size() != 1) {
+				LogD() << std::string(levels.size() - 2, '\t') << "{";
+			}
+
+#endif
 
 			for (auto& child : std::views::reverse(node.children)) {
 				stack.emplace(child);
@@ -376,7 +388,8 @@ void ArgumentParser::parseTree() {
 
 		// Parent node ending in root counts as rootLevel
 
-		bool rootLevel = levels.size() == node.isParent() + 1;
+		bool rootLevel = levels.size() == 1;
+		bool rootExpression = levels.size() == 1 + node.isParent();
 
 		if (node.isParent()) {
 
@@ -421,7 +434,7 @@ void ArgumentParser::parseTree() {
 
 			if (node.op == Node::Or) {
 				updateState(node, mainState);
-			} else if (rootLevel || dirty) {
+			} else if (rootExpression || dirty) {
 				throw ArgumentParserException("Arguments not matching layout");
 			}
 
@@ -453,6 +466,22 @@ void ArgumentParser::parseTree() {
 		if (node.isParent()) {
 			levels.pop_back();
 		}
+
+#ifdef ARC_ARGPARSE_DEBUG
+
+		std::string stateString;
+
+		if (state == ParseLevel::Match) {
+			stateString = "Match";
+		} else if (state == ParseLevel::MatchOpt) {
+			stateString = "MatchOpt";
+		} else {
+			stateString = "Error";
+		}
+
+		LogD() << std::string(levels.size() - 1, '\t') << (node.isParent() ? "} Parent" : "Child") << " = " << stateString;
+
+#endif
 
 		stack.pop();
 
