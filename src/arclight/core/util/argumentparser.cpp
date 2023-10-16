@@ -374,7 +374,9 @@ void ArgumentParser::parseTree() {
 		// Premature parent node checks
 		// TODO Further optimizations
 
-		bool rootLevel = levels.size() == 1;
+		// Parent node ending in root counts as rootLevel
+
+		bool rootLevel = levels.size() == node.isParent() + 1;
 
 		if (node.isParent()) {
 
