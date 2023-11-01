@@ -541,11 +541,12 @@ private:
 
 		using enum State;
 
-		constexpr explicit ParseLevel(State state, bool dirty = false) noexcept : state(state), dirty(dirty) {}
+		constexpr explicit ParseLevel(State state, bool dirty = false) noexcept : state(state), dirty(dirty), skipLevel(false) {}
 
 
 		State state;
-		bool dirty;
+		bool dirty; // True if any node matched in the level
+		bool skipLevel; // True if the state has been error and cannot be recovered
 
 	};
 

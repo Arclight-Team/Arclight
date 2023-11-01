@@ -380,7 +380,7 @@ void ArgumentParser::parseTree() {
 		}
 
 
-		auto& [state, dirty] = levels.back();
+		auto& [state, dirty, skipLevel] = levels.back();
 
 
 		// Premature parent node checks
@@ -432,10 +432,12 @@ void ArgumentParser::parseTree() {
 			// - State update if the operator is Or (hopefully we get a Match/MatchOpt)
 			// - Else, throw if the node is dirty or root (something unnecessary got matched or fatal error in root)
 
-			if (node.op == Node::Or) {
+			if (node.op == Node::Or && (!skipLevel || node.isParent())) {
 				updateState(node, mainState);
 			} else if (rootExpression || dirty) {
 				throw ArgumentParserException("Arguments not matching layout");
+			} else if (!skipLevel) {
+				skipLevel = true;
 			}
 
 		} else if (mainState == ParseLevel::Match) {
@@ -479,7 +481,7 @@ void ArgumentParser::parseTree() {
 			stateString = "Error";
 		}
 
-		LogD() << std::string(levels.size() - 1, '\t') << (node.isParent() ? "} Parent" : "Child") << " = " << stateString;
+		LogD() << std::string(levels.size() - 1, '\t') << (node.isParent() ? "} Parent" : "Child") << " = " << stateString << " [" << argumentsCursor << "]";
 
 #endif
 
