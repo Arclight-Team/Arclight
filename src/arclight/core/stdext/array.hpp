@@ -218,19 +218,25 @@ public:
 
 
 	constexpr void fill(const SliceT<0>& value) noexcept requires(Dimensions != 0) {
+
 		for (auto& s : storage) {
 			s = value;
 		}
+
 	}
 
 	constexpr void fill(const Type& value) noexcept {
+
 		for (auto& s : storage) {
+
 			if constexpr (Dimensions == 1) {
 				s = value;
 			} else {
 				s.fill(value);
 			}
+
 		}
+
 	}
 
 
@@ -243,8 +249,11 @@ public:
 	}
 
 	constexpr SizeT dimensionSize(SizeT dimension) const noexcept {
+
 		arc_assert(dimension < Dimensions, "Dimension out of range");
+
 		return DimensionSize[dimension];
+
 	}
 
 
@@ -300,12 +309,24 @@ public:
 	}
 
 
+	// Implicit structured binding support is impossible: specializing std::get is undefined
+
+	constexpr const StorageT& bind() const noexcept {
+		return storage;
+	}
+
+	constexpr StorageT& bind() noexcept {
+		return storage;
+	}
+
+
 	StorageT storage;
 
 private:
 
 	template<class A, SizeT... S> requires(sizeof...(S) > 0)
 	friend class Array;
+
 
 	template<CC::ImpConvertible<SizeT>... Args> requires(sizeof...(Args) <= Dimensions)
 	constexpr SliceT<sizeof...(Args)>& accessHelper(SizeT index, Args... rest) noexcept {
