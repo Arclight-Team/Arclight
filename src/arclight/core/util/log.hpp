@@ -176,7 +176,7 @@ public:
 
 				*this << *it;
 
-				if (i++ == size) {
+				if (++i == size) {
 					buffer << ']';
 					break;
 				} else if (i >= maxContainerElements) {
