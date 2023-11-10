@@ -14,12 +14,12 @@
 #include <stack>
 
 
-ArgumentParser::ArgumentParser() : argumentsCursor(1) {}
+ArgumentParser::ArgumentParser() = default;
 
-ArgumentParser::ArgumentParser(const std::vector<std::string>& args, ArgumentLayout layout) : argumentsCursor(1), arguments(args), layout(std::move(layout)) {}
+ArgumentParser::ArgumentParser(const std::vector<std::string>& args, ArgumentLayout layout) : arguments(args), layout(std::move(layout)) {}
 
-ArgumentParser::ArgumentParser(int argc, char* argv[], ArgumentLayout layout) : argumentsCursor(1), layout(std::move(layout)) {
-	setArguments(argc, argv);
+ArgumentParser::ArgumentParser(int argc, char* argv[], ArgumentLayout layout) : layout(std::move(layout)) {
+	loadArguments(argc, argv);
 }
 
 
@@ -55,15 +55,13 @@ void ArgumentParser::parse(int argc, char* argv[], const ArgumentLayout& layout)
 
 	this->layout = layout;
 
-	setArguments(argc, argv);
+	loadArguments(argc, argv);
 
 	parse();
 
 }
 
 void ArgumentParser::reset() {
-
-	argumentsCursor = 1;
 
 	flags.clear();
 	values.clear();
@@ -186,172 +184,267 @@ ArgumentParser::ValueT ArgumentParser::getValue(const std::string& name) const {
 }
 
 
-bool ArgumentParser::parseArgument(const Argument& arg) {
+bool ArgumentParser::parseArgument(const Argument& argument, ParseState& storage) {
 
-	SizeT cursor = argumentsCursor;
+	SizeT cursor = storage.cursor;
 
-	SizeT req = arg.stringsCount();
+	SizeT requirement = argument.stringsCount();
 
-	if (req > arguments.size() - cursor) {
+	if (requirement > arguments.size() - cursor) {
 		return false;
 	}
 
 
-	std::string argString = arguments[cursor++];
+	std::string string = arguments[cursor++];
 
 	std::string nameString;
 	std::string valueString;
 
-	if (arg.separator != ' ') {
+	if (argument.separator != ' ') {
 
 		// Split argument string with the separator character
 
-		SizeT separatorPos = argString.find(arg.separator);
+		SizeT separatorPos = string.find(argument.separator);
 
 		if (separatorPos == std::string::npos) {
 			return false;
 		}
 
-		nameString = argString.substr(0, separatorPos);
-		valueString = argString.substr(separatorPos + 1, argString.size() - 1);
+		nameString = string.substr(0, separatorPos);
+		valueString = string.substr(separatorPos + 1, string.size() - 1);
 
-	} else if (arg.unnamed) {
+	} else if (argument.unnamed) {
 
-		valueString = argString;
-		nameString = arg.names[0];
+		valueString = string;
+		nameString = argument.names[0];
 
 	} else {
 
 		// Side cases such as 'app.exe "--arg value"' are not meant to be valid
 
-		nameString = argString;
+		nameString = string;
 
-		if (arg.type != Argument::Flag) {
+		if (argument.type != Argument::Flag) {
 			valueString = arguments[cursor++];
 		}
 
 	}
 
 
-	if (!arg.unnamed && std::find(arg.names.begin(), arg.names.end(), nameString) == arg.names.end()) {
+	bool nameFound = std::find(argument.names.begin(), argument.names.end(), nameString) == argument.names.end();
+
+	if (!argument.unnamed && nameFound) {
 		return false;
 	}
 
 
-	if (arg.type == Argument::Flag) {
+	if (argument.type == Argument::Flag) {
 
-		for (const auto& name : arg.names) {
-
-			if (!flags.insert(name).second && !aliases.contains(name)) {
-				throw ArgumentParserException("Name \"" + name + "\" already inserted");
-			}
-
+		for (const auto& name : argument.names) {
+			storage.arguments.emplace_back(name, std::nullopt);
 		}
 
-		argumentsCursor = cursor;
+	} else {
 
-		return true;
+		std::optional<ValueT> value = parseValue(valueString, argument.type);
 
-	}
-
-
-	for (const auto& name : arg.names) {
-
-		if (!aliases.try_emplace(name, arg.names[0]).second) {
-			throw ArgumentParserException("Name \"" + name + "\" already inserted");
+		if (!value) {
+			return false;
 		}
 
-	}
 
+		for (const auto& name : argument.names) {
+			storage.aliases.emplace_back(name, argument.names[0]);
+		}
 
-	ValueT value;
-
-	switch (arg.type) {
-
-		case Argument::Int:		value = parseArithmetic<i64>(valueString, nameString);		break;
-		case Argument::UInt:	value = parseArithmetic<u64>(valueString, nameString);		break;
-		case Argument::Float:	value = parseArithmetic<float>(valueString, nameString);	break;
-		case Argument::Double:	value = parseArithmetic<double>(valueString, nameString);	break;
-
-		case Argument::Word:
-
-			if (valueString.find(' ') != std::string::npos) {
-				throw ArgumentParserException("Argument \"" + nameString + "\" has invalid value");
-			}
-
-			[[fallthrough]];
-
-		case Argument::String:
-
-			value = valueString;
-
-			break;
-
-		default:
-			arc_force_assert("Illegal argument type");
+		storage.arguments.emplace_back(argument.names[0], *value);
 
 	}
 
-	values.try_emplace(arg.names[0], value);
 
-
-	argumentsCursor = cursor;
+	storage.cursor = cursor;
 
 	return true;
 
 }
 
 
-void ArgumentParser::parseTree() {
+void ArgumentParser::evaluateNode(const Node& node, ParseLevel::Match& match, std::vector<ParseLevel>& levels, bool acceptOptional) {
 
-	std::vector<ParseLevel> levels; // Dirty and parsing state for each parent's level
+	if (node.isParent()) {
 
-	std::stack<ParseNode> stack; // Parsing nodes stack
+		// Parent nodes cannot be parsed so propagate the match
 
-	stack.emplace(layout.rootNode);
+		match = levels.back().match;
 
+	} else if (parseArgument(node.argument, levels.back().state)) {
 
-	auto updateState = [&](const Node& node, ParseLevel::State& mainState) {
+		// Argument matched so set levels dirty and set match to Full
 
-		if (node.isParent()) {
+		for (auto& level : levels) {
+			level.dirty = true;
+		}
 
-			// Parent nodes cannot be parsed unlike argument nodes:
-			// - Propagate its level into the previous one
+		match = ParseLevel::Full;
 
-			mainState = levels.back().state;
+	} else if (node.isOptional() && acceptOptional) {
 
-		} else if (parseArgument(node.argument)) {
+		// Optional node not matching is a Partial match
 
-			// If argument node parse is successful:
-			// - Set Match state
-			// - Dirty all previous levels
+		match = ParseLevel::Partial;
 
-			mainState = ParseLevel::Match;
+	} else if (match != ParseLevel::Partial || node.op != Node::Or) {
 
-			for (auto& level : levels) {
-				level.dirty = true;
+		// Not a full match attempt nor a new expression nulls the match
+
+		match = ParseLevel::None;
+
+	}
+
+}
+
+void ArgumentParser::evaluateUnorderedParent(const Node& node, ParseLevel::Match& match, std::vector<ParseLevel>& levels) {
+
+	std::vector<Node> children = node.children;
+
+	// Iterate over the parent's children as long as a full match is found and the vector is not empty
+
+	do {
+
+		// Reset match
+		match = ParseLevel::Full;
+
+		for (SizeT i = 0; const auto& child : children) {
+
+			evaluateNode(child, match, levels, match != ParseLevel::None);
+
+			if (match == ParseLevel::Full) {
+
+				// Erase matching child
+				children.erase(children.begin() + i);
+
+				break;
+
 			}
 
-		} else {
-
-			// If argument node parse fails:
-			// - Set MatchOpt state if the node is optional or if the operator is Or (match not strictly required)
-			// - Set Error state otherwise
-
-			bool optional = (node.type == Node::Optional || node.op == Node::Or);
-
-			mainState = optional ? ParseLevel::MatchOpt : ParseLevel::Error;
+			i++;
 
 		}
 
-	};
+	} while (match == ParseLevel::Full && !children.empty());
+
+}
 
 
-#ifdef ARC_ARGPARSE_DEBUG
-	LogD() << "ArgumentParser tree:";
-#endif
+ArgumentParser::StackOperation ArgumentParser::processParent(const ArgumentParser::Node& node, std::vector<ParseLevel>& levels) {
 
-	// Parse the layout tree with a depth-first postorder traverse
+	SizeT argumentsCursor = 1; // Skip first argument (application path)
+
+
+	if (!levels.empty()) {
+
+		auto& level = levels.back();
+
+		argumentsCursor = level.state.cursor;
+
+		// Unrecoverable state (at lease for now)
+		level.fatal |= (level.match == ParseLevel::None) && (node.op != Node::Or);
+
+		// Unnecessary parent expansion
+		bool unnecessary = (level.match == ParseLevel::Full) && (node.op == Node::Or);
+
+		if (level.fatal || unnecessary) {
+			return StackOperation::Pop;
+		}
+
+	}
+
+
+	levels.emplace_back(ParseLevel::Full, argumentsCursor);
+
+
+	if (!node.isUnordered()) {
+		return StackOperation::Expand;
+	}
+
+
+	evaluateUnorderedParent(node, levels.back().match, levels);
+
+	return StackOperation::None;
+
+}
+
+bool ArgumentParser::processExpandedParent(const Node& node, std::vector<ParseLevel>& levels) {
+
+	auto& level = levels.back();
+
+
+	if (levels.size() == 1) { // If Root
+
+		// Unrecoverable state
+		if (level.fatal || level.match == ParseLevel::None) {
+			throw ArgumentParserException("Arguments not matching layout");
+		}
+
+		return true; // Root node reached, leave parsing loop
+
+	}
+
+
+	if (level.match == ParseLevel::Partial && level.dirty) {
+
+		// Dirty partial match parent becomes a full match
+		level.match = ParseLevel::Full;
+
+	} else if (node.isOptional() && !level.dirty) {
+
+		// Clean optional parent becomes a partial match
+		level.match = ParseLevel::Partial;
+
+	}
+
+
+	return false;
+
+}
+
+void ArgumentParser::processNode(const Node& node, std::vector<ParseLevel>& levels, ParseLevel::Match& match) {
+
+	if (match == ParseLevel::None) {
+
+		if (node.op == Node::Or) {
+			evaluateNode(node, match, levels);
+		} else {
+			levels.back().fatal = true; // Fatal (for now), beginning new expression without a match
+		}
+
+	} else if (match == ParseLevel::Full) {
+
+		// Begin new expression
+		if (node.op != Node::Or) {
+			evaluateNode(node, match, levels);
+		}
+
+		// Else, full match has already been reached
+
+	} else { // ParseLevel::MatchOpt
+
+		// Seek for full match or begin new expression
+		evaluateNode(node, match, levels);
+
+	}
+
+}
+
+
+void ArgumentParser::parseTree() {
+
+	std::vector<ParseLevel> levels; // Parsing state for each tree level
+
+	std::stack<ParseNode> stack; // Ongoing nodes stack
+
+	stack.emplace(layout.getRootNode());
+
 
 	while (true) {
 
@@ -359,18 +452,23 @@ void ArgumentParser::parseTree() {
 
 		if (node.isParent() && !expanded) {
 
-			levels.emplace_back(ParseLevel::Match);
+			// First parent pass (pre-expansion), expand parent into the stack and process unordered parents
+			// Unnecessary expansions are avoided to save performance
 
-#ifdef ARC_ARGPARSE_DEBUG
+			StackOperation op = processParent(node, levels);
 
-			if (levels.size() != 1) {
-				LogD() << std::string(levels.size() - 2, '\t') << "{";
-			}
+			if (op == StackOperation::Expand) {
 
-#endif
+				for (auto& child : std::views::reverse(node.children)) {
+					stack.emplace(child);
+				}
 
-			for (auto& child : std::views::reverse(node.children)) {
-				stack.emplace(child);
+			} else if (op == StackOperation::Pop) {
+
+				stack.pop();
+
+				continue;
+
 			}
 
 			expanded = true;
@@ -380,118 +478,91 @@ void ArgumentParser::parseTree() {
 		}
 
 
-		auto& [state, dirty, skipLevel] = levels.back();
-
-
-		// Premature parent node checks
-		// TODO Further optimizations
-
-		// Parent node ending in root counts as rootLevel
-
-		bool rootLevel = levels.size() == 1;
-		bool rootExpression = levels.size() == 1 + node.isParent();
+		auto& level = levels.back();
 
 		if (node.isParent()) {
 
-			if (state == ParseLevel::MatchOpt && dirty) {
+			// Second parent pass (post-expansion), set up the parent to be treated like any other node
 
-				// Dirty MatchOpt parent node counts as Match
+			if (processExpandedParent(node, levels)) {
 
-				state = ParseLevel::Match;
-
-			} else if (state == ParseLevel::Error && (rootLevel || (!node.isOptional() && dirty))) {
-
-				// Mandatory dirty parent node in Error is unrecoverable
-
-				throw ArgumentParserException("Arguments not matching layout");
-
-			} else if (node.isOptional() && !dirty) {
-
-				// Clean optional parent node counts as MatchOpt
-
-				state = ParseLevel::MatchOpt;
-
-			}
-
-			// Leave from root section
-
-			if (rootLevel) {
+				// Leave parsing loop when necessary
 				break;
+
 			}
 
 		}
 
 
-		// Common node state update and error checking
+		// Current expression's match (if the current node is a parent, that will be in the level below)
+		auto& match = node.isParent() ? levels[levels.size() - 2].match : level.match;
 
-		auto& mainState = node.isParent() ? levels[levels.size() - 2].state : state; // Current expression level state
+		if (!level.fatal || node.isParent()) {
 
-		if (mainState == ParseLevel::Error) {
+			// Generic node pass, evaluate arguments when required and set match accordingly
+			// Fatal arguments are skipped, parents still have to propagate their match to the level below
 
-			// If our node is in Error we have to:
-			// - State update if the operator is Or (hopefully we get a Match/MatchOpt)
-			// - Else, throw if the node is dirty or root (something unnecessary got matched or fatal error in root)
-
-			if (node.op == Node::Or && (!skipLevel || node.isParent())) {
-				updateState(node, mainState);
-			} else if (rootExpression || dirty) {
-				throw ArgumentParserException("Arguments not matching layout");
-			} else if (!skipLevel) {
-				skipLevel = true;
-			}
-
-		} else if (mainState == ParseLevel::Match) {
-
-			// If our node is in Match we have to:
-			// - State update if the operator is not Or (we are starting a new expression)
-			// - Else, throw if the node is parent and dirty (something unnecessary got matched)
-
-			if (node.op != Node::Or) {
-				updateState(node, mainState);
-			} else if (node.isParent() && dirty) {
-				throw ArgumentParserException("Arguments not matching layout");
-			}
-
-		} else if (mainState == ParseLevel::MatchOpt) {
-
-			// If our node is in MatchOpt we have to update the state if:
-			// - The node is not parent (complete Match attempt otherwise keep MatchOpt)
-			// - The operator is not Or (we are starting a new expression)
-			// - Parent is not in error (continue normally)
-
-			if (!node.isParent() || node.op != Node::Or || state != ParseLevel::Error) { // TODO Verify `&& !dirty` requirement
-				updateState(node, mainState);
-			}
+			processNode(node, levels, match);
 
 		}
+
 
 		if (node.isParent()) {
+
+			// End parent, propagate state to the level below
+
+			if (match != ParseLevel::None) {
+				levels[levels.size() - 2].state.inherit(level.state);
+			}
+
+			// Pop tree level
 			levels.pop_back();
+
 		}
 
-#ifdef ARC_ARGPARSE_DEBUG
-
-		std::string stateString;
-
-		if (state == ParseLevel::Match) {
-			stateString = "Match";
-		} else if (state == ParseLevel::MatchOpt) {
-			stateString = "MatchOpt";
-		} else {
-			stateString = "Error";
-		}
-
-		LogD() << std::string(levels.size() - 1, '\t') << (node.isParent() ? "} Parent" : "Child") << " = " << stateString << " [" << argumentsCursor << "]";
-
-#endif
 
 		stack.pop();
 
 	}
 
 
-	if (argumentsCursor < arguments.size()) {
+	// Arguments matched, but not the entire vector has been used
+
+	if (levels.back().state.cursor < arguments.size()) {
 		throw ArgumentParserException("Arguments exceed layout");
+	}
+
+
+	// Push the root level's state into the class's maps for faster access
+
+	for (const auto& [name, value] : levels.back().state.arguments) {
+
+		bool success;
+
+		if (value) {
+
+			success = values.try_emplace(name, *value).second;
+
+		} else {
+
+			success = !values.contains(name);
+
+			flags.emplace(name);
+
+		}
+
+		if (!success) {
+			throw ArgumentParserException("Argument \"" + name + "\" has a duplicate");
+		}
+
+	}
+
+	for (const auto& [alias, name] : levels.back().state.aliases) {
+
+		if (!aliases.try_emplace(alias, name).second) {
+			throw ArgumentParserException("Argument \"" + name + "\" has a duplicate");
+		}
+
 	}
 
 }

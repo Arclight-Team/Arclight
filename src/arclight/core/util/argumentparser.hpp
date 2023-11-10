@@ -12,6 +12,7 @@
 #include "common/exception.hpp"
 #include "util/bool.hpp"
 #include "util/string.hpp"
+#include "util/assert.hpp"
 
 #include <unordered_map>
 #include <unordered_set>
@@ -103,6 +104,7 @@ public:
 			Unknown,
 			Mandatory,
 			Optional,
+			Unordered
 		};
 
 		enum class Operator {
@@ -130,6 +132,10 @@ public:
 			return type == Optional;
 		}
 
+		constexpr bool isUnordered() const noexcept {
+			return type == Unordered;
+		}
+
 
 		Type type;
 		Operator op;
@@ -143,8 +149,6 @@ public:
 
 	constexpr ArgumentLayout() : rootNode(Node::Mandatory) {}
 
-	constexpr ArgumentLayout(Node node) : rootNode(std::move(node)) {}
-
 	constexpr ArgumentLayout(const std::string& layout) : ArgumentLayout() {
 		buildTree(layout);
 	}
@@ -154,7 +158,9 @@ public:
 	}
 
 
-	Node rootNode;
+	constexpr const Node& getRootNode() const {
+		return rootNode;
+	}
 
 private:
 
@@ -177,7 +183,7 @@ private:
 
 
 		constexpr SizeT size() const noexcept {
-			return levels.size() - 1;
+			return levels.size() - 1; // Root node does not count in the size
 		}
 
 		constexpr bool empty() const noexcept {
@@ -198,7 +204,7 @@ private:
 
 		constexpr bool pop() {
 
-			if (empty()) {
+			if (empty()) { // Root node cannot be popped
 				return false;
 			}
 
@@ -208,7 +214,6 @@ private:
 
 		}
 
-
 	private:
 
 		std::vector<Node*> levels;
@@ -216,13 +221,13 @@ private:
 	};
 
 	enum class State {
-		PreChild,		// Force child begin
-		ChildBegin,		// Accepts child begin, unnamed modifier and argument name
-		ChildEnd,		// Accepts operator
-		PreName,		// Force argument name
-		Name,			// Accepts separator, or operator (for multiple names) and type
-		PreType,		// Force argument type
-		Type			// Force child end
+		PreChild,	// Force child begin
+		ChildBegin,	// Accepts child begin, unnamed modifier and argument name
+		ChildEnd,	// Accepts operator
+		PreName,	// Force argument name
+		Name,		// Accepts separator, or operator (for multiple names) and type
+		PreType,	// Force argument type
+		Type		// Force child end
 	};
 
 
@@ -238,10 +243,14 @@ private:
 		Node::Operator lastOperator = Node::None;
 
 
+		auto throwException = [&](const std::string& message) {
+			throw ArgumentLayoutException(message, layout, tokenStart);
+		};
+
 		auto pushNode = [&](Node::Type type) {
 
 			if (Bool::none(state, State::PreChild, State::ChildBegin)) {
-				throw ArgumentLayoutException("Unexpected parent begin token", layout, tokenStart);
+				throwException("Unexpected parent begin token");
 			}
 
 			state = State::ChildBegin;
@@ -257,17 +266,21 @@ private:
 			const auto& node = tree.current();
 
 			if (!tree.empty() && node.type != type) {
-				throw ArgumentLayoutException("Section end token does not match section type", layout, tokenStart);
+				throwException("Section end token does not match section type");
 			} else if (Bool::none(state, State::Type, State::Name, State::ChildEnd)) {
-				throw ArgumentLayoutException("Unexpected section end token", layout, tokenStart);
+				throwException("Unexpected section end token");
 			} else if (node.argument.unnamed && node.argument.type == Argument::Flag) {
-				throw ArgumentLayoutException("Flag argument cannot be marked as unnamed", layout, tokenStart);
+				throwException("Flag argument cannot be marked as unnamed");
+			} else if (node.isUnordered() && node.isArgument()) {
+				throwException("Argument node cannot be unordered");
 			}
 
 			state = State::ChildEnd;
 
 			if (!tree.pop()) {
-				throw ArgumentLayoutException("Exceeding section end token", layout, tokenStart);
+				throwException("Exceeding section end token");
+			} else if (tree.current().isUnordered() && node.isParent()) {
+				throwException("Unordered parent can only contain argument nodes");
 			}
 
 		};
@@ -277,8 +290,10 @@ private:
 			bool nameOperator = (type == Node::Or) && (state == State::Name);
 
 			if (!nameOperator && state != State::ChildEnd) {
-				throw ArgumentLayoutException("Unexpected operator token", layout, tokenStart);
-			}
+				throwException("Unexpected operator token");
+			} if (type != Node::And && tree.current().isUnordered()) {
+			throwException("Unordered parent can only contain And operators");
+		}
 
 			state = nameOperator ? State::PreName : State::PreChild;
 
@@ -293,9 +308,9 @@ private:
 			auto& argument = tree.current().argument;
 
 			if (state != State::Name) {
-				throw ArgumentLayoutException("Unexpected separator token", layout, tokenStart);
+				throwException("Unexpected separator token");
 			} else if (argument.unnamed) {
-				throw ArgumentLayoutException("Unnamed argument cannot have a separator", layout, tokenStart);
+				throwException("Unnamed argument cannot have a separator");
 			}
 
 			state = State::PreType;
@@ -307,7 +322,7 @@ private:
 		auto setUnnamed = [&]() {
 
 			if (state != State::ChildBegin) {
-				throw ArgumentLayoutException("Unexpected unnamed modifier token", layout, tokenStart);
+				throwException("Unexpected unnamed modifier token");
 			}
 
 			state = State::PreName;
@@ -326,9 +341,9 @@ private:
 			bool type = Bool::any(state, State::PreType, State::Name);
 
 			if (tokenCursor == std::string::npos) {
-				throw ArgumentLayoutException("Unexpected string token at the end of layout", layout, tokenStart);
+				throwException("Unexpected string token at the end of layout");
 			} else if (!name && !type) {
-				throw ArgumentLayoutException("Unexpected string token", layout, tokenStart);
+				throwException("Unexpected string token");
 			}
 
 			std::string token = layout.substr(tokenStart, tokenCursor - tokenStart);
@@ -355,7 +370,7 @@ private:
 			};
 
 			if (!argumentTypes.contains(token)) {
-				throw ArgumentLayoutException("String does not represent an argument type", layout, tokenStart);
+				throwException("String does not represent an argument type");
 			}
 
 			argument.type = argumentTypes.at(token);
@@ -373,8 +388,10 @@ private:
 
 				case '<':	pushNode(Node::Mandatory);		break;
 				case '[':	pushNode(Node::Optional);		break;
+				case '{':	pushNode(Node::Unordered);	break;
 				case '>':	popNode(Node::Mandatory);		break;
 				case ']':	popNode(Node::Optional);		break;
+				case '}':	popNode(Node::Unordered);	break;
 
 				case ',':
 				case '&':	setOperator(Node::And);	break;
@@ -397,10 +414,13 @@ private:
 
 
 		if (!tree.empty()) {
-			throw ArgumentLayoutException("Layout ends with unfinished node", layout, tokenStart);
+			throwException("Layout ends with unfinished node");
 		}
 
 	}
+
+
+	Node rootNode;
 
 };
 
@@ -521,41 +541,80 @@ public:
 
 private:
 
-	struct ParseNode {
+	struct ParseState {
 
-		constexpr explicit ParseNode(Node& node) noexcept : node(node), expanded(false) {}
+		using AliasT = std::pair<std::string, std::string>;
+		using ArgumentT = std::pair<std::string, std::optional<ValueT>>;
 
 
-		Node& node;
-		bool expanded;
+		constexpr explicit ParseState(SizeT cursor) noexcept : cursor(cursor) {}
+
+
+		constexpr void inherit(const ParseState& other) {
+
+			// Inherit state from another instance
+
+			cursor = other.cursor;
+
+			arguments.insert(arguments.end(), other.arguments.begin(), other.arguments.end());
+			aliases.insert(aliases.end(), other.aliases.begin(), other.aliases.end());
+
+		}
+
+
+		std::vector<ArgumentT> arguments; // If the optional has no value, it is a flag
+		std::vector<AliasT> aliases;
+
+		SizeT cursor;
 
 	};
 
 	struct ParseLevel {
 
-		enum class State {
-			Match,		// Argument matching
-			MatchOpt,	// Optional argument not matching (partial match)
-			Error		// Argument not matching
+		enum class Match {
+			Full,		// Argument matching
+			Partial,	// Optional argument not matching
+			None		// Argument not matching
 		};
 
-		using enum State;
-
-		constexpr explicit ParseLevel(State state, bool dirty = false) noexcept : state(state), dirty(dirty), skipLevel(false) {}
+		using enum Match;
 
 
-		State state;
-		bool dirty; // True if any node matched in the level
-		bool skipLevel; // True if the state has been error and cannot be recovered
+		explicit ParseLevel(Match match, SizeT cursor) noexcept : state(cursor), match(match), dirty(false), fatal(false) {}
+
+
+		ParseState state; // Current parsing state (cursor and parsed arguments)
+
+		Match match; // Current match
+
+		bool dirty;
+		bool fatal; // Unrecoverable state, becomes an exception in root
 
 	};
 
-	using Descriptions = std::unordered_map<u32, std::string>;
+	struct ParseNode {
+
+		constexpr explicit ParseNode(const Node& node) noexcept : node(node), expanded(false) {}
+
+
+		const Node& node;
+
+		bool expanded;
+
+	};
+
+	enum class StackOperation {
+		Pop,
+		Expand,
+		None,
+	};
+
+	using DescriptionsT = std::unordered_map<u32, std::string>;
 
 	static constexpr u32 DefaultDescriptionID = -1;
 
 
-	constexpr void setArguments(int argc, char* argv[]) {
+	constexpr void loadArguments(int argc, char* argv[]) {
 
 		try {
 
@@ -581,7 +640,6 @@ private:
 	static constexpr bool compatibleIntegral(const ValueT& value) {
 		return std::holds_alternative<T>(value) && std::in_range<I>(std::get<T>(value));
 	}
-
 
 	template<CC::ArgumentType T>
 	inline T convertedValue(const std::string& name) const {
@@ -642,8 +700,44 @@ private:
 	}
 
 
+
+	static std::optional<ValueT> parseValue(const std::string& string, Argument::Type type) {
+
+		std::optional<ValueT> value;
+
+		switch (type) {
+
+			case Argument::Int:		value = parseArithmetic<i64>(string);		break;
+			case Argument::UInt:	value = parseArithmetic<u64>(string);		break;
+			case Argument::Float:	value = parseArithmetic<float>(string);		break;
+			case Argument::Double:	value = parseArithmetic<double>(string);	break;
+
+			case Argument::Word:
+
+				if (string.find(' ') != std::string::npos) {
+					return {};
+				}
+
+				[[fallthrough]];
+
+			case Argument::String:
+
+				value = string;
+
+				break;
+
+			default:
+
+				arc_force_assert("Illegal argument type");
+
+		}
+
+		return value;
+
+	}
+
 	template<CC::Arithmetic A>
-	static A parseArithmetic(const std::string& string, const std::string& argument) {
+	static std::optional<ValueT> parseArithmetic(const std::string& string) {
 
 		A value;
 
@@ -652,14 +746,28 @@ private:
 		const auto& result = std::from_chars(string.data(), end, value);
 
 		if (result.ec != std::errc{} || result.ptr != end) {
-			throw ArgumentParserException("Argument \"" + argument + "\" has invalid value");
+			return {};
 		}
 
 		return value;
 
 	}
 
-	bool parseArgument(const Argument& arg);
+
+	bool parseArgument(const Argument& argument, ParseState& storage);
+
+
+	void evaluateNode(const Node& node, ParseLevel::Match& state, std::vector<ParseLevel>& levels, bool acceptOptional = true);
+
+	void evaluateUnorderedParent(const Node& node, ParseLevel::Match& state, std::vector<ParseLevel>& levels);
+
+
+	StackOperation processParent(const Node& node, std::vector<ParseLevel>& levels);
+
+	bool processExpandedParent(const Node& node, std::vector<ParseLevel>& levels);
+
+	void processNode(const Node& node, std::vector<ParseLevel>& levels, ParseLevel::Match& state);
+
 
 	void parseTree();
 
@@ -667,11 +775,10 @@ private:
 	ArgumentLayout layout;
 
 	std::vector<std::string> arguments;
-	SizeT argumentsCursor;
 
 	std::unordered_set<std::string> flags;
 	std::unordered_map<std::string, ValueT> values;
 	std::unordered_map<std::string, std::string> aliases;
-	std::unordered_map<std::string, Descriptions> descriptions;
+	std::unordered_map<std::string, DescriptionsT> descriptions;
 
 };
