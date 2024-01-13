@@ -9,7 +9,6 @@
 #pragma once
 
 #include "gc.hpp"
-#include <GL/glew.h>
 
 GLE_BEGIN
 

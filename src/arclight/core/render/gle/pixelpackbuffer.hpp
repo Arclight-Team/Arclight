@@ -10,7 +10,6 @@
 
 #include "buffer.hpp"
 #include "texture.hpp"
-#include <GL/glew.h>
 
 
 GLE_BEGIN
