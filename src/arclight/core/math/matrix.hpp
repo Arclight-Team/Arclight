@@ -675,11 +675,14 @@ public:
 	}
 
 
-	constexpr Mat2<T> toMat2() const noexcept {
+	constexpr Mat2<T> toMat2(SizeT r = 0, SizeT c = 0) const noexcept {
+
+		arc_assert(r >= 0 && r <= 1, "Matrix conversion row offset %d out of bounds", r);
+		arc_assert(c >= 0 && c <= 1, "Matrix conversion column offset %d out of bounds", c);
 
 		return {
-			v[0][0], v[1][0],
-			v[0][1], v[1][1]
+			v[r + 0][c + 0], v[r + 1][c + 0],
+			v[r + 0][c + 1], v[r + 1][c + 1]
 		};
 
 	}
@@ -1269,21 +1272,27 @@ public:
 	}
 
 
-	constexpr Mat2<T> toMat2() const noexcept {
+	constexpr Mat2<T> toMat2(SizeT r = 0, SizeT c = 0) const noexcept {
+
+		arc_assert(r >= 0 && r <= 2, "Matrix conversion row offset %d out of bounds", r);
+		arc_assert(c >= 0 && c <= 2, "Matrix conversion column offset %d out of bounds", c);
 
 		return {
-			v[0][0], v[1][0],
-			v[0][1], v[1][1]
+			v[r + 0][c + 0], v[r + 1][c + 0],
+			v[r + 0][c + 1], v[r + 1][c + 1]
 		};
 
 	}
 
-	constexpr Mat3<T> toMat3() const noexcept {
+	constexpr Mat3<T> toMat3(SizeT r = 0, SizeT c = 0) const noexcept {
+
+		arc_assert(r >= 0 && r <= 1, "Matrix conversion row offset %d out of bounds", r);
+		arc_assert(c >= 0 && c <= 1, "Matrix conversion column offset %d out of bounds", c);
 
 		return {
-			v[0][0], v[1][0], v[2][0],
-			v[0][1], v[1][1], v[2][1],
-			v[0][2], v[1][2], v[2][2]
+			v[r + 0][c + 0], v[r + 1][c + 0], v[r + 2][c + 0],
+			v[r + 0][c + 1], v[r + 1][c + 1], v[r + 2][c + 1],
+			v[r + 0][c + 2], v[r + 1][c + 2], v[r + 2][c + 2]
 		};
 
 	}
