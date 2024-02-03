@@ -77,7 +77,7 @@ void CTGroupTableBuffer::update() {
 
 	if (ubo.getSize() < buffer.size()) {
 
-		ubo.allocate(Math::alignUp(buffer.size(), 512), GLE::BufferAccess::StaticDraw);
+		ubo.allocate(Bits::alignUp(buffer.size(), 512), GLE::BufferAccess::StaticDraw);
 		ubo.update(0, buffer.size(), buffer.data());
 
 	} else {

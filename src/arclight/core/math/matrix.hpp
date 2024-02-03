@@ -675,6 +675,16 @@ public:
 	}
 
 
+	constexpr Mat2<T> toMat2() const noexcept {
+
+		return {
+			v[0][0], v[1][0],
+			v[0][1], v[1][1]
+		};
+
+	}
+
+
 	VecT v[3];
 
 };
@@ -1254,6 +1264,26 @@ public:
 			m[0][1], m[1][1], 0, m[2][1],
 			0, 0, 1, 0,
 			m[0][2], m[1][2], 0, m[2][2]
+		};
+
+	}
+
+
+	constexpr Mat2<T> toMat2() const noexcept {
+
+		return {
+			v[0][0], v[1][0],
+			v[0][1], v[1][1]
+		};
+
+	}
+
+	constexpr Mat3<T> toMat3() const noexcept {
+
+		return {
+			v[0][0], v[1][0], v[2][0],
+			v[0][1], v[1][1], v[2][1],
+			v[0][2], v[1][2], v[2][2]
 		};
 
 	}

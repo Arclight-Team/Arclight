@@ -483,5 +483,5 @@ Vec2f SpriteRenderer::calculateGlobalSpriteScale(const Sprite& sprite) const {
 
 
 void SpriteRenderer::recalculateProjection() {
-	projection = Mat4f::ortho(viewport.getX(), viewport.getEndX(), viewport.getY(), viewport.getEndY(), -1, 1);
+	projection = Mat4f::ortho(viewport.x, viewport.end().x, viewport.y, viewport.end().y, -1, 1);
 }

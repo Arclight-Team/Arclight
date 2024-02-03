@@ -100,7 +100,7 @@ void SpriteTypeBuffer::update() {
 
 	if (ssbo.getSize() < buffer.size()) {
 
-		ssbo.allocate(Math::alignUp(buffer.size(), 2048), GLE::BufferAccess::DynamicDraw);
+		ssbo.allocate(Bits::alignUp(buffer.size(), 2048), GLE::BufferAccess::DynamicDraw);
 		ssbo.update(0, buffer.size(), buffer.data());
 
 	} else {

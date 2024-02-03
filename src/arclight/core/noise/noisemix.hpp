@@ -49,7 +49,7 @@ public:
 	}
 
 
-	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::CommonArithmeticType<T>>
+	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::ExtractType<T>>
 	constexpr F sample(const T& point, A frequency, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 
 		F sample;
@@ -62,7 +62,7 @@ public:
 
 	}
 
-	template<CC::Arithmetic C, SizeT N, CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::CommonArithmeticType<T>>
+	template<CC::Arithmetic C, SizeT N, CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::ExtractType<T>>
 	constexpr F sample(ContributionT<C, N> contribution, const T& point, A frequency, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 
 		F sample = 0;
@@ -88,7 +88,7 @@ public:
 
 	}
 
-	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::CommonArithmeticType<T>, CC::Returns<F, ArgsHelper<F, Types>...> Func>
+	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::ExtractType<T>, CC::Returns<F, ArgsHelper<F, Types>...> Func>
 	constexpr F sample(Func&& transform, const T& point, A frequency, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 
 		F sample;
@@ -102,7 +102,7 @@ public:
 	}
 
 
-	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::CommonArithmeticType<T>>
+	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::ExtractType<T>>
 	constexpr std::vector<F> sample(std::span<const T> points, std::span<const A> frequencies, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 
 		arc_assert(points.size() == frequencies.size(), "The amount of points need to match the amount of frequencies");
@@ -133,7 +133,7 @@ public:
 
 	}
 
-	template<CC::Arithmetic C, SizeT N, CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::CommonArithmeticType<T>>
+	template<CC::Arithmetic C, SizeT N, CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::ExtractType<T>>
 	constexpr std::vector<F> sample(ContributionT<C, N> contribution, std::span<const T> points, std::span<const A> frequencies, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 
 		arc_assert(points.size() == frequencies.size(), "The amount of points need to match the amount of frequencies");
@@ -168,7 +168,7 @@ public:
 
 	}
 
-	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::CommonArithmeticType<T>, CC::Returns<F, ArgsHelper<F, Types>...> Func>
+	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::ExtractType<T>, CC::Returns<F, ArgsHelper<F, Types>...> Func>
 	constexpr std::vector<F> sample(Func&& transform, std::span<const T> points, std::span<const A> frequencies, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 
 		arc_assert(points.size() == frequencies.size(), "The amount of points need to match the amount of frequencies");

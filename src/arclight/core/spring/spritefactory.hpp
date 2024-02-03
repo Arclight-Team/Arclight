@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "math/rectangle.hpp"
+#include "math/shapes/rectangle.hpp"
 #include "spritetype.hpp"
 #include "types.hpp"
 

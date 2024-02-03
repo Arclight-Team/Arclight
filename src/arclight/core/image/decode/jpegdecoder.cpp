@@ -2364,7 +2364,7 @@ static RawImage blendMonochromeCore(Scan& scan) {
 
 	for (SizeT i = 0; i < scalarSize; i++) {
 
-		*targetSclData = (*imgData + colorBias) >> FixShift;
+		*targetSclData = (*imgData + colorBias<FixShift>) >> FixShift;
 
 		targetSclData++;
 		imgData++;
@@ -2512,9 +2512,9 @@ static RawImage blendAndUpsampleYCbCrCore(Scan& scan) {
 			i32 g = y - ((cb * ycbcrFactors[1]) >> ycbcrShift) - ((cr * ycbcrFactors[2]) >> ycbcrShift);
 			i32 b = y + ((cb * ycbcrFactors[3]) >> ycbcrShift);
 
-			u8 rb = Math::clamp((r + colorBias) >> FixShift, 0, 255);
-			u8 gb = Math::clamp((g + colorBias) >> FixShift, 0, 255);
-			u8 bb = Math::clamp((b + colorBias) >> FixShift, 0, 255);
+			u8 rb = Math::clamp((r + colorBias<FixShift>) >> FixShift, 0, 255);
+			u8 gb = Math::clamp((g + colorBias<FixShift>) >> FixShift, 0, 255);
+			u8 bb = Math::clamp((b + colorBias<FixShift>) >> FixShift, 0, 255);
 
 			targetSclData[0] = rb;
 			targetSclData[1] = gb;

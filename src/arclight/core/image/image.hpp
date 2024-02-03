@@ -11,7 +11,7 @@
 #include "pixel.hpp"
 #include "rawimage.hpp"
 #include "math/vector.hpp"
-#include "math/rectangle.hpp"
+#include "math/shapes/rectangle.hpp"
 #include "types.hpp"
 #include "common/exception.hpp"
 

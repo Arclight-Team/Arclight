@@ -296,11 +296,11 @@ constexpr void Image<P>::copy(Image<P>& destImage, const RectUI& src, const Vec2
 
 	}
 
-	for (u32 y = 0; y < src.getHeight(); y++) {
+	for (u32 y = 0; y < src.h; y++) {
 
-		for (u32 x = 0; x < src.getWidth(); x++) {
+		for (u32 x = 0; x < src.w; x++) {
 
-			destImage.setPixel(dest.x + x, dest.y + y, this->getPixel(src.getX() + x, src.getY() + y));
+			destImage.setPixel(dest.x + x, dest.y + y, this->getPixel(src.x + x, src.y + y));
 
 		}
 
@@ -317,19 +317,19 @@ constexpr void Image<P>::copy(const RectUI& src, const Vec2ui& dest) {
 	u32 yStart = 0;
 	u32 yEnd = 0;
 
-	if (src.getPosition() == dest) {
+	if (src.start() == dest) {
 
 		return;
 
-	} else if (src.getX() + src.getY() * this->getWidth() > dest.x + dest.y * this->getWidth()) {
+	} else if (src.x + src.y * this->getWidth() > dest.x + dest.y * this->getWidth()) {
 
-		xEnd = src.getWidth();
-		yEnd = src.getHeight();
+		xEnd = src.w;
+		yEnd = src.h;
 
 	} else {
 
-		xStart = src.getWidth();
-		yStart = src.getHeight();
+		xStart = src.w;
+		yStart = src.h;
 
 	}
 
@@ -340,7 +340,7 @@ constexpr void Image<P>::copy(const RectUI& src, const Vec2ui& dest) {
 			x += (xStart < xEnd ? 0 : -1);
 			y += (yStart < yEnd ? 0 : -1);
 
-			this->setPixel(dest.x + x, dest.y + y, this->getPixel(src.getX() + x, src.getY() + y));
+			this->setPixel(dest.x + x, dest.y + y, this->getPixel(src.x + x, src.y + y));
 
 			x -= (xStart < xEnd ? 0 : -1);
 			y -= (yStart < yEnd ? 0 : -1);

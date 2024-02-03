@@ -19,7 +19,7 @@
 #include "shaderpool.hpp"
 #include "sharedbuffer.hpp"
 
-#include "math/rectangle.hpp"
+#include "math/shapes/rectangle.hpp"
 #include "stdext/arraymap.hpp"
 
 #include <map>

@@ -88,7 +88,7 @@ namespace ASX
 	template<Result Default = FMOD_OK, Result... Filters>
 	constexpr CaptureErrorCode<Default, Filters...> captureCode;
 
-#define ASX_TRY(...) ASX::captureCode<FMOD_OK, __VA_ARGS__>.capture(std::source_location::current())
+#define ASX_TRY(...) ASX::captureCode<FMOD_OK __VA_OPT__(,) __VA_ARGS__>.capture(std::source_location::current())
 
 }
 

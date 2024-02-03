@@ -52,7 +52,7 @@ void PoolAllocator::create(AddressT blockCount, AddressT blockSize, AlignT block
 
 		AddressT baseSize = Math::max(blockSize, sizeof(Storage));
 		AlignT baseAlign = Math::max(blockAlign, alignof(Storage));
-		AddressT alignedSize = Math::alignUp(baseSize, baseAlign);
+		AddressT alignedSize = Bits::alignUp(baseSize, baseAlign);
 		AddressT heapSize = blockCount * alignedSize;
 
 		this->totalSize = heapSize;

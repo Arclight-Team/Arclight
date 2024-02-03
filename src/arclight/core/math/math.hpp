@@ -89,25 +89,6 @@ namespace Math {
 		return {min(a, args...), max(a, args...)};
 	}
 
-
-	template<CC::Arithmetic A>
-	constexpr void ascend(A& a, A& b) noexcept {
-
-		if (less(b, a)) {
-			std::swap(a, b);
-		}
-
-	}
-
-	template<CC::Arithmetic A>
-	constexpr void descend(A& a, A& b) noexcept {
-
-		if (less(a, b)) {
-			std::swap(a, b);
-		}
-
-	}
-
 	#pragma endregion
 
 
@@ -710,6 +691,25 @@ namespace Math {
 	template<CC::IEEEMaskableFloat F>
 	constexpr F fract(F value) noexcept {
 		return split(value).fractional;
+	}
+
+
+	template<CC::Arithmetic A>
+	constexpr void ascend(A& a, A& b) noexcept {
+
+		if (less(b, a)) {
+			std::swap(a, b);
+		}
+
+	}
+
+	template<CC::Arithmetic A>
+	constexpr void descend(A& a, A& b) noexcept {
+
+		if (less(a, b)) {
+			std::swap(a, b);
+		}
+
 	}
 
 

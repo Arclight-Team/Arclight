@@ -340,7 +340,7 @@ namespace DES {
 	constexpr auto encrypt(const std::span<const u8, Extent>& data, const Key<64>& key) {
 
 		// Calculate size aligned to 8 bytes
-		std::array<u8, Math::alignUp(Extent, 8)> result{};
+		std::array<u8, Bits::alignUp(Extent, 8)> result{};
 		
 		// Encrypt
 		__Detail::process(0, data, result, key);
@@ -352,7 +352,7 @@ namespace DES {
 	auto encrypt(const std::span<const u8, std::dynamic_extent>& data, const Key<64>& key) {
 
 		// Calculate size aligned to 8 bytes
-		SizeT alignedSize = Math::alignUp(data.size(), 8);
+		SizeT alignedSize = Bits::alignUp(data.size(), 8);
 
 		// Allocate data buffer
 		std::vector<u8> result(alignedSize);
@@ -369,7 +369,7 @@ namespace DES {
 	constexpr auto decrypt(const std::span<const u8, Extent>& data, const Key<64>& key) {
 
 		// Calculate size aligned to 8 bytes
-		std::array<u8, Math::alignUp(Extent, 8)> result{};
+		std::array<u8, Bits::alignUp(Extent, 8)> result{};
 
 		// Decrypt
 		__Detail::process(1, data, result, key);
@@ -381,7 +381,7 @@ namespace DES {
 	constexpr auto decrypt(const std::span<const u8, std::dynamic_extent>& data, const Key<64>& key) {
 
 		// Calculate size aligned to 8 bytes
-		SizeT alignedSize = Math::alignUp(data.size(), 8);
+		SizeT alignedSize = Bits::alignUp(data.size(), 8);
 
 		// Allocate data buffer
 		std::vector<u8> result(alignedSize);
@@ -435,7 +435,7 @@ namespace TripleDES {
 	constexpr auto encrypt(const std::span<const u8, Extent>& data, const Key<64>& key1, const Key<64>& key2) {
 
 		// Calculate size aligned to 8 bytes
-		std::array<u8, Math::alignUp(Extent, 8)> result{};
+		std::array<u8, Bits::alignUp(Extent, 8)> result{};
 
 		// Encrypt - first stage
 		__Detail::process(0, data, result, key1);
@@ -453,7 +453,7 @@ namespace TripleDES {
 	auto encrypt(const std::span<const u8, std::dynamic_extent>& data, const Key<64>& key1, const Key<64>& key2) {
 
 		// Calculate size aligned to 8 bytes
-		SizeT alignedSize = Math::alignUp(data.size(), 8);
+		SizeT alignedSize = Bits::alignUp(data.size(), 8);
 
 		// Allocate data buffer
 		std::vector<u8> result(alignedSize);
@@ -476,7 +476,7 @@ namespace TripleDES {
 	constexpr auto decrypt(const std::span<const u8, Extent>& data, const Key<64>& key1, const Key<64>& key2) {
 
 		// Calculate size aligned to 8 bytes
-		std::array<u8, Math::alignUp(Extent, 8)> result{};
+		std::array<u8, Bits::alignUp(Extent, 8)> result{};
 
 		// Decrypt - first stage
 		__Detail::process(1, data, result, key1);
@@ -494,7 +494,7 @@ namespace TripleDES {
 	constexpr auto decrypt(const std::span<const u8, std::dynamic_extent>& data, const Key<64>& key1, const Key<64>& key2) {
 
 		// Calculate size aligned to 8 bytes
-		SizeT alignedSize = Math::alignUp(data.size(), 8);
+		SizeT alignedSize = Bits::alignUp(data.size(), 8);
 
 		// Allocate data buffer
 		std::vector<u8> result(alignedSize);
@@ -540,7 +540,7 @@ namespace TripleDES {
 	constexpr auto encrypt(const std::span<const u8, Extent>& data, const Key<64>& key1, const Key<64>& key2, const Key<64>& key3) {
 
 		// Calculate size aligned to 8 bytes
-		std::array<u8, Math::alignUp(Extent, 8)> result{};
+		std::array<u8, Bits::alignUp(Extent, 8)> result{};
 
 		// Encrypt - first stage
 		__Detail::process(0, data, result, key1);
@@ -558,7 +558,7 @@ namespace TripleDES {
 	auto encrypt(const std::span<const u8, std::dynamic_extent>& data, const Key<64>& key1, const Key<64>& key2, const Key<64>& key3) {
 
 		// Calculate size aligned to 8 bytes
-		SizeT alignedSize = Math::alignUp(data.size(), 8);
+		SizeT alignedSize = Bits::alignUp(data.size(), 8);
 
 		// Allocate data buffer
 		std::vector<u8> result(alignedSize);
@@ -581,7 +581,7 @@ namespace TripleDES {
 	constexpr auto decrypt(const std::span<const u8, Extent>& data, const Key<64>& key1, const Key<64>& key2, const Key<64>& key3) {
 
 		// Calculate size aligned to 8 bytes
-		std::array<u8, Math::alignUp(Extent, 8)> result{};
+		std::array<u8, Bits::alignUp(Extent, 8)> result{};
 
 		// Decrypt - first stage
 		__Detail::process(1, data, result, key1);
@@ -599,7 +599,7 @@ namespace TripleDES {
 	constexpr auto decrypt(const std::span<const u8, std::dynamic_extent>& data, const Key<64>& key1, const Key<64>& key2, const Key<64>& key3) {
 
 		// Calculate size aligned to 8 bytes
-		SizeT alignedSize = Math::alignUp(data.size(), 8);
+		SizeT alignedSize = Bits::alignUp(data.size(), 8);
 
 		// Allocate data buffer
 		std::vector<u8> result(alignedSize);

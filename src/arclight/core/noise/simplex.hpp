@@ -17,11 +17,11 @@ class SimplexNoiseBase : public NoiseBase {
 public:
 
 	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32>
-	constexpr TT::CommonArithmeticType<T> sample(const T& point, A frequency, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
+	constexpr TT::ExtractType<T> sample(const T& point, A frequency, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 		return fractalSample<Fractal>([this](const T& p, A f) constexpr { return raw(p, f); }, point, frequency, octaves, lacunarity, persistence);
 	}
 
-	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::CommonArithmeticType<T>>
+	template<CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L = u32, CC::Arithmetic P = u32, CC::Float F = TT::ExtractType<T>>
 	constexpr std::vector<F> sample(std::span<const T> points, std::span<const A> frequencies, u32 octaves = 1, L lacunarity = 1, P persistence = 1) const {
 		return fractalSample<Fractal>([this](auto p, auto f) constexpr { return raw(p, f); }, points, frequencies, octaves, lacunarity, persistence);
 	}
@@ -424,7 +424,7 @@ private:
 	}
 
 
-	template<CC::FloatParam T, CC::Arithmetic A, CC::Float F = TT::CommonArithmeticType<T>>
+	template<CC::FloatParam T, CC::Arithmetic A, CC::Float F = TT::ExtractType<T>>
 	constexpr std::vector<F> raw(std::span<const T> points, std::span<const A> frequencies) const {
 
 		std::vector<F> samples;

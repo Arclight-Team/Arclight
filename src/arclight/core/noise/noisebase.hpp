@@ -60,11 +60,11 @@ protected:
 	}
 
 	template<NoiseFractal Fractal, CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L, CC::Arithmetic P, CC::Invocable<T, A> Func>
-	static constexpr TT::CommonArithmeticType<T> fractalSample(Func&& func, const T& point, A frequency, u32 octaves, L lacunarity, P persistence) {
+	static constexpr TT::ExtractType<T> fractalSample(Func&& func, const T& point, A frequency, u32 octaves, L lacunarity, P persistence) {
 
 		arc_assert(octaves >= 1, "Octaves count cannot be 0");
 
-		using F = TT::CommonArithmeticType<T>;
+		using F = TT::ExtractType<T>;
 
 		if (octaves == 1) {
 			return func(point, frequency);
@@ -95,7 +95,7 @@ protected:
 
 	}
 
-	template<NoiseFractal Fractal, CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L, CC::Arithmetic P, CC::Invocable<T, A> Func, CC::Float F = TT::CommonArithmeticType<T>>
+	template<NoiseFractal Fractal, CC::FloatParam T, CC::Arithmetic A, CC::Arithmetic L, CC::Arithmetic P, CC::Invocable<T, A> Func, CC::Float F = TT::ExtractType<T>>
 	static constexpr std::vector<F> fractalSample(Func&& func, std::span<const T> points, std::span<const A> frequencies, u32 octaves, L lacunarity, P persistence) {
 
 		arc_assert(octaves >= 1, "Octaves count cannot be 0");

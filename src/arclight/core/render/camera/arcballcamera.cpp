@@ -62,7 +62,7 @@ void ArcballCamera::rotate(double angleH, double angleV) {
 
 
 void ArcballCamera::setDistance(double z) {
-	distance = Math::max(z, Math::epsilon);
+	distance = Math::max(z, Math::Traits<double>::Epsilon);
 }
 
 void ArcballCamera::setRotation(double angleH, double angleV) {

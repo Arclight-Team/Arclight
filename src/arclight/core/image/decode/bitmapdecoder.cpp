@@ -323,7 +323,7 @@ void BitmapDecoder::decodeDirect() {
 
 	u32 bytesPerPixel = bitmap.bitsPerPixel / 8;
 	u32 rowBytes = bitmap.image.getWidth() * bytesPerPixel;
-	u32 rowBytesAligned = Math::alignUp(rowBytes, 4);
+	u32 rowBytesAligned = Bits::alignUp(rowBytes, 4);
 	u32 rowAlign = rowBytesAligned - rowBytes;
 
 	if(reader.remainingSize() < rowBytesAligned * bitmap.image.getHeight()) {
@@ -391,7 +391,7 @@ void BitmapDecoder::decodeIndexed() {
 	u32 height = bitmap.image.getHeight();
 
 	u32 bitsPerRow = width * bitmap.bitsPerPixel;
-	u32 bitsPerRowAligned = Math::alignUp(bitsPerRow, 32);
+	u32 bitsPerRowAligned = Bits::alignUp(bitsPerRow, 32);
 	u32 totalImageDataSize = (bitsPerRowAligned * height) / 8;
 
 	u32 leftoverPixels = (bitsPerRowAligned - bitsPerRow) / bitmap.bitsPerPixel;
@@ -438,7 +438,7 @@ void BitmapDecoder::decodeIndexed() {
 			u32 k = 0;
 			u32 pixelData = reader.read<u32>();
 
-			for (u32 i = 0; i < Math::alignUp(leftoverPixels, 8) / 8; i++) {
+			for (u32 i = 0; i < Bits::alignUp(leftoverPixels, 8) / 8; i++) {
 
 				u32 mask = bytemask;
 
@@ -644,7 +644,7 @@ void BitmapDecoder::decodeMasked() {
 	u32 alphaShift = Bits::ctz(alphaMask);
 
 	u32 rowBytes = width * bitmap.bitsPerPixel / 8;
-	u32 rowBytesAligned = Math::alignUp(rowBytes, 4);
+	u32 rowBytesAligned = Bits::alignUp(rowBytes, 4);
 	bool rowAlign = rowBytesAligned - rowBytes;
 
 	if (reader.remainingSize() < rowBytesAligned * height) {

@@ -311,7 +311,7 @@ public:
 	}
 
 	constexpr SizeT sizeBytes() const noexcept {
-		return Math::alignUp(size(), 8) / 8;
+		return Bits::alignUp(size(), 8) / 8;
 	}
 
 	constexpr bool empty() const noexcept {
@@ -401,8 +401,8 @@ public:
 			size = this->size();
 		}
 
-		SizeT alignedReadBytes = Math::alignUp(size, 8) / 8;
-		SizeT readBytes = Math::alignUp(size + start, 8) / 8;
+		SizeT alignedReadBytes = Bits::alignUp(size, 8) / 8;
+		SizeT readBytes = Bits::alignUp(size + start, 8) / 8;
 
 		I i = Bits::assemble<I>(ptr, readBytes);
 
