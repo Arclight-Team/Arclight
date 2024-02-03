@@ -488,7 +488,7 @@ namespace Bits {
 	}
 
 	template<CC::Integer T>
-	constexpr T mask(T t, u32 start, u32 count) noexcept {
+	constexpr T mask(T t, u32 start, u32 count = Bits::bitCount<T>()) noexcept {
 		return t & ((count < bitCount<T>() ? (cast<TT::MakeUnsigned<T>>(T(1)) << count) - 1 : ~T(0)) << start);
 	}
 
@@ -500,6 +500,21 @@ namespace Bits {
 	template<class T>
 	inline auto toByteArray(T* t) noexcept {
 		return reinterpret_cast<TT::ConditionalConst<CC::ConstType<T>, u8>*>(t);
+	}
+
+	template<CC::Integer I>
+	constexpr bool isAligned(I value, AlignT alignment) noexcept {
+		return !(value & (alignment - 1));
+	}
+
+	template<CC::Integer I>
+	constexpr I alignUp(I value, AlignT alignment) noexcept {
+		return (value + alignment - 1) & ~(alignment - 1);
+	}
+
+	template<CC::Integer I>
+	constexpr I alignDown(I value, AlignT alignment) noexcept {
+		return value & ~(alignment - 1);
 	}
 
 }

@@ -24,7 +24,6 @@ template<CC::Arithmetic T>
 class Mat4;
 
 
-
 namespace CC {
 
 	template<class T>
@@ -64,17 +63,20 @@ namespace TT {
 }
 
 
-
 template<CC::Arithmetic T>
 class Mat2 {
+
+private:
 
 	using X = TT::PromotedType<T>;
 
 public:
 
 	using Type = T;
-	constexpr static SizeT Size = 2;
 
+	using VecT = Vec2<Type>;
+	
+	constexpr static SizeT Size = 2;
 
 
 	constexpr Mat2() noexcept {
@@ -82,13 +84,12 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	constexpr explicit Mat2(const Mat2<A>& m) noexcept : v {m[0], m[1]} {}
+	constexpr Mat2(const Mat2<A>& m) noexcept : v{m[0], m[1]} {}
 
 	template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C, CC::Arithmetic D>
-	constexpr Mat2(A a, B b, C c, D d) noexcept : v{{a, c},
-													{b, d}} {}
+	constexpr Mat2(A a, B b, C c, D d) noexcept : v{{a, c}, {b, d}} {}
 
-	constexpr Mat2(const Vec2<T>& a, const Vec2<T>& b) noexcept : v {a, b} {}
+	constexpr Mat2(const Vec2<T>& a, const Vec2<T>& b) noexcept : v{a, b} {}
 
 
 	template<CC::Arithmetic A>
@@ -164,27 +165,26 @@ public:
 		return *this;
 
 	}
+	
 
 	constexpr void transpose() noexcept {
-
-		T t = v[0][1];
-		v[0][1] = v[1][0];
-		v[1][0] = t;
-
+		std::swap(v[0][1], v[1][0]);
 	}
 
 	constexpr Mat2 transposed() const noexcept {
-		return Mat2(v[0][0], v[0][1], v[1][0], v[1][1]);
-	}
 
-	constexpr X determinant() const noexcept {
-		return v[0][0] * v[1][1] - v[1][0] * v[0][1];
+		Mat2 ret = *this;
+		ret.transpose();
+
+		return ret;
+
 	}
 
 	constexpr void invert() noexcept requires (CC::Float<T>) {
 
 		T det = determinant();
-		arc_assert(!Math::isZero(det), "Mat2 inverse failed: Matrix not invertible");
+
+		arc_assert(!Math::isZero(det), "Cannot invert matrix with determinant zero");
 
 		T s = 1.0 / det;
 
@@ -206,16 +206,21 @@ public:
 
 	}
 
+	constexpr X determinant() const noexcept {
+		return v[0][0] * v[1][1] - v[1][0] * v[0][1];
+	}
+
+	constexpr X trace() const noexcept {
+		return v[0][0] + v[1][1];
+	}
+
 	constexpr void setIdentity() noexcept {
 
 		v[0] = {1, 0};
 		v[1] = {0, 1};
 
 	}
-
-	constexpr X trace() const noexcept {
-		return v[0][0] + v[1][1];
-	}
+	
 
 	template<CC::Arithmetic A>
 	constexpr Mat2& operator=(const Mat2<A>& m) noexcept {
@@ -251,6 +256,7 @@ public:
 	constexpr Mat2& operator/=(A a) noexcept {
 		return divide(a);
 	}
+	
 
 	template<CC::Arithmetic A>
 	constexpr bool operator==(const Mat2<A>& m) const noexcept {
@@ -261,18 +267,27 @@ public:
 		return Mat2(-v[0], -v[1]);
 	}
 
-	constexpr Vec2<T>& operator[](u32 index) noexcept {
+
+	constexpr VecT& operator[](SizeT index) noexcept {
 		arc_assert(index < 2, "Mat2 access out of bounds (index=%d)", index);
 		return v[index];
 	}
 
-	constexpr const Vec2<T>& operator[](u32 index) const noexcept {
+	constexpr const VecT& operator[](SizeT index) const noexcept {
 		arc_assert(index < 2, "Mat2 access out of bounds (index=%d)", index);
 		return v[index];
 	}
 
+	constexpr T& operator()(SizeT row, SizeT column) noexcept {
+		return *this[row][column];
+	}
 
-	Vec2<T> v[2];
+	constexpr const T& operator()(SizeT row, SizeT column) const noexcept {
+		return *this[row][column];
+	}
+
+
+	VecT v[2];
 
 };
 
@@ -280,13 +295,17 @@ public:
 template<CC::Arithmetic T>
 class Mat3 {
 
+private:
+
 	using X = TT::PromotedType<T>;
 
 public:
 
 	using Type = T;
-	constexpr static SizeT Size = 3;
 
+	using VecT = Vec3<Type>;
+
+	constexpr static SizeT Size = 3;
 
 
 	constexpr Mat3() noexcept {
@@ -294,23 +313,15 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	constexpr explicit Mat3(const Mat3<A>& m) noexcept : v {m[0], m[1], m[2]} {}
+	constexpr Mat3(const Mat3<A>& m) noexcept : v{m[0], m[1], m[2]} {}
 
 	template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C, CC::Arithmetic D, CC::Arithmetic E, CC::Arithmetic F, CC::Arithmetic G, CC::Arithmetic H, CC::Arithmetic I>
-	constexpr Mat3(A a, B b, C c, D d, E e, F f, G g, H h, I i) noexcept :    v{{a, d, g},
-																	            {b, e, h},
-																	            {c, f, i}} {}
+	constexpr Mat3(A a, B b, C c, D d, E e, F f, G g, H h, I i) noexcept : v{{a, d, g}, {b, e, h}, {c, f, i}} {}
 
-	constexpr Mat3(const Vec3<T>& a, const Vec3<T>& b, const Vec3<T>& c) noexcept : v {a, b, c} {}
+	constexpr Mat3(const VecT& a, const VecT& b, const VecT& c) noexcept : v{a, b, c} {}
 
-	constexpr explicit Mat3(const Mat2<T>& m) noexcept : v {{m[0][0], m[0][1], 0},
-												            {m[1][0], m[1][1], 0},
-												            {0, 0, 1}} {}
+	constexpr explicit Mat3(const Mat2<T>& m) noexcept : v{{m[0][0], m[0][1], 0}, {m[1][0], m[1][1], 0}, {0, 0, 1}} {}
 
-
-	constexpr Mat2<T> toMat2() const noexcept {
-		return Mat2<T>(v[0][0], v[1][0], v[0][1], v[1][1]);
-	}
 
 	template<CC::Arithmetic A>
 	constexpr Mat3& add(const Mat3<A>& m) noexcept {
@@ -397,34 +408,28 @@ public:
 
 	}
 
+
 	constexpr void transpose() noexcept {
 
-		T t = v[0][1];
-		v[0][1] = v[1][0];
-		v[1][0] = t;
-
-		t = v[0][2];
-		v[0][2] = v[2][0];
-		v[2][0] = t;
-
-		t = v[1][2];
-		v[1][2] = v[2][1];
-		v[2][1] = t;
+		std::swap(v[0][1], v[1][0]);
+		std::swap(v[0][2], v[2][0]);
+		std::swap(v[1][2], v[2][1]);
 
 	}
 
 	constexpr Mat3 transposed() const noexcept {
-		return Mat3(v[0][0], v[0][1], v[0][2], v[1][0], v[1][1], v[1][2], v[2][0], v[2][1], v[2][2]);
-	}
 
-	constexpr X determinant() const noexcept {
-		return v[0][0] * v[1][1] * v[2][2] + v[1][0] * v[2][1] * v[0][2] + v[2][0] * v[0][1] * v[1][2]
-			   - v[0][2] * v[1][1] * v[2][0] - v[1][2] * v[2][1] * v[0][0] - v[2][2] * v[0][1] * v[1][0];
+		Mat3 ret = *this;
+		ret.transpose();
+
+		return ret;
+
 	}
 
 	constexpr void invert() noexcept requires (CC::Float<T>) {
 
 		T det = determinant();
+		
 		arc_assert(!Math::isZero(det), "Mat3 inverse failed: Matrix not invertible");
 
 		T s = 1 / det;
@@ -461,6 +466,15 @@ public:
 
 	}
 
+	constexpr X determinant() const noexcept {
+		return v[0][0] * v[1][1] * v[2][2] + v[1][0] * v[2][1] * v[0][2] + v[2][0] * v[0][1] * v[1][2]
+			   - v[0][2] * v[1][1] * v[2][0] - v[1][2] * v[2][1] * v[0][0] - v[2][2] * v[0][1] * v[1][0];
+	}
+
+	constexpr X trace() const noexcept {
+		return v[0][0] + v[1][1] + v[2][2];
+	}
+
 	constexpr void setIdentity() noexcept {
 
 		v[0] = {1, 0, 0};
@@ -469,9 +483,6 @@ public:
 
 	}
 
-	constexpr X trace() const noexcept {
-		return v[0][0] + v[1][1] + v[2][2];
-	}
 
 	template<CC::Arithmetic A>
 	constexpr Mat3& operator=(const Mat3<A>& m) noexcept {
@@ -508,6 +519,7 @@ public:
 	constexpr Mat3& operator/=(A a) noexcept {
 		return divide(a);
 	}
+	
 
 	template<CC::Arithmetic A>
 	constexpr bool operator==(const Mat3<A>& m) const noexcept {
@@ -517,15 +529,24 @@ public:
 	constexpr Mat3 operator-() const noexcept {
 		return Mat3(-v[0], -v[1], -v[2]);
 	}
+	
 
-	constexpr Vec3<T>& operator[](u32 index) noexcept {
+	constexpr VecT& operator[](SizeT index) noexcept {
 		arc_assert(index < 3, "Mat3 access out of bounds (index=%d)", index);
 		return v[index];
 	}
 
-	constexpr const Vec3<T>& operator[](u32 index) const noexcept {
+	constexpr const VecT& operator[](SizeT index) const noexcept {
 		arc_assert(index < 3, "Mat3 access out of bounds (index=%d)", index);
 		return v[index];
+	}
+
+	constexpr T& operator()(SizeT row, SizeT column) noexcept {
+		return *this[row][column];
+	}
+
+	constexpr const T& operator()(SizeT row, SizeT column) const noexcept {
+		return *this[row][column];
 	}
 
 
@@ -545,13 +566,12 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	constexpr Mat3& rotate(A angle) noexcept {
+	__ARC_CMATH26 Mat3& rotate(A angle) {
 
-		auto sinTheta = Math::sin(angle);
-		auto cosTheta = Math::cos(angle);
+		const auto [sin, cos] = Math::sincos(angle);
 
-		Vec3<T> x = v[0] * cosTheta + v[1] * sinTheta;
-		Vec3<T> y = v[0] * -sinTheta + v[1] * cosTheta;
+		VecT x = v[0] * cos + v[1] * sin;
+		VecT y = v[0] * -sin + v[1] * cos;
 		v[0] = x;
 		v[1] = y;
 
@@ -575,7 +595,7 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	constexpr Mat3& shearX(A angle) noexcept {
+	__ARC_CMATH26 Mat3& shearX(A angle) {
 
 		v[1] += v[0] * Math::tan(angle);
 		return *this;
@@ -583,7 +603,7 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	constexpr Mat3& shearY(A angle) noexcept {
+	__ARC_CMATH26 Mat3& shearY(A angle) {
 
 		v[0] += v[1] * Math::tan(angle);
 		return *this;
@@ -591,14 +611,14 @@ public:
 	}
 
 	template<CC::Arithmetic A, CC::Arithmetic B>
-	constexpr Mat3& shear(A sx, B sy) noexcept {
+	__ARC_CMATH26 Mat3& shear(A sx, B sy) {
 
-		auto tx = Math::tan(sx);
-		auto ty = Math::tan(sy);
+		A tx = Math::tan(sx);
+		B ty = Math::tan(sy);
 		auto tn = tx * ty + 1;
 
-		Vec3<T> x = v[0] * tn + v[1] * ty;
-		Vec3<T> y = v[0] * tx + v[1];
+		VecT x = v[0] * tn + v[1] * ty;
+		VecT y = v[0] * tx + v[1];
 
 		v[0] = x;
 		v[1] = y;
@@ -607,26 +627,26 @@ public:
 
 	}
 
+
 	constexpr static Mat3 fromTranslation(T x, T y) noexcept {
-		return Mat3(1, 0, x, 0, 1, y, 0, 0, 1);
+		return {1, 0, x, 0, 1, y, 0, 0, 1};
 	}
 
-	constexpr static Mat3 fromTranslation(const Vec2<T>& vec) noexcept {
+	constexpr static Mat3 fromTranslation(const VecT& vec) noexcept {
 		return fromTranslation(vec.x, vec.y);
 	}
 
 	template<CC::Arithmetic A>
-	constexpr static Mat3 fromRotation(A angle) noexcept {
+	__ARC_CMATH26 static Mat3 fromRotation(A angle) {
 
-		auto sinTheta = Math::sin(angle);
-		auto cosTheta = Math::cos(angle);
+		const auto [sin, cos] = Math::sincos(angle);
 
-		return Mat3(cosTheta, -sinTheta, 0, sinTheta, cosTheta, 0, 0, 0, 1);
+		return {cos, -sin, 0, sin, cos, 0, 0, 0, 1};
 
 	}
 
 	constexpr static Mat3 fromScale(T x, T y) noexcept {
-		return Mat3(x, 0, 0, 0, y, 0, 0, 0, 1);
+		return {x, 0, 0, 0, y, 0, 0, 0, 1};
 	}
 
 	template<CC::Arithmetic A>
@@ -635,27 +655,27 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	constexpr static Mat3 fromShearX(A angle) noexcept {
-		return Mat3(1, Math::tan(angle), 0, 0, 1, 0, 0, 0, 1);
+	__ARC_CMATH26 static Mat3 fromShearX(A angle) {
+		return {1, Math::tan(angle), 0, 0, 1, 0, 0, 0, 1};
 	}
 
 	template<CC::Arithmetic A>
-	constexpr static Mat3 fromShearY(A angle) noexcept {
-		return Mat3(1, 0, 0, Math::tan(angle), 1, 0, 0, 0, 1);
+	__ARC_CMATH26 static Mat3 fromShearY(A angle) {
+		return {1, 0, 0, Math::tan(angle), 1, 0, 0, 0, 1};
 	}
 
 	template<CC::Arithmetic A, CC::Arithmetic B>
-	constexpr static Mat3 fromShear(A sx, B sy) noexcept {
+	__ARC_CMATH26 static Mat3 fromShear(A sx, B sy) {
 
-		auto tx = Math::tan(sx);
-		auto ty = Math::tan(sy);
+		A tx = Math::tan(sx);
+		B ty = Math::tan(sy);
 
 		return Mat3(tx * ty + 1, tx, 0, ty, 1, 0, 0, 0, 1);
 
 	}
 
 
-	Vec3<T> v[3];
+	VecT v[3];
 
 };
 
@@ -669,8 +689,10 @@ class alignas(16) Mat4 {
 public:
 
 	using Type = T;
-	constexpr static SizeT Size = 4;
 
+	using VecT = Vec4<Type>;
+	
+	constexpr static SizeT Size = 4;
 
 
 	constexpr Mat4() {
@@ -678,44 +700,23 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	constexpr explicit Mat4(const Mat4<A>& m) noexcept : v {m[0], m[1], m[2], m[3]} {}
+	constexpr Mat4(const Mat4<A>& m) noexcept : v{m[0], m[1], m[2], m[3]} {}
 
 	template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C, CC::Arithmetic D,
 			 CC::Arithmetic E, CC::Arithmetic F, CC::Arithmetic G, CC::Arithmetic H,
 			 CC::Arithmetic I, CC::Arithmetic J, CC::Arithmetic K, CC::Arithmetic L,
 			 CC::Arithmetic M, CC::Arithmetic N, CC::Arithmetic O, CC::Arithmetic P>
-	constexpr Mat4(A a, B b, C c, D d,
-				   E e, F f, G g, H h,
-				   I i, J j, K k, L l,
-				   M m, N n, O o, P p) noexcept : v{{a, e, i, m},
-													{b, f, j, n},
-													{c, g, k, o},
-													{d, h, l, p}} {}
+	constexpr Mat4(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o, P p) noexcept
+		: v{{a, e, i, m}, {b, f, j, n}, {c, g, k, o}, {d, h, l, p}} {}
 
-	constexpr Mat4(const Vec4<T>& a, const Vec4<T>& b, const Vec4<T>& c, const Vec4<T>& d) noexcept : v {a, b, c, d} {}
+	constexpr Mat4(const VecT& a, const VecT& b, const VecT& c, const VecT d) noexcept : v{a, b, c, d} {}
 
-	constexpr explicit Mat4(const Mat2<T>& m) noexcept :   v {{m[0][0], m[0][1], 0, 0},
-															  {m[1][0], m[1][1], 0, 0},
-															  {0, 0, 1, 0},
-															  {0, 0, 0, 1}} {}
+	constexpr explicit Mat4(const Mat2<T>& m) noexcept
+		: v{{m[0][0], m[0][1], 0, 0}, {m[1][0], m[1][1], 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}} {}
 
-	constexpr explicit Mat4(const Mat3<T>& m) noexcept :   v {{m[0][0], m[0][1], m[0][2], 0},
-															  {m[1][0], m[1][1], m[1][2], 0},
-															  {m[2][0], m[2][1], m[2][2], 0},
-															  {0, 0, 0, 1}} {}
+	constexpr explicit Mat4(const Mat3<T>& m) noexcept
+		: v{{m[0][0], m[0][1], m[0][2], 0}, {m[1][0], m[1][1], m[1][2], 0}, {m[2][0], m[2][1], m[2][2], 0}, {0, 0, 0, 1}} {}
 
-
-	constexpr Mat2<T> toMat2() const noexcept {
-		return Mat2<T>(v[0][0], v[1][0], v[0][1], v[1][1]);
-	}
-
-	constexpr Mat3<T> toMat3() const noexcept {
-
-		return Mat3<T>(v[0][0], v[1][0], v[2][0],
-					   v[0][1], v[1][1], v[2][1],
-					   v[0][2], v[1][2], v[2][2]);
-
-	}
 
 	template<CC::Arithmetic A>
 	constexpr Mat4& add(const Mat4<A>& m) noexcept {
@@ -902,58 +903,32 @@ public:
 		return *this;
 
 	}
+	
 
 	constexpr void transpose() noexcept {
 
-		T t = v[0][1];
-		v[0][1] = v[1][0];
-		v[1][0] = t;
-
-		t = v[0][2];
-		v[0][2] = v[2][0];
-		v[2][0] = t;
-
-		t = v[1][2];
-		v[1][2] = v[2][1];
-		v[2][1] = t;
-
-		t = v[0][3];
-		v[0][3] = v[3][0];
-		v[3][0] = t;
-
-		t = v[1][3];
-		v[1][3] = v[3][1];
-		v[3][1] = t;
-
-		t = v[2][3];
-		v[2][3] = v[3][2];
-		v[3][2] = t;
+		std::swap(v[0][1], v[1][0]);
+		std::swap(v[0][2], v[2][0]);
+		std::swap(v[0][3], v[3][0]);
+		std::swap(v[1][2], v[2][1]);
+		std::swap(v[1][3], v[3][1]);
+		std::swap(v[2][3], v[3][2]);
 
 	}
 
 	constexpr Mat4 transposed() const noexcept {
-		return Mat4(v[0][0], v[0][1], v[0][2], v[0][3], v[1][0], v[1][1], v[1][2], v[1][3],
-					v[2][0], v[2][1], v[2][2], v[2][3], v[3][0], v[3][1], v[3][2], v[3][3]);
-	}
 
-	constexpr X determinant() const noexcept {
+		Mat4 ret = *this;
+		ret.transpose();
 
-		X a = v[0][0] * (v[1][1] * v[2][2] * v[3][3] + v[2][1] * v[3][2] * v[1][3] + v[3][1] * v[1][2] * v[2][3]
-						 - v[1][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[1][1] - v[3][3] * v[1][2] * v[2][1]);
-		X b = v[1][0] * (v[0][1] * v[2][2] * v[3][3] + v[2][1] * v[3][2] * v[0][3] + v[3][1] * v[0][2] * v[2][3]
-						 - v[0][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[2][1]);
-		X c = v[2][0] * (v[0][1] * v[1][2] * v[3][3] + v[1][1] * v[3][2] * v[0][3] + v[3][1] * v[0][2] * v[1][3]
-						 - v[0][3] * v[1][2] * v[3][1] - v[1][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[1][1]);
-		X d = v[3][0] * (v[0][1] * v[1][2] * v[2][3] + v[1][1] * v[2][2] * v[0][3] + v[2][1] * v[0][2] * v[1][3]
-						 - v[0][3] * v[1][2] * v[2][1] - v[1][3] * v[2][2] * v[0][1] - v[2][3] * v[0][2] * v[1][1]);
-
-		return a - b + c - d;
+		return ret;
 
 	}
 
 	constexpr void invert() noexcept requires (CC::Float<T>) {
 
 		T det = determinant();
+
 		arc_assert(!Math::isZero(det), "Mat4 inverse failed: Matrix not invertible");
 
 		T s = 1.0 / det;
@@ -1004,6 +979,25 @@ public:
 
 	}
 
+	constexpr X determinant() const noexcept {
+
+		X a = v[0][0] * (v[1][1] * v[2][2] * v[3][3] + v[2][1] * v[3][2] * v[1][3] + v[3][1] * v[1][2] * v[2][3]
+						 - v[1][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[1][1] - v[3][3] * v[1][2] * v[2][1]);
+		X b = v[1][0] * (v[0][1] * v[2][2] * v[3][3] + v[2][1] * v[3][2] * v[0][3] + v[3][1] * v[0][2] * v[2][3]
+						 - v[0][3] * v[2][2] * v[3][1] - v[2][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[2][1]);
+		X c = v[2][0] * (v[0][1] * v[1][2] * v[3][3] + v[1][1] * v[3][2] * v[0][3] + v[3][1] * v[0][2] * v[1][3]
+						 - v[0][3] * v[1][2] * v[3][1] - v[1][3] * v[3][2] * v[0][1] - v[3][3] * v[0][2] * v[1][1]);
+		X d = v[3][0] * (v[0][1] * v[1][2] * v[2][3] + v[1][1] * v[2][2] * v[0][3] + v[2][1] * v[0][2] * v[1][3]
+						 - v[0][3] * v[1][2] * v[2][1] - v[1][3] * v[2][2] * v[0][1] - v[2][3] * v[0][2] * v[1][1]);
+
+		return a - b + c - d;
+
+	}
+
+	constexpr X trace() const noexcept {
+		return v[0][0] + v[1][1] + v[2][2] + v[3][3];
+	}
+
 	constexpr void setIdentity() noexcept {
 
 		v[0] = {1, 0, 0, 0};
@@ -1012,10 +1006,7 @@ public:
 		v[3] = {0, 0, 0, 1};
 
 	}
-
-	constexpr X trace() const noexcept {
-		return v[0][0] + v[1][1] + v[2][2] + v[3][3];
-	}
+	
 
 	template<CC::Arithmetic A>
 	constexpr Mat4& operator=(const Mat4<A>& m) noexcept {
@@ -1053,6 +1044,7 @@ public:
 	constexpr Mat4& operator/=(A a) noexcept {
 		return divide(a);
 	}
+	
 
 	template<CC::Arithmetic A>
 	constexpr bool operator==(const Mat4<A>& m) const noexcept {
@@ -1062,15 +1054,24 @@ public:
 	constexpr Mat4 operator-() const noexcept {
 		return Mat4(-v[0], -v[1], -v[2], -v[3]);
 	}
+	
 
-	constexpr Vec4<T>& operator[](u32 index) noexcept {
+	constexpr VecT& operator[](SizeT index) noexcept {
 		arc_assert(index < 4, "Mat4 access out of bounds (index=%d)", index);
 		return v[index];
 	}
 
-	constexpr const Vec4<T>& operator[](u32 index) const noexcept {
+	constexpr const VecT& operator[](SizeT index) const noexcept {
 		arc_assert(index < 4, "Mat4 access out of bounds (index=%d)", index);
 		return v[index];
+	}
+
+	constexpr T& operator()(SizeT row, SizeT column) noexcept {
+		return *this[row][column];
+	}
+
+	constexpr const T& operator()(SizeT row, SizeT column) const noexcept {
+		return *this[row][column];
 	}
 
 
@@ -1091,22 +1092,22 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	constexpr Mat4& rotate(const Vec3<A>& axis, FX angle) noexcept {
+	__ARC_CMATH26 Mat4& rotate(const Vec3<A>& axis, FX angle) {
 
 		using Y = TT::CommonType<T, A>;
 
 		Vec3<Y> u = Vec3<Y>::normalize(axis);
-		auto sinTheta = Math::sin(angle);
-		auto cosTheta = Math::cos(angle);
-		auto mcosTheta = 1.0 - cosTheta;
 
-		Mat3<Y> n(u.x * u.x * mcosTheta + cosTheta, u.x * u.y * mcosTheta - u.z * sinTheta, u.x * u.z * mcosTheta + u.y * sinTheta,
-				  u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta,
-				  u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta);
+		const auto [sin, cos] = Math::sincos(angle);
+		FX mcos = FX(1) - cos;
 
-		Vec4 x = v[0] * n[0][0] + v[1] * n[0][1] + v[2] * n[0][2];
-		Vec4 y = v[0] * n[1][0] + v[1] * n[1][1] + v[2] * n[1][2];
-		Vec4 z = v[0] * n[2][0] + v[1] * n[2][1] + v[2] * n[2][2];
+		Mat3<Y> n(u.x * u.x * mcos + cos, u.x * u.y * mcos - u.z * sin, u.x * u.z * mcos + u.y * sin,
+				  u.x * u.y * mcos + u.z * sin, u.y * u.y * mcos + cos, u.y * u.z * mcos - u.x * sin,
+				  u.x * u.z * mcos - u.y * sin, u.y * u.z * mcos + u.x * sin, u.z * u.z * mcos + cos);
+
+		VecT x = v[0] * n[0][0] + v[1] * n[0][1] + v[2] * n[0][2];
+		VecT y = v[0] * n[1][0] + v[1] * n[1][1] + v[2] * n[1][2];
+		VecT z = v[0] * n[2][0] + v[1] * n[2][1] + v[2] * n[2][2];
 		v[0] = x;
 		v[1] = y;
 		v[2] = z;
@@ -1138,7 +1139,7 @@ public:
 
 
 	constexpr static Mat4 fromTranslation(T x, T y, T z) noexcept {
-		return Mat4(1, 0, 0, x, 0, 1, 0, y, 0, 0, 1, z, 0, 0, 0, 1);
+		return {1, 0, 0, x, 0, 1, 0, y, 0, 0, 1, z, 0, 0, 0, 1};
 	}
 
 	constexpr static Mat4 fromTranslation(const Vec3<T>& vec) noexcept {
@@ -1146,41 +1147,42 @@ public:
 	}
 
 	template<CC::Arithmetic A, CC::Arithmetic B>
-	constexpr static Mat4 fromRotation(const Vec3<A>& axis, B angle) noexcept {
+	__ARC_CMATH26 static Mat4 fromRotation(const Vec3<A>& axis, B angle) {
 
 		using Y = TT::CommonType<T, A>;
 
 		Vec3<Y> u = Vec3<Y>::normalize(axis);
-		auto sinTheta = Math::sin(angle);
-		auto cosTheta = Math::cos(angle);
-		auto mcosTheta = 1.0 - cosTheta;
+		
+		const auto [sin, cos] = Math::sincos(angle);
+		B mcos = B(1) - cos;
 
-		return Mat4(u.x * u.x * mcosTheta + cosTheta, u.x * u.y * mcosTheta - u.z * sinTheta, u.x * u.z * mcosTheta + u.y * sinTheta, 0,
-					u.x * u.y * mcosTheta + u.z * sinTheta, u.y * u.y * mcosTheta + cosTheta, u.y * u.z * mcosTheta - u.x * sinTheta, 0,
-					u.x * u.z * mcosTheta - u.y * sinTheta, u.y * u.z * mcosTheta + u.x * sinTheta, u.z * u.z * mcosTheta + cosTheta, 0,
-					0, 0, 0, 1);
+		return {
+			u.x * u.x * mcos + cos, u.x * u.y * mcos - u.z * sin, u.x * u.z * mcos + u.y * sin, 0,
+			u.x * u.y * mcos + u.z * sin, u.y * u.y * mcos + cos, u.y * u.z * mcos - u.x * sin, 0,
+			u.x * u.z * mcos - u.y * sin, u.y * u.z * mcos + u.x * sin, u.z * u.z * mcos + cos, 0,
+			0, 0, 0, 1
+		};
 
 	}
 
 	template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C>
-	constexpr static Mat4 fromRotation(A yaw, B pitch, C roll) noexcept {
+	__ARC_CMATH26 static Mat4 fromRotation(A yaw, B pitch, C roll) {
+		
+		const auto [ysin, ycos] = Math::sincos(yaw);
+		const auto [psin, pcos] = Math::sincos(pitch);
+		const auto [rsin, rcos] = Math::sincos(roll);
 
-		auto sinA = Math::sin(yaw);
-		auto cosA = Math::cos(yaw);
-		auto sinB = Math::sin(pitch);
-		auto cosB = Math::cos(pitch);
-		auto sinC = Math::sin(roll);
-		auto cosC = Math::cos(roll);
-
-		return Mat4(cosA * cosB, cosA * sinB * sinC - sinA * cosC, cosA * sinB * cosC + sinA * sinC, 0,
-					sinA * cosB, sinA * sinB * sinC + cosA * cosC, sinA * sinB * cosC - cosA * sinC, 0,
-					-sinB, cosB * sinC, cosB * cosC, 0,
-					0, 0, 0, 1);
+		return {
+			ycos * pcos, ycos * psin * rsin - ysin * rcos, ycos * psin * rcos + ysin * rsin, 0,
+			ysin * pcos, ysin * psin * rsin + ycos * rcos, ysin * psin * rcos - ycos * rsin, 0,
+			-psin, pcos * rsin, pcos * rcos, 0,
+			0, 0, 0, 1
+		};
 
 	}
 
 	constexpr static Mat4 fromScale(T x, T y, T z) noexcept {
-		return Mat4(x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1);
+		return {x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1};
 	}
 
 	constexpr static Mat4 fromScale(T v) noexcept {
@@ -1191,8 +1193,9 @@ public:
 		return fromScale(vec.x, vec.y, vec.z);
 	}
 
+
 	template<CC::Arithmetic A, CC::Arithmetic B>
-	constexpr static Mat4 lookAt(const Vec3<A>& pos, const Vec3<B>& target, const Vec3<FX>& up = Vec3<FX>(0, 1, 0)) noexcept {
+	__ARC_CMATH26 static Mat4 lookAt(const Vec3<A>& pos, const Vec3<B>& target, const Vec3<FX>& up = {0, 1, 0}) {
 
 		using Y = TT::CommonType<T, A>;
 
@@ -1200,71 +1203,86 @@ public:
 		Vec3<Y> r = Vec3<Y>::normalize(up.cross(f));
 		Vec3<Y> u = f.cross(r);
 
-		return Mat4(r.x, r.y, r.z, -r.dot(pos),
-					u.x, u.y, u.z, -u.dot(pos),
-					f.x, f.y, f.z, -f.dot(pos),
-					0, 0, 0, 1);
+		return {
+			r.x, r.y, r.z, -r.dot(pos),
+			u.x, u.y, u.z, -u.dot(pos),
+			f.x, f.y, f.z, -f.dot(pos),
+			0, 0, 0, 1
+		};
 
 	}
 
 	constexpr static Mat4 frustum(FX left, FX right, FX bottom, FX top, FX near, FX far) noexcept {
 
-		return Mat4(2 * near / (right - left), 0, (right + left) / (right - left), 0,
-					0, 2 * near / (top - bottom), (top + bottom) / (top - bottom), 0,
-					0, 0, -(far + near) / (far - near), -2 * far * near / (far - near),
-					0, 0, -1, 0);
+		return {
+			2 * near / (right - left), 0, (right + left) / (right - left), 0,
+			0, 2 * near / (top - bottom), (top + bottom) / (top - bottom), 0,
+			0, 0, -(far + near) / (far - near), -2 * far * near / (far - near),
+			0, 0, -1, 0
+		};
 
 	}
 
-	constexpr static Mat4 perspective(FX fovy, FX aspect, FX near, FX far) noexcept {
+	__ARC_CMATH26 static Mat4 perspective(FX fovy, FX aspect, FX near, FX far) {
 
 		FX t = Math::tan(fovy / FX(2));
 
-		return Mat4(1 / (aspect * t), 0, 0, 0,
-					0, 1 / t, 0, 0,
-					0, 0, -(far + near) / (far - near), -2 * far * near / (far - near),
-					0, 0, -1, 0);
+		return {
+			1 / (aspect * t), 0, 0, 0,
+			0, 1 / t, 0, 0,
+			0, 0, -(far + near) / (far - near), -2 * far * near / (far - near),
+			0, 0, -1, 0
+		};
 
 	}
 
 	constexpr static Mat4 ortho(FX left, FX right, FX bottom, FX top, FX near, FX far) noexcept {
 
-		return Mat4(2 / (right - left), 0, 0, -(right + left) / (right - left),
-					0, 2 / (top - bottom), 0, -(top + bottom) / (top - bottom),
-					0, 0, -2 / (far - near), -(far + near) / (far - near),
-					0, 0, 0, 1);
+		return {
+			2 / (right - left), 0, 0, -(right + left) / (right - left),
+			0, 2 / (top - bottom), 0, -(top + bottom) / (top - bottom),
+			0, 0, -2 / (far - near), -(far + near) / (far - near),
+			0, 0, 0, 1
+		};
 
 	}
 
 	constexpr static Mat4 fromAffine2D(const Mat3<T>& m) noexcept {
-		return Mat4(m[0][0], m[1][0], 0, m[2][0], m[0][1], m[1][1], 0, m[2][1], 0, 0, 1, 0, m[0][2], m[1][2], 0, m[2][2]);
+
+		return {
+			m[0][0], m[1][0], 0, m[2][0],
+			m[0][1], m[1][1], 0, m[2][1],
+			0, 0, 1, 0,
+			m[0][2], m[1][2], 0, m[2][2]
+		};
+
 	}
 
 
-	Vec4<T> v[4];
+	VecT v[4];
 
 };
 
 
-
-template<CC::Matrix A, CC::Matrix B> requires CC::EqualMatrixRank<A, B>
-constexpr auto operator+(A m, const B& n) noexcept {
+template<CC::Matrix A, CC::EqualMatrixRank<A> B>
+constexpr TT::CommonMatrixType<A, B> operator+(A m, const B& n) noexcept {
 
 	TT::CommonMatrixType<A, B> mx = m;
 	return mx += n;
 
 }
 
-template<CC::Matrix A, CC::Matrix B> requires CC::EqualMatrixRank<A, B>
-constexpr auto operator-(A m, const B& n) noexcept {
+template<CC::Matrix A, CC::EqualMatrixRank<A> B>
+constexpr TT::CommonMatrixType<A, B> operator-(A m, const B& n) noexcept {
 
 	TT::CommonMatrixType<A, B> mx = m;
 	return mx -= n;
 
 }
 
-template<CC::Matrix A, CC::Matrix B> requires CC::EqualMatrixRank<A, B>
-constexpr auto operator*(A m, const B& n) noexcept {
+
+template<CC::Matrix A, CC::EqualMatrixRank<A> B>
+constexpr TT::CommonMatrixType<A, B> operator*(A m, const B& n) noexcept {
 
 	TT::CommonMatrixType<A, B> mx = m;
 	return mx *= n;
@@ -1283,6 +1301,7 @@ template<CC::Matrix A, CC::Arithmetic B>
 constexpr auto operator*(B b, A m) noexcept {
 	return m * b;
 }
+
 
 template<CC::Matrix A, CC::Arithmetic B>
 constexpr auto operator/(A m, B b) noexcept {
@@ -1325,7 +1344,6 @@ constexpr Vec4<TT::CommonType<A, B>> operator*(const Mat4<A>& m, const Vec4<B>& 
 	return { x, y, z, w };
 
 }
-
 
 
 template<CC::IntegralMatrix A, class B> requires (CC::Integral<B> || (CC::IntegralMatrix<B> && CC::EqualMatrixRank<A, B>))
@@ -1480,36 +1498,9 @@ RawLog& operator<<(RawLog& log, const M& mat) {
 }
 
 
-
-#define MATRIX_DEFINE_NDTS(name, dim, type, suffix) typedef Mat##dim<type> name##dim##suffix;
-
-#define MATRIX_DEFINE_ND(name, dim) \
-	MATRIX_DEFINE_NDTS(name, dim, bool, b) \
-	MATRIX_DEFINE_NDTS(name, dim, float, f) \
-	MATRIX_DEFINE_NDTS(name, dim, double, d) \
-	MATRIX_DEFINE_NDTS(name, dim, long double, ld) \
-	MATRIX_DEFINE_NDTS(name, dim, i8, c) \
-	MATRIX_DEFINE_NDTS(name, dim, i16, s) \
-	MATRIX_DEFINE_NDTS(name, dim, i32, i) \
-	MATRIX_DEFINE_NDTS(name, dim, i64, l) \
-	MATRIX_DEFINE_NDTS(name, dim, u8, uc) \
-	MATRIX_DEFINE_NDTS(name, dim, u16, us) \
-	MATRIX_DEFINE_NDTS(name, dim, u32, ui) \
-	MATRIX_DEFINE_NDTS(name, dim, u64, ul) \
-	MATRIX_DEFINE_NDTS(name, dim, ARC_STD_FLOAT_TYPE, x)
-
-#define MATRIX_DEFINE_N(name) \
-	MATRIX_DEFINE_ND(name, 2) \
-	MATRIX_DEFINE_ND(name, 3) \
-	MATRIX_DEFINE_ND(name, 4)
-
-#define MATRIX_DEFINE \
-	MATRIX_DEFINE_N(Mat) \
-	MATRIX_DEFINE_N(Matrix)
-
-MATRIX_DEFINE
-
-#undef MATRIX_DEFINE
-#undef MATRIX_DEFINE_N
-#undef MATRIX_DEFINE_ND
-#undef MATRIX_DEFINE_NDTS
+ARC_DEFINE_ARITHMETIC_ALIASES(0, Mat2, Mat2)
+ARC_DEFINE_ARITHMETIC_ALIASES(0, Mat3, Mat3)
+ARC_DEFINE_ARITHMETIC_ALIASES(0, Mat4, Mat4)
+ARC_DEFINE_ARITHMETIC_ALIASES(0, Mat2, Matrix2)
+ARC_DEFINE_ARITHMETIC_ALIASES(0, Mat3, Matrix3)
+ARC_DEFINE_ARITHMETIC_ALIASES(0, Mat4, Matrix4)

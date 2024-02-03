@@ -16,33 +16,6 @@
 /*			   Arclight Configuration			  */
 /**************************************************/
 
-/*
-	Switches to using constexpr in C math functions
-	Affected functions:
-		std::isinf
-		std::isnan
-		std::sin
-		std::cos
-		std::tan
-		std::asin
-		std::acos
-		std::atan
-		std::atan2
-		std::fmod
-		std::exp
-		std::pow
-		std::log
-		std::log10
-		std::sqrt
-		std::cbrt
-		std::ceil
-		std::floor
-		std::trunc
-		std::round
-*/
-
-#define ARC_CMATH_CONSTEXPR_FIX 0
-
 
 /*
 	Vectorized code
@@ -94,7 +67,7 @@
 	ARC_USE_ARCRT: Uses the custom arclight runtime
 */
 
-#define ARC_USE_ARCRT
+//#define ARC_USE_ARCRT
 
 
 /*
@@ -152,14 +125,6 @@
 */
 
 #define ARC_ASSERT_DEBUG
-
-
-/*
-	Standard float type
-	ARC_STD_FLOAT_TYPE: Specifies the underlying standard float type
-*/
-
-#define ARC_STD_FLOAT_TYPE float
 
 
 /*

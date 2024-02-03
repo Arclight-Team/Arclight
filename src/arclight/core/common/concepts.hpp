@@ -55,11 +55,17 @@ namespace CC {
 	template<class T, class... Args>
 	concept Constructible = std::constructible_from<T, Args...>;
 
+	template<class T, class... Args>
+	concept NothrowConstructible = std::is_nothrow_constructible_v<T, Args...>;
+
 	template<class T>
 	concept DefaultInitializable = std::default_initializable<T>;
 
 	template<class T>
 	concept CopyConstructible = std::copy_constructible<T>;
+
+	template<class T>
+	concept NothrowCopyConstructible = std::is_nothrow_copy_constructible_v<T>;
 
 	template<class T>
 	concept MoveConstructible = std::move_constructible<T>;
@@ -219,14 +225,5 @@ namespace CC {
 
 	template<class T, class... U>
 	concept AnyOf = (Equal<T, U> || ...);
-
-	template<class T>
-	concept Shape = requires(T s) { s.area(); };
-
-	template<class T>
-	concept Shape3D = Shape<T> && requires(T s) { s.volume(); };
-
-	template<class T>
-	concept Shape2D = Shape<T> && !Shape3D<T>;
 
 }

@@ -16,121 +16,95 @@
 
 
 template<CC::Float T>
+class Quaternion;
+
+
+namespace CC {
+
+	template<class T>
+	concept Quaternion = SpecializationOf<T, Quaternion>;
+
+}
+
+namespace TT {
+
+	template<CC::Quaternion V, CC::Quaternion... U>
+	using CommonQuaternionType = Quaternion<CommonType<typename V::Type, typename U::Type...>>;
+
+}
+
+
+template<CC::Float T>
 class Quaternion {
 
 public:
 
 	using Type = T;
 
-	constexpr Quaternion() : x(T(0)), y(T(0)), z(T(0)), w(T(1)) {}
-	constexpr explicit Quaternion(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {}
+
+	constexpr Quaternion() noexcept : x(0), y(0), z(0), w(0) {}
+
+	constexpr Quaternion(T x, T y, T z, T w) noexcept : x(x), y(y), z(z), w(w) {}
 
 	template<CC::Float F, CC::Float G>
-	constexpr explicit Quaternion(const Vec3<F>& axis, G angle) {
-		*this = Quaternion::fromAngleAxis(axis, angle);
-	}
+	__ARC_CMATH26 Quaternion(const Vec3<F>& axis, G angle) { setAngleAxis(axis, angle); }
 
-	constexpr explicit Quaternion(T yaw, T pitch, T roll) {
-		*this = Quaternion::fromEulerAngles(yaw, pitch, roll);
-	}
+	__ARC_CMATH26 Quaternion(T yaw, T pitch, T roll) { setEulerAngles(yaw, pitch, roll); }
 
 
-	constexpr Quaternion normalized() const {
-		return normalize(*this);
-	}
-
-	constexpr void normalize() {
-		divide(length());
-	}
-
-	constexpr T lengthSquared() const {
+	constexpr T lengthSquared() const noexcept {
 		return dot(*this);
 	}
 
-	constexpr T length() const {
+	__ARC_CMATH26 T length() const {
 		return Math::sqrt(lengthSquared());
 	}
 
 
-	template<CC::Float F>
-	constexpr void add(const Quaternion<F>& q) {
-
-		x += q.x;
-		y += q.y;
-		z += q.z;
-		w += q.w;
-
-	}
-
-	template<CC::Float F>
-	constexpr void subtract(const Quaternion<F>& q) {
-
-		x -= q.x;
-		y -= q.y;
-		z -= q.z;
-		w -= q.w;
-
-	}
-
-	template<CC::Float F>
-	constexpr void multiply(const Quaternion<F>& q) {
-
-		T tx = w * q.x + x * q.w + y * q.z - z * q.y;
-		T ty = w * q.y + y * q.w + z * q.x - x * q.z;
-		T tz = w * q.z + z * q.w + x * q.y - y * q.x;
-		T tw = w * q.w - x * q.x - y * q.y - z * q.z;
-
-		x = tx;
-		y = ty;
-		z = tz;
-		w = tw;
-
-	}
-
-	template<CC::Arithmetic A>
-	constexpr void multiply(A scalar) {
-
-		x *= scalar;
-		y *= scalar;
-		z *= scalar;
-		w *= scalar;
-
-	}
-
-	template<CC::Arithmetic A>
-	constexpr void divide(A scalar) {
-
-		arc_assert(!Math::isZero(scalar), "Cannot divide Quaternion by 0");
-		x /= scalar;
-		y /= scalar;
-		z /= scalar;
-		w /= scalar;
-
-	}
-
-	constexpr bool isReal() const {
+	constexpr bool isReal() const noexcept {
 		return Math::isZero(x) && Math::isZero(y) && Math::isZero(z);
 	}
 
-	constexpr bool isPure() const {
+	constexpr bool isPure() const noexcept {
 		return Math::isZero(w);
 	}
 
-	constexpr bool isUnit() const {
+	__ARC_CMATH26 bool isUnit() const {
 		return Math::equal(length(), T(1));
 	}
 
-	constexpr void conjugate() {
+
+	__ARC_CMATH26 void normalize() {
+		divide(length());
+	}
+
+	__ARC_CMATH26 Quaternion normalized() const {
+
+		Quaternion ret = *this;
+		ret.normalize();
+
+		return ret;
+
+	}
+
+	constexpr void conjugate() noexcept {
+
 		x = -x;
 		y = -y;
 		z = -z;
+
 	}
 
-	constexpr Quaternion conjugated() const {
-		return Quaternion(-x, -y, -z, w);
+	constexpr Quaternion conjugated() const noexcept {
+
+		Quaternion ret = *this;
+		ret.conjugate();
+
+		return ret;
+
 	}
 
-	constexpr void invert() {
+	constexpr void invert() noexcept {
 
 		conjugate();
 		divide(lengthSquared());
@@ -139,11 +113,76 @@ public:
 
 	constexpr Quaternion inverse() const {
 
-		Quaternion q(*this);
-		q.invert();
-		return q;
+		Quaternion ret = *this;
+		ret.invert();
+
+		return ret;
 
 	}
+
+
+	template<CC::Float F>
+	constexpr Quaternion& add(const Quaternion<F>& q) noexcept {
+
+		x += q.x;
+		y += q.y;
+		z += q.z;
+		w += q.w;
+
+		return *this;
+
+	}
+
+	template<CC::Float F>
+	constexpr Quaternion& subtract(const Quaternion<F>& q) noexcept {
+
+		x -= q.x;
+		y -= q.y;
+		z -= q.z;
+		w -= q.w;
+
+		return *this;
+
+	}
+
+	template<CC::Float F>
+	constexpr Quaternion& multiply(const Quaternion<F>& q) noexcept {
+
+		x = w * q.x + x * q.w + y * q.z - z * q.y;
+		y = w * q.y + y * q.w + z * q.x - x * q.z;
+		z = w * q.z + z * q.w + x * q.y - y * q.x;
+		w = w * q.w - x * q.x - y * q.y - z * q.z;
+
+		return *this;
+
+	}
+
+	template<CC::Arithmetic A>
+	constexpr Quaternion multiply(A scalar) noexcept {
+
+		x *= scalar;
+		y *= scalar;
+		z *= scalar;
+		w *= scalar;
+
+		return *this;
+
+	}
+
+	template<CC::Arithmetic A>
+	constexpr Quaternion divide(A scalar) {
+
+		arc_assert(!Math::isZero(scalar), "Cannot divide Quaternion by 0");
+
+		x /= scalar;
+		y /= scalar;
+		z /= scalar;
+		w /= scalar;
+
+		return *this;
+
+	}
+
 
 	template<CC::Float F>
 	constexpr T dot(const Quaternion<F>& q) const {
@@ -152,61 +191,58 @@ public:
 
 
 	template<CC::Float F>
-	constexpr Quaternion& operator=(const Quaternion<F>& q) {
+	constexpr Quaternion& operator=(const Quaternion<F>& q) noexcept {
 
 		x = q.x;
 		y = q.y;
 		z = q.z;
 		w = q.w;
+
 		return *this;
 
 	}
 
 	template<CC::Float F>
-	constexpr Quaternion& operator+=(const Quaternion<F>& q) {
-		add(q);
-		return *this;
+	constexpr Quaternion& operator+=(const Quaternion<F>& q) noexcept {
+		return add(q);
 	}
 
 	template<CC::Float F>
-	constexpr Quaternion& operator-=(const Quaternion<F>& q) {
-		subtract(q);
-		return *this;
+	constexpr Quaternion& operator-=(const Quaternion<F>& q) noexcept {
+		return subtract(q);
 	}
 
 	template<CC::Float F>
-	constexpr Quaternion& operator*=(const Quaternion<F>& q) {
-		multiply(q);
-		return *this;
+	constexpr Quaternion& operator*=(const Quaternion<F>& q) noexcept {
+		return multiply(q);
 	}
 
 	template<CC::Arithmetic A>
-	constexpr Quaternion& operator*=(A scalar) {
-		multiply(scalar);
-		return *this;
+	constexpr Quaternion& operator*=(A scalar) noexcept {
+		return multiply(scalar);
 	}
 
 	template<CC::Arithmetic A>
-	constexpr Quaternion& operator/=(A scalar) {
-		divide(scalar);
-		return *this;
+	constexpr Quaternion& operator/=(A scalar) noexcept {
+		return divide(scalar);
 	}
 
+
 	template<CC::Float F>
-	constexpr bool operator==(const Quaternion<F>& q) const {
+	constexpr bool operator==(const Quaternion<F>& q) const noexcept {
 		return Math::equal(x, q.x) && Math::equal(y, q.y) && Math::equal(z, q.z) && Math::equal(w, q.w);
 	}
 
-	constexpr Quaternion operator-() const {
-		return Quaternion(-x, -y, -z, -w);
+	constexpr Quaternion operator-() const noexcept {
+		return {-x, -y, -z, -w};
 	}
 
 
 	template<CC::Float F, CC::Float G>
-	constexpr void setAngleAxis(const Vec3<F>& axis, G angle) {
+	__ARC_CMATH26 void setAngleAxis(const Vec3<F>& axis, G angle) {
 
-		T s = static_cast<T>(Math::sin(angle / static_cast<T>(2)));
-		T c = static_cast<T>(Math::cos(angle / static_cast<T>(2)));
+		T s = static_cast<T>(Math::sin(angle / T(2)));
+		T c = static_cast<T>(Math::cos(angle / T(2)));
 
 		x = axis.x * s;
 		y = axis.y * s;
@@ -215,33 +251,34 @@ public:
 
 	}
 
-	constexpr void setEulerAngles(T yaw, T pitch, T roll) {
+	template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C>
+	__ARC_CMATH26 void setEulerAngles(A yaw, B pitch, C roll) {
 
-		T sa = Math::sin(yaw * static_cast<T>(0.5));
-		T ca = Math::cos(yaw * static_cast<T>(0.5));
-		T sb = Math::sin(pitch * static_cast<T>(0.5));
-		T cb = Math::cos(pitch * static_cast<T>(0.5));
-		T sc = Math::sin(roll * static_cast<T>(0.5));
-		T cc = Math::cos(roll * static_cast<T>(0.5));
+		const auto [ysin, ycos] = Math::sincos(yaw / T(2));
+		const auto [psin, pcos] = Math::sincos(pitch / T(2));
+		const auto [rsin, rcos] = Math::sincos(roll / T(2));
 
-		x = ca * cb * sc - sa * sb * cc;
-		y = ca * sb * cc + sa * cb * sc;
-		z = sa * cb * cc - ca * sb * sc;
-		w = ca * cb * cc + sa * sb * sc;
+		x = ycos * pcos * rsin - ysin * psin * rcos;
+		y = ycos * psin * rcos + ysin * pcos * rsin;
+		z = ysin * pcos * rcos - ycos * psin * rsin;
+		w = ycos * pcos * rcos + ysin * psin * rsin;
 
 	}
 
 	template<CC::Float F>
-	constexpr void setMat3(const Mat3<F>& m) {
+	__ARC_CMATH26 void setMat3(const Mat3<F>& m) {
 		
 #ifdef ARC_QUATERNION_MATCONV_BRANCHLESS
+
 		x = T(0.5) * Math::sqrt(1 + m[0][0] - m[1][1] - m[2][2]);
 		y = T(0.5) * Math::sqrt(1 - m[0][0] + m[1][1] - m[2][2]);
 		z = T(0.5) * Math::sqrt(1 - m[0][0] - m[1][1] + m[2][2]);
 		w = T(0.5) * Math::sqrt(1 + m[0][0] + m[1][1] + m[2][2]);
+
 		x = Math::copysign(x, m[2][1] - m[1][2]);
 		y = Math::copysign(y, m[0][2] - m[2][0]);
 		z = Math::copysign(z, m[1][0] - m[0][1]);
+
 #else
 		T t = m.trace();
 
@@ -287,39 +324,46 @@ public:
 	}
 
 	template<CC::Float F>
-	constexpr void setMat4(const Mat4<F>& m) {
+	__ARC_CMATH26 void setMat4(const Mat4<F>& m) {
 		setMat3(m.toMat3());
 	}
 
-	constexpr Mat3<T> toMat3() const {
+
+	__ARC_CMATH26 Mat3<T> toMat3() const {
 
 		Quaternion q = normalized();
 
-		return Mat3<T>( 1 - 2 * (q.y * q.y + q.z * q.z), -2 * q.w * q.z + 2 * q.x * q.y, 2 * q.w * q.y + 2 * q.x * q.z,
-						2 * q.w * q.z + 2 * q.x * q.y, 1 - 2 * (q.x * q.x + q.z * q.z), -2 * q.w * q.x + 2 * q.y * q.z,
-						-2 * q.w * q.y + 2 * q.x * q.z, 2 * q.w * q.x + 2 * q.y * q.z, 1 - 2 * (q.x * q.x + q.y * q.y));
+		return {
+			1 - 2 * (q.y * q.y + q.z * q.z), -2 * q.w * q.z + 2 * q.x * q.y, 2 * q.w * q.y + 2 * q.x * q.z,
+			2 * q.w * q.z + 2 * q.x * q.y, 1 - 2 * (q.x * q.x + q.z * q.z), -2 * q.w * q.x + 2 * q.y * q.z,
+			-2 * q.w * q.y + 2 * q.x * q.z, 2 * q.w * q.x + 2 * q.y * q.z, 1 - 2 * (q.x * q.x + q.y * q.y)
+		};
 
 	}
 
-	constexpr Mat4<T> toMat4() const {
+	__ARC_CMATH26 Mat4<T> toMat4() const {
 
 		Quaternion q = normalized();
 
-		return Mat4<T>( 1 - 2 * (q.y * q.y + q.z * q.z), -2 * q.w * q.z + 2 * q.x * q.y, 2 * q.w * q.y + 2 * q.x * q.z, 0,
-						2 * q.w * q.z + 2 * q.x * q.y, 1 - 2 * (q.x * q.x + q.z * q.z), -2 * q.w * q.x + 2 * q.y * q.z, 0,
-						-2 * q.w * q.y + 2 * q.x * q.z, 2 * q.w * q.x + 2 * q.y * q.z, 1 - 2 * (q.x * q.x + q.y * q.y), 0,
-						0, 0, 0, 1);
+		return {
+			1 - 2 * (q.y * q.y + q.z * q.z), -2 * q.w * q.z + 2 * q.x * q.y, 2 * q.w * q.y + 2 * q.x * q.z, 0,
+			2 * q.w * q.z + 2 * q.x * q.y, 1 - 2 * (q.x * q.x + q.z * q.z), -2 * q.w * q.x + 2 * q.y * q.z, 0,
+			-2 * q.w * q.y + 2 * q.x * q.z, 2 * q.w * q.x + 2 * q.y * q.z, 1 - 2 * (q.x * q.x + q.y * q.y), 0,
+			0, 0, 0, 1
+		};
 
 	}
+
 
 	template<CC::Float F, CC::Float G>
 	constexpr static Quaternion fromAngleAxis(const Vec3<F>& axis, G angle) {
-	   Quaternion q;
-	   q.setAngleAxis(axis, angle);
-	   return q;
+		Quaternion q;
+		q.setAngleAxis(axis, angle);
+		return q;
 	}
 
-	constexpr static Quaternion fromEulerAngles(T yaw, T pitch, T roll) {
+	template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C>
+	constexpr static Quaternion fromEulerAngles(A yaw, B pitch, C roll) {
 		Quaternion q;
 		q.setEulerAngles(yaw, pitch, roll);
 		return q;
@@ -339,6 +383,7 @@ public:
 		return q;
 	}
 
+
 	constexpr static Quaternion normalize(Quaternion v) {
 		v.normalize();
 		return v;
@@ -349,58 +394,59 @@ public:
 		return v;
 	}
 
+
+#ifndef ARC_QUATERNION_XYZW
+	T w;
+#endif
+	T x;
+	T y;
+	T z;
 #ifdef ARC_QUATERNION_XYZW
-	T x, y, z, w;
-#else
-	T w, x, y, z;
+	T w;
 #endif
 
 };
 
 
+template<CC::Quaternion Q, CC::Quaternion P>
+constexpr TT::CommonQuaternionType<Q, P> operator+(Q q, const P& p) {
 
-template<CC::Float F, CC::Float G>
-constexpr auto operator+(Quaternion<F> q, const Quaternion<G>& p) {
-
-	Quaternion<decltype(q.x + p.x)> r = q;
-	r += p;
-	return r;
+	TT::CommonQuaternionType<Q, P> r = q;
+	return r += p;
 
 }
 
-template<CC::Float F, CC::Float G>
-constexpr auto operator-(Quaternion<F> q, const Quaternion<G>& p) {
+template<CC::Quaternion Q, CC::Quaternion P>
+constexpr TT::CommonQuaternionType<Q, P> operator-(Q q, const P& p) {
 
-	Quaternion<decltype(q.x - p.x)> r = q;
-	r -= p;
-	return r;
+	TT::CommonQuaternionType<Q, P> r = q;
+	return r -= p;
 
 }
 
-template<CC::Float F, CC::Float G>
-constexpr auto operator*(Quaternion<F> q, const Quaternion<G>& p) {
 
-	Quaternion<decltype(q.x * p.x)> r = q;
-	r *= p;
-	return r;
+template<CC::Quaternion Q, CC::Quaternion P>
+constexpr TT::CommonQuaternionType<Q, P> operator*(Q q, const P& p) {
+
+	TT::CommonQuaternionType<Q, P> r = q;
+	return r *= p;
 
 }
 
 template<CC::Float F, CC::Arithmetic A>
 constexpr auto operator*(Quaternion<F> q, A scalar) {
 
-	Quaternion<decltype(q.x * scalar)> p = q;
-	p *= scalar;
-	return p;
+	Quaternion<TT::CommonType<F, A>> p = q;
+	return p *= scalar;
 
 }
+
 
 template<CC::Float F, CC::Arithmetic A>
 constexpr auto operator/(Quaternion<F> q, A scalar) {
 
-	Quaternion<decltype(q.x / scalar)> p = q;
-	p /= scalar;
-	return p;
+	Quaternion<TT::CommonType<F, A>> p = q;
+	return p /= scalar;
 
 }
 
@@ -419,21 +465,5 @@ RawLog& operator<<(RawLog& log, const Quaternion<F>& quat) {
 }
 
 
-
-#define QUATERNION_DEFINE_NTS(name, type, suffix) typedef Quaternion<type> name##suffix;
-
-#define QUATERNION_DEFINE_N(name) \
-	QUATERNION_DEFINE_NTS(name, float, F) \
-	QUATERNION_DEFINE_NTS(name, double, D) \
-	QUATERNION_DEFINE_NTS(name, long double, LD) \
-	QUATERNION_DEFINE_NTS(name, ARC_STD_FLOAT_TYPE, X)
-
-#define QUATERNION_DEFINE \
-	QUATERNION_DEFINE_N(Quat) \
-	QUATERNION_DEFINE_N(Quaternion)
-
-QUATERNION_DEFINE
-
-#undef QUATERNION_DEFINE
-#undef QUATERNION_DEFINE_N
-#undef QUATERNION_DEFINE_NTS
+ARC_DEFINE_FLOAT_ALIASES(1, Quaternion, Quaternion)
+ARC_DEFINE_FLOAT_ALIASES(1, Quaternion, Quat)

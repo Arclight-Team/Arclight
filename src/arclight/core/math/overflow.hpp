@@ -11,6 +11,7 @@
 #include "util/bits.hpp"
 
 
+
 template<CC::Arithmetic A>
 struct OverflowAddResult {
 
@@ -142,19 +143,19 @@ namespace Math {
 
 			constexpr SizeT halfBits = Bits::bitCount<UnsignedT>() / 2;
 
-			//Dissect via arithmetic shifts, cast to unsigned
+			// Dissect via arithmetic shifts, cast to unsigned
 			UnsignedT al = sa & Bits::mask(sa, 0, halfBits);
 			UnsignedT ah = sa >> halfBits;
 			UnsignedT bl = sb & Bits::mask(sb, 0, halfBits);
 			UnsignedT bh = sb >> halfBits;
 
-			//Unsigned partial products
+			// Unsigned partial products
 			UnsignedT x0 = al * bl;
 			UnsignedT x1 = ah * bl;
 			UnsignedT x2 = al * bh;
 			UnsignedT x3 = ah * bh;
 
-			//Identical to unsigned version
+			// Identical to unsigned version
 			UnsignedT totalCarry = 0;
 
 			OverflowAddResult carryAdd = overflowAdd(x0, x1 << halfBits);
@@ -196,13 +197,13 @@ namespace Math {
 
 			constexpr SizeT halfBits = Bits::bitCount<UnsignedT>() / 2;
 
-			//Dissect to half-sized integers
+			// Dissect to half-sized integers
 			UnsignedT al = ua & Bits::mask(ua, 0, halfBits);
 			UnsignedT ah = ua >> halfBits;
 			UnsignedT bl = ub & Bits::mask(ub, 0, halfBits);
 			UnsignedT bh = ub >> halfBits;
 
-			//Calculate half products
+			// Calculate half products
 			UnsignedT x0 = al * bl;
 			UnsignedT x1 = ah * bl;
 			UnsignedT x2 = al * bh;
@@ -210,21 +211,21 @@ namespace Math {
 
 			UnsignedT totalCarry = 0;
 
-			//Add lower product + first mid partial product
+			// Add lower product + first mid partial product
 			OverflowAddResult carryAdd = overflowAdd(x0, x1 << halfBits);
 			totalCarry += carryAdd.overflown;
 
-			//Add the result to the second mid partial product
+			// Add the result to the second mid partial product
 			carryAdd = overflowAdd(carryAdd.value, x2 << halfBits);
 			totalCarry += carryAdd.overflown;
 
-			//Bottom part is our previous result, top part is the sum of the two mid partial products, the upper product and the carry from bottom
+			// Bottom part is our previous result, top part is the sum of the two mid partial products, the upper product and the carry from bottom
 			result.bottom = carryAdd.value;
 			result.top = (x1 >> halfBits) + (x2 >> halfBits) + x3 + totalCarry;
 
 		}
 
-		//If top is non-zero, an overflow occured
+		// If top is non-zero, an overflow occured
 		result.overflown = result.top;
 
 		return result;

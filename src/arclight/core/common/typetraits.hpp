@@ -169,17 +169,17 @@ namespace TT {
 		concept HasExposedInnerType = requires { typename T::Type; };
 
 		template<class T>
-		struct CommonArithmeticType {};
+		struct ExtractType {};
 
 		template<HasExposedInnerType T>
-		struct CommonArithmeticType<T> {
+		struct ExtractType<T> {
 
 			using Type = typename T::Type;
 
 		};
 
 		template<CC::Arithmetic T>
-		struct CommonArithmeticType<T> {
+		struct ExtractType<T> {
 
 			using Type = T;
 
@@ -334,6 +334,17 @@ namespace TT {
 			constexpr static bool Value = CC::Equal<T<U>, TT::TypeTag<U>>;
 		};
 
+
+		template<class T>
+		struct RemoveObjectPointer {
+			using Type = T;
+		};
+
+		template<class O, class T>
+		struct RemoveObjectPointer<T O::*> {
+			using Type = T;
+		};
+
 	}
 
 
@@ -443,9 +454,9 @@ namespace TT {
 	using CommonType = std::common_type_t<T...>;
 
 
-	/* Extracts the arithmetic type from a mathematical construct T or uses the arithmetic type T */
+	/* Extracts the inner type if exposed, otherwise return T */
 	template<class T>
-	using CommonArithmeticType = typename Detail::CommonArithmeticType<T>::Type;
+	using ExtractType = typename Detail::ExtractType<T>::Type;
 
 
 	/* Specialized traits */
@@ -460,6 +471,20 @@ namespace TT {
 
 	template<SizeT N, auto... Pack>
 	static constexpr auto NthPackValue = Detail::NthPackValue<N, Pack...>::Value;
+
+
+	template<auto V, class... T>
+	static constexpr decltype(V) Constant = V;
+
+	template<class... T>
+	static constexpr bool False = Constant<false, T...>;
+
+	template<class... T>
+	static constexpr bool True = Constant<true, T...>;
+
+
+	template<class T>
+	using RemoveObjectPointer = Detail::RemoveObjectPointer<T>::Type;
 
 
 	/* Type Tag */

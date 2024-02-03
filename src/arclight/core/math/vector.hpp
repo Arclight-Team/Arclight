@@ -8,9 +8,10 @@
 
 #pragma once
 
-#include "math/math.hpp"
+#include "math.hpp"
 #include "util/assert.hpp"
 #include "common/typetraits.hpp"
+
 
 
 template<CC::Arithmetic T>
@@ -26,16 +27,28 @@ class Vec4;
 namespace CC {
 
 	template<class T>
-	concept Vector = TT::IsAnyOf<T, Vec2<typename T::Type>, Vec3<typename T::Type>, Vec4<typename T::Type>>;
+	concept Vector2 = SpecializationOf<T, Vec2>;
 
 	template<class T>
-	concept FloatVector = Vector<T> && CC::Float<typename T::Type>;
+	concept Vector3 = SpecializationOf<T, Vec3>;
 
 	template<class T>
-	concept IntegerVector = Vector<T> && CC::Integer<typename T::Type>;
+	concept Vector4 = SpecializationOf<T, Vec4>;
 
 	template<class T>
-	concept IntegralVector = Vector<T> && CC::Integral<typename T::Type>;
+	concept Vector = Vector2<T> || Vector3<T> || Vector4<T>;
+
+	template<class T>
+	concept FloatVector = Vector<T> && Float<typename T::Type>;
+
+	template<class T>
+	concept IntegerVector = Vector<T> && Integer<typename T::Type>;
+
+	template<class T>
+	concept IntegralVector = Vector<T> && Integral<typename T::Type>;
+
+	template<class T>
+	concept ArithmeticParam = Vector<T> || Arithmetic<T>;
 
 	template<class T>
 	concept FloatParam = Float<T> || FloatVector<T>;
@@ -46,8 +59,8 @@ namespace CC {
 	template<class T>
 	concept IntegralParam = Integral<T> || IntegralVector<T>;
 
-	template<class T, class U>
-	concept EqualVectorRank = Vector<T> && Vector<U> && T::Size == U::Size;
+	template<class T, class... U>
+	concept EqualVectorRank = Vector<T> && (Vector<U> && ...) && ((T::Size == U::Size) && ...);
 
 }
 
@@ -57,7 +70,7 @@ namespace TT {
 
 		template<CC::Vector V, CC::Arithmetic T>
 		struct SizedVector {
-			using Type = TT::Conditional<V::Size == 2, Vec2<T>, TT::Conditional<V::Size == 3, Vec3<T>, Vec4<T>>>;
+			using Type = Conditional<V::Size == 2, Vec2<T>, Conditional<V::Size == 3, Vec3<T>, Vec4<T>>>;
 		};
 
 	}
@@ -65,8 +78,8 @@ namespace TT {
 	template<CC::Vector V, CC::Arithmetic T>
 	using SizedVector = typename Detail::SizedVector<V, T>::Type;
 
-	template<CC::Vector A, CC::Vector B> requires CC::EqualVectorRank<A, B>
-	using CommonVectorType = SizedVector<A, TT::CommonType<typename A::Type, typename B::Type>>;
+	template<CC::Vector V, CC::EqualVectorRank<V>... U>
+	using CommonVectorType = SizedVector<V, CommonType<typename V::Type, typename U::Type...>>;
 
 }
 
@@ -74,11 +87,14 @@ namespace TT {
 template<CC::Arithmetic T>
 class Vec2 {
 
+private:
+
 	using X = TT::PromotedType<T>;
 
 public:
 
 	using Type = T;
+
 	constexpr static SizeT Size = 2;
 
 
@@ -149,6 +165,8 @@ public:
 	template<CC::Arithmetic A>
 	constexpr Vec2& compDivide(const Vec2<A>& v) noexcept {
 
+		arc_assert(!v.isNull(), "Vec2 divided by 0");
+
 		x /= v.x;
 		y /= v.y;
 
@@ -207,30 +225,27 @@ public:
 		return Vec2(-x, -y);
 	}
 
-	constexpr T& operator[](u32 index) noexcept {
+
+	constexpr T& operator[](SizeT index) noexcept {
 
 		switch (index) {
-
-		case 0:	return x;
-		case 1:	return y;
-		default:
-			arc_force_assert("Vec2 access out of bounds (index=%d)", index);
-			return x;
-
+			case 0: return x;
+			case 1: return y;
+			default:
+				arc_force_assert("Vec2 access out of bounds (index=%d)", index);
+				std::unreachable();
 		}
 
 	}
 
-	constexpr const T& operator[](u32 index) const noexcept {
+	constexpr const T& operator[](SizeT index) const noexcept {
 
 		switch (index) {
-
-		case 0:	return x;
-		case 1:	return y;
-		default:
-			arc_force_assert("Vec2 access out of bounds (index=%d)", index);
-			return x;
-
+			case 0: return x;
+			case 1: return y;
+			default:
+				arc_force_assert("Vec2 access out of bounds (index=%d)", index);
+				std::unreachable();
 		}
 
 	}
@@ -240,8 +255,16 @@ public:
 		return x * x + y * y;
 	}
 
-	constexpr auto length() const noexcept {
+	__ARC_CMATH26 X length() const {
 		return Math::sqrt(magSquared());
+	}
+
+	__ARC_CMATH26 void normalize() {
+		divide(length());
+	}
+
+	__ARC_CMATH26 Vec2 normalized() const {
+		return normalize(*this);
 	}
 
 	constexpr bool isNull() const noexcept {
@@ -252,13 +275,6 @@ public:
 		return Math::less(x, 0) || Math::less(y, 0);
 	}
 
-	constexpr void normalize() noexcept {
-		divide(length());
-	}
-
-	constexpr Vec2 normalized() const noexcept {
-		return normalize(*this);
-	}
 
 	template<CC::Arithmetic A>
 	constexpr X dot(const Vec2<A>& v) const noexcept {
@@ -266,20 +282,31 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	constexpr auto distance(const Vec2<A>& v) const noexcept {
+	__ARC_CMATH26 X distance(const Vec2<A>& v) const {
 		return Vec2<X>(x - v.x, y - v.y).length();
 	}
 
 	template<CC::Arithmetic A>
-	constexpr auto angle(const Vec2<A>& v) const noexcept {
-		arc_assert(!Math::isZero(length()) && !Math::isZero(v.length()), "Vec2 angle with null vector");
+	__ARC_CMATH26 A angle(const Vec2<A>& v) const {
+
+		arc_assert(!isNull() && !v.isNull(), "Vec2 angle with null vector");
+
 		return Math::acos(dot(v) / (length() * v.length()));
+
 	}
+
 
 	template<CC::Arithmetic A>
 	constexpr static Vec2<A> normalize(Vec2<A> v) noexcept {
+
 		v.normalize();
 		return v;
+
+	}
+
+	template<CC::Arithmetic A>
+	__ARC_CMATH26 static X length(Vec2<A> v) {
+		return v.length();
 	}
 
 
@@ -292,20 +319,29 @@ public:
 	}
 
 
-	T x, y;
+	T x;
+	T y;
 
 };
 
+template<CC::Arithmetic A>
+Vec2(A)->Vec2<A>;
+
+template<CC::Arithmetic A, CC::Arithmetic B>
+Vec2(A, B)->Vec2<TT::CommonType<A, B>>;
 
 
 template<CC::Arithmetic T>
 class Vec3 {
+
+private:
 
 	using X = TT::PromotedType<T>;
 
 public:
 
 	using Type = T;
+
 	constexpr static SizeT Size = 3;
 
 
@@ -384,6 +420,8 @@ public:
 	template<CC::Arithmetic A>
 	constexpr Vec3& compDivide(const Vec3<A>& v) noexcept {
 
+		arc_assert(!v.isNull(), "Vec3 divided by 0");
+
 		x /= v.x;
 		y /= v.y;
 		z /= v.z;
@@ -438,39 +476,35 @@ public:
 	template<CC::Arithmetic A>
 	constexpr bool operator==(const Vec3<A>& v) const noexcept {
 		return Math::equal(x, v.x) && Math::equal(y, v.y) && Math::equal(z, v.z);
-
 	}
 
 	constexpr Vec3 operator-() const noexcept {
 		return Vec3(-x, -y, -z);
 	}
 
-	constexpr T& operator[](u32 index) noexcept {
+
+	constexpr T& operator[](SizeT index) noexcept {
 
 		switch (index) {
-
-		case 0:	return x;
-		case 1:	return y;
-		case 2:	return z;
-		default:
-			arc_force_assert("Vec3 access out of bounds (index=%d)", index);
-			return x;
-
+			case 0:	return x;
+			case 1:	return y;
+			case 2:	return z;
+			default:
+				arc_force_assert("Vec3 access out of bounds (index=%d)", index);
+				std::unreachable();
 		}
 
 	}
 
-	constexpr const T& operator[](u32 index) const noexcept {
+	constexpr const T& operator[](SizeT index) const noexcept {
 
 		switch (index) {
-
-		case 0:	return x;
-		case 1:	return y;
-		case 2:	return z;
-		default:
-			arc_force_assert("Vec3 access out of bounds (index=%d)", index);
-			return x;
-
+			case 0:	return x;
+			case 1:	return y;
+			case 2:	return z;
+			default:
+				arc_force_assert("Vec3 access out of bounds (index=%d)", index);
+				std::unreachable();
 		}
 
 	}
@@ -480,8 +514,16 @@ public:
 		return x * x + y * y + z * z;
 	}
 
-	constexpr auto length() const noexcept {
+	__ARC_CMATH26 X length() const {
 		return Math::sqrt(magSquared());
+	}
+
+	__ARC_CMATH26 void normalize() {
+		divide(length());
+	}
+
+	__ARC_CMATH26 Vec3 normalized() const {
+		return normalize(*this);
 	}
 
 	constexpr bool isNull() const noexcept {
@@ -492,13 +534,6 @@ public:
 		return Math::less(x, 0) || Math::less(y, 0) || Math::less(z, 0);
 	}
 
-	constexpr void normalize() noexcept {
-		divide(length());
-	}
-
-	constexpr Vec3 normalized() const noexcept {
-		return normalize(*this);
-	}
 
 	template<CC::Arithmetic A>
 	constexpr Vec3<X> cross(const Vec3<A>& v) const noexcept {
@@ -511,20 +546,29 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	constexpr auto distance(const Vec3<A>& v) const noexcept {
+	__ARC_CMATH26 X distance(const Vec3<A>& v) const {
 		return Vec3<X>(x - v.x, y - v.y, z - v.z).length();
 	}
 
 	template<CC::Arithmetic A>
-	constexpr auto angle(const Vec3<A>& v) const noexcept {
-		arc_assert(!Math::isZero(length()) && !Math::isZero(v.length()), "Vec3 angle with null vector");
+	__ARC_CMATH26 A angle(const Vec3<A>& v) const {
+
+		arc_assert(!isNull() && !isNull(), "Vec3 angle with null vector");
+
 		return Math::acos(dot(v) / (length() * v.length()));
+
 	}
+
 
 	template<CC::Arithmetic A>
 	constexpr static Vec3<A> normalize(Vec3<A> v) noexcept {
 		v.normalize();
 		return v;
+	}
+
+	template<CC::Arithmetic A>
+	__ARC_CMATH26 static X length(Vec3<A> v) {
+		return v.length();
 	}
 
 
@@ -541,16 +585,24 @@ public:
 
 };
 
+template<CC::Arithmetic A>
+Vec3(A)->Vec3<A>;
+
+template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C>
+Vec3(A, B, C)->Vec3<TT::CommonType<A, B, C>>;
 
 
 template<CC::Arithmetic T>
 class alignas(16) Vec4 {
+
+private:
 
 	using X = TT::PromotedType<T>;
 
 public:
 
 	using Type = T;
+
 	constexpr static SizeT Size = 4;
 
 
@@ -637,6 +689,8 @@ public:
 	template<CC::Arithmetic A>
 	constexpr Vec4& compDivide(const Vec4<A>& v) noexcept {
 
+		arc_assert(!v.isNull(), "Vec4 divided by 0");
+
 		x /= v.x;
 		y /= v.y;
 		z /= v.z;
@@ -699,34 +753,31 @@ public:
 		return Vec4(-x, -y, -z, -w);
 	}
 
-	constexpr T& operator[](u32 index) noexcept {
+
+	constexpr T& operator[](SizeT index) noexcept {
 
 		switch (index) {
-
-		case 0:	return x;
-		case 1:	return y;
-		case 2:	return z;
-		case 3:	return w;
-		default:
-			arc_force_assert("Vec4 access out of bounds (index=%d)", index);
-			return x;
-
+			case 0:	return x;
+			case 1:	return y;
+			case 2:	return z;
+			case 3:	return w;
+			default:
+				arc_force_assert("Vec4 access out of bounds (index=%d)", index);
+				std::unreachable();
 		}
 
 	}
 
-	constexpr const T& operator[](u32 index) const noexcept {
+	constexpr const T& operator[](SizeT index) const noexcept {
 
 		switch (index) {
-
-		case 0:	return x;
-		case 1:	return y;
-		case 2:	return z;
-		case 3:	return w;
-		default:
-			arc_force_assert("Vec4 access out of bounds (index=%d)", index);
-			return x;
-
+			case 0:	return x;
+			case 1:	return y;
+			case 2:	return z;
+			case 3:	return w;
+			default:
+				arc_force_assert("Vec4 access out of bounds (index=%d)", index);
+				std::unreachable();
 		}
 
 	}
@@ -736,8 +787,16 @@ public:
 		return x * x + y * y + z * z + w * w;
 	}
 
-	constexpr auto length() const noexcept {
+	__ARC_CMATH26 T length() const {
 		return Math::sqrt(magSquared());
+	}
+
+	__ARC_CMATH26 void normalize() {
+		divide(length());
+	}
+
+	__ARC_CMATH26 Vec4 normalized() const {
+		return normalize(*this);
 	}
 
 	constexpr bool isNull() const noexcept {
@@ -748,13 +807,6 @@ public:
 		return Math::less(x, 0) || Math::less(y, 0) || Math::less(z, 0) || Math::less(w, 0);
 	}
 
-	constexpr void normalize() noexcept {
-		divide(length());
-	}
-
-	constexpr Vec4 normalized() const noexcept {
-		return normalize(*this);
-	}
 
 	template<CC::Arithmetic A>
 	constexpr X dot(const Vec4<A>& v) const noexcept {
@@ -762,20 +814,31 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	constexpr auto distance(const Vec4<A>& v) const noexcept {
+	constexpr X distance(const Vec4<A>& v) const noexcept {
 		return Vec4<X>(x - v.x, y - v.y, z - v.z, w - v.w).length();
 	}
 
 	template<CC::Arithmetic A>
-	constexpr auto angle(const Vec4<A>& v) const noexcept {
-		arc_assert(!Math::isZero(length()) && !Math::isZero(v.length()), "Vec4 angle with null vector");
+	constexpr A angle(const Vec4<A>& v) const noexcept {
+
+		arc_assert(!isNull() && !v.isNull(), "Vec4 angle with null vector");
+
 		return Math::acos(dot(v) / (length() * v.length()));
+
 	}
+
 
 	template<CC::Arithmetic A>
 	constexpr static Vec4<A> normalize(Vec4<A> v) noexcept {
+
 		v.normalize();
 		return v;
+
+	}
+
+	template<CC::Arithmetic A>
+	__ARC_CMATH26 static X length(Vec4<A> v) {
+		return v.length();
 	}
 
 
@@ -788,13 +851,21 @@ public:
 	}
 
 
-	T x, y, z, w;
+	T x;
+	T y;
+	T z;
+	T w;
 
 };
 
+template<CC::Arithmetic A>
+Vec4(A)->Vec4<A>;
+
+template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C, CC::Arithmetic D>
+Vec4(A, B, C, D)->Vec4<TT::CommonType<A, B, C, D>>;
 
 
-template<CC::Vector A, CC::Vector B> requires CC::EqualVectorRank<A, B>
+template<CC::Vector A, CC::EqualVectorRank<A> B>
 constexpr TT::CommonVectorType<A, B> operator+(A a, const B& b) noexcept {
 
 	TT::CommonVectorType<A, B> ax = a;
@@ -802,7 +873,7 @@ constexpr TT::CommonVectorType<A, B> operator+(A a, const B& b) noexcept {
 
 }
 
-template<CC::Vector A, CC::Vector B> requires CC::EqualVectorRank<A, B>
+template<CC::Vector A, CC::EqualVectorRank<A> B>
 constexpr TT::CommonVectorType<A, B> operator-(A a, const B& b) noexcept {
 
 	TT::CommonVectorType<A, B> ax = a;
@@ -810,11 +881,12 @@ constexpr TT::CommonVectorType<A, B> operator-(A a, const B& b) noexcept {
 
 }
 
-template<CC::Vector A, CC::Vector B> requires CC::EqualVectorRank<A, B>
+
+template<CC::Vector A, CC::EqualVectorRank<A> B>
 constexpr TT::CommonVectorType<A, B> operator*(A a, const B& b) noexcept {
 
 	TT::CommonVectorType<A, B> ax = a;
-	return ax.compMultiply(b);
+	return ax *= b;
 
 }
 
@@ -831,11 +903,12 @@ constexpr auto operator*(B b, A a) noexcept {
 	return a * b;
 }
 
-template<CC::Vector A, CC::Vector B> requires CC::EqualVectorRank<A, B>
+
+template<CC::Vector A, CC::EqualVectorRank<A> B>
 constexpr TT::CommonVectorType<A, B> operator/(A a, const B& b) noexcept {
 
 	TT::CommonVectorType<A, B> ax = a;
-	return ax.compDivide(b);
+	return ax /= b;
 
 }
 
@@ -972,14 +1045,58 @@ constexpr A operator>>(A a, const B& b) noexcept {
 }
 
 
-
-
 namespace Math {
 
-	template<CC::Vector V, CC::Arithmetic Factor>
-	constexpr V lerp(V start, V end, Factor factor) noexcept {
+	namespace Exact {
+
+		template<CC::Vector V, CC::Arithmetic A>
+		constexpr V lerp(V start, V end, A factor) noexcept {
+
+			V ret;
+
+			for (SizeT i = 0; i < V::Size; i++) {
+				ret[i] = Math::Exact::lerp(start[i], end[i], factor);
+			}
+
+			return ret;
+
+		}
+
+	}
+
+
+	template<CC::Vector V, CC::Vector U, CC::Arithmetic A>
+	constexpr TT::CommonVectorType<V, U> lerp(V start, U end, A factor) noexcept {
 		return start + factor * (end - start);
 	}
+
+	template<CC::Vector V, CC::Vector U, CC::Vector T>
+	constexpr TT::CommonVectorType<V, U, T> inRange(V point, U lower, T upper) noexcept {
+
+		bool condition = true;
+
+		for (SizeT i = 0; i < V::Size; i++) {
+			condition &= greaterEqual(point[i], lower[i]) && lessEqual(point[i], upper[i]);
+		}
+
+		return condition;
+
+	}
+
+
+	template<CC::Vector V>
+	constexpr V abs(V vec) noexcept {
+
+		V ret;
+
+		for (SizeT i = 0; i < V::Size; i++) {
+			ret[i] = Math::abs(vec[i]);
+		}
+
+		return ret;
+
+	}
+
 
 	template<CC::Vector V>
 	constexpr V floor(V vec) noexcept {
@@ -1034,19 +1151,17 @@ namespace Math {
 	}
 
 	template<CC::Vector V>
-	constexpr V abs(V vec) noexcept {
+	constexpr V extrude(V vec) noexcept {
 
 		V ret;
 
 		for (SizeT i = 0; i < V::Size; i++) {
-			ret[i] = Math::abs(vec[i]);
+			ret[i] = Math::extrude(vec[i]);
 		}
 
 		return ret;
 
 	}
-
-
 
 }
 
@@ -1067,54 +1182,9 @@ RawLog& operator<<(RawLog& log, const V& vec) {
 }
 
 
-
-#define VECTOR_DEFINE_NDTS(name, dim, type, suffix) typedef Vec##dim<type> name##dim##suffix;
-
-#define VECTOR_DEFINE_ND(name, dim) \
-	VECTOR_DEFINE_NDTS(name, dim, bool, b) \
-	VECTOR_DEFINE_NDTS(name, dim, float, f) \
-	VECTOR_DEFINE_NDTS(name, dim, double, d) \
-	VECTOR_DEFINE_NDTS(name, dim, long double, ld) \
-	VECTOR_DEFINE_NDTS(name, dim, i8, c) \
-	VECTOR_DEFINE_NDTS(name, dim, i16, s) \
-	VECTOR_DEFINE_NDTS(name, dim, i32, i) \
-	VECTOR_DEFINE_NDTS(name, dim, i64, l) \
-	VECTOR_DEFINE_NDTS(name, dim, u8, uc) \
-	VECTOR_DEFINE_NDTS(name, dim, u16, us) \
-	VECTOR_DEFINE_NDTS(name, dim, u32, ui) \
-	VECTOR_DEFINE_NDTS(name, dim, u64, ul) \
-	VECTOR_DEFINE_NDTS(name, dim, ARC_STD_FLOAT_TYPE, x)
-
-#define VECTOR_DEFINE_N(name) \
-	VECTOR_DEFINE_ND(name, 2) \
-	VECTOR_DEFINE_ND(name, 3) \
-	VECTOR_DEFINE_ND(name, 4)
-
-#define VECTOR_DEFINE \
-	VECTOR_DEFINE_N(Vec) \
-	VECTOR_DEFINE_N(Vector)
-
-VECTOR_DEFINE
-
-#undef VECTOR_DEFINE
-#undef VECTOR_DEFINE_N
-#undef VECTOR_DEFINE_ND
-#undef VECTOR_DEFINE_NDTS
-
-template<CC::Arithmetic A>
-Vec2(A)->Vec2<A>;
-
-template<CC::Arithmetic A, CC::Arithmetic B>
-Vec2(A, B)->Vec2<TT::CommonType<A, B>>;
-
-template<CC::Arithmetic A>
-Vec3(A)->Vec3<A>;
-
-template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C>
-Vec3(A, B, C)->Vec3<TT::CommonType<A, B, C>>;
-
-template<CC::Arithmetic A>
-Vec4(A)->Vec4<A>;
-
-template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C, CC::Arithmetic D>
-Vec4(A, B, C, D)->Vec4<TT::CommonType<A, B, C, D>>;
+ARC_DEFINE_ARITHMETIC_ALIASES(0, Vec2, Vec2)
+ARC_DEFINE_ARITHMETIC_ALIASES(0, Vec3, Vec3)
+ARC_DEFINE_ARITHMETIC_ALIASES(0, Vec4, Vec4)
+ARC_DEFINE_ARITHMETIC_ALIASES(0, Vec2, Vector2)
+ARC_DEFINE_ARITHMETIC_ALIASES(0, Vec3, Vector3)
+ARC_DEFINE_ARITHMETIC_ALIASES(0, Vec4, Vector4)

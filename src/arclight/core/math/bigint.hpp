@@ -21,7 +21,10 @@
 
 class BigInt {
 
+private:
+
 	using ValueT = u32;
+
 	constexpr static u32 ValueBits = Bits::bitCount<ValueT>();
 
 	template<class T>
@@ -35,7 +38,7 @@ public:
 	using DivResult = _DivResult<BigInt>;
 
 
-	constexpr BigInt() : signum(0), magnitude(1) {}
+	constexpr BigInt() noexcept : signum(0), magnitude(1) {}
 
 	constexpr BigInt(i32 sign, std::span<const ValueT> magnitude) : signum(sign), magnitude(magnitude.size()) {
 
@@ -57,8 +60,9 @@ public:
 	}
 
 	explicit BigInt(std::string_view view) {
-		*this = parseString(view);
+		*this = fromString(view);
 	}
+
 
 	template<CC::Integer I>
 	constexpr void set(I i) {
@@ -501,7 +505,7 @@ public:
 	}
 
 
-	static BigInt parseString(std::string_view str) {
+	static BigInt fromString(std::string_view str) {
 
 		BigInt b;
 
@@ -903,7 +907,6 @@ private:
 };
 
 
-
 constexpr BigInt operator+(BigInt a, const BigInt& b) {
 
 	a += b;
@@ -940,12 +943,10 @@ constexpr BigInt operator%(BigInt a, const BigInt& b) {
 }
 
 
-
-template<char... Chars>
+template<FixedCharArray S>
 constexpr BigInt operator""_big() {
-    return BigInt(String::fromChars(Chars...));
+    return BigInt(S.data);
 }
-
 
 
 RawLog& operator<<(RawLog& log, const BigInt& bigInt) {

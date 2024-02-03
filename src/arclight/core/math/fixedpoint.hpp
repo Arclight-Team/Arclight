@@ -17,21 +17,22 @@
 
 
 
-template<CC::Integer I, SizeT Fract>
-	requires (Fract < Bits::bitCount<I>() && Fract != 0)
+template<CC::Integer I, SizeT N>
+	requires (N < Bits::bitCount<I>() && N != 0)
 class FixedPoint {
 
 public:
 
 	using IntegerT = I;
-	constexpr static SizeT FractionBits = Fract;
 
 	struct SplitResult {
 		I integer;
 		I fractional;
 	};
 
-	constexpr static SizeT Shift = Fract;
+	constexpr static SizeT Shift = N;
+	constexpr static SizeT FractionBits = N;
+
 
 	constexpr FixedPoint() noexcept : i(0) {}
 
@@ -39,36 +40,36 @@ public:
 	constexpr FixedPoint(J j) noexcept : i(j << Shift) {}
 
 	template<CC::Float F>
-	constexpr FixedPoint(F f) noexcept : i(0) { set(f); }
+	constexpr FixedPoint(F f) noexcept(CC::IEEEMaskableFloat<F>) : i(0) { set(f); }
 
 	template<CC::Integer J0, CC::Integer J1>
 	constexpr FixedPoint(J0 integer, J1 fraction) noexcept : i((integer << Shift) | asReciprocal(fraction).i) {}
 
 	template<CC::Integer J, SizeT F>
-	constexpr explicit FixedPoint(FixedPoint<J, F> x) : i(0) { set(x); }
+	constexpr explicit FixedPoint(FixedPoint<J, F> x) noexcept : i(0) { set(x); }
 
 
 	template<CC::Integer J>
 	constexpr FixedPoint& add(J x) noexcept {
-		i += x << Fract;
+		i += x << Shift;
 		return *this;
 	}
 
 	template<CC::Integer J, SizeT F>
 	constexpr FixedPoint& add(FixedPoint<J, F> x) noexcept {
-		i += FixedPoint<I, Fract>(x).i;
+		i += FixedPoint<I, Shift>(x).i;
 		return *this;
 	}
 
 	template<CC::Integer J>
 	constexpr FixedPoint& subtract(J x) noexcept {
-		i -= x << Fract;
+		i -= x << Shift;
 		return *this;
 	}
 
 	template<CC::Integer J, SizeT F>
 	constexpr FixedPoint& subtract(FixedPoint<J, F> x) noexcept {
-		i -= FixedPoint<I, Fract>(x).i;
+		i -= FixedPoint<I, Shift>(x).i;
 		return *this;
 	}
 
@@ -88,7 +89,7 @@ public:
 			using K = TT::BiggerType<X>;
 
 			K k = K(x.i) * i;
-			k += K(1) << (Fract + F - 1);
+			k += K(1) << (Shift + F - 1);
 			k >>= F;
 
 			i = k;
@@ -99,12 +100,12 @@ public:
 
 			OverflowMultiplyResult<X> result = CC::SignedType<I> ? Math::overflowSignedMultiply<X>(i, x.i) : Math::overflowUnsignedMultiply<X>(i, x.i);
 
-			constexpr SizeT biasShift = Fract + F - 1;
+			constexpr SizeT BiasShift = Shift + F - 1;
 
-			if constexpr (biasShift >= XBits) {
-				result.top += X(1) << (biasShift - XBits);
+			if constexpr (BiasShift >= XBits) {
+				result.top += X(1) << (BiasShift - XBits);
 			} else {
-				result.bottom += X(1) << biasShift;
+				result.bottom += X(1) << BiasShift;
 			}
 
 			if constexpr (F >= XBits) {
@@ -126,9 +127,9 @@ public:
 	}
 
 	template<CC::Integer J, SizeT F>
-	constexpr FixedPoint& divide(FixedPoint<J, F> x) {
+	constexpr FixedPoint& divide(FixedPoint<J, F> x) noexcept(TT::HasBiggerType<TT::MaxType<I, J>>) {
 
-		using X = TT::Conditional<sizeof(I) >= sizeof(J), I, J>;
+		using X = TT::MaxType<I, J>;
 
 		if constexpr (TT::HasBiggerType<X>) {
 
@@ -141,7 +142,7 @@ public:
 
 			BigInt b = i;
 			b <<= F;
-			i = (b / x.i).toInteger<I>();
+			i = (b / x.i).template toInteger<I>();
 
 		}
 
@@ -156,9 +157,9 @@ public:
 	}
 
 	template<CC::Integer J, SizeT F>
-	constexpr FixedPoint& mod(FixedPoint<J, F> x) {
+	constexpr FixedPoint& mod(FixedPoint<J, F> x) noexcept(TT::HasBiggerType<TT::MaxType<I, J>>) {
 
-		using X = TT::Conditional<sizeof(I) >= sizeof(J), I, J>;
+		using X = TT::MaxType<I, J>;
 
 		if constexpr (TT::HasBiggerType<X>) {
 
@@ -171,7 +172,7 @@ public:
 
 			BigInt b = i;
 			b <<= F;
-			i = (b % x.i).toInteger<I>();
+			i = (b % x.i).template toInteger<I>();
 
 		}
 
@@ -340,32 +341,30 @@ public:
 		return ~i;
 	}
 
-	template<CC::Arithmetic A>
-	constexpr void set(A x) noexcept {
 
-		if constexpr (CC::Integral<A>) {
+	template<CC::Integral J>
+	constexpr void set(J x) noexcept {
+		i = x << Shift;
+	}
 
-			i = x << Shift;
+	template<CC::Float F>
+	constexpr void set(F x) noexcept(CC::IEEEMaskableFloat<F>) {
 
-		} else {
-
-			auto [integer, fract] = Math::split(x);
-			i = (static_cast<I>(integer) << Shift) | static_cast<I>(fract * (1 << Shift));
-
-		}
+		auto [integer, fract] = Math::split(x);
+		i = (static_cast<I>(integer) << Shift) | static_cast<I>(fract * (1 << Shift));
 
 	}
 
 	template<CC::Integer J, SizeT F>
 	constexpr void set(FixedPoint<J, F> f) noexcept {
 
-		if constexpr (Fract == F) {
+		if constexpr (Shift == F) {
 			i = f.i;
-		} else if constexpr (Fract > F) {
-			i = I(f.i) << (Fract - F);
+		} else if constexpr (Shift > F) {
+			i = I(f.i) << (Shift - F);
 		} else {
-			f += J(1) << (F - Fract - 1);
-			i = I(f.i) >> (F - Fract);
+			f += J(1) << (F - Shift - 1);
+			i = I(f.i) >> (F - Shift);
 		}
 
 	}
@@ -390,6 +389,7 @@ public:
 	constexpr bool isNegative() const noexcept {
 		return i >> (Bits::bitCount<I>() - 1);
 	}
+
 
 	template<CC::Integer J>
 	constexpr J toInteger() const noexcept {
@@ -421,7 +421,6 @@ public:
 	}
 
 
-
 	template<CC::Arithmetic A>
 	constexpr auto operator<=>(A x) const noexcept {
 		return *this <=> FixedPoint(x);
@@ -432,29 +431,27 @@ public:
 
 		using X = TT::MaxType<I, J>;
 
-		if constexpr (Fract == F) {
+		if constexpr (Shift == F) {
 			return i <=> x.i;
-		} else if (Fract > F && TT::HasBiggerType<J>) {
-			return i <=> TT::BiggerType<J>(x.i) << (Fract - F);
-		} else if (Fract < F && TT::HasBiggerType<I>) {
-			return TT::BiggerType<I>(i) << (F - Fract) <=> x.i;
+		} else if constexpr (Shift > F && TT::HasBiggerType<J>) {
+			return i <=> TT::BiggerType<J>(x.i) << (Shift - F);
+		} else if constexpr (Shift < F && TT::HasBiggerType<I>) {
+			return TT::BiggerType<I>(i) << (F - Shift) <=> x.i;
+		}
+
+		if (trunc() != x.trunc()) {
+			return trunc() <=> x.trunc();
+		}
+
+		I a = fract();
+		J b = x.fract();
+
+		if constexpr (Shift == F) {
+			return a <=> b;
+		} else if constexpr (Shift > F) {
+			return a <=> I(b) << (Shift - F);
 		} else {
-
-			if (trunc() != x.trunc()) {
-				return trunc() <=> x.trunc();
-			}
-
-			I a = fract();
-			J b = x.fract();
-
-			if constexpr (Fract == F) {
-				return a <=> b;
-			} else if constexpr (Fract > F) {
-				return a <=> I(b) << (Fract - F);
-			} else {
-				return J(a) << (F - Fract) <=> b;
-			}
-
+			return J(a) << (F - Shift) <=> b;
 		}
 
 	}
@@ -473,10 +470,12 @@ public:
 		str += '.';
 
 		while (fract != 0) {
+
 			I n = fract * 10;
-			I whole = n >> Shift;
 			fract = Bits::mask(n, 0, Shift);
-			str += '0' + whole;
+
+			str += '0' + (n >> Shift);
+
 		}
 
 		return str;
@@ -521,12 +520,14 @@ public:
 
 private:
 
-	template<CC::Integer J, SizeT F> requires (F < Bits::bitCount<J>() && F != 0) friend class FixedPoint;
+	template<CC::Integer J, SizeT F>
+		requires (F < Bits::bitCount<J>() && F != 0)
+	friend class FixedPoint;
+
 
 	I i;
 
 };
-
 
 
 template<CC::Integer I, SizeT F, CC::Integer J>
@@ -544,6 +545,7 @@ constexpr X operator+(FixedPoint<I, F> a, FixedPoint<J, F> b) noexcept {
 	return X(a).add(X(b));
 }
 
+
 template<CC::Integer I, SizeT F, CC::Integer J>
 constexpr FixedPoint<I, F> operator-(FixedPoint<I, F> a, J b) noexcept {
 	return a.subtract(b);
@@ -558,6 +560,7 @@ template<CC::Integer I, CC::Integer J, SizeT F, class X = FixedPoint<TT::MaxType
 constexpr X operator-(FixedPoint<I, F> a, FixedPoint<J, F> b) noexcept {
 	return X(a).subtract(X(b));
 }
+
 
 template<CC::Integer I, SizeT F, CC::Integer J>
 constexpr FixedPoint<I, F> operator*(FixedPoint<I, F> a, J b) noexcept {
@@ -574,6 +577,7 @@ constexpr X operator*(FixedPoint<I, F> a, FixedPoint<J, F> b) noexcept {
 	return X(a).multiply(X(b));
 }
 
+
 template<CC::Integer I, SizeT F, CC::Integer J>
 constexpr FixedPoint<I, F> operator/(FixedPoint<I, F> a, J b) noexcept {
 	return a.divide(b);
@@ -588,6 +592,7 @@ template<CC::Integer I, CC::Integer J, SizeT F, class X = FixedPoint<TT::MaxType
 constexpr X operator/(FixedPoint<I, F> a, FixedPoint<J, F> b) {
 	return X(a).divide(X(b));
 }
+
 
 template<CC::Integer I, SizeT F, CC::Integer J>
 constexpr FixedPoint<I, F> operator%(FixedPoint<I, F> a, J b) noexcept {
@@ -605,7 +610,6 @@ constexpr X operator%(FixedPoint<I, F> a, FixedPoint<J, F> b) {
 }
 
 
-
 template<CC::Integer I, SizeT F, class U> requires (CC::Integer<U> || CC::Equal<U, FixedPoint<I, F>>)
 constexpr FixedPoint<I, F> operator&(FixedPoint<I, F> a, U b) noexcept {
 	return a.bitAnd(b);
@@ -615,6 +619,7 @@ template<CC::Integer I, SizeT F, CC::Integer T>
 constexpr FixedPoint<I, F> operator&(T a, FixedPoint<I, F> b) noexcept {
 	return b.bitAnd(a);
 }
+
 
 template<CC::Integer I, SizeT F, class U> requires (CC::Integer<U> || CC::Equal<U, FixedPoint<I, F>>)
 constexpr FixedPoint<I, F> operator|(FixedPoint<I, F> a, U b) noexcept {
@@ -626,6 +631,7 @@ constexpr FixedPoint<I, F> operator|(T a, FixedPoint<I, F> b) noexcept {
 	return b.bitOr(a);
 }
 
+
 template<CC::Integer I, SizeT F, class U> requires (CC::Integer<U> || CC::Equal<U, FixedPoint<I, F>>)
 constexpr FixedPoint<I, F> operator^(FixedPoint<I, F> a, U b) noexcept {
 	return a.bitXor(b);
@@ -635,7 +641,6 @@ template<CC::Integer I, SizeT F, CC::Integer T>
 constexpr FixedPoint<I, F> operator^(T a, FixedPoint<I, F> b) noexcept {
 	return b.bitXor(a);
 }
-
 
 
 template<CC::Integer I, SizeT F>
