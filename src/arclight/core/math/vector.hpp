@@ -255,15 +255,15 @@ public:
 		return x * x + y * y;
 	}
 
-	__ARC_CMATH26 X length() const {
+	ARC_CONSTEXPR_CMATH26 X length() const {
 		return Math::sqrt(magSquared());
 	}
 
-	__ARC_CMATH26 void normalize() {
+	ARC_CONSTEXPR_CMATH26 void normalize() {
 		divide(length());
 	}
 
-	__ARC_CMATH26 Vec2 normalized() const {
+	ARC_CONSTEXPR_CMATH26 Vec2 normalized() const {
 		return normalize(*this);
 	}
 
@@ -282,12 +282,12 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 X distance(const Vec2<A>& v) const {
+	ARC_CONSTEXPR_CMATH26 X distance(const Vec2<A>& v) const {
 		return Vec2<X>(x - v.x, y - v.y).length();
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A angle(const Vec2<A>& v) const {
+	ARC_CONSTEXPR_CMATH26 A angle(const Vec2<A>& v) const {
 
 		arc_assert(!isNull() && !v.isNull(), "Vec2 angle with null vector");
 
@@ -305,7 +305,7 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 static X length(Vec2<A> v) {
+	ARC_CONSTEXPR_CMATH26 static X length(Vec2<A> v) {
 		return v.length();
 	}
 
@@ -514,15 +514,15 @@ public:
 		return x * x + y * y + z * z;
 	}
 
-	__ARC_CMATH26 X length() const {
+	ARC_CONSTEXPR_CMATH26 X length() const {
 		return Math::sqrt(magSquared());
 	}
 
-	__ARC_CMATH26 void normalize() {
+	ARC_CONSTEXPR_CMATH26 void normalize() {
 		divide(length());
 	}
 
-	__ARC_CMATH26 Vec3 normalized() const {
+	ARC_CONSTEXPR_CMATH26 Vec3 normalized() const {
 		return normalize(*this);
 	}
 
@@ -546,12 +546,12 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 X distance(const Vec3<A>& v) const {
+	ARC_CONSTEXPR_CMATH26 X distance(const Vec3<A>& v) const {
 		return Vec3<X>(x - v.x, y - v.y, z - v.z).length();
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A angle(const Vec3<A>& v) const {
+	ARC_CONSTEXPR_CMATH26 A angle(const Vec3<A>& v) const {
 
 		arc_assert(!isNull() && !isNull(), "Vec3 angle with null vector");
 
@@ -567,7 +567,7 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 static X length(Vec3<A> v) {
+	ARC_CONSTEXPR_CMATH26 static X length(Vec3<A> v) {
 		return v.length();
 	}
 
@@ -787,15 +787,15 @@ public:
 		return x * x + y * y + z * z + w * w;
 	}
 
-	__ARC_CMATH26 T length() const {
+	ARC_CONSTEXPR_CMATH26 T length() const {
 		return Math::sqrt(magSquared());
 	}
 
-	__ARC_CMATH26 void normalize() {
+	ARC_CONSTEXPR_CMATH26 void normalize() {
 		divide(length());
 	}
 
-	__ARC_CMATH26 Vec4 normalized() const {
+	ARC_CONSTEXPR_CMATH26 Vec4 normalized() const {
 		return normalize(*this);
 	}
 
@@ -837,7 +837,7 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 static X length(Vec4<A> v) {
+	ARC_CONSTEXPR_CMATH26 static X length(Vec4<A> v) {
 		return v.length();
 	}
 

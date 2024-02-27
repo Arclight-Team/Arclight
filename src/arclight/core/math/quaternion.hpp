@@ -47,16 +47,16 @@ public:
 	constexpr Quaternion(T x, T y, T z, T w) noexcept : x(x), y(y), z(z), w(w) {}
 
 	template<CC::Float F, CC::Float G>
-	__ARC_CMATH26 Quaternion(const Vec3<F>& axis, G angle) { setAngleAxis(axis, angle); }
+	ARC_CONSTEXPR_CMATH26 Quaternion(const Vec3<F>& axis, G angle) { setAngleAxis(axis, angle); }
 
-	__ARC_CMATH26 Quaternion(T yaw, T pitch, T roll) { setEulerAngles(yaw, pitch, roll); }
+	ARC_CONSTEXPR_CMATH26 Quaternion(T yaw, T pitch, T roll) { setEulerAngles(yaw, pitch, roll); }
 
 
 	constexpr T lengthSquared() const noexcept {
 		return dot(*this);
 	}
 
-	__ARC_CMATH26 T length() const {
+	ARC_CONSTEXPR_CMATH26 T length() const {
 		return Math::sqrt(lengthSquared());
 	}
 
@@ -69,16 +69,16 @@ public:
 		return Math::isZero(w);
 	}
 
-	__ARC_CMATH26 bool isUnit() const {
+	ARC_CONSTEXPR_CMATH26 bool isUnit() const {
 		return Math::equal(length(), T(1));
 	}
 
 
-	__ARC_CMATH26 void normalize() {
+	ARC_CONSTEXPR_CMATH26 void normalize() {
 		divide(length());
 	}
 
-	__ARC_CMATH26 Quaternion normalized() const {
+	ARC_CONSTEXPR_CMATH26 Quaternion normalized() const {
 
 		Quaternion ret = *this;
 		ret.normalize();
@@ -239,7 +239,7 @@ public:
 
 
 	template<CC::Float F, CC::Float G>
-	__ARC_CMATH26 void setAngleAxis(const Vec3<F>& axis, G angle) {
+	ARC_CONSTEXPR_CMATH26 void setAngleAxis(const Vec3<F>& axis, G angle) {
 
 		T s = static_cast<T>(Math::sin(angle / T(2)));
 		T c = static_cast<T>(Math::cos(angle / T(2)));
@@ -252,7 +252,7 @@ public:
 	}
 
 	template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C>
-	__ARC_CMATH26 void setEulerAngles(A yaw, B pitch, C roll) {
+	ARC_CONSTEXPR_CMATH26 void setEulerAngles(A yaw, B pitch, C roll) {
 
 		const auto [ysin, ycos] = Math::sincos(yaw / T(2));
 		const auto [psin, pcos] = Math::sincos(pitch / T(2));
@@ -266,7 +266,7 @@ public:
 	}
 
 	template<CC::Float F>
-	__ARC_CMATH26 void setMat3(const Mat3<F>& m) {
+	ARC_CONSTEXPR_CMATH26 void setMat3(const Mat3<F>& m) {
 		
 #ifdef ARC_QUATERNION_MATCONV_BRANCHLESS
 
@@ -324,12 +324,12 @@ public:
 	}
 
 	template<CC::Float F>
-	__ARC_CMATH26 void setMat4(const Mat4<F>& m) {
+	ARC_CONSTEXPR_CMATH26 void setMat4(const Mat4<F>& m) {
 		setMat3(m.toMat3());
 	}
 
 
-	__ARC_CMATH26 Mat3<T> toMat3() const {
+	ARC_CONSTEXPR_CMATH26 Mat3<T> toMat3() const {
 
 		Quaternion q = normalized();
 
@@ -341,7 +341,7 @@ public:
 
 	}
 
-	__ARC_CMATH26 Mat4<T> toMat4() const {
+	ARC_CONSTEXPR_CMATH26 Mat4<T> toMat4() const {
 
 		Quaternion q = normalized();
 

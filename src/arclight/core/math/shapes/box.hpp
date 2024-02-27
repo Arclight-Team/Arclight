@@ -83,7 +83,7 @@ public:
 		return size.x * size.x + size.y * size.y + size.z * size.z;
 	}
 
-	__ARC_CMATH26 ScalarT diagonal() const {
+	ARC_CONSTEXPR_CMATH26 ScalarT diagonal() const {
 		return Math::sqrt<ScalarT>(diagonalSquared());
 	}
 

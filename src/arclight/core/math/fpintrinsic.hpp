@@ -121,14 +121,6 @@ namespace Math {
 
 namespace Math::Intrinsic {
 
-	template<CC::IEEEFloat F> static constexpr F PInf = Traits<F>::Infinity;
-	template<CC::IEEEFloat F> static constexpr F NInf = -Traits<F>::Infinity;
-	template<CC::IEEEFloat F> static constexpr F QNaN = Traits<F>::QuietNaN;
-	template<CC::IEEEFloat F> static constexpr F SNaN = Traits<F>::SignalingNaN;
-	template<CC::IEEEFloat F> static constexpr F PZero = 0;
-	template<CC::IEEEFloat F> static constexpr F NZero = Bits::cast<F>(IEEETraits<F>::SignMask);
-
-
 	#pragma region Utility
 
 	template<CC::IEEEMaskableFloat F, class E = IEEETraits<F>>
@@ -315,7 +307,7 @@ namespace Math::Intrinsic {
 
 			// If x is inf or y is 0, return nan
 			if (isInfinity(x) || y == 0) {
-				return Bits::cast<F>(Bits::cast<T>(QNaN<F>) | sx);
+				return Bits::cast<F>(Bits::cast<T>(Traits<F>::QuietNaN) | sx);
 			}
 
 			// If x is 0 or y is inf, return x
@@ -532,7 +524,7 @@ namespace Math::Intrinsic {
 		if (ex < T0) {
 
 			// Below one, return -0 for negatives, 0 for 0 and 1 for positives
-			return ix & E::SignMask ? NZero<F> : (ix == 0 ? 0 : 1);
+			return ix & E::SignMask ? F(0) : (ix == 0 ? 0 : 1);
 
 		} else if (ex < T1) {
 
@@ -592,7 +584,7 @@ namespace Math::Intrinsic {
 		if (ex < T0) {
 
 			// Below one, return -1 for negatives, -0 for -0 and 0 for positives
-			return ix & E::SignMask ? (x == 0 ? NZero<F> : -1) : 0;
+			return ix & E::SignMask ? (x == 0 ? Bits::cast<F>(E::SignMask) : -1) : 0;
 
 		} else if (ex < T1) {
 
@@ -747,7 +739,7 @@ namespace Math::Intrinsic {
 		if (ix & E::SignMask) {
 			return Bits::cast<F>(ix + 1);
 		} else {
-			return ix == 0 ? NZero<F> : Bits::cast<F>(ix - 1);
+			return ix == 0 ? Bits::cast<F>(E::SignMask) : Bits::cast<F>(ix - 1);
 		}
 
 	}
@@ -769,7 +761,7 @@ namespace Math::Intrinsic {
 		if ((ix ^ iy) & E::SignMask) {
 
 			// We have different signs
-			return ulpDistance(x, copySign(x, PZero<F>)) + ulpDistance(y, copySign(y, PZero<F>)) + 1;
+			return ulpDistance(x, copySign(x, F(0))) + ulpDistance(y, copySign(y, F(0))) + 1;
 
 		}
 

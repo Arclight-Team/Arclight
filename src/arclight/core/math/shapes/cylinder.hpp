@@ -82,7 +82,7 @@ public:
 
 
 	template<CC::Arithmetic B>
-	__ARC_CMATH26 bool intersects(const Cylinder<B>& other) const {
+	ARC_CONSTEXPR_CMATH26 bool intersects(const Cylinder<B>& other) const {
 	
 		Vec3<A> s1 = start();
 		Vec3<A> e1 = end();
@@ -106,7 +106,7 @@ public:
 	}
 
 	template<CC::Arithmetic B>
-	__ARC_CMATH26 bool contains(const Cylinder<B>& other) const {
+	ARC_CONSTEXPR_CMATH26 bool contains(const Cylinder<B>& other) const {
 
 		Vec3<A> s1 = start();
 		Vec3<A> e1 = end();
@@ -130,7 +130,7 @@ public:
 	}
 
 	template<CC::Arithmetic B>
-	__ARC_CMATH26 bool contains(const Vec3<B>& point) const {
+	ARC_CONSTEXPR_CMATH26 bool contains(const Vec3<B>& point) const {
 
 		Vec3<B> p = point;
 		Vec3<A> s = start();

@@ -91,7 +91,7 @@ public:
 		return w * w + h * h;
 	}
 
-	__ARC_CMATH26 ScalarT diagonal() const {
+	ARC_CONSTEXPR_CMATH26 ScalarT diagonal() const {
 		return Math::sqrt<ScalarT>(diagonalSquared());
 	}
 

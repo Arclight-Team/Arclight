@@ -33,7 +33,7 @@ public:
 	constexpr Line(const Vec2<A>& start, const Vec2<B>& end) noexcept : start(start), end(end) {}
 
 
-	__ARC_CMATH26 static Line fromAngle(const VecT& start, F angle, F length = {1}) {
+	ARC_CONSTEXPR_CMATH26 static Line fromAngle(const VecT& start, F angle, F length = {1}) {
 		return {start, VecT(start.x + length * Math::cos(angle), start.y + length * Math::sin(angle))};
 	}
 
@@ -63,11 +63,11 @@ public:
 		return end.y - start.y;
 	}
 
-	__ARC_CMATH26 F angle() const {
+	ARC_CONSTEXPR_CMATH26 F angle() const {
 		return Math::atan2(dy(), dx());
 	}
 
-	__ARC_CMATH26 F length() const {
+	ARC_CONSTEXPR_CMATH26 F length() const {
 		return Math::sqrt(dx() * dx() + dy() * dy());
 	}
 
@@ -123,7 +123,7 @@ public:
 
 	}
 
-	__ARC_CMATH26 F distance(const VecT& point) const {
+	ARC_CONSTEXPR_CMATH26 F distance(const VecT& point) const {
 		return Math::abs(dy() * point.x - dx() * point.y + end.x * start.y - start.x * end.y) / Math::sqrt(dy() * dy() + dx() * dx());
 	}
 	

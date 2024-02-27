@@ -15,7 +15,7 @@
 #include "common/typetraits.hpp"
 #include "constants.hpp"
 #include "traits.hpp"
-#include "intrinsic.hpp"
+#include "fpintrinsic.hpp"
 
 #include <cmath>
 #include <numeric>
@@ -95,7 +95,7 @@ namespace Math {
 	#pragma region Basic operations
 
 	template<CC::GenericFloat F>
-	__ARC_CMATH23 F abs(F value) {
+	ARC_CONSTEXPR_CMATH23 F abs(F value) noexcept {
 		return std::fabs(value);
 	}
 
@@ -122,7 +122,7 @@ namespace Math {
 
 
 	template<CC::Arithmetic F, CC::Arithmetic G, CC::GenericFloat C = TT::CommonType<F, G>>
-	__ARC_CMATH23 C mod(F a, G b) {
+	ARC_CONSTEXPR_CMATH23 C mod(F a, G b) noexcept {
 		return std::fmod(a, b);
 	}
 
@@ -144,7 +144,7 @@ namespace Math {
 
 
 	template<CC::Arithmetic A, CC::Arithmetic B>
-	__ARC_CMATH23 TT::CommonType<A, B> rem(A a, B b) {
+	ARC_CONSTEXPR_CMATH23 TT::CommonType<A, B> rem(A a, B b) noexcept {
 		return std::remainder(a, b);
 	}
 
@@ -154,23 +154,23 @@ namespace Math {
 	#pragma region Trigonometric functions
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A sin(A radians) {
+	ARC_CONSTEXPR_CMATH26 A sin(A radians) noexcept {
 		return std::sin(radians);
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A cos(A radians) {
+	ARC_CONSTEXPR_CMATH26 A cos(A radians) noexcept {
 		return std::cos(radians);
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A tan(A radians) {
+	ARC_CONSTEXPR_CMATH26 A tan(A radians) noexcept {
 		return std::tan(radians);
 	}
 
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A csc(A radians) {
+	ARC_CONSTEXPR_CMATH26 A csc(A radians) noexcept {
 
 		A res = sin(radians);
 
@@ -183,7 +183,7 @@ namespace Math {
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A sec(A radians) {
+	ARC_CONSTEXPR_CMATH26 A sec(A radians) noexcept {
 
 		A res = cos(radians);
 
@@ -196,7 +196,7 @@ namespace Math {
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A cot(A radians) {
+	ARC_CONSTEXPR_CMATH26 A cot(A radians) noexcept {
 
 		A res = tan(radians);
 
@@ -210,33 +210,64 @@ namespace Math {
 
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A asin(A value) {
+	ARC_CONSTEXPR_CMATH26 A asin(A value) noexcept {
 		return std::asin(value);
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A acos(A value) {
+	ARC_CONSTEXPR_CMATH26 A acos(A value) noexcept {
 		return std::acos(value);
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A atan(A value) {
+	ARC_CONSTEXPR_CMATH26 A atan(A value) noexcept {
 		return std::atan(value);
 	}
 
 	template<CC::Arithmetic A, CC::Arithmetic B>
-	__ARC_CMATH26 TT::CommonType<A, B> atan2(A y, B x) {
+	ARC_CONSTEXPR_CMATH26 TT::CommonType<A, B> atan2(A y, B x) noexcept {
 		return std::atan2(y, x);
 	}
 
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 std::array<A, 2> sincos(A radians) {
+	ARC_CONSTEXPR_CMATH26 A sinh(A value) noexcept {
+		return std::sinh(value);
+	}
+
+	template<CC::Arithmetic A>
+	ARC_CONSTEXPR_CMATH26 A cosh(A value) noexcept {
+		return std::cosh(value);
+	}
+
+	template<CC::Arithmetic A>
+	ARC_CONSTEXPR_CMATH26 A tanh(A value) noexcept {
+		return std::tanh(value);
+	}
+
+	template<CC::Arithmetic A>
+	ARC_CONSTEXPR_CMATH26 A asinh(A value) noexcept {
+		return std::asinh(value);
+	}
+
+	template<CC::Arithmetic A>
+	ARC_CONSTEXPR_CMATH26 A acosh(A value) noexcept {
+		return std::acosh(value);
+	}
+
+	template<CC::Arithmetic A>
+	ARC_CONSTEXPR_CMATH26 A atanh(A value) noexcept {
+		return std::atanh(value);
+	}
+
+
+	template<CC::Arithmetic A>
+	ARC_CONSTEXPR_CMATH26 std::array<A, 2> sincos(A radians) noexcept {
 		return {sin(radians), cos(radians)};
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 std::array<A, 2> asincos(A radians) {
+	ARC_CONSTEXPR_CMATH26 std::array<A, 2> asincos(A radians) noexcept {
 		return {asin(radians), acos(radians)};
 	}
 
@@ -257,23 +288,23 @@ namespace Math {
 	#pragma region Exponential functions
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A exp(A exponent) {
+	ARC_CONSTEXPR_CMATH26 A exp(A exponent) noexcept {
 		return std::exp(exponent);
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A ln(A value) {
+	ARC_CONSTEXPR_CMATH26 A ln(A value) noexcept {
 		return std::log(value);
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A log(A value) {
+	ARC_CONSTEXPR_CMATH26 A log(A value) noexcept {
 		return std::log10(value);
 	}
 
 
 	template<CC::Arithmetic A, CC::Arithmetic B>
-	__ARC_CMATH26 TT::CommonType<A, B> log(A base, B value) {
+	ARC_CONSTEXPR_CMATH26 TT::CommonType<A, B> log(A base, B value) noexcept {
 		return log(value) / log(base);
 	}
 
@@ -283,17 +314,17 @@ namespace Math {
 	#pragma region Power functions
 
 	template<CC::Arithmetic A, CC::Arithmetic B>
-	__ARC_CMATH26 TT::CommonType<A, B> pow(A base, B exponent) {
+	ARC_CONSTEXPR_CMATH26 TT::CommonType<A, B> pow(A base, B exponent) noexcept {
 		return std::pow(base, exponent);
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A sqrt(A value) {
+	ARC_CONSTEXPR_CMATH26 A sqrt(A value) noexcept {
 		return std::sqrt(value);
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A cbrt(A value) {
+	ARC_CONSTEXPR_CMATH26 A cbrt(A value) noexcept {
 		return std::cbrt(value);
 	}
 
@@ -303,27 +334,27 @@ namespace Math {
 	#pragma region Rounding functions
 
 	template<CC::GenericFloat F>
-	__ARC_CMATH23 F ceil(F value) {
+	ARC_CONSTEXPR_CMATH23 F ceil(F value) noexcept {
 		return std::ceil(value);
 	}
 
 	template<CC::GenericFloat F>
-	__ARC_CMATH23 F floor(F value) {
+	ARC_CONSTEXPR_CMATH23 F floor(F value) noexcept {
 		return std::floor(value);
 	}
 
 	template<CC::GenericFloat F>
-	__ARC_CMATH23 F trunc(F value) {
+	ARC_CONSTEXPR_CMATH23 F trunc(F value) noexcept {
 		return std::trunc(value);
 	}
 
 	template<CC::GenericFloat F>
-	__ARC_CMATH23 F round(F value) {
+	ARC_CONSTEXPR_CMATH23 F round(F value) noexcept {
 		return std::round(value);
 	}
 
 	template<CC::GenericFloat F>
-	__ARC_CMATH23 F extrude(F value) {
+	ARC_CONSTEXPR_CMATH23 F extrude(F value) noexcept {
 		return value >= 0 ? ceil(value) : floor(value);
 	}
 
@@ -381,7 +412,7 @@ namespace Math {
 
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 A round(A value, u32 digits) {
+	ARC_CONSTEXPR_CMATH26 A round(A value, u32 digits) noexcept {
 		return (value * pow(10, digits) + 0.5) / pow(10, digits);
 	}
 
@@ -482,23 +513,28 @@ namespace Math {
 	}
 
 	template<CC::GenericFloat F>
-	__ARC_CMATH23 i32 sign(F value) {
-		return 1 - std::signbit(value) * 2;
+	ARC_CONSTEXPR_CMATH23 bool signbit(F value) noexcept {
+		return std::signbit(value);
 	}
 
 	template<CC::IEEEMaskableFloat F>
-	constexpr i32 sign(F value) noexcept {
-		return 1 - Intrinsic::signbit(value) * 2;
+	constexpr bool signbit(F value) noexcept {
+		return Intrinsic::signbit(value);
 	}
 
 	template<CC::Integral I>
-	constexpr i32 sign(I value) noexcept {
-		return (value > I(0)) - (value < I(0));
+	constexpr bool signbit(I value) noexcept {
+		return value < I(0);
+	}
+
+	template<CC::Arithmetic A>
+	constexpr i32 sign(A value) noexcept {
+		return 1 - signbit(value) * 2;
 	}
 
 
 	template<CC::Arithmetic A, CC::Arithmetic B, CC::GenericFloat C = TT::CommonType<A, B>>
-	__ARC_CMATH23 C copySign(A value, B sign) {
+	ARC_CONSTEXPR_CMATH23 C copySign(A value, B sign) noexcept {
 		return std::copysign(value, sign);
 	}
 
@@ -509,12 +545,17 @@ namespace Math {
 
 	template<CC::Integral I>
 	constexpr I copySign(I value, I sign) noexcept {
-		return sign(value) == sign(sign) ? value : -value;
+		return Math::sign(value) == Math::sign(sign) ? value : -value;
+	}
+
+	template<CC::Arithmetic A>
+	ARC_CONSTEXPR_CMATH23 A ldexp(A value, i32 exp) noexcept {
+		return std::ldexp(value, exp);
 	}
 
 
 	template<CC::GenericFloat F>
-	__ARC_CMATH23 Category classify(F value) {
+	ARC_CONSTEXPR_CMATH23 Category classify(F value) noexcept {
 
 		switch (std::fpclassify(value)) {
 			case FP_ZERO:		return Category::Zero;
@@ -528,22 +569,22 @@ namespace Math {
 	}
 
 	template<CC::GenericFloat F>
-	__ARC_CMATH23 bool isFinite(F value) {
+	ARC_CONSTEXPR_CMATH23 bool isFinite(F value) noexcept {
 		return std::isfinite(value);
 	}
 
 	template<CC::GenericFloat F>
-	__ARC_CMATH23 bool isNormal(F value) {
+	ARC_CONSTEXPR_CMATH23 bool isNormal(F value) noexcept {
 		return std::isnormal(value);
 	}
 
 	template<CC::GenericFloat F>
-	__ARC_CMATH23 bool isNaN(F value) {
+	ARC_CONSTEXPR_CMATH23 bool isNaN(F value) noexcept {
 		return std::isnan(value);
 	}
 
 	template<CC::GenericFloat F>
-	constexpr bool isInfinity(F value) {
+	constexpr bool isInfinity(F value) noexcept {
 
 		if constexpr (std::is_constant_evaluated() && Traits<F>::HasInfinity) {
 			return abs(value) == Traits<F>::Infinity;
@@ -554,7 +595,7 @@ namespace Math {
 	}
 
 	template<CC::GenericFloat F>
-	constexpr bool isInfinity(F value, bool negative) {
+	constexpr bool isInfinity(F value, bool negative) noexcept {
 
 		i32 s = signFactor(negative);
 
@@ -599,23 +640,23 @@ namespace Math {
 
 
 	template<CC::Float F>
-	constexpr bool isPositiveInfinity(F value) {
+	constexpr bool isPositiveInfinity(F value) noexcept {
 		return isInfinity(value, false);
 	}
 
 	template<CC::Float F>
-	constexpr bool isNegativeInfinity(F value) {
+	constexpr bool isNegativeInfinity(F value) noexcept {
 		return isInfinity(value, true);
 	}
 
 
 	template<CC::Float F>
-	constexpr bool isZero(F value) {
+	constexpr bool isZero(F value) noexcept {
 		return abs(value) < Detail::MinEpsilon;
 	}
 
 	template<CC::Integral I>
-	constexpr bool isZero(I value) {
+	constexpr bool isZero(I value) noexcept {
 		return value == I(0);
 	}
 
@@ -662,7 +703,7 @@ namespace Math {
 
 
 	template<CC::GenericFloat F>
-	__ARC_CMATH23 SplitFloat<F> split(F value) {
+	ARC_CONSTEXPR_CMATH23 SplitFloat<F> split(F value) {
 
 		SplitFloat<F> s;
 		s.fractional = std::modf(value, &s.integer);
@@ -672,7 +713,7 @@ namespace Math {
 	}
 
 	template<CC::GenericFloat F>
-	__ARC_CMATH23 F fract(F value) {
+	ARC_CONSTEXPR_CMATH23 F fract(F value) {
 		return split(value).fractional;
 	}
 
@@ -827,18 +868,61 @@ namespace Math {
 }
 
 
-constexpr long double operator""_deg(long double degrees) noexcept {
-	return Math::toRadians(degrees);
+namespace Math::inline Literals {
+
+	constexpr float operator""_degf(long double degrees) noexcept {
+		return Math::toRadians(float(degrees));
+	}
+
+	constexpr float operator""_degf(unsigned long long degrees) noexcept {
+		return Math::toRadians(float(degrees));
+	}
+
+	constexpr float operator""_radf(long double radians) noexcept {
+		return Math::toDegrees(float(radians));
+	}
+
+	constexpr float operator""_radf(unsigned long long radians) noexcept {
+		return Math::toDegrees(float(radians));
+	}
+
+
+	constexpr double operator""_deg(long double degrees) noexcept {
+		return Math::toRadians(double(degrees));
+	}
+
+	constexpr double operator""_deg(unsigned long long degrees) noexcept {
+		return Math::toRadians(double(degrees));
+	}
+
+	constexpr double operator""_rad(long double radians) noexcept {
+		return Math::toDegrees(double(radians));
+	}
+
+	constexpr double operator""_rad(unsigned long long radians) noexcept {
+		return Math::toDegrees(double(radians));
+	}
+
+
+	constexpr long double operator""_degl(long double degrees) noexcept {
+		return Math::toRadians(degrees);
+	}
+
+	constexpr long double operator""_degl(unsigned long long degrees) noexcept {
+		return Math::toRadians(degrees);
+	}
+
+	constexpr long double operator""_radl(long double radians) noexcept {
+		return Math::toDegrees(radians);
+	}
+
+	constexpr long double operator""_radl(unsigned long long radians) noexcept {
+		return Math::toDegrees(radians);
+	}
+
 }
 
-constexpr long double operator""_deg(unsigned long long degrees) noexcept {
-	return Math::toRadians(degrees);
-}
 
-constexpr long double operator""_rad(long double radians) noexcept {
-	return Math::toDegrees(radians);
-}
-
-constexpr long double operator""_rad(unsigned long long radians) noexcept {
-	return Math::toDegrees(radians);
-}
+#ifdef ARC_CFG_MATH_USING_LITERALS
+	using namespace Math::Literals;
+#endif

@@ -42,18 +42,18 @@ using ARC_PP_CAT(name, ARC_PP_IF_ELSE(upper, usuffix, lsuffix)) = class<__VA_ARG
 
 #if		__cpp_lib_constexpr_cmath == 202306L
 
-	#define __ARC_CMATH23 constexpr
-	#define __ARC_CMATH26 constexpr
+	#define ARC_CONSTEXPR_CMATH23 constexpr
+	#define ARC_CONSTEXPR_CMATH26 constexpr
 
 #elif	__cpp_lib_constexpr_cmath == 202202L
 
-	#define __ARC_CMATH23 constexpr
-	#define __ARC_CMATH26 ARC_FORCE_INLINE
+	#define ARC_CONSTEXPR_CMATH23 constexpr
+	#define ARC_CONSTEXPR_CMATH26 ARC_FORCE_INLINE
 
 #else
 
-	#define __ARC_CMATH23 ARC_FORCE_INLINE
-	#define __ARC_CMATH26 ARC_FORCE_INLINE
+	#define ARC_CONSTEXPR_CMATH23 ARC_FORCE_INLINE
+	#define ARC_CONSTEXPR_CMATH26 ARC_FORCE_INLINE
 
 #endif
 

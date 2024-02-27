@@ -566,7 +566,7 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 Mat3& rotate(A angle) {
+	ARC_CONSTEXPR_CMATH26 Mat3& rotate(A angle) {
 
 		const auto [sin, cos] = Math::sincos(angle);
 
@@ -595,7 +595,7 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 Mat3& shearX(A angle) {
+	ARC_CONSTEXPR_CMATH26 Mat3& shearX(A angle) {
 
 		v[1] += v[0] * Math::tan(angle);
 		return *this;
@@ -603,7 +603,7 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 Mat3& shearY(A angle) {
+	ARC_CONSTEXPR_CMATH26 Mat3& shearY(A angle) {
 
 		v[0] += v[1] * Math::tan(angle);
 		return *this;
@@ -611,7 +611,7 @@ public:
 	}
 
 	template<CC::Arithmetic A, CC::Arithmetic B>
-	__ARC_CMATH26 Mat3& shear(A sx, B sy) {
+	ARC_CONSTEXPR_CMATH26 Mat3& shear(A sx, B sy) {
 
 		A tx = Math::tan(sx);
 		B ty = Math::tan(sy);
@@ -637,7 +637,7 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 static Mat3 fromRotation(A angle) {
+	ARC_CONSTEXPR_CMATH26 static Mat3 fromRotation(A angle) {
 
 		const auto [sin, cos] = Math::sincos(angle);
 
@@ -655,17 +655,17 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 static Mat3 fromShearX(A angle) {
+	ARC_CONSTEXPR_CMATH26 static Mat3 fromShearX(A angle) {
 		return {1, Math::tan(angle), 0, 0, 1, 0, 0, 0, 1};
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 static Mat3 fromShearY(A angle) {
+	ARC_CONSTEXPR_CMATH26 static Mat3 fromShearY(A angle) {
 		return {1, 0, 0, Math::tan(angle), 1, 0, 0, 0, 1};
 	}
 
 	template<CC::Arithmetic A, CC::Arithmetic B>
-	__ARC_CMATH26 static Mat3 fromShear(A sx, B sy) {
+	ARC_CONSTEXPR_CMATH26 static Mat3 fromShear(A sx, B sy) {
 
 		A tx = Math::tan(sx);
 		B ty = Math::tan(sy);
@@ -1105,7 +1105,7 @@ public:
 	}
 
 	template<CC::Arithmetic A>
-	__ARC_CMATH26 Mat4& rotate(const Vec3<A>& axis, FX angle) {
+	ARC_CONSTEXPR_CMATH26 Mat4& rotate(const Vec3<A>& axis, FX angle) {
 
 		using Y = TT::CommonType<T, A>;
 
@@ -1160,7 +1160,7 @@ public:
 	}
 
 	template<CC::Arithmetic A, CC::Arithmetic B>
-	__ARC_CMATH26 static Mat4 fromRotation(const Vec3<A>& axis, B angle) {
+	ARC_CONSTEXPR_CMATH26 static Mat4 fromRotation(const Vec3<A>& axis, B angle) {
 
 		using Y = TT::CommonType<T, A>;
 
@@ -1179,7 +1179,7 @@ public:
 	}
 
 	template<CC::Arithmetic A, CC::Arithmetic B, CC::Arithmetic C>
-	__ARC_CMATH26 static Mat4 fromRotation(A yaw, B pitch, C roll) {
+	ARC_CONSTEXPR_CMATH26 static Mat4 fromRotation(A yaw, B pitch, C roll) {
 		
 		const auto [ysin, ycos] = Math::sincos(yaw);
 		const auto [psin, pcos] = Math::sincos(pitch);
@@ -1208,7 +1208,7 @@ public:
 
 
 	template<CC::Arithmetic A, CC::Arithmetic B>
-	__ARC_CMATH26 static Mat4 lookAt(const Vec3<A>& pos, const Vec3<B>& target, const Vec3<FX>& up = {0, 1, 0}) {
+	ARC_CONSTEXPR_CMATH26 static Mat4 lookAt(const Vec3<A>& pos, const Vec3<B>& target, const Vec3<FX>& up = {0, 1, 0}) {
 
 		using Y = TT::CommonType<T, A>;
 
@@ -1236,7 +1236,7 @@ public:
 
 	}
 
-	__ARC_CMATH26 static Mat4 perspective(FX fovy, FX aspect, FX near, FX far) {
+	ARC_CONSTEXPR_CMATH26 static Mat4 perspective(FX fovy, FX aspect, FX near, FX far) {
 
 		FX t = Math::tan(fovy / FX(2));
 
