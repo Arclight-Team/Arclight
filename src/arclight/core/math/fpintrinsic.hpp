@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2022-2024 - Arclight Team
+ *	 Copyright (c) 2024 - Arclight Team
  *
- * This file is part of Arclight. All rights reserved.
+ *	 This file is part of Arclight. All rights reserved.
  *
- * fpintrinsic.hpp
+ *	 fpintrinsic.hpp
  */
 
 #pragma once
@@ -27,10 +27,10 @@ namespace CC {
 	concept IEEEMaskableFloat = IEEEFloat<T> && TT::HasSizedInteger<T>;
 
 	template<class T>
-	concept GenericFloat = Float<T> && !IEEEFloat<T>;
+	concept GenericFloat = Float<T> && !IEEEMaskableFloat<T>;
 
 	template<class T>
-	concept GenericArithmetic = Arithmetic<T> && !IEEEFloat<T>;
+	concept GenericArithmetic = Arithmetic<T> && !IEEEMaskableFloat<T>;
 
 }
 
