@@ -263,8 +263,13 @@ public:
 		return v[0] == m[0] && v[1] == m[1];
 	}
 
+
+	constexpr Mat2 operator+() const noexcept {
+		return *this;
+	}
+
 	constexpr Mat2 operator-() const noexcept {
-		return Mat2(-v[0], -v[1]);
+		return {-v[0], -v[1]};
 	}
 
 
@@ -526,8 +531,13 @@ public:
 		return v[0] == m[0] && v[1] == m[1] && v[2] == m[2];
 	}
 
+
+	constexpr Mat3 operator+() const noexcept {
+		return *this;
+	}
+
 	constexpr Mat3 operator-() const noexcept {
-		return Mat3(-v[0], -v[1], -v[2]);
+		return {-v[0], -v[1], -v[2]};
 	}
 	
 
@@ -1064,8 +1074,13 @@ public:
 		return v[0] == m[0] && v[1] == m[1] && v[2] == m[2] && v[3] == m[3];
 	}
 
+
+	constexpr Mat4 operator+() const noexcept {
+		return *this;
+	}
+
 	constexpr Mat4 operator-() const noexcept {
-		return Mat4(-v[0], -v[1], -v[2], -v[3]);
+		return {-v[0], -v[1], -v[2], -v[3]};
 	}
 	
 

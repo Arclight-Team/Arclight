@@ -221,8 +221,13 @@ public:
 		return Math::equal(x, v.x) && Math::equal(y, v.y);
 	}
 
+
+	constexpr Vec2 operator+() const noexcept {
+		return *this;
+	}
+
 	constexpr Vec2 operator-() const noexcept {
-		return Vec2(-x, -y);
+		return {-x, -y};
 	}
 
 
@@ -478,8 +483,13 @@ public:
 		return Math::equal(x, v.x) && Math::equal(y, v.y) && Math::equal(z, v.z);
 	}
 
+
+	constexpr Vec3 operator+() const noexcept {
+		return *this;
+	}
+
 	constexpr Vec3 operator-() const noexcept {
-		return Vec3(-x, -y, -z);
+		return {-x, -y, -z};
 	}
 
 
@@ -749,8 +759,13 @@ public:
 		return Math::equal(x, v.x) && Math::equal(y, v.y) && Math::equal(z, v.z) && Math::equal(w, v.w);
 	}
 
+
+	constexpr Vec4 operator+() const noexcept {
+		return *this;
+	}
+
 	constexpr Vec4 operator-() const noexcept {
-		return Vec4(-x, -y, -z, -w);
+		return {-x, -y, -z, -w};
 	}
 
 

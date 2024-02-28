@@ -233,6 +233,11 @@ public:
 		return Math::equal(x, q.x) && Math::equal(y, q.y) && Math::equal(z, q.z) && Math::equal(w, q.w);
 	}
 
+
+	constexpr Quaternion operator+() const noexcept {
+		return *this;
+	}
+
 	constexpr Quaternion operator-() const noexcept {
 		return {-x, -y, -z, -w};
 	}

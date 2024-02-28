@@ -334,6 +334,10 @@ public:
 
 	}
 
+	constexpr BigInt operator+() const {
+		return *this;
+	}
+
 	constexpr BigInt operator-() const {
 		return negate();
 	}
@@ -619,10 +623,9 @@ private:
 
 	constexpr static DivResult divideCore(const BigInt& a, const BigInt& b) {
 
-		if (b.isZero()) {
-			//Throw
-			throw 9;
-		} else if (b == 1) {
+		arc_assert(!b.isZero(), "Division by zero");
+
+		if (b == 1) {
 			return {a, 0};
 		} else if (a.isZero()) {
 			return {};

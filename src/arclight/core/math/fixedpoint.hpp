@@ -298,6 +298,10 @@ public:
 		return mod(x);
 	}
 
+	constexpr FixedPoint operator+() const noexcept {
+		return *this;
+	}
+
 	constexpr FixedPoint operator-() const noexcept {
 		return negate();
 	}
