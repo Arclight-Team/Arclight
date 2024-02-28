@@ -174,7 +174,7 @@ namespace Math {
 
 		A res = sin(radians);
 
-		if (isZero(res)) {
+		if (res == 0) {
 			return copySign(Traits<A>::Infinity, radians);
 		}
 
@@ -187,7 +187,7 @@ namespace Math {
 
 		A res = cos(radians);
 
-		if (isZero(res)) {
+		if (res == 0) {
 			return copySign(Traits<A>::Infinity, radians);
 		}
 
@@ -200,7 +200,7 @@ namespace Math {
 
 		A res = tan(radians);
 
-		if (isZero(res)) {
+		if (res == 0) {
 			return copySign(Traits<A>::Infinity, radians);
 		}
 
@@ -595,16 +595,8 @@ namespace Math {
 	}
 
 	template<CC::GenericFloat F>
-	constexpr bool isInfinity(F value, bool negative) noexcept {
-
-		i32 s = signFactor(negative);
-
-		if constexpr (std::is_constant_evaluated() && Traits<F>::HasInfinity) {
-			return value == (Traits<F>::Infinity * s);
-		}
-
-		return std::isinf(value) && sign(value) == s;
-
+	constexpr bool isZero(F value) noexcept {
+		return value == F(0);
 	}
 
 
@@ -634,10 +626,21 @@ namespace Math {
 	}
 
 	template<CC::IEEEMaskableFloat F>
-	constexpr bool isInfinity(F value, bool negative) noexcept {
-		return Intrinsic::isInfinity(value) && (signFactor(negative) == sign(value));
+	constexpr bool isZero(F value) noexcept {
+		return Intrinsic::isZero(value);
 	}
 
+
+	template<CC::Integral I>
+	constexpr bool isZero(I value) noexcept {
+		return value == I(0);
+	}
+
+
+	template<CC::Float F>
+	constexpr bool isInfinity(F value, bool negative) noexcept {
+		return isInfinity(value) && (signFactor(negative) == sign(value));
+	}
 
 	template<CC::Float F>
 	constexpr bool isPositiveInfinity(F value) noexcept {
@@ -647,17 +650,6 @@ namespace Math {
 	template<CC::Float F>
 	constexpr bool isNegativeInfinity(F value) noexcept {
 		return isInfinity(value, true);
-	}
-
-
-	template<CC::Float F>
-	constexpr bool isZero(F value) noexcept {
-		return abs(value) < Detail::MinEpsilon;
-	}
-
-	template<CC::Integral I>
-	constexpr bool isZero(I value) noexcept {
-		return value == I(0);
 	}
 
 	#pragma endregion
@@ -803,9 +795,9 @@ namespace Math {
 
 			if (*this == other) {
 				return std::strong_ordering::equal;
+			} else {
+				return (A(0) < other) ? std::strong_ordering::less : std::strong_ordering::greater;
 			}
-
-			return greater(0, other) ? std::strong_ordering::greater : std::strong_ordering::less;
 
 		}
 
@@ -827,36 +819,61 @@ namespace Math {
 
 
 		template<CC::Arithmetic A> requires(Type == ConstantType::Infinity)
-		constexpr auto operator<=>(A other) const {
+		constexpr auto operator<=>(A other) const noexcept {
 
 			if (*this == other) {
 				return std::strong_ordering::equal;
+			} else {
+				return (signbit(other) == Negative) ? std::strong_ordering::greater : std::strong_ordering::less;
 			}
-
-			return (sign(other) == signFactor(Negative)) ? std::strong_ordering::greater : std::strong_ordering::less;
 
 		}
 
 		template<CC::Arithmetic A> requires(Type == ConstantType::Infinity)
-		constexpr bool operator==(A other) const {
-			return isInfinity(other, Negative);
+		constexpr bool operator==(A other) const noexcept {
+
+			if constexpr (CC::Float<A>) {
+				return isInfinity(other);
+			} else {
+				return false;
+			}
+
 		}
 
 
-		constexpr ArithmeticConstant<Type, !Negative> operator-() const noexcept {
-			return {};
-		}
+		template<ConstantType C, bool E>
+		consteval auto operator<=>(ArithmeticConstant<C, E> constant) const noexcept {
 
+			if constexpr (Type == ConstantType::NaN || C == ConstantType::NaN) {
+				return std::partial_ordering::unordered;
+			} else if constexpr (*this == constant) {
+				return std::strong_ordering::equal;
+			} else if constexpr (Type != C) { // Infinity <=> Infinity
+				return (Type == ConstantType::Zero ? !E : Negative) ? std::strong_ordering::less : std::strong_ordering::greater;
+			} else { // Infinity <=> 0 or vice versa
+				return (!E && Negative) ? std::strong_ordering::less : std::strong_ordering::greater;
+			}
+
+		}
 
 		template<ConstantType C, bool E>
 		consteval bool operator==(ArithmeticConstant<C, E> constant) const noexcept {
 
 			if constexpr (Type == ConstantType::NaN || C == ConstantType::NaN) {
 				return false;
+			} else {
+				return (Type == C) && (Type == ConstantType::Zero || Negative == E);
 			}
 
-			return (Type == C) && (Type == ConstantType::Zero || Negative == E);
+		}
 
+
+		constexpr ArithmeticConstant operator+() const noexcept {
+			return *this;
+		}
+
+		constexpr ArithmeticConstant<Type, !Negative> operator-() const noexcept {
+			return {};
 		}
 
 	};
