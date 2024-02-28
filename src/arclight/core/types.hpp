@@ -13,22 +13,25 @@
 #include <cstdint>
 #include <cstddef>
 
-using u8    = uint8_t;
-using u16   = uint16_t;
-using u32   = uint32_t;
-using u64   = uint64_t;
 
-using i8    = int8_t;
-using i16   = int16_t;
-using i32   = int32_t;
-using i64   = int64_t;
 
-using imax  = intmax_t;
-using umax  = uintmax_t;
+using u8		= std::uint8_t;
+using u16		= std::uint16_t;
+using u32		= std::uint32_t;
+using u64		= std::uint64_t;
 
-using SizeT     = std::size_t;
-using AlignT    = SizeT;
-using AddressT  = uintptr_t;
+using i8		= std::int8_t;
+using i16		= std::int16_t;
+using i32		= std::int32_t;
+using i64		= std::int64_t;
+
+using imax		= std::intmax_t;
+using umax		= std::uintmax_t;
+
+using SizeT		= std::size_t;
+using AlignT	= SizeT;
+using AddressT	= std::uintptr_t;
+using NullptrT	= std::nullptr_t;
 
 #if ARC_MACHINE_BITS == 64
 	using SystemT = u64;
@@ -39,3 +42,21 @@ using AddressT  = uintptr_t;
 #else
 	using SystemT = u32;
 #endif
+
+
+#define __ARC_DEFINE_INTEGRAL_LITERAL(type, suffix) \
+constexpr type operator""_##suffix(unsigned long long n) { \
+	return type(n); \
+}
+
+__ARC_DEFINE_INTEGRAL_LITERAL(u8, u8)
+__ARC_DEFINE_INTEGRAL_LITERAL(u16, u16)
+__ARC_DEFINE_INTEGRAL_LITERAL(u32, u32)
+__ARC_DEFINE_INTEGRAL_LITERAL(u64, u64)
+
+__ARC_DEFINE_INTEGRAL_LITERAL(i8, i8)
+__ARC_DEFINE_INTEGRAL_LITERAL(i16, i16)
+__ARC_DEFINE_INTEGRAL_LITERAL(i32, i32)
+__ARC_DEFINE_INTEGRAL_LITERAL(i64, i64)
+
+#undef __ARC_DEFINE_INTEGRAL_LITERAL
