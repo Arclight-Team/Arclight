@@ -14,7 +14,11 @@
 namespace ArcRuntime {
 
 	bool platformInit() {
+#ifdef ARC_USE_ARCRT
 		return OS::init();
+#else
+		return true;
+#endif
 	}
 
 }

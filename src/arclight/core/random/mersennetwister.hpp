@@ -52,7 +52,7 @@ public:
 
 	constexpr void setSeed(SeedType seed) {
 
-		x[0] = seed.get<X>(0);
+		x[0] = seed.template get<X>(0);
 
 		for (SizeT i = 1; i < N; i++) {
 

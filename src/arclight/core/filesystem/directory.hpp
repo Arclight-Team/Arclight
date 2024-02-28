@@ -53,7 +53,7 @@ private:
 	std::variant<std::filesystem::directory_iterator, std::filesystem::recursive_directory_iterator> it;
 	Flag flags;
 	FSEntry::Type types;
-	bool end;
+	bool iend;
 
 };
 

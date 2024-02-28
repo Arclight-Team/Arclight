@@ -6,12 +6,11 @@
  *	 argumentparser.cpp
  */
 
-#pragma once
-
 #include "argumentparser.hpp"
 #include "util/assert.hpp"
 
 #include <stack>
+#include <ranges>
 
 
 ArgumentParser::ArgumentParser() = default;

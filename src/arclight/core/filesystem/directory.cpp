@@ -15,9 +15,9 @@
 
 
 
-DirectoryIterator::DirectoryIterator() : flags(DirectoryIterator::None), types(FSEntry::All), end(true) {}
+DirectoryIterator::DirectoryIterator() : flags(DirectoryIterator::None), types(FSEntry::All), iend(true) {}
 
-DirectoryIterator::DirectoryIterator(const Directory& dir, DirectoryIterator::Flag flags, FSEntry::Type typeMask) : flags(flags), types(typeMask), end(false) {
+DirectoryIterator::DirectoryIterator(const Directory& dir, DirectoryIterator::Flag flags, FSEntry::Type typeMask) : flags(flags), types(typeMask), iend(false) {
 
 	std::filesystem::directory_options opt = std::filesystem::directory_options::none;
 
@@ -93,7 +93,7 @@ DirectoryIterator& DirectoryIterator::advance() {
 			it++;
 
 			if(it == TT::RemoveRef<decltype(it)>{}) {
-				end = true;
+				iend = true;
 				break;
 			}
 
@@ -122,8 +122,8 @@ DirectoryIterator& DirectoryIterator::advance() {
 
 bool DirectoryIterator::operator==(const DirectoryIterator& other) const {
 	
-	if(end || other.end) {
-		return end == other.end;
+	if(iend || other.iend) {
+		return iend == other.iend;
 	}
 
 	return it == other.it;
@@ -137,7 +137,7 @@ void DirectoryIterator::reset() {
 	auto exec = [this](auto& it) {
 
 		if(it == TT::RemoveRef<decltype(it)>{}) {
-			end = true;
+			iend = true;
 			return;
 		}
 

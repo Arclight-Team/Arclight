@@ -1,6 +1,6 @@
 ﻿cmake_minimum_required (VERSION 3.21)
 
-set(PROJECT_NAME arclight)
+set(PROJECT_NAME Arclight)
 project (${PROJECT_NAME})
 
 
@@ -60,7 +60,7 @@ project (${PROJECT_NAME})
 			if(EXTENSION IN_LIST SUPPORTED_CPU_EXTENSIONS)
 
 				list(GET ARC_CPU_EXTENSION_DEFINITIONS ${i} EXTENSION_DEFINITION)
-				add_compile_definitions(${EXTENSION_DEFINITION})
+				#add_compile_definitions(${EXTENSION_DEFINITION})
 				list(APPEND BUILD_CPU_EXTENSIONS ${EXTENSION})
 
 			endif()
@@ -80,7 +80,7 @@ project (${PROJECT_NAME})
 ### COMPILER SETUP ###
 ######################
 
-	if(MSVC)
+	if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 
 		if("avx2" IN_LIST BUILD_CPU_EXTENSIONS)
 			set(MSVC_ARCH_FLAGS "/arch:AVX2")
@@ -88,8 +88,8 @@ project (${PROJECT_NAME})
 			set(MSVC_ARCH_FLAGS "/arch:AVX")
 		endif()
 
-		set(MSVC_CXX_BASE_FLAGS "${MSVC_ARCH_FLAGS} /MP /permissive /utf-8 /DWIN32 /D_WINDOWS /EHsc")
-		set(MSVC_C_BASE_FLAGS 	"${MSVC_ARCH_FLAGS} /MP /permissive /utf-8 /DWIN32 /D_WINDOWS")
+		set(MSVC_CXX_BASE_FLAGS "${MSVC_ARCH_FLAGS} /Zc:preprocessor /MP /permissive /utf-8 /DWIN32 /D_WINDOWS /EHsc")
+		set(MSVC_C_BASE_FLAGS 	"${MSVC_ARCH_FLAGS} /Zc:preprocessor /MP /permissive /utf-8 /DWIN32 /D_WINDOWS")
 
 		set(CMAKE_CXX_FLAGS_DEBUG 			"${MSVC_CXX_BASE_FLAGS} /Zi /Ob0 /Od /RTC1")
 		set(CMAKE_CXX_FLAGS_RELEASE 		"${MSVC_CXX_BASE_FLAGS} /GS- /O2 /Ob3 /DNDEBUG")
@@ -104,6 +104,49 @@ project (${PROJECT_NAME})
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /MANIFESTUAC:NO")
 
 		add_compile_options($<$<CONFIG:>:/MT>$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>)
+
+		message("Compiling with MSVC")
+
+	elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+
+		if ("avx2"			IN_LIST BUILD_CPU_EXTENSIONS)
+			set(GCC_ARCH_FLAGS "-mavx2")
+		elseif ("avx"		IN_LIST BUILD_CPU_EXTENSIONS)
+			set(GCC_ARCH_FLAGS "-mavx")
+		elseif ("sse4_2"	IN_LIST BUILD_CPU_EXTENSIONS)
+			set(GCC_ARCH_FLAGS "-msse4.2")
+		elseif ("sse4_1"	IN_LIST BUILD_CPU_EXTENSIONS)
+			set(GCC_ARCH_FLAGS "-msse4.1")
+		elseif ("ssse3"		IN_LIST BUILD_CPU_EXTENSIONS)
+			set(GCC_ARCH_FLAGS "-mssse3")
+		elseif ("sse3"		IN_LIST BUILD_CPU_EXTENSIONS)
+			set(GCC_ARCH_FLAGS "-msse3")
+		elseif ("sse2"		IN_LIST BUILD_CPU_EXTENSIONS)
+			set(GCC_ARCH_FLAGS "-msse2")
+		elseif ("sse"		IN_LIST BUILD_CPU_EXTENSIONS)
+			set(GCC_ARCH_FLAGS "-msse")
+		endif()
+
+		if (MINGW)
+			set(GCC_WINPTHREAD_FIX "-Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive")
+		endif()
+
+		set(GCC_C_BASE_FLAGS	"${GCC_ARCH_FLAGS} ${GCC_WINPTHREAD_FIX} -static-libgcc -finput-charset=UTF-8 -DWIN32 -D_WINDOWS")
+		set(GCC_CXX_BASE_FLAGS	"${GCC_C_BASE_FLAGS} -static-libstdc++ -fpermissive")
+
+		set(CMAKE_CXX_FLAGS_DEBUG 			"${GCC_CXX_BASE_FLAGS}	-O0 -g") # TODO Stack related options
+		set(CMAKE_CXX_FLAGS_RELEASE 		"${GCC_CXX_BASE_FLAGS}	-O3 -DNDEBUG")
+		set(CMAKE_CXX_FLAGS_RELWITHDEBINFO 	"${GCC_CXX_BASE_FLAGS}	-O3 -g -DNDEBUG")
+		set(CMAKE_CXX_FLAGS_MINSIZEREL 		"${GCC_CXX_BASE_FLAGS}	-Os -DNDEBUG")
+		set(CMAKE_C_FLAGS_DEBUG 			"${GCC_C_BASE_FLAGS}	-Og -g")
+		set(CMAKE_C_FLAGS_RELEASE 			"${GCC_C_BASE_FLAGS}	-O3 -DNDEBUG")
+		set(CMAKE_C_FLAGS_RELWITHDEBINFO 	"${GCC_C_BASE_FLAGS}	-O3 -g -DNDEBUG")
+		set(CMAKE_C_FLAGS_MINSIZEREL 		"${GCC_C_BASE_FLAGS}	-Os -DNDEBUG")
+
+		#set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}")
+		#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}")
+
+		message("Compiling with GCC/MinGW")
 
 	endif()
 

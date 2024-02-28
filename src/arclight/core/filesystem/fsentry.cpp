@@ -164,7 +164,7 @@ u64 FSEntry::getLastModifiedTime() const {
 
 void FSEntry::setLastModifiedTime(u64 nanos) {
 #ifndef ARC_COMPILER_GCC
-	std::filesystem::last_write_time(entry.path(), std::chrono::clock_cast<std::chrono::file_clock>(std::chrono::sys_time{std::chrono::milliseconds{nanos}}));
+	std::filesystem::last_write_time(entry.path(), std::chrono::clock_cast<std::chrono::file_clock>(std::chrono::sys_time<std::chrono::milliseconds>{std::chrono::milliseconds{nanos}}));
 #else
 	throw UnsupportedOperationException();
 #endif
