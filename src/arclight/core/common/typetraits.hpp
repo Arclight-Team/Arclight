@@ -250,16 +250,40 @@ namespace TT {
 		};
 
 
-		template<CC::Arithmetic T> struct BiggerType { static_assert("Illegal type"); };
-		template<> struct BiggerType<i8>    { using Type = i16; };
-		template<> struct BiggerType<i16>   { using Type = i32; };
-		template<> struct BiggerType<i32>   { using Type = i64; };
-		template<> struct BiggerType<u8>    { using Type = u16; };
-		template<> struct BiggerType<u16>   { using Type = u32; };
-		template<> struct BiggerType<u32>   { using Type = u64; };
-		template<> struct BiggerType<char>  { using Type = TT::Conditional<CC::SignedType<char>, i16, u16>; };
+		template<class T>
+		struct BiggerType { static_assert("Illegal type"); };
 
-		template<CC::Arithmetic T> struct SmallerType { static_assert("Illegal type"); };
+		template<CC::Equal<float> F> requires (sizeof(double) > sizeof(float))
+		struct BiggerType<F> {
+			using Type = double;
+		};
+
+		template<CC::Equal<double> F> requires (sizeof(long double) > sizeof(double))
+		struct BiggerType<F> {
+			using Type = long double;
+		};
+
+		template<> struct BiggerType<i8>		{ using Type = i16; };
+		template<> struct BiggerType<i16>		{ using Type = i32; };
+		template<> struct BiggerType<i32>		{ using Type = i64; };
+		template<> struct BiggerType<u8>		{ using Type = u16; };
+		template<> struct BiggerType<u16>		{ using Type = u32; };
+		template<> struct BiggerType<u32>		{ using Type = u64; };
+		template<> struct BiggerType<char>		{ using Type = TT::Conditional<CC::SignedType<char>, i16, u16>; };
+
+		template<class T>
+		struct SmallerType { static_assert("Illegal type"); };
+
+		template<CC::Equal<double> F> requires (sizeof(float) < sizeof(double))
+		struct SmallerType<F> {
+			using Type = float;
+		};
+
+		template<CC::Equal<long double> F> requires (sizeof(double) < sizeof(long double))
+		struct SmallerType<F> {
+			using Type = double;
+		};
+
 		template<> struct SmallerType<i16>  { using Type = i8;  };
 		template<> struct SmallerType<i32>  { using Type = i16; };
 		template<> struct SmallerType<i64>  { using Type = i32; };
@@ -346,6 +370,16 @@ namespace TT {
 		};
 
 	}
+
+
+	template<class T, bool C, template<class> class U>
+	using ConditionalUnary = Conditional<C, U<T>, T>;
+
+	template<class T, bool C>
+	using MakeSignedIf = ConditionalUnary<T, C, MakeSigned>;
+
+	template<class T, bool C>
+	using MakeUnsignedIf = ConditionalUnary<T, C, MakeUnsigned>;
 
 
 	/* True if any type in Pack matches T */
