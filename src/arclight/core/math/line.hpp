@@ -11,7 +11,7 @@
 #include "vector.hpp"
 #include "shapes/rectangle.hpp"
 #include "common/concepts.hpp"
-#include "arcconfig.hpp"
+#include "common/config.hpp"
 
 #include <optional>
 

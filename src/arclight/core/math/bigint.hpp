@@ -12,7 +12,7 @@
 #include "math/overflow.hpp"
 #include "util/assert.hpp"
 #include "util/bits.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <vector>
 #include <span>

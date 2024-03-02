@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "arcintrinsic.hpp"
+#include "common/intrinsic.hpp"
 #include "common/concepts.hpp"
 #include "common/typetraits.hpp"
 #include "util/bits.hpp"

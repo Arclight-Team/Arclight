@@ -11,7 +11,7 @@
 #include "filesystem/directory.hpp"
 #include "filesystem/file.hpp"
 #include "time/time.hpp"
-#include "arcconfig.hpp"
+#include "common/config.hpp"
 
 #include <iostream>
 

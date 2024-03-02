@@ -10,7 +10,7 @@
 
 #include "util/bits.hpp"
 #include "math/math.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <new>
 #include <limits>

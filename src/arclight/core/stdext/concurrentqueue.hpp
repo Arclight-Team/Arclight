@@ -31,7 +31,7 @@
 
 #pragma once
 
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <atomic>
 #include <cstddef>

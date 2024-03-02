@@ -9,7 +9,7 @@
 #pragma once
 
 #include "path.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 #include "fsentry.hpp"
 
 #include <string>

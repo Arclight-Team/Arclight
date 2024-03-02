@@ -9,7 +9,7 @@
 #pragma once
 
 #include "syncbuffer.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <memory>
 #include <unordered_map>

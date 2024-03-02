@@ -11,7 +11,7 @@
 #include "util/log.hpp"
 #include "locale/unicode.hpp"
 #include "os/process.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <string>
 #include <vector>

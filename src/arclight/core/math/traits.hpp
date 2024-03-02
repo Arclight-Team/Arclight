@@ -9,7 +9,7 @@
 #pragma once
 
 #include "fenv.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 #include "common/concepts.hpp"
 #include "util/bits.hpp"
 

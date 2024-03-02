@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "arcbuild.hpp"
-#include "arcconfig.hpp"
+#include "common/build.hpp"
+#include "common/config.hpp"
 
 
 

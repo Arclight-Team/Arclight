@@ -38,7 +38,7 @@
 //User includes
 #include "util/log.hpp"
 #include "util/assert.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <string>
 

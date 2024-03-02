@@ -12,7 +12,7 @@
 #include "common/concepts.hpp"
 #include "common/exception.hpp"
 #include "math/math.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <exception>
 #include <typeinfo>

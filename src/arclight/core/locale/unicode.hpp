@@ -11,7 +11,7 @@
 #include "util/bits.hpp"
 #include "util/string.hpp"
 #include "common/exception.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <string>
 #include <span>

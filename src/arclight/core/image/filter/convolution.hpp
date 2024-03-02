@@ -10,7 +10,7 @@
 
 #include "image/image.hpp"
 #include "math/matrix.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 
 // Convolution filter with a 3x3 matrix

@@ -11,7 +11,7 @@
 #include "unicode.hpp"
 #include "util/string.hpp"
 #include "util/bits.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <string>
 

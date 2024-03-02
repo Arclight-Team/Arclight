@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "arcconfig.hpp"
+#include "common/config.hpp"
 #include "util/preprocessor.hpp"
 
 #include <version>

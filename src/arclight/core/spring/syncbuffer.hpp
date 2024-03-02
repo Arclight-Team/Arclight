@@ -11,7 +11,7 @@
 #include "memory/alignedallocator.hpp"
 #include "math/vector.hpp"
 #include "math/matrix.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <span>
 #include <vector>

@@ -11,8 +11,8 @@
 #include "stdext/optionalref.hpp"
 #include "util/assert.hpp"
 #include "common/typetraits.hpp"
-#include "arcconfig.hpp"
-#include "types.hpp"
+#include "common/config.hpp"
+#include "common/types.hpp"
 
 #include <vector>
 #include <iterator>

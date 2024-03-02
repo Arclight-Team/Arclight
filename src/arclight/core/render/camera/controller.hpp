@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "types.hpp"
+#include "common/types.hpp"
 #include "input/keytrigger.hpp"
 #include "input/keydefs.hpp"
 

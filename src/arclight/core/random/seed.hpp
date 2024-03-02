@@ -14,7 +14,7 @@
 #include "math/math.hpp"
 #include "stdext/bitspan.hpp"
 #include "util/bits.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <span>
 #include <vector>

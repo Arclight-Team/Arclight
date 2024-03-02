@@ -11,7 +11,7 @@
 #include "math/math.hpp"
 #include "math/vector.hpp"
 #include "math/matrix.hpp"
-#include "arcconfig.hpp"
+#include "common/config.hpp"
 
 
 

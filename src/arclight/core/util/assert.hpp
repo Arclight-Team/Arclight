@@ -9,8 +9,8 @@
 #pragma once
 
 #include "log.hpp"
-#include "types.hpp"
-#include "arcconfig.hpp"
+#include "common/types.hpp"
+#include "common/config.hpp"
 
 #include <utility>
 #include <source_location>

@@ -10,7 +10,7 @@
 
 #include "math/math.hpp"
 #include "math/vector.hpp"
-#include "arcintrinsic.hpp"
+#include "common/intrinsic.hpp"
 
 
 

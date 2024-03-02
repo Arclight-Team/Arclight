@@ -10,8 +10,8 @@
 
 #include "image/image.hpp"
 #include "math/matrix.hpp"
-#include "arcconfig.hpp"
-#include "types.hpp"
+#include "common/config.hpp"
+#include "common/types.hpp"
 
 
 

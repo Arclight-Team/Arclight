@@ -9,7 +9,7 @@
 #pragma once
 
 #include "time.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 
 class Timer {

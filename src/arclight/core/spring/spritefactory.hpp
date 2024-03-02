@@ -10,7 +10,7 @@
 
 #include "math/shapes/rectangle.hpp"
 #include "spritetype.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <unordered_map>
 

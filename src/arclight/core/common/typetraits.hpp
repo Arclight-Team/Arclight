@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "types.hpp"
+#include "common/types.hpp"
 #include "concepts.hpp"
 
 #include <type_traits>

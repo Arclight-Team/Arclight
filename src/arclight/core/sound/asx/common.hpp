@@ -7,7 +7,7 @@
  */
 
 #pragma once
-#include "types.hpp"
+#include "common/types.hpp"
 #include "math/vector.hpp"
 #include "util/bitmaskenum.hpp"
 #include "util/bits.hpp"

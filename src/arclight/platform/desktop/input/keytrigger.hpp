@@ -10,7 +10,7 @@
 
 #include "keydefs.hpp"
 #include "util/assert.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <initializer_list>
 

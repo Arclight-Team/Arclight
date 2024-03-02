@@ -439,7 +439,7 @@ Image<P> Image<P>::fromRaw(RawImage& image, bool allowConversion) {
 			case Pixel::ABGR8:      return convertImage.template operator()<Pixel::ABGR8>();
 			case Pixel::BGRA8:      return convertImage.template operator()<Pixel::BGRA8>();
 			case Pixel::ARGB8:      return convertImage.template operator()<Pixel::ARGB8>();
-			default: ARC_UNREACHABLE;
+			default: std::unreachable();
 
 		}
 

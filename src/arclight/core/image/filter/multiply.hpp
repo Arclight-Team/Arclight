@@ -9,7 +9,7 @@
 #pragma once
 
 #include "image/image.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 
 class MultiplicationFilter {

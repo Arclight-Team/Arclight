@@ -10,7 +10,7 @@
 
 #include "common/concepts.hpp"
 #include "common/typetraits.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <bit>
 #include <utility>

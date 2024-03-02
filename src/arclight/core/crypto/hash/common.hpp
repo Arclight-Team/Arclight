@@ -9,7 +9,7 @@
 #pragma once
 
 #include "util/bits.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <span>
 #include <algorithm>

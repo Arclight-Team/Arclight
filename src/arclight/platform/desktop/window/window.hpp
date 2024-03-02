@@ -13,7 +13,7 @@
 #include "windowconfig.hpp"
 #include "image/pixel.hpp"
 #include "math/vector.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <string>
 #include <memory>

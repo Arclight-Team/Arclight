@@ -12,7 +12,7 @@
 #include "rawimage.hpp"
 #include "math/vector.hpp"
 #include "math/shapes/rectangle.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 #include "common/exception.hpp"
 
 #include <vector>

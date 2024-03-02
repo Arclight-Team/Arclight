@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include "types.hpp"
-#include "arcconfig.hpp"
-#include "arcintrinsic.hpp"
+#include "common/types.hpp"
+#include "common/config.hpp"
+#include "common/intrinsic.hpp"
 #include "common/concepts.hpp"
 #include "common/typetraits.hpp"
 #include "constants.hpp"

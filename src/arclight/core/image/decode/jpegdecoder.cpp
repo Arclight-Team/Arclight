@@ -7,7 +7,7 @@
  */
 
 #include "jpegdecoder.hpp"
-#include "arcintrinsic.hpp"
+#include "common/intrinsic.hpp"
 #include "util/log.hpp"
 #include "time/profiler.hpp"
 #include "util/bool.hpp"
@@ -2316,7 +2316,7 @@ void JPEGDecoder::blendAndUpsample() {
 			break;
 
 		default:
-			ARC_UNREACHABLE
+			std::unreachable();
 
 	}
 

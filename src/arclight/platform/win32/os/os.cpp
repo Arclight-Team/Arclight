@@ -8,7 +8,7 @@
 
 #include "os.hpp"
 #include "registry.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 #include "notification.hpp"
 #include "locale/unicode.hpp"
 #include "filesystem/fsentry.hpp"

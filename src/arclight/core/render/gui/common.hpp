@@ -15,7 +15,7 @@
 #include "util/log.hpp"
 #include "util/assert.hpp"
 #include "math/vector.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include "action.hpp"
 

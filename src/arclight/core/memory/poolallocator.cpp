@@ -9,7 +9,7 @@
 #include "poolallocator.hpp"
 #include "math/math.hpp"
 #include "util/log.hpp"
-#include "arcconfig.hpp"
+#include "common/config.hpp"
 
 #include <new>
 #include <utility>

@@ -9,7 +9,7 @@
 #pragma once
 
 #include "util/assert.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <thread>
 #include <future>

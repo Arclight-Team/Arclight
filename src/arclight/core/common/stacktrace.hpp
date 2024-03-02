@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include "types.hpp"
+#include "common/types.hpp"
 #include "filesystem/path.hpp"
-#include "arcconfig.hpp"
+#include "common/config.hpp"
 
 #include <stacktrace>
 

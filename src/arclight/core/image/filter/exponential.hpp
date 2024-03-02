@@ -9,8 +9,8 @@
 #pragma once
 
 #include "image/image.hpp"
-#include "arcconfig.hpp"
-#include "types.hpp"
+#include "common/config.hpp"
+#include "common/types.hpp"
 
 
 class ExponentialFilter {

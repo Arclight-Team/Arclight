@@ -8,7 +8,7 @@
 
 #include "profiler.hpp"
 #include "util/assert.hpp"
-#include "arcconfig.hpp"
+#include "common/config.hpp"
 
 
 void Profiler::setResolution(Time::Unit unit, u32 resolution) {

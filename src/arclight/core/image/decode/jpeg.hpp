@@ -9,7 +9,7 @@
 #pragma once
 
 #include "memory/alignedallocator.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #include <array>
 #include <vector>

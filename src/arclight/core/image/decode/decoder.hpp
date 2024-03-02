@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "types.hpp"
+#include "common/types.hpp"
 #include "image/pixel.hpp"
 #include "image/rawimage.hpp"
 #include "common/concepts.hpp"

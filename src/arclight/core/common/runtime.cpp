@@ -6,14 +6,14 @@
  *	 arcrt.cpp
  */
 
-#include "arcrt.hpp"
-#include "arcconfig.hpp"
-#include "arcbuild.hpp"
+#include "runtime.hpp"
+#include "common/config.hpp"
+#include "common/build.hpp"
 #include "util/bits.hpp"
 #include "util/log.hpp"
 #include "util/destructionguard.hpp"
 #include "common/exception.hpp"
-#include "types.hpp"
+#include "common/types.hpp"
 
 #ifdef ARC_WINDOW_MODULE
 	#include <GLFW/glfw3.h>
