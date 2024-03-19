@@ -10,7 +10,7 @@
 
 #include "log.hpp"
 #include "common/config.hpp"
-#include "common/intrinsic.hpp"
+#include "common/vendor.hpp"
 
 #include <utility>
 #include <source_location>
@@ -27,9 +27,9 @@
 	#define __ARC_ASSERT_CONSTEXPR_FAIL __arc_assert_failed_at_compile_time
 #endif
 
-static constexpr void __arc_assert_constexpr(bool condition) noexcept {
+inline void __ARC_ASSERT_CONSTEXPR_FAIL() {}
 
-	void __ARC_ASSERT_CONSTEXPR_FAIL();
+static constexpr void __arc_assert_constexpr(bool condition) noexcept {
 
 	if (std::is_constant_evaluated() && !condition) {
 		__ARC_ASSERT_CONSTEXPR_FAIL();

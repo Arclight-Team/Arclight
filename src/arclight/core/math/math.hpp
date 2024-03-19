@@ -10,7 +10,7 @@
 
 #include "common/types.hpp"
 #include "common/config.hpp"
-#include "common/intrinsic.hpp"
+#include "common/vendor.hpp"
 #include "common/concepts.hpp"
 #include "common/typetraits.hpp"
 #include "constants.hpp"
