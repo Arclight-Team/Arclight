@@ -10,17 +10,16 @@
 
 #include "util/log.hpp"
 
-#include <functional>
 
 
-
+template<CC::Invocable I>
 class DestructionGuard {
 
 public:
 
-	DestructionGuard(const std::function<void()>& func) : dtor(func) {}
+	explicit constexpr DestructionGuard(const I& function) noexcept(CC::NothrowCopyConstructible<I>) : dtor(function) {}
 
-	~DestructionGuard() {
+	constexpr ~DestructionGuard() noexcept(noexcept(std::declval<I>()())) {
 
 		try {
 			dtor();
@@ -32,6 +31,7 @@ public:
 
 private:
 
-	std::function<void()> dtor;
+	I dtor;
 
 };
+
