@@ -34,7 +34,7 @@ public:
 				auto g = Math::min(Math::pow(pixel.getGreen() / static_cast<float>(maxValueGreen), exponent), 1.0) * maxValueGreen;
 				auto b = Math::min(Math::pow(pixel.getBlue() / static_cast<float>(maxValueBlue), exponent), 1.0) * maxValueBlue;
 
-#ifdef ARC_FILTER_EXACT
+#ifdef ARC_CFG_FILTER_EXACT
 				pixel.setRGB(static_cast<u32>(Math::round(r)), static_cast<u32>(Math::round(g)), static_cast<u32>(Math::round(b)));
 #else
 				pixel.setRGB(static_cast<u32>(r), static_cast<u32>(g), static_cast<u32>(b));

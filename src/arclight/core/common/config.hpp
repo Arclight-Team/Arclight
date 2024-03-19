@@ -3,173 +3,91 @@
  *
  *	 This file is part of Arclight. All rights reserved.
  *
- *	 arcconfig.hpp
+ *	 config.hpp
  */
 
 #pragma once
 
-#include "common/build.hpp"
+#include "build.hpp"
 
 
 
-/**************************************************/
-/*			   Arclight Configuration			  */
-/**************************************************/
+// Enables SIMD implementations for x86 targets
+#define ARC_CFG_X86_VECTORIZE
 
 
-/*
-	Vectorized code
-	ARC_VECTORIZE_X86: Vectorize for x86 if targeted
-*/
+// Unsyncs stdio from cout in Log::init (accelerated logging but data races become possible)
+#define ARC_CFG_LOG_STDIO_UNSYNC
 
-//#define ARC_VECTORIZE_X86
-
-
-/*
-	Log settings
-	ARC_LOG_STDIO_UNSYNC: Unsyncs stdio from cout. Logging is accelerated but data races become possible.
-	ARC_LOG_EXCEPTION_ABORT: Aborts when Log throws. Disabled in final build mode.
-*/
-
-#define ARC_LOG_STDIO_UNSYNC
-#define ARC_LOG_EXCEPTION_ABORT
+// Aborts when Log throws (disabled in final build mode)
+#define ARC_CFG_LOG_EXCEPTION_ABORT
 
 
-/*
-	Allocator debugging
-	ARC_ALLOCATOR_DEBUG_LOG: Logs all allocations performed with Arclight Allocators
-*/
-
-#define ARC_ALLOCATOR_DEBUG_LOG
+// Logs all allocations performed with Arclight allocators
+#define ARC_CFG_ALLOCATOR_DEBUG
 
 
-/*
-	Sparse array packing
-	ARC_SPARSE_PACK: Packs dense indices and data tightly together. Enhances array caching but might marginally bloat a single cache line during iteration.
-*/
-
-//#define ARC_SPARSE_PACK
+// Packs dense indices and data tightly together (enhances array caching but might marginally bloat a single cache line during iteration)
+#define ARC_CFG_SPARSE_PACK
 
 
-/*
-	String representing the project's configuration type.
-*/
+// Enables the Arclight runtime
+//#define ARC_CFG_ARCRT_ENABLE
 
-#if ARC_DEBUG
-	#define ARC_CONFIGURATION_NAME "Debug"
-#else
-	#define ARC_CONFIGURATION_NAME "Release"
-#endif
+// Silences logging performed by the runtime
+//#define ARC_CFG_ARCRT_SILENT
 
-
-/*
-	Custom ArcRT
-	ARC_USE_ARCRT: Uses the custom arclight runtime
-*/
-
-//#define ARC_USE_ARCRT
-
-
-/*
-	Silence ArcRT
-	ARC_ARCRT_SILENT: Silences all log messages coming from the runtime
-*/
-
-//#define ARC_ARCRT_SILENT
-
-
-/*
-	Disables log file creation in ArcRT
-	ARC_ARCRT_DISABLE_LOG_FILE: Disables log file creation in ArcRT
-*/
-
+// Disables log file creation in the runtime
 //#define ARC_ARCRT_DISABLE_LOG_FILE
 
-
-/*
-	Show message box upon crash
-	ARC_SHOW_CRASH_MESSAGEBOX: Displays a message box when the application crashes
-*/
-
-#define ARC_SHOW_CRASH_MESSAGEBOX
+// Displays an error message box on fatal errors
+//#define ARC_CFG_ARCRT_MESSAGEBOX
 
 
-/*
-	Disable stacktraces
-	ARC_DISABLE_STACKTRACES: Disables stacktraces
-*/
-
-//#define ARC_DISABLE_STACKTRACES
+// Disables stacktracing library
+#define ARC_CFG_DISABLE_STACKTRACES
 
 
-/*
-	Log directory path
-*/
-
-#define ARC_LOG_DIRECTORY "log"
+// Log directory path
+#define ARC_CFG_LOG_DIRECTORY "log"
 
 
-/*
-	Final release build
-	ARC_FINAL_BUILD: Builds the program ready for release. Disables debugging functionality and optimizes certain functions.
-*/
-
-//#define ARC_FINAL_BUILD
+// Builds the program ready for release (disables all debugging and enables few optimizations)
+#define ARC_CFG_FINAL_BUILD
 
 
-/*
-	Assertion policy
-	ARC_ASSERT_NEVER: Never asserts.
-	ARC_ASSERT_DEBUG: Asserts only in debug mode.
-	ARC_ASSERT_BUILD: Always asserts, except in final build mode. (default)
-*/
+#define ARC_ASSERT_POLICY_NEVER 0 // Never asserts
+#define ARC_ASSERT_POLICY_DEBUG 1 // Only in debug mode
+#define ARC_ASSERT_POLICY_BUILD 2 // Always asserts except in final build mode
 
-#define ARC_ASSERT_DEBUG
+// Assertion policy
+#define ARC_CFG_ASSERT_POLICY ARC_ASSERT_POLICY_DEBUG
 
+// Disabled assert becomes compiler assumption
+#define ARC_CFG_ASSERT_ASSUME
 
-/*
-	Matrix -> Quaternion default conversion method
-	ARC_QUATERNION_MATCONV_BRANCHLESS: Prefers a branchless conversion algorithm
-*/
-
-//#define ARC_QUATERNION_MATCONV_BRANCHLESS
+// Generates more verbose compile time assert output
+#define ARC_CFG_ASSERT_VERBOSE
 
 
-/*
-	Quaternion memory layout
-	ARC_QUATERNION_XYZW: Sets w to be the last component
-*/
+// Prefers a branchless conversion algorithm
+//#define ARC_CFG_QUATERNION_MATCONV_BRANCHLESS
 
-//#define ARC_QUATERNION_XYZW
-
-
-/*
-	Image debugging
-	ARC_IMAGE_DEBUG: Prints debug output for images
-*/
-
-//#define ARC_IMAGE_DEBUG
+// Sets w as the last component
+//#define ARC_CFG_QUATERNION_XYZW
 
 
-/*
-	Pixel interpolation strategy
-	ARC_PIXEL_EXACT: Use rounding instead of truncation during conversion. Note that this method is a lot slower.
-*/
-
-//#define ARC_PIXEL_EXACT
+// Logs image decoding/encoding information
+#define ARC_CFG_IMAGE_DEBUG
 
 
-/*
-	Filter application strategy
-	ARC_FILTER_EXACT: Favor precision over speed.
-*/
-
-#define ARC_FILTER_EXACT
+// Use rounding instead of truncation during conversion. Note that this method is a lot slower.
+#define ARC_CFG_PIXEL_EXACT
 
 
-/*
-	ArgumentParser debugging
-	ARC_ARGPARSE_DEBUG: Prints argument tree during parsing for debugging
-*/
+// Favor precision over speed
+#define ARC_CFG_FILTER_EXACT
 
-//#define ARC_ARGPARSE_DEBUG
+
+// Prints argument tree during parsing for debugging
+#define ARC_CFG_ARGPARSE_DEBUG

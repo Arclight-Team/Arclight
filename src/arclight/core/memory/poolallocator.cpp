@@ -64,7 +64,7 @@ void PoolAllocator::create(AddressT blockCount, AddressT blockSize, AlignT block
 
 		head = reinterpret_cast<Storage*>(heap);
 
-	#ifdef ARC_ALLOCATOR_DEBUG_LOG
+	#ifdef ARC_CFG_ALLOCATOR_DEBUG
 		LogD("Pool Allocator").print("Pool created at %p. Block size: %d, total size: %d,", heap, alignedSize, totalSize);
 	#endif
 
@@ -80,7 +80,7 @@ void PoolAllocator::clear() noexcept {
 
 		::operator delete(heap, std::align_val_t(blockAlign));
 
-#ifdef ARC_ALLOCATOR_DEBUG_LOG
+#ifdef ARC_CFG_ALLOCATOR_DEBUG
 		LogD("Pool Allocator").print("Pool destroyed at %p.", heap);
 #endif
 
@@ -105,7 +105,7 @@ void PoolAllocator::clear() noexcept {
 	void* allocPtr = head;
 	head = head->next;
 
-#ifdef ARC_ALLOCATOR_DEBUG_LOG
+#ifdef ARC_CFG_ALLOCATOR_DEBUG
 	LogD("Pool Allocator").print("Pool %p allocated memory at %p.", heap, allocPtr);
 #endif
 
@@ -122,13 +122,13 @@ void PoolAllocator::deallocate(void* ptr) noexcept {
 		Storage* storagePtr = ::new(ptr) Storage(head);
 		head = storagePtr;
 
-#ifdef ARC_ALLOCATOR_DEBUG_LOG
+#ifdef ARC_CFG_ALLOCATOR_DEBUG
 		LogD("Pool Allocator").print("Pool %p deallocated memory at %p.", heap, ptr);
 #endif
 
 	}
 
-#ifdef ARC_ALLOCATOR_DEBUG_LOG
+#ifdef ARC_CFG_ALLOCATOR_DEBUG
 	else {
 		LogD("Pool Allocator").print("Pool %p received invalid pointer %p.", heap, ptr);
 	}

@@ -133,7 +133,7 @@ SizeT BitmapDecoder::parseHeader() {
 	u16 reserved2 = reader.read<u16>();
 	u32 dataOffset = reader.read<u32>();
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 	LogI("Bitmap Loader").print("Header: 0x%X, Size: 0x%X, Reserved1: 0x%X, Reserved2: 0x%X, Offset: 0x%X", signature, fileSize, reserved1, reserved2, dataOffset);
 #endif
 
@@ -196,7 +196,7 @@ void BitmapDecoder::parseInfoHeader() {
 	bitmap.paletteColors = reader.read<u32>();
 	bitmap.importantColors = reader.read<u32>();
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 	LogI("Bitmap Loader").print("InfoSize: 0x%X, Width: 0x%X, Height: 0x%X, Planes: 0x%X, BPP: 0x%X, Compression: 0x%X, ImageSize: 0x%X, PPMX: 0x%X, PPMY: 0x%X, PaletteColors: 0x%X, ImportantColors: 0x%X",
 	headerSize, width, height, planes, bitmap.bitsPerPixel, compression, imageSize, bitmap.pixelsPerMeterX, bitmap.pixelsPerMeterY, bitmap.paletteColors, bitmap.importantColors);
 #endif
@@ -237,7 +237,7 @@ void BitmapDecoder::parseInfoHeader() {
 		bitmap.greenGamma = reader.read<u32>();
 		bitmap.blueGamma = reader.read<u32>();
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 		LogI("Bitmap Loader").print("RedMask: 0x%X, GreenMask: 0x%X, BlueMask: 0x%X, AlphaMask: 0x%X, RedGamma: 0x%X, GreenGamma: 0x%X, BlueGamma: 0x%X",
 		bitmap.redMask, bitmap.greenMask, bitmap.blueMask, bitmap.alphaMask, bitmap.redGamma, bitmap.greenGamma, bitmap.blueGamma);
 
@@ -278,7 +278,7 @@ void BitmapDecoder::parseInfoHeader() {
 			u32 profileDataSize = reader.read<u32>();
 			u32 reserved = reader.read<u32>();
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 			LogI("Bitmap Loader").print("RenderIntent: 0x%X, ProfileDataOffset: 0x%X, ProfileDataSize: 0x%X, Reserved: 0x%X",
 			renderIntent, profileDataOffset, profileDataSize, reserved);
 #endif

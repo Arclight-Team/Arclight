@@ -132,14 +132,14 @@ bool OS::init() {
 	commctrl.dwICC = ICC_WIN95_CLASSES | ICC_USEREX_CLASSES | ICC_STANDARD_CLASSES | ICC_PAGESCROLLER_CLASS | ICC_NATIVEFNTCTL_CLASS | ICC_LINK_CLASS | ICC_INTERNET_CLASSES | ICC_DATE_CLASSES | ICC_COOL_CLASSES;
 
 	if (!InitCommonControlsEx(&commctrl)) {
-#ifndef ARC_ARCRT_SILENT
+#ifndef ARC_CFG_ARCRT_SILENT
 		LogE("Runtime") << "Failed to initialize CommCtrl";
 #endif
 		return false;
 	}
 
 	if (CoInitialize(nullptr)) {
-#ifndef ARC_ARCRT_SILENT
+#ifndef ARC_CFG_ARCRT_SILENT
 		LogE("Runtime") << "Failed to initialize COM";
 #endif
 		return false;
@@ -147,7 +147,7 @@ bool OS::init() {
 
 #ifndef ARC_WIN_DISABLE_CONSOLE
 	if (!SetConsoleOutputCP(CP_UTF8)) {
-#ifndef ARC_ARCRT_SILENT
+#ifndef ARC_CFG_ARCRT_SILENT
 		LogE("Runtime") << "Console failed to switch to Unicode";
 #endif
 		return false;

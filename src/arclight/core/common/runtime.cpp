@@ -32,7 +32,7 @@ namespace ArcRuntime {
 }
 
 
-#ifdef ARC_USE_ARCRT
+#ifdef ARC_CFG_ARCRT_ENABLE
 
 	extern u32 arcMain(const std::vector<std::string>& args);
 	static void showExceptionMessageBox(const std::string& ex, const std::string& st) noexcept;
@@ -46,7 +46,7 @@ namespace ArcRuntime {
 		});
 
 		std::set_terminate([]() {
-#ifndef ARC_ARCRT_SILENT
+#ifndef ARC_CFG_ARCRT_SILENT
 			LogE("Runtime") << "An unhandled exception has been thrown, terminating.";
 #endif
 			showExceptionMessageBox("Unhandled Exception", "<Untraceable>");
@@ -69,7 +69,7 @@ namespace ArcRuntime {
 
 		} catch (const std::exception& e) {
 
-#ifndef ARC_ARCRT_SILENT
+#ifndef ARC_CFG_ARCRT_SILENT
 			LogE("Runtime") << "Exception has been thrown before main.";
 			LogE("Runtime") << e;
 #endif
@@ -89,7 +89,7 @@ namespace ArcRuntime {
 
 			if (ret) {
 
-#ifndef ARC_ARCRT_SILENT
+#ifndef ARC_CFG_ARCRT_SILENT
 				LogD("Runtime") << "Application exited with an error";
 #endif
 				return ret;
@@ -99,7 +99,7 @@ namespace ArcRuntime {
 #if !ARC_DEBUG
 		} catch (const std::exception& e) {
 
-#ifndef ARC_ARCRT_SILENT
+#ifndef ARC_CFG_ARCRT_SILENT
 			LogE("Runtime") << "The application has thrown an exception.";
 			LogE("Runtime") << e;
 #endif
@@ -109,7 +109,7 @@ namespace ArcRuntime {
 
 		} catch (...) {
 
-#ifndef ARC_ARCRT_SILENT
+#ifndef ARC_CFG_ARCRT_SILENT
 			LogE("Runtime") << "The application has thrown an exception of unknown type.";
 #endif
 			showExceptionMessageBox("Object-Type Exception", "<Untraceable>");
@@ -146,7 +146,7 @@ namespace ArcRuntime {
 
 bool ArcRuntime::initialize() noexcept {
 
-#ifndef ARC_ARCRT_SILENT
+#ifndef ARC_CFG_ARCRT_SILENT
 	LogD("Runtime") << "Initializing runtime";
 #endif
 
@@ -185,7 +185,7 @@ bool ArcRuntime::initialize() noexcept {
 
 #endif
 
-#ifndef ARC_ARCRT_SILENT
+#ifndef ARC_CFG_ARCRT_SILENT
 	LogD("Runtime") << "Ready";
 #endif
 
@@ -197,7 +197,7 @@ bool ArcRuntime::initialize() noexcept {
 
 void ArcRuntime::shutdown() noexcept {
 
-#ifndef ARC_ARCRT_SILENT
+#ifndef ARC_CFG_ARCRT_SILENT
 	LogD("Runtime") << "Shutting down runtime";
 #endif
 
@@ -209,7 +209,7 @@ void ArcRuntime::shutdown() noexcept {
 	glfwTerminate();
 #endif
 
-#ifndef ARC_ARCRT_SILENT
+#ifndef ARC_CFG_ARCRT_SILENT
 	LogD("Runtime") << "Bye";
 #endif
 

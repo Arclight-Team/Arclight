@@ -289,7 +289,7 @@ void JPEGDecoder::parseApplicationSegment0() {
 		u8 thumbnailW = reader.read<u8>();
 		u8 thumbnailH = reader.read<u8>();
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 		LogI("JPEG Decoder").print("[APP0 JFIF] Major: %d, Minor: %d, Density: 0x%X, DensityX: %d, DensityY: %d, ThumbnailW: %d, ThumbnailH: %d",
 				  major, minor, density, densityX, densityY, thumbnailW, thumbnailH);
 #endif
@@ -317,7 +317,7 @@ void JPEGDecoder::parseApplicationSegment0() {
 
 		u8 format = reader.read<u8>();
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 		LogI("JPEG Decoder").print("[APP0 JFXX] ThumbnailFormat: 0x%X", format);
 #endif
 
@@ -425,7 +425,7 @@ void JPEGDecoder::parseHuffmanTable() {
 		u8 id = settings & 0xF;
 		bool dc = type == 0;
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 		LogI("JPEG Decoder").print("[DHT] Class: %s, ID: %d", dc ? "DC" : "AC", id);
 #endif
 
@@ -553,7 +553,7 @@ void JPEGDecoder::parseHuffmanTable() {
 
 	} while (offset != length);
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 	LogI("JPEG Decoder").print("[DHT] Tables read: %d", count);
 #endif
 
@@ -583,7 +583,7 @@ void JPEGDecoder::parseArithmeticConditioning() {
 		u8 id = settings & 0xF;
 		bool dc = type == 0;
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 		LogI("JPEG Decoder").print("[DAC] Class: %s, ID: %d", dc ? "DC" : "AC", id);
 #endif
 
@@ -607,7 +607,7 @@ void JPEGDecoder::parseArithmeticConditioning() {
 			dcc.upperBound = 1 << u;
 			dcc.active = true;
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 			LogI("JPEG Decoder").print("[DAC] LowerBound: %d, UpperBound: %d", dcc.lowerBound, dcc.upperBound);
 #endif
 
@@ -621,7 +621,7 @@ void JPEGDecoder::parseArithmeticConditioning() {
 			acc.kx = cs;
 			acc.active = true;
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 			LogI("JPEG Decoder").print("[DAC] Kx: %d", acc.kx);
 #endif
 
@@ -631,7 +631,7 @@ void JPEGDecoder::parseArithmeticConditioning() {
 
 	} while (offset != length);
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 	LogI("JPEG Decoder").print("[DAC] Tables read: %d", count);
 #endif
 
@@ -656,7 +656,7 @@ void JPEGDecoder::parseQuantizationTable() {
 		u8 precision = setting >> 4;
 		u8 id = setting & 0xF;
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 		LogI("JPEG Decoder").print(std::string("[DQT] Table %d, ") + (precision ? "16 bit" : "8 bit"), id);
 #endif
 
@@ -693,7 +693,7 @@ void JPEGDecoder::parseQuantizationTable() {
 
 	} while (offset != length);
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 	LogI("JPEG Decoder").print("[DQT] Tables read: %d", count);
 #endif
 
@@ -712,7 +712,7 @@ void JPEGDecoder::parseRestartInterval() {
 	restartInterval = reader.read<u16>();
 	restartEnabled = restartInterval;
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 	LogI("JPEG Decoder").print("[DRI] RestartInterval: %d", restartInterval);
 #endif
 
@@ -724,7 +724,7 @@ void JPEGDecoder::parseComment() {
 
 	u16 length = verifySegmentLength();
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 	LogI("JPEG Decoder").print("[COM] Comment: " + std::string(reinterpret_cast<const char*>(reader.head()), length - 2));
 #endif
 
@@ -744,7 +744,7 @@ void JPEGDecoder::parseNumberOfLines() {
 
 	u16 lines = reader.read<u16>();
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 	LogI("JPEG Decoder").print("[DNL] Lines: %d", lines);
 #endif
 
@@ -773,7 +773,7 @@ void JPEGDecoder::parseFrameHeader() {
 
 	u8 components = reader.read<u8>();
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 	LogI("JPEG Decoder").print("[SOF] Bits: %d, Lines: %d, Samples: %d, Components: %d", frame.bits, frame.lines, frame.samples, components);
 #endif
 
@@ -837,7 +837,7 @@ void JPEGDecoder::parseFrameHeader() {
 
 		FrameComponent component(s >> 4, s & 0xF, q);
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 		LogI("JPEG Decoder").print("[SOF] Component: %d, SX: %d, SY: %d, QTableIndex: %d", id, component.samplesX, component.samplesY, q);
 #endif
 
@@ -872,7 +872,7 @@ void JPEGDecoder::parseScanHeader() {
 
 	u8 components = reader.read<u8>();
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 	LogI("JPEG Decoder").print("[SOS] Images: %d", components);
 #endif
 
@@ -892,7 +892,7 @@ void JPEGDecoder::parseScanHeader() {
 		u8 dcTableID = ids >> 4;
 		u8 acTableID = ids & 0xF;
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 		LogI("JPEG Decoder").print("[SOS] Component %d: ID: %d, DCID: %d, ACID: %d", i + 1, componentID, dcTableID, acTableID);
 #endif
 
@@ -952,7 +952,7 @@ void JPEGDecoder::parseScanHeader() {
 	scan.approximationHigh = approx >> 4;
 	scan.approximationLow = approx & 0xF;
 
-#ifdef ARC_IMAGE_DEBUG
+#ifdef ARC_CFG_IMAGE_DEBUG
 	LogI("JPEG Decoder").print("[SOS] SStart: %d, SEnd: %d, ApproxHigh: %d, ApproxLow: %d", scan.spectralStart, scan.spectralEnd, scan.approximationHigh, scan.approximationLow);
 #endif
 

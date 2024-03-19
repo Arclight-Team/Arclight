@@ -3,29 +3,33 @@
  *
  *	 This file is part of Arclight. All rights reserved.
  *
- *	 arcbuild.hpp
+ *	 build.hpp
  */
 
 #pragma once
 
-/*
-	OS check
-*/
-#ifdef _WIN32
-	#define ARC_OS_WINDOWS
-#elif __linux__
-	#define ARC_OS_LINUX
-#elif __APPLE__
-	#define ARC_OS_MACOS
+
+
+#if ARC_DEBUG
+	#define ARC_BUILD_TYPE "Debug"
 #else
-	#error "Arclight Build Error: Unknown target OS"
-	#define ARC_OS_UNKNOWN
+	#define ARC_BUILD_TYPE "Release"
 #endif
 
 
-/*
-	Platform check
-*/
+#ifdef _WIN32
+	#define ARC_OS_WINDOWS
+#elif __linux__
+	#define ARC_OS_UNIX
+	#define ARC_OS_LINUX
+#elif __APPLE__
+	#define ARC_OS_UNIX
+	#define ARC_OS_MACOS
+#else
+	#error "Arclight Fatal: Unknown target OS"
+#endif
+
+
 #if defined(_M_X64) || defined(_M_AMD64) || defined(__x86_64__) || defined(__x86_64) || defined(__amd64__) || defined(__amd64)
 	#define ARC_PLATFORM_AMD64
 	#define ARC_PLATFORM_X86
@@ -43,15 +47,10 @@
 	#define ARC_PLATFORM_ARM
 	#define ARC_MACHINE_BITS 32
 #else
-	#error "Arclight Build Error: Unknown target platform"
-	#define ARC_PLATFORM_UNKNOWN
-	#define ARC_BITS_UNKNOWN
+	#error "Arclight Fatal: Unknown target platform"
 #endif
 
 
-/*
-	Compiler check
-*/
 #if defined(__clang__)
 	#define ARC_COMPILER_CLANG
 #elif defined(__GNUC__)
@@ -59,9 +58,8 @@
 #elif defined(_MSC_VER)
 	#define ARC_COMPILER_MSVC
 #else
-	#error "Arclight Build Error: Unknown compiler"
-	#define ARC_COMPILER_UNKNOWN
+	#error "Arclight Fatal: Unknown compiler"
 #endif
 
 
-#define ARC_MACHINE_BYTES	(ARC_MACHINE_BITS / 8)
+#define ARC_MACHINE_BYTES (ARC_MACHINE_BITS / 8)

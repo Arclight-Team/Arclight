@@ -37,7 +37,7 @@ public:
 				auto g = Math::clamp(static_cast<i32>(pixel.getGreen() - halfValueGreen) * contrast + halfValueGreen, 0, maxValueGreen);
 				auto b = Math::clamp(static_cast<i32>(pixel.getBlue() - halfValueBlue) * contrast + halfValueBlue, 0, maxValueBlue);
 
-#ifdef ARC_FILTER_EXACT
+#ifdef ARC_CFG_FILTER_EXACT
 				pixel.setRGB(static_cast<u32>(Math::round(r)), static_cast<u32>(Math::round(g)), static_cast<u32>(Math::round(b)));
 #else
 				pixel.setRGB(r, g, b);

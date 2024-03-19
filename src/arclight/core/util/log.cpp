@@ -23,12 +23,12 @@ namespace Log {
 
 	void init() noexcept {
 
-#ifdef ARC_LOG_STDIO_UNSYNC
+#ifdef ARC_CFG_LOG_STDIO_UNSYNC
 
 		try {
 			std::ios_base::sync_with_stdio(false);
 		} catch (const std::exception &) {
-#if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
+#if defined(ARC_CFG_LOG_EXCEPTION_ABORT) && !defined(ARC_CFG_FINAL_BUILD)
 			arc_abort();
 #endif
 		}
@@ -55,7 +55,7 @@ namespace Log {
 			}
 
 		} catch (const std::exception &) {
-#if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
+#if defined(ARC_CFG_LOG_EXCEPTION_ABORT) && !defined(ARC_CFG_FINAL_BUILD)
 			arc_abort();
 #endif
 		}
@@ -67,7 +67,7 @@ namespace Log {
 		try {
 			logFile.close();
 		} catch (const std::exception &) {
-#if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
+#if defined(ARC_CFG_LOG_EXCEPTION_ABORT) && !defined(ARC_CFG_FINAL_BUILD)
 			arc_abort();
 #endif
 		}
@@ -96,7 +96,7 @@ void RawLog::flush() noexcept {
 
 	} catch(const std::exception& e) {
 		// There's literally nothing we can do here
-#if defined(ARC_LOG_EXCEPTION_ABORT) && !defined(ARC_FINAL_BUILD)
+#if defined(ARC_CFG_LOG_EXCEPTION_ABORT) && !defined(ARC_CFG_FINAL_BUILD)
 		arc_abort();
 #endif
 	}

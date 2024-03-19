@@ -35,7 +35,7 @@ public:
 				auto b = pixel.getBlue();
 				auto mixColor = (0.2126 * r) / maxValueRed + (0.7152 * g) / maxValueGreen + (0.0722 * b) / maxValueBlue;
 
-#ifdef ARC_FILTER_EXACT
+#ifdef ARC_CFG_FILTER_EXACT
 				pixel.setRGB(static_cast<u32>(Math::round(mixColor * maxValueRed)), static_cast<u32>(Math::round(mixColor * maxValueGreen)), static_cast<u32>(Math::round(mixColor * maxValueBlue)));
 #else
 				pixel.setRGB(static_cast<u32>(mixColor * maxValueRed), static_cast<u32>(mixColor * maxValueGreen), static_cast<u32>(mixColor * maxValueBlue));

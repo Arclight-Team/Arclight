@@ -8,49 +8,43 @@
 
 #pragma once
 
-#include "common/build.hpp"
-#include "common/config.hpp"
+#include "build.hpp"
+#include "config.hpp"
+
+#include <utility>
 
 
 
-/*
-	Defines ARC_NO_INLINE
-	Forces the compiler to not inline a certain function.
-*/
+// Suppresses function inlinining by the compiler
+
 #ifdef ARC_COMPILER_MSVC
-	#define ARC_NO_INLINE	__declspec(noinline)
+	#define ARC_NO_INLINE [[msvc::noinline]]
 #elif defined(ARC_COMPILER_CLANG) || defined(ARC_COMPILER_GCC)
-	#define ARC_NO_INLINE	__attribute__((noinline))
+	#define ARC_NO_INLINE [[gnu::noinline]]
 #else
 	#define ARC_NO_INLINE
 #endif
 
 
+// Forces the compiler to attempt inlining regardless of optimization level
 
-/*
-	Defines ARC_FORCE_INLINE
-	Forces the compiler to inline a certain function.
-*/
 #ifdef ARC_COMPILER_MSVC
-	#define ARC_FORCE_INLINE	[[msvc::forceinline]]
+	#define ARC_FORCE_INLINE [[msvc::forceinline]] inline
 #elif defined(ARC_COMPILER_CLANG) || defined(ARC_COMPILER_GCC)
-	#define ARC_FORCE_INLINE	__attribute__((always_inline)) inline
+	#define ARC_FORCE_INLINE [[gnu::always_inline]] inline
 #else
-	#define ARC_FORCE_INLINE	inline
+	#define ARC_FORCE_INLINE inline
 #endif
 
 
+// Optimization assumption for the compiler defining the condition to be true
 
-/*
-	Defines ARC_UNREACHABLE
-	Issues a hint to the compiler that the given codepath is never reachable
-*/
 #ifdef ARC_COMPILER_MSVC
-	#define ARC_UNREACHABLE	__assume(false);
-#elif defined(ARC_COMPILER_CLANG) || defined(ARC_COMPILER_GCC)
-	#define ARC_UNREACHABLE	__builtin_unreachable();
-#else
-	#define ARC_UNREACHABLE
+	#define arc_assume(condition) do { __assume((condition)); } while (false)
+#elif defined(ARC_COMPILER_CLANG)
+	#define arc_assume(condition) do { __builtin_assume((condition)); } while (false)
+#elif defined(ARC_COMPILER_GCC)
+	#define arc_assume(condition) do { __attribute__((assume((condition)))); } while (false)
 #endif
 
 
@@ -63,7 +57,7 @@
 	/*
 		x86 code vectorization: SSE and AVX support (except AVX512)
 	*/
-	#ifdef ARC_VECTORIZE_X86
+	#ifdef ARC_CFG_X86_VECTORIZE
 
 		#include <immintrin.h>
 

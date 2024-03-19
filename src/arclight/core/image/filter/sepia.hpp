@@ -42,7 +42,7 @@ public:
 				c.y = Math::min(c.y, 1.0f) * maxValueGreen;
 				c.z = Math::min(c.z, 1.0f) * maxValueBlue;
 
-#ifdef ARC_FILTER_EXACT
+#ifdef ARC_CFG_FILTER_EXACT
 				pixel.setRGB(static_cast<u32>(Math::round(c.x)), static_cast<u32>(Math::round(c.y)), static_cast<u32>(Math::round(c.z)));
 #else
 				pixel.setRGB(static_cast<u32>(c.x), static_cast<u32>(c.y), static_cast<u32>(c.z));

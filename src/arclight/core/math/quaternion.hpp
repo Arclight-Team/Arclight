@@ -273,7 +273,7 @@ public:
 	template<CC::Float F>
 	ARC_CONSTEXPR_CMATH26 void setMat3(const Mat3<F>& m) {
 		
-#ifdef ARC_QUATERNION_MATCONV_BRANCHLESS
+#ifdef ARC_CFG_QUATERNION_MATCONV_BRANCHLESS
 
 		x = T(0.5) * Math::sqrt(1 + m[0][0] - m[1][1] - m[2][2]);
 		y = T(0.5) * Math::sqrt(1 - m[0][0] + m[1][1] - m[2][2]);
@@ -400,13 +400,13 @@ public:
 	}
 
 
-#ifndef ARC_QUATERNION_XYZW
+#ifndef ARC_CFG_QUATERNION_XYZW
 	T w;
 #endif
 	T x;
 	T y;
 	T z;
-#ifdef ARC_QUATERNION_XYZW
+#ifdef ARC_CFG_QUATERNION_XYZW
 	T w;
 #endif
 

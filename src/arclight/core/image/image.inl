@@ -250,7 +250,7 @@ constexpr void Image<P>::resize(ImageScaling scaling, u32 w, u32 h) {
 					Vec4f a = (1.0f - dy) * a0 + dy * a1;
 
 					PixelType p;
-#ifdef ARC_PIXEL_EXACT
+#ifdef ARC_CFG_PIXEL_EXACT
 					p.setRGBA(static_cast<u32>(Math::round(a.x)), static_cast<u32>(Math::round(a.y)), static_cast<u32>(Math::round(a.z)), static_cast<u32>(Math::round(a.w)));
 #else
 					p.setRGBA(static_cast<u32>(a.x), static_cast<u32>(a.y), static_cast<u32>(a.z), static_cast<u32>(a.w));

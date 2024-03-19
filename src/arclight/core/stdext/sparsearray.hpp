@@ -30,7 +30,7 @@ class SparseArray {
 
 	static_assert(!std::is_reference_v<T>, "T cannot be a reference type");
 
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 	struct Storage {
 		IndexType index;
 		T element;
@@ -52,7 +52,7 @@ class SparseArray {
 
 		constexpr IteratorBase() noexcept : ptr(nullptr) {}
 
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		constexpr IteratorBase(Storage* it) noexcept : ptr(it) {}
 #else
 		constexpr explicit IteratorBase(pointer it) noexcept : ptr(it) {}
@@ -95,7 +95,7 @@ class SparseArray {
 		template<bool ConstOther>
 		friend class IteratorBase;
 
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		constexpr pointer getPtr() const noexcept {return &ptr->element;}
 		Storage* ptr;
 #else
@@ -349,7 +349,7 @@ public:
 		indexArray.clear();
 		denseArray.clear();
 
-#ifndef ARC_SPARSE_PACK
+#ifndef ARC_CFG_SPARSE_PACK
 		elementArray.clear();
 #endif
 
@@ -366,7 +366,7 @@ public:
 		indexArray.shrink_to_fit();
 		denseArray.shrink_to_fit();
 
-#ifndef ARC_SPARSE_PACK
+#ifndef ARC_CFG_SPARSE_PACK
 		elementArray.shrink_to_fit();
 #endif
 
@@ -393,7 +393,7 @@ public:
 		Returns an iterator to the start of the dense array.
 	*/
 	constexpr Iterator begin() noexcept {
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		return Iterator(denseArray.data());
 #else
 		return Iterator(elementArray.data());
@@ -402,7 +402,7 @@ public:
 
 
 	constexpr ConstIterator begin() const noexcept {
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		return ConstIterator(denseArray.data());
 #else
 		return ConstIterator(elementArray.data());
@@ -414,7 +414,7 @@ public:
 		Returns an iterator to the element past the dense array.
 	*/
 	constexpr Iterator end() noexcept {
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		return Iterator(denseArray.data() + denseArray.size());
 #else
 		return Iterator(elementArray.data() + elementArray.size());
@@ -423,7 +423,7 @@ public:
 
 
 	constexpr ConstIterator end() const noexcept {
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		return ConstIterator(denseArray.data() + denseArray.size());
 #else
 		return ConstIterator(elementArray.data() + elementArray.size());
@@ -435,7 +435,7 @@ public:
 		Returns a const iterator to the start of the dense array.
 	*/
 	constexpr ConstIterator cbegin() const noexcept {
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		return ConstIterator(denseArray.data());
 #else
 		return ConstIterator(elementArray.data());
@@ -447,7 +447,7 @@ public:
 		Returns a const iterator to the element past the dense array.
 	*/
 	constexpr ConstIterator cend() const noexcept {
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		return ConstIterator(denseArray.data() + denseArray.size());
 #else
 		return ConstIterator(elementArray.data() + elementArray.size());
@@ -507,7 +507,7 @@ public:
 
 		for(SizeT i = 0; i < denseArray.size(); i++){
 			
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 			if(denseArray[i].storage == compare) {
 				return denseArray[i].index;
 			}
@@ -532,7 +532,7 @@ public:
 
 		indexArray.reserve(indexArrayCapacity);
 		denseArray.reserve(denseArrayCapacity);
-#ifndef ARC_SPARSE_PACK
+#ifndef ARC_CFG_SPARSE_PACK
 		elementArray.reserve(denseArrayCapacity);
 #endif
 
@@ -544,7 +544,7 @@ public:
 	*/
 	constexpr void swap(IndexType posA, IndexType posB) {
 
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		std::swap(denseArray[indexArray[posA]].index, denseArray[indexArray[posB]].index);
 #else
 		std::swap(denseArray[indexArray[posA]], denseArray[indexArray[posB]]);
@@ -558,7 +558,7 @@ private:
 
 	template<class U>
 	constexpr void internalSet(IndexType sparseIdx, IndexType denseIdx, U&& value) {
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		denseArray[denseIdx].index = sparseIdx;
 		denseArray[denseIdx].element = std::forward<U>(value);
 #else
@@ -569,7 +569,7 @@ private:
 
 
 	constexpr T& internalGet(IndexType sparseIdx) {
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		return denseArray[indexArray[sparseIdx]].element;
 #else
 		return elementArray[indexArray[sparseIdx]];
@@ -578,7 +578,7 @@ private:
 
 
 	constexpr const T& internalGet(IndexType sparseIdx) const {
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		return denseArray[indexArray[sparseIdx]].element;
 #else
 		return elementArray[indexArray[sparseIdx]];
@@ -591,7 +591,7 @@ private:
 
 		indexArray[sparseIdx] = denseArray.size();
 
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		denseArray.emplace_back(Storage{sparseIdx, std::forward<U>(value)});
 #else
 		denseArray.emplace_back(sparseIdx);
@@ -603,7 +603,7 @@ private:
 
 	constexpr void internalRemove(IndexType sparseIdx) {
 
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		const IndexType& lastSparseIdx = denseArray.back().index;
 		const IndexType& denseIdx = indexArray[sparseIdx];
 		denseArray[denseIdx] = std::move(denseArray[indexArray[lastSparseIdx]]);
@@ -630,7 +630,7 @@ private:
 
 	constexpr IndexType internalInvertIndex(IndexType denseIdx) const {
 
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		return denseArray[denseIdx].index;
 #else
 		return denseArray[denseIdx];
@@ -690,7 +690,7 @@ private:
 		Returns true if the dense element is invalid
 	*/
 	constexpr bool denseElementInvalid(IndexType sparseIdx) const {
-#ifdef ARC_SPARSE_PACK
+#ifdef ARC_CFG_SPARSE_PACK
 		return denseArray[indexArray[sparseIdx]].index != sparseIdx;
 #else
 		return denseArray[indexArray[sparseIdx]] != sparseIdx;
@@ -713,7 +713,7 @@ private:
 		arc_assert(!denseIndexOutOfBounds(pos), "Dense index out of bounds (idx=%d, size=%d)", pos, denseArray.size());
 	}
 
-#ifndef ARC_SPARSE_PACK
+#ifndef ARC_CFG_SPARSE_PACK
 	std::vector<T> elementArray;
 	std::vector<IndexType> denseArray;
 #else

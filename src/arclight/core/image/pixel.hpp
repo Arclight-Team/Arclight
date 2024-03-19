@@ -366,7 +366,7 @@ public:
 		g = Math::min(g, getMaxGreen());
 		b = Math::min(b, getMaxBlue());
 		
-#ifdef ARC_PIXEL_EXACT
+#ifdef ARC_CFG_PIXEL_EXACT
 		setRGB(static_cast<u32>(Math::round(r)), static_cast<u32>(Math::round(g)), static_cast<u32>(Math::round(b)));
 #else
 		setRGB(static_cast<u32>(r), static_cast<u32>(g), static_cast<u32>(b));
@@ -630,7 +630,7 @@ private:
 	template<class T, u32 InBits, u32 OutBits>
 	constexpr static T convertChannel(T value) {
 
-#ifdef ARC_PIXEL_EXACT
+#ifdef ARC_CFG_PIXEL_EXACT
 		if constexpr (InBits == 0) {
 			return 0;
 		}
@@ -649,7 +649,7 @@ private:
 	template<class T>
 	constexpr static T convertChannel(T value, u32 inBits, u32 outBits) {
 
-#ifdef ARC_PIXEL_EXACT
+#ifdef ARC_CFG_PIXEL_EXACT
 		return inBits ? static_cast<T>(Math::round(value * ((1 << outBits) - 1) / static_cast<float>((1 << inBits) - 1))) : 0;
 #else
 		return static_cast<TT::UnsignedFromMinSize<sizeof(T) + 1>>(value << outBits) >> inBits;

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "common/build.hpp"
+#include "build.hpp"
 
 #include <cstdint>
 #include <cstddef>
@@ -37,8 +37,6 @@ using NullptrT	= std::nullptr_t;
 	using SystemT = u64;
 #elif ARC_MACHINE_BITS == 32
 	using SystemT = u32;
-#elif ARC_MACHINE_BITS == 16
-	using SystemT = u16;
 #else
 	using SystemT = u32;
 #endif

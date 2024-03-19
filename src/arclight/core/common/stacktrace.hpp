@@ -16,7 +16,7 @@
 
 
 
-#if defined(__cpp_lib_stacktrace) && !defined(ARC_DISABLE_STACKTRACES)
+#if defined(__cpp_lib_stacktrace) && !defined(ARC_CFG_DISABLE_STACKTRACES)
 	#define __ARC_USE_STACKTRACES
 #endif
 
