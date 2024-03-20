@@ -7,7 +7,7 @@
  */
 
 #include "argumentparser.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 
 #include <stack>
 #include <ranges>

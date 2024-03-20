@@ -10,7 +10,7 @@
 
 #include "math/math.hpp"
 #include "math/overflow.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 #include "util/bits.hpp"
 #include "common/types.hpp"
 

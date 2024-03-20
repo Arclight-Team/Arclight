@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "typetraits.hpp"
+#include "meta/typetraits.hpp"
 #include "stacktrace.hpp"
 
 #include <stdexcept>

@@ -9,7 +9,7 @@
 #include "sharedlibrary.hpp"
 #include "common.hpp"
 #include "util/log.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 
 #include "Windows.h"
 

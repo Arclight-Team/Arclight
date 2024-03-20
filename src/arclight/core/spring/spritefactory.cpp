@@ -7,7 +7,7 @@
  */
 
 #include "spritefactory.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 
 
 

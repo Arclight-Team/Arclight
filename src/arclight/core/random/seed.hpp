@@ -9,8 +9,8 @@
 #pragma once
 
 #include "entropysource.hpp"
-#include "common/typetraits.hpp"
-#include "common/concepts.hpp"
+#include "meta/typetraits.hpp"
+#include "meta/concepts.hpp"
 #include "math/math.hpp"
 #include "stdext/bitspan.hpp"
 #include "util/bits.hpp"

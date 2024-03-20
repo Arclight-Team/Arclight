@@ -9,7 +9,7 @@
 #include "spritetypebuffer.hpp"
 #include "spritetype.hpp"
 #include "spring.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 #include "util/bits.hpp"
 #include "render/gle/gle.hpp"
 

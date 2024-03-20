@@ -13,7 +13,7 @@
 #include "random.hpp"
 #include "common/types.hpp"
 #include "util/bits.hpp"
-#include "common/concepts.hpp"
+#include "meta/concepts.hpp"
 
 #include <array>
 

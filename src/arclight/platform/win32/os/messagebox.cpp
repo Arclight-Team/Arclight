@@ -8,7 +8,7 @@
 
 #include "messagebox.hpp"
 #include "common.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 #include "locale/unicode.hpp"
 
 #include <Windows.h>

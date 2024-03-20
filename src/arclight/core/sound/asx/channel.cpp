@@ -7,7 +7,7 @@
  */
 
 #include "channel.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 
 
 // ASX - Arclight FMOD wrapper

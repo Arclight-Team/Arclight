@@ -9,7 +9,7 @@
 #pragma once
 
 #include "common.hpp"
-#include "common/typetraits.hpp"
+#include "meta/typetraits.hpp"
 #include "stdext/any.hpp"
 
 

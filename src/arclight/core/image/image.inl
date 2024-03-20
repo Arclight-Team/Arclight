@@ -6,7 +6,7 @@
  *	 image.inl
  */
 
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 
 
 

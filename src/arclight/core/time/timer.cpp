@@ -7,7 +7,7 @@
  */
 
 #include "timer.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 
 #include <chrono>
 #include <cmath>

@@ -11,7 +11,7 @@
 #include "hash.hpp"
 #include "common.hpp"
 #include "util/bits.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 
 #include <span>
 

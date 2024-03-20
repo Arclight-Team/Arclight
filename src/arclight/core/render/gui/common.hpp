@@ -13,7 +13,7 @@
 
 //User includes
 #include "util/log.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 #include "math/vector.hpp"
 #include "common/types.hpp"
 

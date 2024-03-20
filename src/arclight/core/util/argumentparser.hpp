@@ -8,11 +8,11 @@
 
 #pragma once
 
-#include "common/concepts.hpp"
+#include "meta/concepts.hpp"
 #include "common/exception.hpp"
 #include "util/bool.hpp"
 #include "util/string.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 
 #include <unordered_map>
 #include <unordered_set>

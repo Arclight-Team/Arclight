@@ -9,9 +9,9 @@
 #pragma once
 
 #include "key.hpp"
-#include "common/typetraits.hpp"
+#include "meta/typetraits.hpp"
 #include "util/bits.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 
 #include <span>
 #include <array>

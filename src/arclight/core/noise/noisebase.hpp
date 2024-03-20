@@ -10,7 +10,7 @@
 
 #include "math/math.hpp"
 #include "math/vector.hpp"
-#include "common/concepts.hpp"
+#include "meta/concepts.hpp"
 #include <numeric>
 #include <random>
 #include <array>

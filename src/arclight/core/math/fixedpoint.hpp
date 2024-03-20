@@ -11,8 +11,8 @@
 #include "math.hpp"
 #include "bigint.hpp"
 #include "overflow.hpp"
-#include "common/typetraits.hpp"
-#include "common/concepts.hpp"
+#include "meta/typetraits.hpp"
+#include "meta/concepts.hpp"
 #include "util/bits.hpp"
 
 

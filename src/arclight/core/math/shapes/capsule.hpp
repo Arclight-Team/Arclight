@@ -9,14 +9,14 @@
 #pragma once
 
 #include "shape.hpp"
-#include "common/concepts.hpp"
-#include "common/typetraits.hpp"
+#include "meta/concepts.hpp"
+#include "meta/typetraits.hpp"
 #include "common/config.hpp"
 #include "../vector.hpp"
 #include "box.hpp"
 #include "cylinder.hpp"
 #include "sphere.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 
 
 

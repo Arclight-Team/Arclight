@@ -8,7 +8,7 @@
 
 #include "inputcontext.hpp"
 #include "util/log.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 
 #include <algorithm>
 

@@ -9,7 +9,7 @@
 #pragma once
 
 #include "keydefs.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 #include "common/types.hpp"
 
 #include <initializer_list>

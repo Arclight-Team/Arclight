@@ -7,7 +7,7 @@
  */
 
 #include "spritebatch.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 #include "render/gle/gle.hpp"
 #include "render/utility/vertexhelper.hpp"
 

@@ -7,7 +7,7 @@
  */
 
 #include "log.hpp"
-#include "assert.hpp"
+#include "common/assert.hpp"
 #include "filesystem/directory.hpp"
 #include "filesystem/file.hpp"
 #include "time/time.hpp"

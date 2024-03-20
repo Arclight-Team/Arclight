@@ -8,7 +8,7 @@
 
 #include "time.hpp"
 #include "math/math.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 
 #include <chrono>
 

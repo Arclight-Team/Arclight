@@ -11,8 +11,8 @@
 #include "seed.hpp"
 #include "random.hpp"
 #include "util/bits.hpp"
-#include "common/typetraits.hpp"
-#include "common/concepts.hpp"
+#include "meta/typetraits.hpp"
+#include "meta/concepts.hpp"
 #include "math/overflow.hpp"
 
 

@@ -8,8 +8,8 @@
 
 #include "directory.hpp"
 #include "util/bool.hpp"
-#include "util/assert.hpp"
-#include "common/typetraits.hpp"
+#include "common/assert.hpp"
+#include "meta/typetraits.hpp"
 
 #include <algorithm>
 

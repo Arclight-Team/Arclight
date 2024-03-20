@@ -11,7 +11,7 @@
 #include "input/inputsystem.hpp"
 #include "image/image.hpp"
 #include "render/gle/glecore.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 #include "util/log.hpp"
 
 #include <GL/glew.h>

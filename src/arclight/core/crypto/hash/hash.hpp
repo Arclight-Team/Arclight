@@ -12,8 +12,8 @@
 #include "stdext/bitspan.hpp"
 #include "util/bits.hpp"
 #include "util/string.hpp"
-#include "common/concepts.hpp"
-#include "common/typetraits.hpp"
+#include "meta/concepts.hpp"
+#include "meta/typetraits.hpp"
 #include "common/types.hpp"
 
 #include <array>

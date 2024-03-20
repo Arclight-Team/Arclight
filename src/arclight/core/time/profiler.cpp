@@ -7,7 +7,7 @@
  */
 
 #include "profiler.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 #include "common/config.hpp"
 
 

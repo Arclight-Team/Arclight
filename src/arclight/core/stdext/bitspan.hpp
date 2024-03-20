@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include "common/typetraits.hpp"
+#include "meta/typetraits.hpp"
 #include "math/math.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 #include "util/bits.hpp"
 #include "common/types.hpp"
 

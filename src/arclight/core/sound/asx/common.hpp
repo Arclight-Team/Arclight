@@ -11,8 +11,8 @@
 #include "math/vector.hpp"
 #include "util/bitmaskenum.hpp"
 #include "util/bits.hpp"
-#include "common/concepts.hpp"
-#include "common/typetraits.hpp"
+#include "meta/concepts.hpp"
+#include "meta/typetraits.hpp"
 #include <fmod.hpp>
 
 

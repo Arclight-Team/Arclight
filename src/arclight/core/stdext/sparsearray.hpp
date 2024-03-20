@@ -9,8 +9,8 @@
 #pragma once
 
 #include "stdext/optionalref.hpp"
-#include "util/assert.hpp"
-#include "common/typetraits.hpp"
+#include "common/assert.hpp"
+#include "meta/typetraits.hpp"
 #include "common/config.hpp"
 #include "common/types.hpp"
 

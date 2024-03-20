@@ -9,8 +9,8 @@
 #pragma once
 
 #include "util/bool.hpp"
-#include "common/concepts.hpp"
-#include "common/typetraits.hpp"
+#include "meta/concepts.hpp"
+#include "meta/typetraits.hpp"
 #include "stdext/optionalref.hpp"
 
 #include <stdexcept>

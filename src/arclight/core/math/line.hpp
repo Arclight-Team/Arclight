@@ -10,7 +10,7 @@
 
 #include "vector.hpp"
 #include "shapes/rectangle.hpp"
-#include "common/concepts.hpp"
+#include "meta/concepts.hpp"
 #include "common/config.hpp"
 
 #include <optional>

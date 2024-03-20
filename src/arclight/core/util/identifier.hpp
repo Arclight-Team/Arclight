@@ -9,7 +9,7 @@
 #pragma once
 
 #include "bits.hpp"
-#include "common/concepts.hpp"
+#include "meta/concepts.hpp"
 #include "crypto/hash/sha2.hpp"
 
 #include <span>

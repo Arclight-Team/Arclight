@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include "util/assert.hpp"
-#include "common/typetraits.hpp"
+#include "common/assert.hpp"
+#include "meta/typetraits.hpp"
 
 #include <span>
 

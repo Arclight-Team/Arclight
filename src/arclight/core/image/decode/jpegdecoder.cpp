@@ -11,7 +11,7 @@
 #include "util/log.hpp"
 #include "time/profiler.hpp"
 #include "util/bool.hpp"
-#include "util/assert.hpp"
+#include "common/assert.hpp"
 #include "common/exception.hpp"
 
 #include <map>
