@@ -26,7 +26,7 @@ namespace OS {
 		bool open(const std::string& name);
 		void close();
 
-		template<CC::PointerType F>
+		template<CC::Pointer F>
 		F getSymbol(const std::string& symbol) {
 			return reinterpret_cast<F>(getRawSymbol(symbol));
 		}

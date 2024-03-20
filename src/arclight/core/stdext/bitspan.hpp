@@ -61,13 +61,13 @@ class BitSpan : private BitSpanBase<Extent == SizeT(-1)> {
 
 		if constexpr (CC::Equal<TT::RemoveCV<TT::RemovePointer<U>>, u8>) {
 
-			if constexpr (CC::PointerType<U>) {
+			if constexpr (CC::Pointer<U>) {
 				return t;
 			} else {
 				return &t;
 			}
 
-		} else if constexpr (CC::PointerType<U>) {
+		} else if constexpr (CC::Pointer<U>) {
 			return Bits::toByteArray(t);
 		} else {
 			return Bits::toByteArray(std::addressof(t));
@@ -217,10 +217,10 @@ public:
 	constexpr BitSpan() noexcept requires (Extent == 0 || Dynamic) : ptr(nullptr), start(0) {}
 
 
-	template<CC::PointerType T, class U = TT::RemovePointer<T>>
+	template<CC::Pointer T, class U = TT::RemovePointer<T>>
 	constexpr BitSpan(const T& t, SizeT size = Bits::bitCount<U>()) noexcept requires (CC::ConstType<U> <= Const) : Base(size), ptr(convertTToPointer(t)), start(0) {}
 
-	template<CC::PointerType T, class U = TT::RemovePointer<T>>
+	template<CC::Pointer T, class U = TT::RemovePointer<T>>
 	constexpr BitSpan(const T& t, SizeT start, SizeT size) noexcept requires (CC::ConstType<U> <= Const) : Base(size), ptr(convertTToPointer(t)), start(start) { normalize(); }
 
 
@@ -516,13 +516,13 @@ private:
 
 
 
-template<CC::PointerType T, class U = TT::RemovePointer<T>>
+template<CC::Pointer T, class U = TT::RemovePointer<T>>
 BitSpan(const T&) -> BitSpan<Bits::bitCount<U>(), CC::ConstType<U>>;
 
-template<CC::PointerType T, class U = TT::RemovePointer<T>>
+template<CC::Pointer T, class U = TT::RemovePointer<T>>
 BitSpan(const T&, SizeT) -> BitSpan<std::dynamic_extent, CC::ConstType<U>>;
 
-template<CC::PointerType T, class U = TT::RemovePointer<T>>
+template<CC::Pointer T, class U = TT::RemovePointer<T>>
 BitSpan(const T&, SizeT, SizeT) -> BitSpan<std::dynamic_extent, CC::ConstType<U>>;
 
 template<class T, SizeT N>

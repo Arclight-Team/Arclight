@@ -69,7 +69,7 @@ namespace Exception {
 
 			const Dest* e = nullptr;
 
-			if constexpr (CC::PointerType<T>) {
+			if constexpr (CC::Pointer<T>) {
 				e = dynamic_cast<const Dest*>(ex);
 			} else {
 				e = dynamic_cast<const Dest*>(&ex);

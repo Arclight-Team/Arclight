@@ -131,7 +131,7 @@ public:
 	template<CC::StringStreamable S> requires (!CC::Char<S>)
 	RawLog& operator<<(const S& value) {
 
-		if constexpr (CC::PointerType<S> && !CC::Equal<S, const char*>) {
+		if constexpr (CC::Pointer<S> && !CC::Equal<S, const char*>) {
 			buffer << Memory::pointerAddress(value);
 		} else {
 			buffer << value;
