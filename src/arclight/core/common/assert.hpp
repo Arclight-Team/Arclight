@@ -74,6 +74,6 @@ static constexpr void __arc_assert(bool condition, const std::source_location& l
 	#define __ARC_ASSERT_IMPL(cond, msg, ...)
 #endif
 
-#define arc_assert(cond, msg, ...) do { __arc_assert_constexpr(cond); __ARC_ASSERT_IMPL(cond, msg __VA_OPT__(,) __VA_ARGS__) } while (false)
+#define arc_assert(cond, msg, ...) do { __arc_assert_constexpr(!!(cond)); __ARC_ASSERT_IMPL(cond, msg __VA_OPT__(,) __VA_ARGS__) } while (false)
 
 #define arc_force_assert(msg, ...) arc_assert(false, msg __VA_OPT__(,) __VA_ARGS__)
