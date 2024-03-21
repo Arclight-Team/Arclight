@@ -13,12 +13,12 @@
 #include "Locale/Unicode.hpp"
 #include "Filesystem/FSEntry.hpp"
 #include "Util/Log.hpp"
+#include "Common/Win32.hpp"
 
 #include <vector>
 
-#include "Windows.h"
-#include "Shlwapi.h"
-#include "Commctrl.h"
+#include <Shlwapi.h>
+#include <Commctrl.h>
 
 
 std::optional<std::string> OS::Environment::getVariable(const std::string& var) {

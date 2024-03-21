@@ -7,8 +7,9 @@
  */
 
 #include "Random/EntropySource.hpp"
+#include "Common/Win32.hpp"
 
-#include <Windows.h>
+#include <ShlObj.h>
 
 
 

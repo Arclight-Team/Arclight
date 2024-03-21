@@ -9,11 +9,7 @@
 #include "Registry.hpp"
 #include "Locale/Unicode.hpp"
 #include "Math/Math.hpp"
-
-#ifndef NOMINMAX
-	#define NOMINMAX
-#endif
-#include "Windows.h"
+#include "Common/Win32.hpp"
 
 
 

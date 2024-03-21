@@ -10,8 +10,7 @@
 #include "Common.hpp"
 #include "Util/Log.hpp"
 #include "Common/Assert.hpp"
-
-#include "Windows.h"
+#include "Common/Win32.hpp"
 
 
 

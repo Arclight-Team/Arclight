@@ -9,10 +9,8 @@
 #include "MessageBox.hpp"
 #include "Common.hpp"
 #include "Common/Assert.hpp"
-#include "locale/unicode.hpp"
-
-#include <Windows.h>
-#undef MessageBox
+#include "Locale/Unicode.hpp"
+#include "Common/Win32.hpp"
 
 
 

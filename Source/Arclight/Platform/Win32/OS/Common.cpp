@@ -8,8 +8,7 @@
 
 #include "Common.hpp"
 #include "Locale/Unicode.hpp"
-
-#include <Windows.h>
+#include "Common/Win32.hpp"
 
 
 namespace OS {

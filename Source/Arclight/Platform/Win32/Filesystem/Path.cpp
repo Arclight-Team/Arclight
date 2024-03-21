@@ -12,12 +12,12 @@
 #include "Locale/Unicode.hpp"
 #include "OS/Process.hpp"
 #include "Common/Types.hpp"
+#include "Common/Win32.hpp"
 
 #include <string>
 #include <vector>
 #include <filesystem>
 
-#include <Windows.h>
 #include <ShlObj.h>
 
 

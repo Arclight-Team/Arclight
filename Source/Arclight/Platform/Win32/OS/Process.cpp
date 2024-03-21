@@ -12,10 +12,10 @@
 #include "Util/Bool.hpp"
 #include "Util/DestructionGuard.hpp"
 #include "Util/String.hpp"
+#include "Common/Win32.hpp"
 
 #include <functional>
 
-#include <Windows.h>
 #include <TlHelp32.h>
 #include <Psapi.h>
 

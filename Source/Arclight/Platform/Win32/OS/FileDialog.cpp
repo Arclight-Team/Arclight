@@ -13,7 +13,7 @@
 #include "Filesystem/Path.hpp"
 #include "Util/DestructionGuard.hpp"
 
-#include <shobjidl.h>
+#include <ShObjIdl.h>
 
 
 

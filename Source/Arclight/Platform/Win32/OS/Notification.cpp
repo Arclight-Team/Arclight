@@ -10,10 +10,9 @@
 #include "Common.hpp"
 #include "Locale/Unicode.hpp"
 #include "Util/DestructionGuard.hpp"
+#include "Common/Win32.hpp"
 
 #include <unordered_set>
-
-#include <Windows.h>
 
 
 
