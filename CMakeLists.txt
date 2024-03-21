@@ -212,9 +212,9 @@ project (${PROJECT_NAME})
 ### MODULE LOADING ###
 ######################
 
-	set(ARCLIGHT_MODULE_CORE_PATH "src/arclight/core/")
-	set(ARCLIGHT_MODULE_PLATFORM_PATH "src/arclight/platform/")
-	set(APPLICATION_MAIN_PATH "src/main/")
+	set(ARCLIGHT_MODULE_CORE_PATH "Source/Arclight/Core/")
+	set(ARCLIGHT_MODULE_PLATFORM_PATH "Source/Arclight/Platform/")
+	set(APPLICATION_MAIN_PATH "Source/Main/")
 
 	# Includes
 	include_directories("${APPLICATION_MAIN_PATH}")
@@ -252,7 +252,7 @@ project (${PROJECT_NAME})
 	message("Looking for dependencies")
 
 	# GLFW for input/window
-	if ("arclight.input" IN_LIST MODULE_LIST OR "arclight.window" IN_LIST MODULE_LIST)
+	if ("Arclight.Input" IN_LIST MODULE_LIST OR "Arclight.Window" IN_LIST MODULE_LIST)
 
 		# Build GLFW along the project
 		set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -270,13 +270,11 @@ project (${PROJECT_NAME})
 	endif()
 
 	# GLEW for window/render
-	if("arclight.window" IN_LIST MODULE_LIST OR "arclight.render" IN_LIST MODULE_LIST OR "arclight.render.gle" IN_LIST MODULE_LIST)
+	if("Arclight.Window" IN_LIST MODULE_LIST OR "Arclight.Render" IN_LIST MODULE_LIST OR "Arclight.Render.GLE" IN_LIST MODULE_LIST)
 
 		# Find GLEW
-		list(APPEND CMAKE_PREFIX_PATH "lib/GLEW")
+		list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/GLEW)
 		find_package(GLEW REQUIRED)
-
-		include_directories(${GLEW_INCLUDE_DIR})
 
 		if (WIN32)
 			list(APPEND APPLICATION_LIBS opengl32)
@@ -293,7 +291,7 @@ project (${PROJECT_NAME})
 	endif()
 
 	# FreeType for font
-	if("arclight.font" IN_LIST MODULE_LIST)
+	if("Arclight.Font" IN_LIST MODULE_LIST)
 
 		# Use the correct .lib
 		set(FREETYPE_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/lib/FreeType/bin/x64/$<IF:$<CONFIG:Debug>,DebugStatic,ReleaseStatic>/freetype.lib)
@@ -307,7 +305,7 @@ project (${PROJECT_NAME})
 	endif()
 
 	# Bullet for physics
-	if("arclight.physics" IN_LIST MODULE_LIST)
+	if("Arclight.Physics" IN_LIST MODULE_LIST)
 
 		# Use the correct bullet .libs
 		set(BULLET_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/lib/$<IF:$<CONFIG:Debug>,Debug,Release>)
@@ -321,7 +319,7 @@ project (${PROJECT_NAME})
 	endif()
 
 	# Assimp and stb for render.model
-	if("arclight.render" IN_LIST MODULE_LIST OR "arclight.render.model" IN_LIST MODULE_LIST)
+	if("Arclight.Render" IN_LIST MODULE_LIST OR "Arclight.Render.Model" IN_LIST MODULE_LIST)
 
 		# Use the correct assimp .lib
 		set(ASSIMP_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/lib/$<IF:$<CONFIG:Debug>,Debug/assimp-vc142-mtd.lib,Release/assimp-vc142-mt.lib>)
@@ -338,7 +336,7 @@ project (${PROJECT_NAME})
 	endif()
 
 	# ImGui for render.gui
-	if("arclight.render" IN_LIST MODULE_LIST OR "arclight.render.gui" IN_LIST MODULE_LIST)
+	if("Arclight.Render" IN_LIST MODULE_LIST OR "Arclight.Render.GUI" IN_LIST MODULE_LIST)
 
 		if(${ARC_BUILD_IMGUI})
 			add_compile_definitions(ARC_USE_IMGUI=1)
@@ -357,7 +355,7 @@ project (${PROJECT_NAME})
 	endif()
 
 	# FMOD for sound
-	if("arclight.sound" IN_LIST MODULE_LIST)
+	if("Arclight.Sound" IN_LIST MODULE_LIST)
 
 		include_directories("lib/FMOD/include")
 

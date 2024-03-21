@@ -13,8 +13,8 @@ enc_temp_folder/
 /screenshots/
 .idea/
 pack/
-src/*
-!src/arclight/
+Source/*
+!Source/Arclight/
 tools/axrconv/b*
 tools/axrconv/AXRConv/*/*
 !tools/axrconv/AXRConv/shaders/*

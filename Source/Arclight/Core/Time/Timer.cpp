@@ -1,0 +1,33 @@
+/*
+ *	 Copyright (c) 2021 - Arclight Team
+ *
+ *	 This file is part of Arclight. All rights reserved.
+ *
+ *	 Timer.cpp
+ */
+
+#include "Timer.hpp"
+#include "Common/Assert.hpp"
+
+#include <chrono>
+#include <cmath>
+
+
+
+void Timer::start() {
+	startTime = Time::getTimeSinceEpoch(Time::Unit::Nanoseconds);
+}
+
+
+
+double Timer::getElapsedTime(Time::Unit unit) const {
+
+	arc_assert(startTime, "Timer must be started first");
+
+	u64 stopTime = Time::getTimeSinceEpoch(Time::Unit::Nanoseconds);
+	u64 deltaNS = stopTime - startTime;
+	double delta = Time::convert(deltaNS, Time::Unit::Nanoseconds, unit);
+
+	return delta;
+
+}
