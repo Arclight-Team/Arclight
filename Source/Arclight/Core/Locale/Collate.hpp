@@ -10,6 +10,8 @@
 
 #include "Unicode.hpp"
 
+#include <compare>
+
 
 /*
  *  Unicode Collation is a vast topic, therefore we only implement codepoint collation for now (i.e. sorting by codepoint index).

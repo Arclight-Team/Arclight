@@ -45,7 +45,7 @@ public:
 
 		for (SizeT i = 0; i < R; i++) {
 
-			x[i] = seed.get<T>(i * Bits::bitCount<T>());
+			x[i] = seed.template get<T>(i * Bits::bitCount<T>());
 
 			if constexpr (Reduce) {
 				x[i] %= M;
@@ -53,7 +53,7 @@ public:
 
 		}
 
-		carry = seed.get<bool>(R * Bits::bitCount<T>());
+		carry = seed.template get<bool>(R * Bits::bitCount<T>());
 
 		for (SizeT i = R; i < R * 2; i++) {
 			x[i] = x[i - R];

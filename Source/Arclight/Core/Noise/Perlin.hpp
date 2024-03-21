@@ -45,7 +45,7 @@ private:
 		u32 ip1 = ip0 + 1;
 
 		auto dot = [&](F p, u32 ip) constexpr {
-			return p * gradient<F>[hash(ip) & grad1DMask];
+			return p * gradient1D<F>[hash(ip) & grad1DMask];
 		};
 
 		constexpr F scale = 2; // sqrt(4/1)
@@ -80,7 +80,7 @@ private:
 		u32 ipy1 = ipy0 + 1;
 
 		auto dot = [&](F px, F py, u32 ipx, u32 ipy) constexpr {
-			const auto& [gx, gy] = gradient<V>[hash(ipx, ipy) & grad2DMask];
+			const auto& [gx, gy] = gradient2D<V>[hash(ipx, ipy) & grad2DMask];
 			return px * gx + py * gy;
 		};
 
@@ -129,7 +129,7 @@ private:
 		u32 ipz1 = ipz0 + 1;
 
 		auto dot = [&](F px, F py, F pz, u32 ipx, u32 ipy, u32 ipz) constexpr {
-			const auto& [gx, gy, gz] = gradient<V>[hash(ipx, ipy, ipz) & grad3DMask];
+			const auto& [gx, gy, gz] = gradient3D<V>[hash(ipx, ipy, ipz) & grad3DMask];
 			return px * gx + py * gy + pz * gz;
 		};
 
@@ -191,7 +191,7 @@ private:
 		u32 ipw1 = ipw0 + 1;
 
 		auto dot = [&](F px, F py, F pz, F pw, u32 ipx, u32 ipy, u32 ipz, u32 ipw) constexpr {
-			const auto& [gx, gy, gz, gw] = gradient<V>[hash(ipx, ipy, ipz, ipw) & grad4DMask];
+			const auto& [gx, gy, gz, gw] = gradient4D<V>[hash(ipx, ipy, ipz, ipw) & grad4DMask];
 			return px * gx + py * gy + pz * gz + pw * gw;
 		};
 

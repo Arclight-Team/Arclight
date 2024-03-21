@@ -33,7 +33,7 @@ public:
 	}
 
 	constexpr void setSeed(SeedType seed) noexcept {
-		x = seed.get<T>(0);
+		x = seed.template get<T>(0);
 	}
 
 	constexpr T next() noexcept(TT::HasBiggerType<T>) {
@@ -48,7 +48,7 @@ public:
 		} else {
 
 			BigInt n = BigInt(A) * x + C;
-			return x = (M == 0 ? n : n % M).toInteger<T>();
+			return x = (M == 0 ? n : n % M).template toInteger<T>();
 
 		}
 

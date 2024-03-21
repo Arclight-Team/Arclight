@@ -118,16 +118,13 @@ protected:
 	static constexpr u32 grad4DMask = 0x1F;
 
 
-	template<class T>
-	static constexpr T gradient;
-
 	template<CC::Float F>
-	static constexpr F gradient<F>[2] = {
+	static constexpr F gradient1D[2] = {
 		-1, 1
 	};
 
 	template<CC::FloatVector V> requires(V::Size == 2)
-	static constexpr V gradient<V>[8] = {
+	static constexpr V gradient2D[8] = {
 		{ 0.707107, 0.707107}, { 1, 0},
 		{-0.707107, 0.707107}, {-1, 0},
 		{ 0.707107,-0.707107}, { 0, 1},
@@ -135,7 +132,7 @@ protected:
 	};
 
 	template<CC::FloatVector V> requires(V::Size == 3)
-	static constexpr V gradient<V>[16] = {
+	static constexpr V gradient3D[16] = {
 		{ 0.57735, 0.57735,-0.57735}, { 0.707107, 0.707107, 0},
 		{-0.57735, 0.57735, 0.57735}, {-0.707107, 0.707107, 0},
 		{-0.57735, 0.57735,-0.57735}, { 0.707107,-0.707107, 0},
@@ -147,7 +144,7 @@ protected:
 	};
 
 	template<CC::FloatVector V> requires(V::Size == 4)
-	static constexpr V gradient<V>[32] = {
+	static constexpr V gradient4D[32] = {
 		{-0.5, 0.5,-0.5,-0.5}, {-0.57735, 0.57735,-0.57735, 0},
 		{ 0.5,-0.5,-0.5,-0.5}, { 0.57735,-0.57735,-0.57735, 0},
 		{-0.5,-0.5,-0.5,-0.5}, {-0.57735,-0.57735,-0.57735, 0},

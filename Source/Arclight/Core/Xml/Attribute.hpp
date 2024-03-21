@@ -115,21 +115,21 @@ namespace Xml
 	private:
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<CC::Char CharType>
+		template<CC::Char C>
 #endif
 		friend class Document;
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<CC::Char CharType>
+		template<CC::Char C>
 #endif
 		friend class Node;
 
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<CC::Char CharType>
-		friend std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>&, const Attribute<CharType>&);
+		template<CC::Char C>
+		friend std::basic_ostream<C>& operator<<(std::basic_ostream<C>&, const Attribute<C>&);
 #else
-		friend std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>&, const Attribute&);
+		friend std::basic_ostream<C>& operator<<(std::basic_ostream<C>&, const Attribute&);
 #endif
 
 #ifdef XML_NODE_STORAGE_UNIFIED
@@ -148,10 +148,10 @@ namespace Xml
 	};
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-	template<CC::Char CharType>
-	XML_TEMPLATE_INLINE std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>& os, const Attribute<CharType>& attribute) {
+	template<CC::Char C>
+	XML_TEMPLATE_INLINE std::basic_ostream<C>& operator<<(std::basic_ostream<C>& os, const Attribute<C>& attribute) {
 #else
-	XML_TEMPLATE_INLINE std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>& os, const Attribute& attribute) {
+	XML_TEMPLATE_INLINE std::basic_ostream<C>& operator<<(std::basic_ostream<C>& os, const Attribute& attribute) {
 #endif
 
 		if (attribute.name.empty())
@@ -164,7 +164,7 @@ namespace Xml
 
 		auto quoteCh = selectQuoteChar(attribute.value);
 
-		os << CharType('=');
+		os << C('=');
 		os << quoteCh;
 		os << attribute.value;
 		os << quoteCh;

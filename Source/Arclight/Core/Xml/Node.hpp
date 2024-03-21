@@ -375,21 +375,21 @@ namespace Xml
 		}
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<CC::Char CharType>
+		template<CC::Char C>
 #endif
 		friend class Document;
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<CC::Char CharType>
+		template<CC::Char C>
 #endif
 		friend class Attribute;
 
 
 #ifdef XML_TEMPLATE_CHAR_TYPE
-		template<CC::Char CharType>
-		friend std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>&, const Node<CharType>&);
+		template<CC::Char C>
+		friend std::basic_ostream<C>& operator<<(std::basic_ostream<C>&, const Node<C>&);
 #else
-		friend std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>&, const Node&);
+		friend std::basic_ostream<C>& operator<<(std::basic_ostream<C>&, const Node&);
 #endif
 
 		DocumentT& owner;

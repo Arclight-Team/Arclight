@@ -162,7 +162,7 @@ namespace DES {
 
 		template<bool Upper>
 		constexpr u32 splitKey(const CryptoKey<56>& key) {
-			return key.subKey<Upper ? 28 : 0, 28>().bits().read<u32>(28);
+			return key.subKey<Upper ? 28 : 0, 28>().bits().template read<u32>(28);
 		}
 
 		constexpr CryptoKey<48> concatKeys(u32 keyL, u32 keyR) {

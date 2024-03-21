@@ -32,7 +32,7 @@ public:
 	}
 
 	constexpr void setSeed(SeedType seed) noexcept {
-		x = seed.get<T>(0);
+		x = seed.template get<T>(0);
 	}
 
 protected:

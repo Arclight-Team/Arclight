@@ -46,7 +46,7 @@ private:
 
 		auto part = [&](F p, u32 ip) constexpr {
 
-			F dot = p * gradient<F>[hash(ip) & grad1DMask];
+			F dot = p * gradient1D<F>[hash(ip) & grad1DMask];
 
 			return dot * falloff<F>(1, p);
 
@@ -97,7 +97,7 @@ private:
 			F unskewx = px + unskew;
 			F unskewy = py + unskew;
 
-			const auto& [gx, gy] = gradient<V>[hash(hx, hy) & grad2DMask];
+			const auto& [gx, gy] = gradient2D<V>[hash(hx, hy) & grad2DMask];
 			F dot = unskewx * gx + unskewy * gy;
 
 			return dot * falloff<F>(0.5, unskewx, unskewy);
@@ -167,7 +167,7 @@ private:
 			F unskewy = py + unskew;
 			F unskewz = pz + unskew;
 
-			const auto& [gx, gy, gz] = gradient<V>[hash(hx, hy, hz) & grad3DMask];
+			const auto& [gx, gy, gz] = gradient3D<V>[hash(hx, hy, hz) & grad3DMask];
 			F dot = unskewx * gx + unskewy * gy + unskewz * gz;
 
 			return dot * falloff<F>(0.5, unskewx, unskewy, unskewz);
@@ -276,7 +276,7 @@ private:
 			F unskewz = pz + unskew;
 			F unskeww = pw + unskew;
 
-			const auto& [gx, gy, gz, gw] = gradient<V>[hash(hx, hy, hz, hw) & grad4DMask];
+			const auto& [gx, gy, gz, gw] = gradient4D<V>[hash(hx, hy, hz, hw) & grad4DMask];
 			F dot = unskewx * gx + unskewy * gy + unskewz * gz + unskeww * gw;
 
 			return dot * falloff<F>(0.5, unskewx, unskewy, unskewz, unskeww);

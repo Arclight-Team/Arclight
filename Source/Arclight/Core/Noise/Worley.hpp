@@ -58,7 +58,7 @@ private:
 
 			u32 h = Math::abs(ip + ofs) & hashMask;
 
-			F g = gradient<F>[hash(h) & grad1DMask];
+			F g = gradient1D<F>[hash(h) & grad1DMask];
 
 			g = g / 2 + 0.5 + ofs;
 
@@ -101,7 +101,7 @@ private:
 				u32 hx = Math::abs(ipx + ofsx) & hashMask;
 				u32 hy = Math::abs(ipy + ofsy) & hashMask;
 
-				auto [gx, gy] = gradient<V>[hash(hx, hy) & grad2DMask];
+				auto [gx, gy] = gradient2D<V>[hash(hx, hy) & grad2DMask];
 
 				gx = gx / 2 + 0.5 + ofsx;
 				gy = gy / 2 + 0.5 + ofsy;
@@ -151,7 +151,7 @@ private:
 					u32 hy = Math::abs(ipy + ofsy) & hashMask;
 					u32 hz = Math::abs(ipz + ofsz) & hashMask;
 
-					auto [gx, gy, gz] = gradient<V>[hash(hx, hy, hz) & grad3DMask];
+					auto [gx, gy, gz] = gradient3D<V>[hash(hx, hy, hz) & grad3DMask];
 
 					gx = gx / 2 + 0.5 + ofsx;
 					gy = gy / 2 + 0.5 + ofsy;
@@ -208,7 +208,7 @@ private:
 						u32 hz = Math::abs(ipz + ofsz) & hashMask;
 						u32 hw = Math::abs(ipw + ofsw) & hashMask;
 
-						auto [gx, gy, gz, gw] = gradient<V>[hash(hx, hy, hz, hw) & grad3DMask];
+						auto [gx, gy, gz, gw] = gradient4D<V>[hash(hx, hy, hz, hw) & grad4DMask];
 
 						gx = gx / 2 + 0.5 + ofsx;
 						gy = gy / 2 + 0.5 + ofsy;
