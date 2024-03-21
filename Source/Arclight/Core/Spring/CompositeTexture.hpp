@@ -9,8 +9,8 @@
 #pragma once
 
 #include "Image/Image.hpp"
-#include "Util/bitmaskenum.hpp"
-#include "Util/identifier.hpp"
+#include "Util/BitmaskEnum.hpp"
+#include "Util/Identifier.hpp"
 #include "Common/Exception.hpp"
 
 #include <memory>

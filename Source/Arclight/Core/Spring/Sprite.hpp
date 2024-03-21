@@ -10,7 +10,7 @@
 
 #include "SpringObject.hpp"
 #include "Math/Matrix.hpp"
-#include "Util/bitmaskenum.hpp"
+#include "Util/BitmaskEnum.hpp"
 
 
 

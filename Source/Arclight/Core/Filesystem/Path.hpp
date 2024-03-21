@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "Util/fixedchararray.hpp"
+#include "Util/FixedCharArray.hpp"
 
 #include <filesystem>
 #include <unordered_map>

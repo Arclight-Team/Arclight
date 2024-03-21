@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include "seed.hpp"
-#include "random.hpp"
+#include "Seed.hpp"
+#include "Random.hpp"
 #include "Common/Types.hpp"
 #include "Util/Bits.hpp"
 #include "Meta/Concepts.hpp"

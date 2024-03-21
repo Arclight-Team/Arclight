@@ -13,8 +13,8 @@
 #include "Meta/TypeTraits.hpp"
 #include "Util/Bits.hpp"
 
-#include "common.hpp"
-#include "traits.hpp"
+#include "Common.hpp"
+#include "Traits.hpp"
 
 
 

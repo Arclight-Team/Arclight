@@ -156,12 +156,12 @@ project (${PROJECT_NAME})
 #######################
 
 	if(WIN32)
-		list(APPEND ARCLIGHT_PLATFORMS "win32")
+		list(APPEND ARCLIGHT_PLATFORMS "Win32")
 	elseif(UNIX)
-		list(APPEND ARCLIGHT_PLATFORMS "linux")
+		list(APPEND ARCLIGHT_PLATFORMS "Linux")
 	endif()
 
-	list(APPEND ARCLIGHT_PLATFORMS "desktop")
+	list(APPEND ARCLIGHT_PLATFORMS "Desktop")
 
 	message("Compiling for the following targets:")
 
@@ -187,7 +187,7 @@ project (${PROJECT_NAME})
 
 			string(REPLACE "." "/" ModulePath ${ModulePath})
 
-			if(ModulePath MATCHES "^arclight")
+			if(ModulePath MATCHES "^Arclight")
 				string(SUBSTRING ${ModulePath} 8 -1 ModulePath)
 			endif()
 

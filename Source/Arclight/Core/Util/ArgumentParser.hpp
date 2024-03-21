@@ -10,7 +10,7 @@
 
 #include "Meta/Concepts.hpp"
 #include "Common/Exception.hpp"
-#include "Util/bool.hpp"
+#include "Util/Bool.hpp"
 #include "Util/String.hpp"
 #include "Common/Assert.hpp"
 

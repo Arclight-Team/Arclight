@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "Jpeg.hpp"
+#include "JPEG.hpp"
 #include "Decoder.hpp"
 #include "Image/Image.hpp"
 #include "Stream/BinaryReader.hpp"

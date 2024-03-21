@@ -26,7 +26,7 @@
 #include "CubemapArrayTexture.hpp"
 #include "MultisampleTexture2D.hpp"
 #include "MultisampleArrayTexture2D.hpp"
-#include "FrameBuffer.hpp"
+#include "Framebuffer.hpp"
 #include "RenderBuffer.hpp"
 
 #include "Render.hpp"

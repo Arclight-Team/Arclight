@@ -10,7 +10,7 @@
 
 #include "Common/Types.hpp"
 #include "Common/Config.hpp"
-#include "Common/vendor.hpp"
+#include "Common/Vendor.hpp"
 #include "Meta/Concepts.hpp"
 #include "Meta/TypeTraits.hpp"
 #include "Constants.hpp"
