@@ -3,7 +3,7 @@
  *
  *	 This file is part of Arclight. All rights reserved.
  *
- *	 Win32.cpp
+ *	 Win32.hpp
  */
 
 #pragma once
