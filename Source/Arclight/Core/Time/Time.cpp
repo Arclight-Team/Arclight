@@ -16,6 +16,7 @@
 namespace Time {
 
 	typedef std::chrono::high_resolution_clock Clock;
+	typedef std::chrono::system_clock SystemClock;
 
 	constexpr const char* unitSuffixes[] = {
 		"s", "ms", "us", "ns"
@@ -71,9 +72,12 @@ namespace Time {
 
 	TimeData getCurrentTime() {
 
-		auto now = Clock::now();
-		std::chrono::hh_mm_ss hms(now.time_since_epoch());
-		std::chrono::year_month_day ymd(std::chrono::floor<std::chrono::days>(std::chrono::system_clock::now()));
+		auto timezone = std::chrono::current_zone();
+		auto now = std::chrono::zoned_time(timezone, SystemClock::now()).get_local_time();
+		auto daytime = std::chrono::floor<std::chrono::days>(now);
+
+		std::chrono::hh_mm_ss hms(now - daytime);
+		std::chrono::year_month_day ymd(daytime);
 
 		return TimeData(hms.seconds().count(), hms.minutes().count(), hms.hours().count(), u32(ymd.day()), u32(ymd.month()), i32(ymd.year()));
 
