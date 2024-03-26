@@ -23,7 +23,7 @@ project (${PROJECT_NAME})
 	set(CMAKE_C_STANDARD_REQUIRED true)
 
 	# Set output directories
-	set(BINARY_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin/$<CONFIG>)
+	set(BINARY_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Bin/$<CONFIG>)
 	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
@@ -258,9 +258,9 @@ project (${PROJECT_NAME})
 		set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 		set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 		set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-		add_subdirectory("lib/GLFW")
+		add_subdirectory("Lib/GLFW")
 
-		include_directories("lib/GLFW/include")
+		include_directories("Lib/GLFW/include")
 		list(APPEND APPLICATION_LIBS glfw)
 
 		add_compile_definitions(ARC_WINDOW_MODULE)
@@ -273,7 +273,7 @@ project (${PROJECT_NAME})
 	if("Arclight.Window" IN_LIST MODULE_LIST OR "Arclight.Render" IN_LIST MODULE_LIST OR "Arclight.Render.GLE" IN_LIST MODULE_LIST)
 
 		# Find GLEW
-		list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/GLEW)
+		list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Lib/GLEW)
 		find_package(GLEW REQUIRED)
 
 		if (WIN32)
@@ -294,10 +294,10 @@ project (${PROJECT_NAME})
 	if("Arclight.Font" IN_LIST MODULE_LIST)
 
 		# Use the correct .lib
-		set(FREETYPE_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/lib/FreeType/bin/x64/$<IF:$<CONFIG:Debug>,DebugStatic,ReleaseStatic>/freetype.lib)
+		set(FREETYPE_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/Lib/FreeType/bin/x64/$<IF:$<CONFIG:Debug>,DebugStatic,ReleaseStatic>/freetype.lib)
 		add_compile_definitions(ARC_FONT_MODULE)
 
-		include_directories("lib/FreeType/include")
+		include_directories("Lib/FreeType/include")
 		list(APPEND APPLICATION_LIBS ${FREETYPE_LIBRARY})
 
 		message("\tAdded dependency 'freetype'")
@@ -308,10 +308,10 @@ project (${PROJECT_NAME})
 	if("Arclight.Physics" IN_LIST MODULE_LIST)
 
 		# Use the correct bullet .libs
-		set(BULLET_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/lib/$<IF:$<CONFIG:Debug>,Debug,Release>)
+		set(BULLET_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Lib/bullet3/lib/$<IF:$<CONFIG:Debug>,Debug,Release>)
 		set(BULLET_LIBRARIES ${BULLET_LIB_DIR}/BulletCollision_Debug.lib ${BULLET_LIB_DIR}/BulletDynamics$<$<CONFIG:Debug>,_Debug>.lib ${BULLET_LIB_DIR}/LinearMath$<$<CONFIG:Debug>,_Debug>.lib)
 
-		include_directories("lib/bullet3/include/bullet")
+		include_directories("Lib/bullet3/include/bullet")
 		list(APPEND APPLICATION_LIBS ${BULLET_LIBRARIES})
 
 		message("\tAdded dependency 'Bullet'")
@@ -322,13 +322,13 @@ project (${PROJECT_NAME})
 	if("Arclight.Render" IN_LIST MODULE_LIST OR "Arclight.Render.Model" IN_LIST MODULE_LIST)
 
 		# Use the correct assimp .lib
-		set(ASSIMP_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp/lib/$<IF:$<CONFIG:Debug>,Debug/assimp-vc142-mtd.lib,Release/assimp-vc142-mt.lib>)
+		set(ASSIMP_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/Lib/assimp/lib/$<IF:$<CONFIG:Debug>,Debug/assimp-vc142-mtd.lib,Release/assimp-vc142-mt.lib>)
 		
-		include_directories("lib/assimp/include")
+		include_directories("Lib/assimp/include")
 		list(APPEND APPLICATION_LIBS ${ASSIMP_LIBRARY})
 
 		# stb_image
-		include_directories("lib/stb_image")
+		include_directories("Lib/stb_image")
 
 		message("\tAdded dependency 'Assimp'")
 		message("\tAdded dependency 'stb_image'")
@@ -341,14 +341,14 @@ project (${PROJECT_NAME})
 		if(${ARC_BUILD_IMGUI})
 			add_compile_definitions(ARC_USE_IMGUI=1)
 
-			file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "lib/imgui/source/*.cpp" "lib/imgui/backends/*.cpp")
+			file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "Lib/imgui/source/*.cpp" "Lib/imgui/backends/*.cpp")
 			list(APPEND APPLICATION_SOURCES ${SOURCES})
 		else()
 			add_compile_definitions(ARC_USE_IMGUI=0)
 		endif()
 
-		include_directories("lib/imgui/include")
-		include_directories("lib/imgui/backends")
+		include_directories("Lib/imgui/include")
+		include_directories("Lib/imgui/backends")
 
 		message("\tAdded dependency 'ImGui'")
 
@@ -357,9 +357,9 @@ project (${PROJECT_NAME})
 	# FMOD for sound
 	if("Arclight.Sound" IN_LIST MODULE_LIST)
 
-		include_directories("lib/FMOD/include")
+		include_directories("Lib/FMOD/include")
 
-		list(APPEND APPLICATION_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/lib/FMOD/fmodL_vc.lib)
+		list(APPEND APPLICATION_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/Lib/FMOD/fmodL_vc.lib)
 
 		message("\tAdded dependency 'FMOD'")
 

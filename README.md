@@ -1,11 +1,11 @@
-<img src="assets/logo.png" height="150" align="right">
+<img src="Assets/logo.png" height="150" align="right">
 
 # Arclight - High-performance C++23 ecosystem
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/424f1b0554d8435e90b66ee8bcca0c36)](https://www.codacy.com/gh/Arclight-Team/Arclight/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Arclight-Team/Arclight&amp;utm_campaign=Badge_Grade)
 [![GitHub Stars](https://badgen.net/github/stars/Arclight-Team/Arclight)](https://github.com/Arclight-Team/Arclight/stargazers/)
 ![Version](https://img.shields.io/badge/version-unreleased-yellow)
-![Standard](https://img.shields.io/badge/C%2B%2B-20-blueviolet)
+![Standard](https://img.shields.io/badge/C%2B%2B-23-blueviolet)
 ![License](https://img.shields.io/badge/license-none-red)
 
 ## General
