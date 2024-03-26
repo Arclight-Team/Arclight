@@ -168,7 +168,7 @@ void SpriteBatch::synchronize() {
 
 	if (matrixVbo.getSize() < buffer.size()) {
 
-		matrixVbo.allocate(Bits::alignUp(buffer.size(), 2048), GLE::BufferAccess::DynamicDraw);
+		matrixVbo.allocate(Bits::ceilPowerOf2(buffer.size(), 2048), GLE::BufferAccess::DynamicDraw);
 		matrixVbo.update(0, buffer.size(), buffer.data());
 
 	} else {

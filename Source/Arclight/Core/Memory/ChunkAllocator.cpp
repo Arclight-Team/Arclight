@@ -8,6 +8,7 @@
 
 #include "ChunkAllocator.hpp"
 #include "Math/Math.hpp"
+#include "Memory.hpp"
 #include "Util/Log.hpp"
 #include "Common/Config.hpp"
 
@@ -54,7 +55,7 @@ void ChunkAllocator::create(AddressT blockSize, AlignT blockAlign, AddressT chun
 
 		AddressT baseSize = Math::max(blockSize, sizeof(Storage));
 		AlignT baseAlign = Math::max(blockAlign, alignof(Storage));
-		AddressT alignedSize = Bits::alignUp(baseSize, baseAlign);
+		AddressT alignedSize = Memory::alignUp(baseSize, baseAlign);
 		AddressT chunkSize = chunkBlocks * alignedSize + sizeof(ChunkLink);
 
 		this->totalSize = chunkSize;

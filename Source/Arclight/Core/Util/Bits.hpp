@@ -123,6 +123,16 @@ namespace Bits {
 		return std::bit_floor(value);
 	}
 
+	template<CC::UnsignedType T>
+	constexpr T ceilPowerOf2(T value, u32 pow) noexcept {
+		return (value + pow - 1) & ~(pow - 1);
+	}
+
+	template<CC::UnsignedType T>
+	constexpr T floorPowerOf2(T value, u32 pow) noexcept {
+		return value & ~(pow - 1);
+	}
+
 	template<CC::Integer T>
 	constexpr auto popcount(T value) noexcept {
 		return std::popcount(static_cast<TT::MakeUnsigned<T>>(value));
@@ -502,41 +512,26 @@ namespace Bits {
 		return reinterpret_cast<TT::ConditionalConst<CC::ConstType<T>, u8>*>(t);
 	}
 
-	template<CC::Integer I>
-	constexpr bool isAligned(I value, AlignT alignment) noexcept {
-		return !(value & (alignment - 1));
-	}
-
-	template<CC::Integer I>
-	constexpr I alignUp(I value, AlignT alignment) noexcept {
-		return (value + alignment - 1) & ~(alignment - 1);
-	}
-
-	template<CC::Integer I>
-	constexpr I alignDown(I value, AlignT alignment) noexcept {
-		return value & ~(alignment - 1);
-	}
-
 }
 
 
-#define arc_clz(x) Bits::clz((x))
-#define arc_ctz(x) Bits::ctz((x))
+#define arc_clz(x) ::Bits::clz((x))
+#define arc_ctz(x) ::Bits::ctz((x))
 
-#define arc_countpop(x) Bits::popcount((x))
-#define arc_popcount(x) Bits::popcount((x))
+#define arc_countpop(x) ::Bits::popcount((x))
+#define arc_popcount(x) ::Bits::popcount((x))
 
-#define arc_ror(x, b) Bits::ror((x), (b))
-#define arc_rol(x, b) Bits::rol((x), (b))
+#define arc_ror(x, b) ::Bits::ror((x), (b))
+#define arc_rol(x, b) ::Bits::rol((x), (b))
 
-#define arc_swap16(x) Bits::swap16((x))
-#define arc_swap32(x) Bits::swap32((x))
-#define arc_swap64(x) Bits::swap64((x))
+#define arc_swap16(x) ::Bits::swap16((x))
+#define arc_swap32(x) ::Bits::swap32((x))
+#define arc_swap64(x) ::Bits::swap64((x))
 
-#define arc_big16(x) Bits::big16((x))
-#define arc_big32(x) Bits::big32((x))
-#define arc_big64(x) Bits::big64((x))
+#define arc_big16(x) ::Bits::big16((x))
+#define arc_big32(x) ::Bits::big32((x))
+#define arc_big64(x) ::Bits::big64((x))
 
-#define arc_little16(x) Bits::little16((x))
-#define arc_little32(x) Bits::little32((x))
-#define arc_little64(x) Bits::little64((x))
+#define arc_little16(x) ::Bits::little16((x))
+#define arc_little32(x) ::Bits::little32((x))
+#define arc_little64(x) ::Bits::little64((x))

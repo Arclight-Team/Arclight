@@ -8,6 +8,7 @@
 
 #include "PoolAllocator.hpp"
 #include "Math/Math.hpp"
+#include "Memory.hpp"
 #include "Util/Log.hpp"
 #include "Common/Config.hpp"
 
@@ -52,7 +53,7 @@ void PoolAllocator::create(AddressT blockCount, AddressT blockSize, AlignT block
 
 		AddressT baseSize = Math::max(blockSize, sizeof(Storage));
 		AlignT baseAlign = Math::max(blockAlign, alignof(Storage));
-		AddressT alignedSize = Bits::alignUp(baseSize, baseAlign);
+		AddressT alignedSize = Memory::alignUp(baseSize, baseAlign);
 		AddressT heapSize = blockCount * alignedSize;
 
 		this->totalSize = heapSize;

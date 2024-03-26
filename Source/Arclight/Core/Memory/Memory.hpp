@@ -9,9 +9,9 @@
 #pragma once
 
 #include "Common/Types.hpp"
+#include "Util/Bits.hpp"
 
 #include <utility>
-
 
 
 namespace Memory {
@@ -34,6 +34,21 @@ namespace Memory {
 	template<class T>
 	constexpr AddressT referenceAddress(const T& ptr) {
 		return address(std::addressof(ptr));
+	}
+
+	template<CC::Integer I>
+	constexpr bool isAligned(I value, AlignT alignment) noexcept {
+		return !(value & (alignment - 1));
+	}
+
+	template<CC::Integer I>
+	constexpr I alignUp(I value, AlignT alignment) noexcept {
+		return (value + alignment - 1) & ~(alignment - 1);
+	}
+
+	template<CC::Integer I>
+	constexpr I alignDown(I value, AlignT alignment) noexcept {
+		return value & ~(alignment - 1);
 	}
 
 }
