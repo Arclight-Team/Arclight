@@ -27,13 +27,13 @@ class Vec4;
 namespace CC {
 
 	template<class T>
-	concept Vector2 = SpecializationOf<T, Vec2>;
+	concept Vector2 = TypedSpecialization<T, Vec2>;
 
 	template<class T>
-	concept Vector3 = SpecializationOf<T, Vec3>;
+	concept Vector3 = TypedSpecialization<T, Vec3>;
 
 	template<class T>
-	concept Vector4 = SpecializationOf<T, Vec4>;
+	concept Vector4 = TypedSpecialization<T, Vec4>;
 
 	template<class T>
 	concept Vector = Vector2<T> || Vector3<T> || Vector4<T>;

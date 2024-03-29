@@ -22,7 +22,7 @@ class Quaternion;
 namespace CC {
 
 	template<class T>
-	concept Quaternion = SpecializationOf<T, Quaternion>;
+	concept Quaternion = TypedSpecialization<T, Quaternion>;
 
 }
 

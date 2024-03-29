@@ -114,6 +114,10 @@ namespace CC {
 
 
 	template<class T>
+	concept TriviallyCopyable = std::is_trivially_copyable_v<T>;
+
+
+	template<class T>
 	concept Destructible = std::destructible<T>;
 
 	template<class T>
@@ -138,6 +142,19 @@ namespace CC {
 
 	template<class T, class U>
 	concept NothrowSwappableWith = std::is_nothrow_swappable_with_v<T, U>;
+
+
+	template<class T>
+	concept EqualityComparable = std::equality_comparable<T>;
+
+	template<class T>
+	concept TotallyOrdered = std::totally_ordered<T>;
+
+	template<class T, class U>
+	concept EqualityComparableWith = std::equality_comparable_with<T, U>;
+
+	template<class T, class U>
+	concept TotallyOrderedWith = std::totally_ordered_with<T, U>;
 
 
 	template<class F, class... Args>
@@ -279,12 +296,23 @@ namespace CC {
 
 
 		template<class T, template<class...> class P>
-		struct SpecializationOf {
+		struct TypedSpecialization {
 			static constexpr bool Value = false;
 		};
 
 		template<template<class...> class P, class... Args>
-		struct SpecializationOf<P<Args...>, P> {
+		struct TypedSpecialization<P<Args...>, P> {
+			static constexpr bool Value = true;
+		};
+
+
+		template<class T, template<auto...> class P>
+		struct ValueSpecialization {
+			static constexpr bool Value = false;
+		};
+
+		template<template<auto...> class P, auto... Args>
+		struct ValueSpecialization<P<Args...>, P> {
 			static constexpr bool Value = true;
 		};
 
@@ -293,8 +321,10 @@ namespace CC {
 	template<class T>
 	concept NestedType = Detail::NestedType<T>::Value;
 
-	// Only handles non-value templates due to C++ limitations
 	template<class T, template<class...> class P>
-	concept SpecializationOf = Detail::SpecializationOf<T, P>::Value;
+	concept TypedSpecialization = Detail::TypedSpecialization<T, P>::Value;
+
+	template<class T, template<auto...> class P>
+	concept ValueSpecialization = Detail::ValueSpecialization<T, P>::Value;
 
 }
