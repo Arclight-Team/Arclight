@@ -123,13 +123,13 @@ namespace Bits {
 		return std::bit_floor(value);
 	}
 
-	template<CC::UnsignedType T>
-	constexpr T ceilPowerOf2(T value, u32 pow) noexcept {
+	template<CC::UnsignedType T, class U = TT::CommonType<T, u32>>
+	constexpr T ceilPowerOf2(T value, U pow) noexcept {
 		return (value + pow - 1) & ~(pow - 1);
 	}
 
-	template<CC::UnsignedType T>
-	constexpr T floorPowerOf2(T value, u32 pow) noexcept {
+	template<CC::UnsignedType T, class U = TT::CommonType<T, u32>>
+	constexpr T floorPowerOf2(T value, U pow) noexcept {
 		return value & ~(pow - 1);
 	}
 
