@@ -56,32 +56,38 @@ protected:
 
 
 
-template<PixelFormat::FormatChannel R, PixelFormat::FormatChannel G, PixelFormat::FormatChannel B, PixelFormat::FormatChannel A>
+template<FormatChannel R, FormatChannel G, FormatChannel B, FormatChannel A>
 class PixelRGBA : public PixelBase<R.bits + G.bits + B.bits + A.bits> {
 
 	using Base = PixelBase<R.bits + G.bits + B.bits + A.bits>;
 
 public:
 
-	constexpr static PixelFormat::FormatChannel Red = R;
-	constexpr static PixelFormat::FormatChannel Green = G;
-	constexpr static PixelFormat::FormatChannel Blue = B;
-	constexpr static PixelFormat::FormatChannel Alpha = A;
+	constexpr static FormatChannel Red = R;
+	constexpr static FormatChannel Green = G;
+	constexpr static FormatChannel Blue = B;
+	constexpr static FormatChannel Alpha = A;
 
 	using RedChannel 	= decltype(Red);
 	using GreenChannel 	= decltype(Red);
 	using BlueChannel 	= decltype(Red);
 	using AlphaChannel 	= decltype(Red);
 
-	using RedType 		= typename RedChannel	::template PixelDataType<Red.bits>;
-	using GreenType 	= typename GreenChannel	::template PixelDataType<Green.bits>;
-	using BlueType 		= typename BlueChannel	::template PixelDataType<Blue.bits>;
-	using AlphaType 	= typename AlphaChannel	::template PixelDataType<Alpha.bits>;
+	using RedTraits 	= typename RedChannel	::Traits;
+	using GreenTraits 	= typename GreenChannel	::Traits;
+	using BlueTraits 	= typename BlueChannel	::Traits;
+	using AlphaTraits 	= typename AlphaChannel	::Traits;
+
+	using RedType 		= typename RedTraits	::template PixelDataType<Red.bits>;
+	using GreenType 	= typename GreenTraits	::template PixelDataType<Green.bits>;
+	using BlueType 		= typename BlueTraits	::template PixelDataType<Blue.bits>;
+	using AlphaType 	= typename AlphaTraits	::template PixelDataType<Alpha.bits>;
+
 
 	constexpr static PixelFormat Format = PixelFormat::create<R, G, B, A>();
 	constexpr static u32 ChannelCount = Format.getChannelCount();
 
-	constexpr static PixelFormat::ChannelOrder<R, G, B, A> ChannelOrder{};
+	constexpr static ChannelOrder<R, G, B, A> ChannelOrder{};
 
 
 	using Base::Base;
@@ -133,19 +139,19 @@ public:
 	constexpr void add(const PixelRGBA& p) noexcept {
 
 		if constexpr (Red.exists()) {
-			red(RedChannel::template Traits<Red.bits>::add(red(), p.red()));
+			red(RedTraits::template add<Red.bits>(red(), p.red()));
 		}
 
 		if constexpr (Green.exists()) {
-			green(GreenChannel::template Traits<Green.bits>::add(green(), p.green()));
+			green(GreenTraits::template add<Green.bits>(green(), p.green()));
 		}
 
 		if constexpr (Blue.exists()) {
-			blue(BlueChannel::template Traits<Blue.bits>::add(blue(), p.blue()));
+			blue(BlueTraits::template add<Blue.bits>(blue(), p.blue()));
 		}
 
 		if constexpr (Alpha.exists()) {
-			alpha(AlphaChannel::template Traits<Alpha.bits>::add(alpha(), p.alpha()));
+			alpha(AlphaTraits::template add<Blue.bits>(alpha(), p.alpha()));
 		}
 
 	}
@@ -153,19 +159,19 @@ public:
 	constexpr void subtract(const PixelRGBA& p) noexcept {
 
 		if constexpr (Red.exists()) {
-			red(RedChannel::template Traits<Red.bits>::subtract(red(), p.red()));
+			red(RedTraits::template subtract<Red.bits>(red(), p.red()));
 		}
 
 		if constexpr (Green.exists()) {
-			green(GreenChannel::template Traits<Green.bits>::subtract(green(), p.green()));
+			green(GreenTraits::template subtract<Green.bits>(green(), p.green()));
 		}
 
 		if constexpr (Blue.exists()) {
-			blue(BlueChannel::template Traits<Blue.bits>::subtract(blue(), p.blue()));
+			blue(BlueTraits::template subtract<Blue.bits>(blue(), p.blue()));
 		}
 
 		if constexpr (Alpha.exists()) {
-			alpha(AlphaChannel::template Traits<Alpha.bits>::subtract(alpha(), p.alpha()));
+			alpha(AlphaTraits::template subtract<Blue.bits>(alpha(), p.alpha()));
 		}
 
 	}
@@ -174,19 +180,19 @@ public:
 	constexpr void multiply(S s) noexcept {
 
 		if constexpr (Red.exists()) {
-			red(RedChannel::template Traits<Red.bits>::multiply(red(), s));
+			red(RedTraits::template multiply<Red.bits>(red(), s));
 		}
 
 		if constexpr (Green.exists()) {
-			green(GreenChannel::template Traits<Green.bits>::multiply(green(), s));
+			green(GreenTraits::template multiply<Green.bits>(green(), s));
 		}
 
 		if constexpr (Blue.exists()) {
-			blue(BlueChannel::template Traits<Blue.bits>::multiply(blue(), s));
+			blue(BlueTraits::template multiply<Blue.bits>(blue(), s));
 		}
 
 		if constexpr (Alpha.exists()) {
-			alpha(AlphaChannel::template Traits<Alpha.bits>::multiply(alpha(), s));
+			alpha(AlphaTraits::template multiply<Alpha.bits>(alpha(), s));
 		}
 
 	}
@@ -195,19 +201,19 @@ public:
 	constexpr void divide(S s) noexcept {
 
 		if constexpr (Red.exists()) {
-			red(RedChannel::template Traits<Red.bits>::divide(red(), s));
+			red(RedTraits::template divide<Red.bits>(red(), s));
 		}
 
 		if constexpr (Green.exists()) {
-			green(GreenChannel::template Traits<Green.bits>::divide(green(), s));
+			green(GreenTraits::template divide<Green.bits>(green(), s));
 		}
 
 		if constexpr (Blue.exists()) {
-			blue(BlueChannel::template Traits<Blue.bits>::divide(blue(), s));
+			blue(BlueTraits::template divide<Blue.bits>(blue(), s));
 		}
 
 		if constexpr (Alpha.exists()) {
-			alpha(AlphaChannel::template Traits<Alpha.bits>::divide(alpha(), s));
+			alpha(AlphaTraits::template divide<Alpha.bits>(alpha(), s));
 		}
 
 	}
@@ -260,30 +266,30 @@ private:
 };
 
 
-using PixelRGB8 =	PixelRGBA<	PixelFormat::UnsignedChannel(0, 8),
-								PixelFormat::UnsignedChannel(8, 8),
-								PixelFormat::UnsignedChannel(16, 8),
-								PixelFormat::UnsignedChannel(0, 0)	>;
+using PixelRGB8 =	PixelRGBA<	UnsignedChannel(0, 8),
+								UnsignedChannel(8, 8),
+								UnsignedChannel(16, 8),
+								UnsignedChannel(0, 0)	>;
 
-using PixelBGR8 =	PixelRGBA<	PixelFormat::UnsignedChannel(16, 8),
-								PixelFormat::UnsignedChannel(8, 8),
-								PixelFormat::UnsignedChannel(0, 8),
-								PixelFormat::UnsignedChannel(0, 0)	>;
+using PixelBGR8 =	PixelRGBA<	UnsignedChannel(16, 8),
+								UnsignedChannel(8, 8),
+								UnsignedChannel(0, 8),
+								UnsignedChannel(0, 0)	>;
 
-using PixelRGB565 =	PixelRGBA<	PixelFormat::UnsignedChannel(0, 5),
-								PixelFormat::UnsignedChannel(5, 6),
-								PixelFormat::UnsignedChannel(11, 5),
-								PixelFormat::UnsignedChannel(0, 0)	>;
+using PixelRGB565 =	PixelRGBA<	UnsignedChannel(0, 5),
+								UnsignedChannel(5, 6),
+								UnsignedChannel(11, 5),
+								UnsignedChannel(0, 0)	>;
 
-using PixelRGBAF =	PixelRGBA<	PixelFormat::FloatChannel(0, 32),
-								PixelFormat::FloatChannel(32, 32),
-								PixelFormat::FloatChannel(64, 32),
-								PixelFormat::FloatChannel(96, 32)	>;
+using PixelRGBAF =	PixelRGBA<	FloatChannel(0, 32),
+								FloatChannel(32, 32),
+								FloatChannel(64, 32),
+								FloatChannel(96, 32)	>;
 
-using PixelRGBAD =	PixelRGBA<	PixelFormat::FloatChannel(0, 64),
-								PixelFormat::FloatChannel(64, 64),
-								PixelFormat::FloatChannel(128, 64),
-								PixelFormat::FloatChannel(192, 64)	>;
+using PixelRGBAD =	PixelRGBA<	FloatChannel(0, 64),
+								FloatChannel(64, 64),
+								FloatChannel(128, 64),
+								FloatChannel(192, 64)	>;
 
 
 
