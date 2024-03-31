@@ -92,6 +92,10 @@ public:
 
 	using Base::Base;
 
+	constexpr PixelRGBA() noexcept {
+		setZero();
+	}
+
 	template<CC::Arithmetic... Value>
 	constexpr explicit PixelRGBA(Value... value) noexcept {
 		setInternal(value...);
@@ -240,7 +244,60 @@ public:
 		return *this;
 	}
 
+	constexpr static PixelRGBA zero() noexcept {
+		return PixelRGBA().setZero();
+	}
+
+	constexpr static PixelRGBA one() noexcept {
+		return PixelRGBA().setOne();
+	}
+
 private:
+
+	constexpr PixelRGBA& setZero() noexcept {
+
+		if constexpr (Red.exists()) {
+			red(RedTraits::template Zero<Red.bits>);
+		}
+
+		if constexpr (Green.exists()) {
+			green(GreenTraits::template Zero<Green.bits>);
+		}
+
+		if constexpr (Blue.exists()) {
+			blue(BlueTraits::template Zero<Blue.bits>);
+		}
+
+		if constexpr (Alpha.exists()) {
+			alpha(AlphaTraits::template Zero<Alpha.bits>);
+		}
+
+		return *this;
+
+	}
+
+	constexpr PixelRGBA& setOne() noexcept {
+
+		if constexpr (Red.exists()) {
+			red(RedTraits::template One<Red.bits>);
+		}
+
+		if constexpr (Green.exists()) {
+			green(GreenTraits::template One<Green.bits>);
+		}
+
+		if constexpr (Blue.exists()) {
+			blue(BlueTraits::template One<Blue.bits>);
+		}
+
+		if constexpr (Alpha.exists()) {
+			alpha(AlphaTraits::template One<Alpha.bits>);
+		}
+
+		return *this;
+
+	}
+
 
 	template<CC::Arithmetic... Value> requires (sizeof...(Value) == ChannelCount)
 	constexpr void setInternal(Value... value) noexcept {

@@ -69,7 +69,7 @@ public:
 	}
 
 	template<CC::PixelType Pixel>
-	constexpr void fill(Pixel pixel) {
+	constexpr void fill(Pixel pixel = Pixel::zero()) {
 
 		SizeT offset = 0;
 
