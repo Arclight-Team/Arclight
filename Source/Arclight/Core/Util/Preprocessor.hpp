@@ -51,7 +51,7 @@
 #define ARC_PP_IGNORE(...)
 #define ARC_PP_EXPAND(...) __VA_ARGS__
 
-#define ARC_PP_DELAY(m, ...) m ARC_PP_EMPTY
+#define ARC_PP_DELAY(m) m ARC_PP_EMPTY
 
 
 #define __ARC_IS_NULL_0	0
@@ -62,8 +62,8 @@
 #define ARC_PP_IS_NULL(m) __ARC_IS_NULL_CHECK(m)
 
 
-#define __ARC_FOREACH_0(m, x, ...) m(x) __VA_OPT__(ARC_PP_DELAY(__ARC_FOREACH_1, __VA_ARGS__)(m, __VA_ARGS__))
-#define __ARC_FOREACH_1(m, x, ...) m(x) __VA_OPT__(ARC_PP_DELAY(__ARC_FOREACH_0, __VA_ARGS__)(m, __VA_ARGS__))
+#define __ARC_FOREACH_0(m, x, ...) m(x) __VA_OPT__(ARC_PP_DELAY(__ARC_FOREACH_1)(m, __VA_ARGS__))
+#define __ARC_FOREACH_1(m, x, ...) m(x) __VA_OPT__(ARC_PP_DELAY(__ARC_FOREACH_0)(m, __VA_ARGS__))
 
 #define ARC_PP_FOREACH(m, ...) ARC_PP_EVAL(__ARC_FOREACH_1(m, __VA_ARGS__))
 

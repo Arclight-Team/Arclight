@@ -9,6 +9,7 @@
 #pragma once
 
 #include "Common/Config.hpp"
+#include "Common/Vendor.hpp"
 #include "Util/Preprocessor.hpp"
 
 #include <version>

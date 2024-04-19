@@ -16,6 +16,8 @@
 
 #include <map>
 
+#include ARC_INTRINSIC_H
+
 
 
 using namespace JPEG;
@@ -1756,28 +1758,29 @@ ARC_FORCE_INLINE i32* JPEGDecoder::clearBlockBuffer(JPEG::ScanComponent& compone
 
 	i32* block = std::assume_aligned<32>(component.block);
 
-	//This really shouldn't be necessary, but MSVC fails to vectorize std::fill_n
-#ifdef ARC_VECTORIZE_X86_AVX2
 
-	__m256i* ptr = reinterpret_cast<__m256i*>(block);
+	// This really shouldn't be necessary, but MSVC fails to vectorize std::fill_n
+	arc_intrinsic_avx2 (
 
-	for (u32 i = 0; i < 8; i++) {
-		_mm256_store_si256(ptr++, _mm256_setzero_si256());
+		__m256i* ptr = reinterpret_cast<__m256i*>(block);
+
+		for (u32 i = 0; i < 8; i++) {
+			_mm256_store_si256(ptr++, _mm256_setzero_si256());
+		}
+
+	) else arc_intrinsic_sse2 (
+
+		__m128i* ptr = reinterpret_cast<__m128i*>(block);
+
+		for (u32 i = 0; i < 16; i++) {
+			_mm_store_si128(ptr++, _mm_setzero_si128());
+		}
+
+	) else {
+
+		std::fill_n(block, 64, 0);
+
 	}
-
-#elif defined(ARC_VECTORIZE_X86_SSE2)
-
-	__m128i* ptr = reinterpret_cast<__m128i*>(block);
-
-	for (u32 i = 0; i < 16; i++) {
-		_mm_store_si128(ptr++, _mm_setzero_si128());
-	}
-
-#else
-
-	std::fill_n(block, 64, 0);
-
-#endif
 
 	return block;
 

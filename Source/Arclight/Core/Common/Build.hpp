@@ -26,7 +26,7 @@
 	#define ARC_OS_UNIX
 	#define ARC_OS_MACOS
 #else
-	#error "Arclight Fatal: Unknown target OS"
+	#error "Arclight Fatal: Unknown or unsupported target OS"
 #endif
 
 
@@ -47,18 +47,20 @@
 	#define ARC_PLATFORM_ARM
 	#define ARC_MACHINE_BITS 32
 #else
-	#error "Arclight Fatal: Unknown target platform"
+	#error "Arclight Fatal: Unknown or unsupported target platform"
 #endif
 
 
 #if defined(__clang__)
 	#define ARC_COMPILER_CLANG
+	#define ARC_COMPILER_GCCLIKE
 #elif defined(__GNUC__)
 	#define ARC_COMPILER_GCC
+	#define ARC_COMPILER_GCCLIKE
 #elif defined(_MSC_VER)
 	#define ARC_COMPILER_MSVC
 #else
-	#error "Arclight Fatal: Unknown compiler"
+	#error "Arclight Fatal: Unknown or unsupported compiler"
 #endif
 
 

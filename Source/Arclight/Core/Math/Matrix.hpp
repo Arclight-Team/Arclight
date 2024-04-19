@@ -12,6 +12,8 @@
 #include "Math/Vector.hpp"
 #include "Common/Intrinsic.hpp"
 
+#include ARC_INTRINSIC_H
+
 
 
 template<CC::Arithmetic T>
@@ -27,7 +29,7 @@ class Mat4;
 namespace CC {
 
 	template<class T>
-	concept Matrix = TT::IsAnyOf<T, Mat2<typename T::Type>, Mat3<typename T::Type>, Mat4<typename T::Type>>;
+	concept Matrix = CC::AnyOf<T, Mat2<typename T::Type>, Mat3<typename T::Type>, Mat4<typename T::Type>>;
 
 	template<class T>
 	concept FloatMatrix = Matrix<T> && CC::Float<typename T::Type>;
@@ -768,13 +770,9 @@ public:
 	template<CC::Arithmetic A>
 	constexpr Mat4& multiply(const Mat4<A>& t) noexcept {
 
-#ifdef ARC_VECTORIZE_X86_SSE
+		arc_intrinsic_sse (
 
-		if (!std::is_constant_evaluated()) {
-
-			using U = decltype(v[0][0] * t[0][0]);
-
-			if constexpr (CC::Equal<U, float>) {
+			if constexpr (CC::Equal<TT::CommonType<T, A>, float>) {
 
 				__m128 l0 = _mm_set_ps(v[0][3], v[0][2], v[0][1], v[0][0]);
 				__m128 l1 = _mm_set_ps(v[1][3], v[1][2], v[1][1], v[1][0]);
@@ -852,9 +850,7 @@ public:
 
 			}
 
-		}
-
-#endif
+		)
 
 		T a = v[0][0] * t[0][0] + v[1][0] * t[0][1] + v[2][0] * t[0][2] + v[3][0] * t[0][3];
 		T b = v[0][1] * t[0][0] + v[1][1] * t[0][1] + v[2][1] * t[0][2] + v[3][1] * t[0][3];
@@ -1418,7 +1414,7 @@ constexpr A& operator&=(A& a, const B& b) noexcept {
 }
 
 template<CC::IntegralMatrix A, class B> requires (CC::Integral<B> || (CC::IntegralMatrix<B> && CC::EqualMatrixRank<A, B>))
-constexpr void operator|=(A& a, const B& b) noexcept {
+constexpr A& operator|=(A& a, const B& b) noexcept {
 
 	for (SizeT i = 0; i < A::Size; i++) {
 
@@ -1435,7 +1431,7 @@ constexpr void operator|=(A& a, const B& b) noexcept {
 }
 
 template<CC::IntegralMatrix A, class B> requires (CC::Integral<B> || (CC::IntegralMatrix<B> && CC::EqualMatrixRank<A, B>))
-constexpr void operator^=(A& a, const B& b) noexcept {
+constexpr A& operator^=(A& a, const B& b) noexcept {
 
 	for (SizeT i = 0; i < A::Size; i++) {
 

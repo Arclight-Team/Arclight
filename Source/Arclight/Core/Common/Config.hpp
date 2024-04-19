@@ -12,8 +12,29 @@
 
 
 
-// Enables SIMD implementations for x86 targets
-#define ARC_CFG_X86_VECTORIZE
+// `ARC_CFG_INTRINSIC_ENABLE_{Arch}_{Feature}` Enables usage of {Feature} for {Arch} targets
+#define ARC_CFG_INTRINSIC_ENABLE_X86_SSE
+#define ARC_CFG_INTRINSIC_ENABLE_X86_SSE2
+#define ARC_CFG_INTRINSIC_ENABLE_X86_SSE3
+#define ARC_CFG_INTRINSIC_ENABLE_X86_SSSE3
+#define ARC_CFG_INTRINSIC_ENABLE_X86_SSE41
+#define ARC_CFG_INTRINSIC_ENABLE_X86_SSE42
+#define ARC_CFG_INTRINSIC_ENABLE_X86_AVX
+#define ARC_CFG_INTRINSIC_ENABLE_X86_AVX2
+
+// `ARC_CFG_INTRINSIC_STATIC_{Arch}_{Feature}` Disables runtime checking of {Feature} for {Arch} targets
+#define ARC_CFG_INTRINSIC_STATIC_X86_SSE
+#define ARC_CFG_INTRINSIC_STATIC_X86_SSE2
+#define ARC_CFG_INTRINSIC_STATIC_X86_SSE3
+#define ARC_CFG_INTRINSIC_STATIC_X86_SSSE3
+#define ARC_CFG_INTRINSIC_STATIC_X86_SSE41
+#define ARC_CFG_INTRINSIC_STATIC_X86_SSE42
+
+// Toggles all x86 intrinsic usage
+#define ARC_CFG_INTRINSIC_X86
+
+// Toggles all ARM intrinsic usage
+#define ARC_CFG_INTRINSIC_ARM
 
 
 // Unsyncs stdio from cout in Log::init (accelerated logging but data races become possible)
