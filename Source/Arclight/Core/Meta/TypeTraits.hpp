@@ -17,6 +17,8 @@
 
 namespace TT {
 
+	struct Incomplete;
+
 	template<class T>
 	struct TypeTag {
 		using Type = T;
@@ -156,6 +158,56 @@ namespace TT {
 
 	template<class T, bool C>
 	using MakeUnsignedIf = ConditionalUnary<T, C, MakeUnsigned>;
+
+
+	namespace Detail {
+
+		struct ISelect {};
+
+		template<bool C, class T>
+		struct Option : ISelect {
+
+			static constexpr bool Condition = C;
+
+			using Type = T;
+
+		};
+
+		template<class T>
+		struct Default : ISelect {
+
+			static constexpr bool Condition = true;
+
+			using Type = T;
+
+		};
+
+		template<CC::BaseOf<ISelect> O, CC::BaseOf<ISelect>... U>
+		struct Select {
+
+			using Type = typename Conditional<O::Condition, O, Select<U...>>::Type;
+
+		};
+
+		template<CC::BaseOf<ISelect> O>
+		struct Select<O> {
+
+			static_assert(O::Condition, "Type selection does not result in any type");
+
+			using Type = typename O::Type;
+
+		};
+
+	}
+
+	template<bool C, class T>
+	using Option = Detail::Option<C, T>;
+
+	template<class T>
+	using Default = Detail::Default<T>;
+
+	template<class O, class... U>
+	using Select = typename Detail::Select<O, U...>::Type;
 
 
 	namespace Detail {
