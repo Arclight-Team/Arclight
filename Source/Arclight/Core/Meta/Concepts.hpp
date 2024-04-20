@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <compare>
 #include <concepts>
 
 
@@ -150,11 +151,17 @@ namespace CC {
 	template<class T>
 	concept TotallyOrdered = std::totally_ordered<T>;
 
+	template<class T, class C = std::partial_ordering>
+	concept ThreeWayComparable = std::three_way_comparable<T, C>;
+
 	template<class T, class U>
 	concept EqualityComparableWith = std::equality_comparable_with<T, U>;
 
 	template<class T, class U>
 	concept TotallyOrderedWith = std::totally_ordered_with<T, U>;
+
+	template<class T, class U, class C = std::partial_ordering>
+	concept ThreeWayComparableWith = std::three_way_comparable_with<T, U, C>;
 
 
 	template<class F, class... Args>
