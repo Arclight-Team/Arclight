@@ -14,7 +14,7 @@
 #include "Meta/Concepts.hpp"
 #include "Meta/TypeTraits.hpp"
 #include "Common/Types.hpp"
-#include "STDExt/BitSpan.hpp"
+#include "StdExt/BitSpan.hpp"
 
 #include <array>
 #include <string>

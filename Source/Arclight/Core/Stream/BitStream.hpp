@@ -9,7 +9,7 @@
 #pragma once
 
 
-#include "STDExt/BitSpan.hpp"
+#include "StdExt/BitSpan.hpp"
 #include "Common/Assert.hpp"
 
 

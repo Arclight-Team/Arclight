@@ -3,7 +3,7 @@
  *
  *	 This file is part of Arclight. All rights reserved.
  *
- *	 JSON.hpp
+ *	 Json.hpp
  */
 
 #pragma once

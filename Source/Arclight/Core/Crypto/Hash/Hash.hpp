@@ -9,7 +9,7 @@
 #pragma once
 
 #include "Math/Math.hpp"
-#include "STDExt/BitSpan.hpp"
+#include "StdExt/BitSpan.hpp"
 #include "Util/Bits.hpp"
 #include "Util/String.hpp"
 #include "Meta/Concepts.hpp"

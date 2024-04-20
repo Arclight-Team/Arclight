@@ -20,7 +20,7 @@
 #include "SharedBuffer.hpp"
 
 #include "Math/Shapes/Rectangle.hpp"
-#include "STDExt/ArrayMap.hpp"
+#include "StdExt/ArrayMap.hpp"
 
 #include <map>
 #include <memory>

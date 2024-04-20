@@ -12,7 +12,7 @@
 #include "Meta/TypeTraits.hpp"
 #include "Meta/Concepts.hpp"
 #include "Math/Math.hpp"
-#include "STDExt/BitSpan.hpp"
+#include "StdExt/BitSpan.hpp"
 #include "Util/Bits.hpp"
 #include "Common/Types.hpp"
 
