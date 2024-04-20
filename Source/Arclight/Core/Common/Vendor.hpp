@@ -38,9 +38,17 @@
 // Optimization assumption for the compiler defining the condition to be true
 
 #ifdef ARC_COMPILER_MSVC
+
 	#define arc_assume(condition) do { __assume((condition)); } while (false)
-#elif defined(ARC_COMPILER_CLANG)
-	#define arc_assume(condition) do { __builtin_assume((condition)); } while (false)
-#elif defined(ARC_COMPILER_GCC)
-	#define arc_assume(condition) do { __attribute__((assume((condition)))); } while (false)
+
+#elif defined(ARC_COMPILER_GCCLIKE)
+
+	#if defined(ARC_COMPILER_CLANG) && __has_builtin(__builtin_assume)
+		#define arc_assume(condition) do { __builtin_assume((condition)); } while (false)
+	#elif defined(ARC_COMPILER_GCC) && __has_attribute(assume)
+		#define arc_assume(condition) do { __attribute__((assume((condition)))); } while (false)
+	#else
+		#define arc_assume(condition) do { if (!(condition)) { __builtin_unreachable(); } } while (false)
+	#endif
+
 #endif
