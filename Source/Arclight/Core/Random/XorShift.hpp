@@ -24,7 +24,7 @@ public:
 	using SeedType = Seed<Bits::bitCount<T>()>;
 
 	constexpr XorShift() noexcept {
-		setSeed(TT::HasSmallerType<T> ? Bits::allOnes<TT::SmallerType<T>>() : 0xF);
+		setSeed(SeedType(Bits::ones<T>(Bits::bitCount<T>() / 2)));
 	}
 
 	constexpr explicit XorShift(SeedType seed) noexcept {
@@ -33,6 +33,14 @@ public:
 
 	constexpr void setSeed(SeedType seed) noexcept {
 		x = seed.template get<T>(0);
+	}
+
+	constexpr static T min() noexcept {
+		return 0;
+	}
+
+	constexpr static T max() noexcept {
+		return T(-1);
 	}
 
 protected:

@@ -10,6 +10,8 @@
 
 #include "Meta/Concepts.hpp"
 #include "Common/Types.hpp"
+#include "Util/Bits.hpp"
+#include "Util/BitmaskEnum.hpp"
 
 #include <string>
 
@@ -133,8 +135,17 @@ namespace String {
 		return unquote<C>(std::basic_string_view<C>(path));
 	}
 
+	enum class HexFlags {
+		None = 0x0,
+		Upper = 0x1,
+		Prefix = 0x2,
+		Fill = 0x4
+	};
+
+	ARC_CREATE_BITMASK_ENUM(HexFlags)
+
 	template<CC::Arithmetic A>
-	constexpr std::string toHexString(A a, bool upper = true, bool prefix = false) {
+	constexpr std::string toHexString(A a, HexFlags flags = HexFlags::None) {
 
 		constexpr char v[2][16] = {
 			{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' },
@@ -143,20 +154,26 @@ namespace String {
 
 		constexpr SizeT Size = sizeof(A);
 
-		std::string s;
-		s.reserve(Size * 2 + prefix * 2);
+		bool prefix = static_cast<bool>(flags & HexFlags::Prefix);
+		bool upper = static_cast<bool>(flags & HexFlags::Upper);
+		bool fill = static_cast<bool>(flags & HexFlags::Fill);
 
-		if (prefix) {
-			s += "0x";
+		std::string s;
+
+		i32 count = fill ? Size * 2 : std::max<i32>(Size * 2 - Bits::clz(a) / 4, 1);
+		s.resize(count);
+
+		for (i32 i = count - 1; i >= 0; --i) {
+
+			u8 nibble = a & 0xF;
+			a >>= 4;
+
+			s[i] = v[upper][nibble];
+
 		}
 
-		for(SizeT i = 0; i < Size; i++) {
-
-			u8 byte = (a >> ((Size - i - 1) * 8)) & 0xFF;
-
-			s += v[upper][byte >> 4];
-			s += v[upper][byte & 0xF];
-
+		if (prefix) {
+			s = "0x" + s;
 		}
 
 		return s;

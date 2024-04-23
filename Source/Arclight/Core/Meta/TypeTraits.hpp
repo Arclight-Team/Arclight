@@ -318,26 +318,6 @@ namespace TT {
 		static constexpr bool IsMinFloatSize = Size <= sizeof(long double);
 
 
-		template<CC::Arithmetic T>
-		struct ToInteger {
-
-			using Type =	Conditional<CC::Integral<T>, T,
-							Conditional<CC::Equal<T, float>, i32, i64>>;
-
-		};
-
-		template<CC::Arithmetic T>
-		struct ToFloat {
-
-			constexpr static SizeT Size = sizeof(T);
-
-			using Type =	Conditional<CC::Float<T>, T,
-							Conditional<Size <= 2, float,
-							Conditional<Size <= 4, double, long double>>>;
-
-		};
-
-
 		template<SizeT Size> requires IsIntegralSize<Size>
 		struct UnsignedFromSize {
 
@@ -364,6 +344,27 @@ namespace TT {
 		template<SizeT Size> requires IsMinIntegralSize<Size>
 		struct SignedFromMinSize {
 			using Type = MakeSigned<typename UnsignedFromMinSize<Size>::Type>;
+		};
+
+
+		template<CC::Arithmetic T>
+		struct ToInteger {
+
+			using Type =    Conditional<CC::Integer<T>, T,
+							Conditional<CC::Equal<T, bool>, SignedFromSize<sizeof(bool)>::Type,
+							Conditional<CC::Equal<T, float>, i32, i64>>>;
+
+		};
+
+		template<CC::Arithmetic T>
+		struct ToFloat {
+
+			constexpr static SizeT Size = sizeof(T);
+
+			using Type =	Conditional<CC::Float<T>, T,
+							Conditional<Size <= 2, float,
+							Conditional<Size <= 4, double, long double>>>;
+
 		};
 
 

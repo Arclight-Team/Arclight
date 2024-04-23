@@ -9,12 +9,12 @@
 #pragma once
 
 #include "EntropySource.hpp"
+#include "Common/Types.hpp"
+#include "Math/Math.hpp"
 #include "Meta/TypeTraits.hpp"
 #include "Meta/Concepts.hpp"
-#include "Math/Math.hpp"
 #include "StdExt/BitSpan.hpp"
 #include "Util/Bits.hpp"
-#include "Common/Types.hpp"
 
 #include <span>
 #include <vector>
@@ -53,10 +53,8 @@ public:
 
 	constexpr Seed() {
 
-		SizeT bytes = (Bits + 7) / 8;
-
 		if constexpr (ExtStorage) {
-			storage.resize(bytes);
+			storage.resize(sizeBytes());
 		} else {
 			storage = 0;
 		}
@@ -64,13 +62,11 @@ public:
 	}
 
 	template<CC::Integer I>
-	constexpr Seed(I i) {
-
-		SizeT bytes = (Bits + 7) / 8;
+	constexpr explicit Seed(I i) {
 
 		if constexpr (ExtStorage) {
 
-			storage.resize(bytes);
+			storage.resize(sizeBytes());
 			Bits::disassemble(i, storage.data(), storage.size());
 
 		} else {
@@ -80,15 +76,14 @@ public:
 	}
 
 	template<CC::Integer I>
-	constexpr Seed(std::initializer_list<const I> i) : Seed(std::span{i}) {}
+	constexpr explicit Seed(std::initializer_list<const I> i) : Seed(std::span{i}) {}
 
 	template<CC::Integer I>
-	constexpr Seed(std::span<const I> i) {
+	constexpr explicit Seed(std::span<const I> i) {
 
 		if constexpr (ExtStorage) {
 
-			SizeT destBytes = (Bits + 7) / 8;
-			storage.resize(destBytes);
+			storage.resize(sizeBytes());
 
 			for (SizeT n = 0; n < i.size(); n++) {
 
@@ -130,16 +125,77 @@ public:
 
 	}
 
+	constexpr std::span<const u8> span() const noexcept {
+
+		if constexpr (ExtStorage) {
+			return { storage.data(), sizeBytes() };
+		} else {
+			return { Bits::toByteArray(&storage), sizeBytes() };
+		}
+
+	}
+
+	constexpr bool fromString(const std::string& s) noexcept {
+
+		if constexpr (ExtStorage) {
+
+			if (s.size() < storage.size() * 2) {
+				return false;
+			}
+
+			for (SizeT i = 0; u8& b : storage) {
+
+				if (std::from_chars(s.data() + i, s.data() + i + 2, b, 16).ec != std::errc {}) {
+					return false;
+				}
+
+				i += 2;
+
+			}
+
+			return true;
+
+		} else {
+
+			return std::from_chars(s.begin(), s.end(), storage, 16).ec == std::errc {};
+
+		}
+
+	}
+
+	constexpr std::string toString() const noexcept {
+
+		if constexpr (ExtStorage) {
+
+			std::string s;
+
+			for (u8 b : storage) {
+				s += String::toHexString(b, String::HexFlags::Fill);
+			}
+
+			return s;
+
+		} else {
+
+			return String::toHexString(Bits::big(storage), String::HexFlags::Fill);
+
+		}
+
+	}
+
+	static SizeT sizeBytes() {
+		return (Bits + 7) / 8;
+	}
+
 	static Seed fromEntropySource() {
 
 		Seed seed;
 		EntropySource source;
-		SizeT bytes = (Bits + 7) / 8;
 
 		if constexpr (ExtStorage) {
 			source.fetch(seed.storage);
 		} else {
-			source.fetch({ Bits::toByteArray(&seed.storage), bytes });
+			source.fetch({ Bits::toByteArray(&seed.storage), sizeBytes() });
 		}
 
 		return seed;

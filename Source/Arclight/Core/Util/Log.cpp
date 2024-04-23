@@ -84,7 +84,7 @@ void RawLog::flush() noexcept {
 		std::string str = buffer.str();
 		buffer.str("");
 
-		std::cout << str;
+		std::cout << str << std::flush;
 
 		if (!str.empty() && str.back() == '\n') {
 			str.pop_back();
