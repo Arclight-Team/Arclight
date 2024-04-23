@@ -29,7 +29,7 @@ constexpr static u32 fixTransformShift = 7;
 constexpr static u32 ycbcrShift = 14;
 
 template<u32 Shift>
-constexpr static i32 colorBias = (Shift && Shift < 32) ? 1LL << (Shift - 1) : 0;
+constexpr static i32 colorBias = (Shift && Shift < 32) ? Bits::ones<i32>(Shift - 1) : 0;
 
 
 constexpr static i32 coeffBaseDifference[16] = {

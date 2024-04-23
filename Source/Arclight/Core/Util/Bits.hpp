@@ -125,7 +125,7 @@ namespace Bits {
 
 	template<CC::UnsignedType T>
 	constexpr T ceilPowerOf2(T value, u32 pow) noexcept {
-		return (value + pow - 1) & ~(pow - 1);
+		return (value + pow - 1) & ~T(pow - 1);
 	}
 
 	template<CC::UnsignedType T>

@@ -132,6 +132,10 @@ public:
 			return Unicode::decode<E>(it.getPointer());
 		}
 
+		constexpr auto view() const noexcept {
+			return std::basic_string_view<TT::ConditionalConst<Const, CharT>>(it.getPointer(), Unicode::getEncodedSize<EncodingType>(it.getPointer()));
+		}
+
 	private:
 
 		StringT& ustr;
