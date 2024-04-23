@@ -8,57 +8,65 @@
 
 #include "Thread.hpp"
 #include "Util/Log.hpp"
+#include "OS/Hardware.hpp"
 
 #include <chrono>
 #include <utility>
 
 
 
-Thread::Thread() {}
+Thread::Thread() : dtorPolicy(DestructorPolicy::Join) {}
 
 
 Thread::~Thread() {
 
-	if (!done()) {
-		LogW("Thread") << "Thread has not been finished manually, force-finishing it";
-		finish();
+	switch (dtorPolicy) {
+
+		case DestructorPolicy::Join:
+
+			if (running()) {
+				LogW("Thread") << "Thread has not been finished manually, force-finishing it";
+				finish();
+			}
+
+		break;
+
+		case DestructorPolicy::Detach:
+			detach();
+		break;
+
+		case DestructorPolicy::Terminate:
+			break;
+
 	}
 
 }
 
 
 
-Thread::Thread(Thread&& thread) noexcept :
-	thread(std::exchange(thread.thread, {})),
-	future(std::move(thread.future)) {}
+Thread::DestructorPolicy Thread::getDestructorPolicy() const noexcept {
+	return dtorPolicy;
+}
 
 
 
-Thread& Thread::operator=(Thread&& thread) noexcept {
+void Thread::setDestructorPolicy(DestructorPolicy policy) noexcept {
+	dtorPolicy = policy;
+}
 
-	//Thread could still be running, contrary to move-construction
-	if (!done()) {
 
-		//To keep noexcept, we must ensure we terminate the task properly (to prevent fatal crashes when stack-unwinding)
-		try {
 
-			LogE("Thread") << "Thread cannot be move-target while running, force-finishing it";
-			finish();
+Thread::State Thread::getThreadState() const noexcept {
 
-		} catch (std::exception& e) {
-
-			//The thread is terminated anyways so we just perform the move.
-			LogE("Thread").print("Fatal error: Exception caught while terminating thread on move assignment\n%s", e.what());
-			arc_abort();
-
-		}
-
+	if (thread.joinable()) {
+		return State::Running;
 	}
 
-	this->thread = std::exchange(thread.thread, {});
-	this->future = std::move(thread.future);
+	if (future.valid()) {
+		return State::Finished;
+	}
 
-	return *this;
+	return State::Empty;
 
 }
 
@@ -66,7 +74,7 @@ Thread& Thread::operator=(Thread&& thread) noexcept {
 
 void Thread::finish() {
 
-	if (!done()) {
+	if (running()) {
 		thread.join();
 	}
 
@@ -74,11 +82,11 @@ void Thread::finish() {
 
 
 
-bool Thread::tryFinish(u64 timeoutMicros) {
+bool Thread::tryFinish(u64 us) {
 
-	if (!done()) {
+	if (running()) {
 
-		auto result = future.wait_for(std::chrono::microseconds(timeoutMicros));
+		auto result = future.wait_for(std::chrono::microseconds(us));
 
 		if (result != std::future_status::ready) {
 			return false;
@@ -94,44 +102,34 @@ bool Thread::tryFinish(u64 timeoutMicros) {
 
 
 
-bool Thread::running() const {
-
-	if (future.valid()) {
-
-		auto result = future.wait_for(std::chrono::nanoseconds(0));
-
-		if (result != std::future_status::ready) {
-			return true;
-		}
-
-	}
-
-	return false;
-
+bool Thread::running() const noexcept {
+	return getThreadState() == State::Running;
 }
 
 
 
-bool Thread::finished() const {
+bool Thread::finished() const noexcept {
+	return getThreadState() == State::Finished;
+}
 
-	if (future.valid()) {
 
-		auto result = future.wait_for(std::chrono::nanoseconds(0));
 
-		if (result != std::future_status::ready) {
-			return false;
-		}
+bool Thread::empty() const noexcept {
+	return getThreadState() == State::Empty;
+}
 
+
+
+bool Thread::detach() noexcept {
+
+	try {
+		thread.detach();
+	} catch (...) {
+		return false;
 	}
 
 	return true;
 
-}
-
-
-
-bool Thread::done() const noexcept {
-	return !thread.joinable();
 }
 
 
@@ -143,6 +141,12 @@ std::thread::id Thread::getID() const noexcept {
 
 
 
-u32 Thread::getHardwareThreadCount() noexcept {
-	return std::thread::hardware_concurrency();
+SizeT Thread::getHardwareThreadCount() noexcept {
+	return OS::Hardware::getHardwareConcurrency();
+}
+
+
+
+SizeT Thread::getFalseSharingSize() noexcept {
+	return std::hardware_destructive_interference_size;
 }
