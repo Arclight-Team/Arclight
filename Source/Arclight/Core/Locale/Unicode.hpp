@@ -287,7 +287,8 @@ namespace Unicode {
 
 			if (codepoint >= 0x10000) {
 
-				T lowSurrogate = 0xDC00 + codepoint & 0x3FF;
+				codepoint -= 0x10000;
+				T lowSurrogate = 0xDC00 + (codepoint & 0x3FF);
 				T highSurrogate = 0xD800 + (codepoint >> 10);
 
 				if constexpr (convert) {
