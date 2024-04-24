@@ -60,17 +60,12 @@ std::string Console::getTitle() {
 	u32 length = 0x100;
 	std::wstring title(length, L'\0');
 
-	while (length = GetConsoleTitleW(title.data(), length), length == 0) {
+	while (length = GetConsoleTitleW(title.data(), title.size()), length == 0) {
 
-		if (length < 0x8000) {
-
-			length *= 2;
-			title.resize(length);
-
+		if (title.size() < 0x8000) {
+			title.resize(title.size() * 2);
 		} else {
-
 			return "";
-
 		}
 
 	}
