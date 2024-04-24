@@ -7,18 +7,21 @@
  */
 
 #include "OS.hpp"
+#include "Console.hpp"
 #include "Registry.hpp"
-#include "Common/Types.hpp"
 #include "Notification.hpp"
-#include "Locale/Unicode.hpp"
-#include "Filesystem/FSEntry.hpp"
-#include "Util/Log.hpp"
+
+#include "Common/Types.hpp"
 #include "Common/Win32.hpp"
+#include "Filesystem/FSEntry.hpp"
+#include "Locale/Unicode.hpp"
+#include "Util/Log.hpp"
 
 #include <vector>
 
 #include <Shlwapi.h>
 #include <Commctrl.h>
+
 
 
 std::optional<std::string> OS::Environment::getVariable(const std::string& var) {
@@ -146,6 +149,8 @@ bool OS::init() {
 	}
 
 #ifndef ARC_WIN_DISABLE_CONSOLE
+	OS::Console::initialize();
+
 	if (!SetConsoleOutputCP(CP_UTF8)) {
 #ifndef ARC_CFG_ARCRT_SILENT
 		LogE("Runtime") << "Console failed to switch to Unicode";
