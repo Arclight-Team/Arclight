@@ -15,10 +15,6 @@
 #include "Common/Exception.hpp"
 #include "Common/Types.hpp"
 
-#ifdef ARC_WINDOW_MODULE
-	#include <GLFW/glfw3.h>
-#endif
-
 #ifdef ARC_FONT_MODULE
 	#include "Font/FontBackend.hpp"
 #endif
@@ -162,18 +158,6 @@ bool ArcRuntime::initialize() noexcept {
 	Log::openLogFile(std::string(ARC_PATH_ROOT) + ARC_LOG_DIRECTORY);
 #endif
 
-
-#ifdef ARC_WINDOW_MODULE
-
-	if (!glfwInit()) {
-#ifndef ARC_ARCRT_SILENT
-		LogE("ArcRT") << "Failed to initialize GLFW";
-#endif
-		return false;
-	}
-
-#endif
-
 #ifdef ARC_FONT_MODULE
 
 	if (!FontBackend::init()) {
@@ -203,10 +187,6 @@ void ArcRuntime::shutdown() noexcept {
 
 #ifdef ARC_FONT_MODULE
 	FontBackend::shutdown();
-#endif
-
-#ifdef ARC_WINDOW_MODULE
-	glfwTerminate();
 #endif
 
 #ifndef ARC_CFG_ARCRT_SILENT

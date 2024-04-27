@@ -12,7 +12,7 @@
 #include "Util/Bits.hpp"
 #include "Util/Log.hpp"
 
-#include <GLFW/glfw3.h>
+//#include <GLFW/glfw3.h>
 
 
 
@@ -39,7 +39,7 @@ void RenderCursor::setCurrent(CursorID id) {
 
 	if (cursors.contains(id) || id == DefaultCursorID) {
 
-		auto ptr = window.getInternalHandle().lock();
+		/*auto ptr = window.getInternalHandle().lock();
 
 		if (ptr) {
 
@@ -50,7 +50,7 @@ void RenderCursor::setCurrent(CursorID id) {
 
 			LogW("Cursor").print("Failed to activate cursor with ID = %d", id);
 
-		}
+		}*/
 
 
 	} else {
@@ -81,7 +81,7 @@ bool RenderCursor::set(CursorID id, const Image<Pixel::RGBA8>& image, const Vec2
 		return false;
 	}
 
-	GLFWimage img { static_cast<i32>(image.getWidth()), static_cast<i32>(image.getHeight()), const_cast<u8*>(Bits::toByteArray(image.getImageBuffer().data())) };
+	/*GLFWimage img { static_cast<i32>(image.getWidth()), static_cast<i32>(image.getHeight()), const_cast<u8*>(Bits::toByteArray(image.getImageBuffer().data())) };
 
 	GLFWcursor* c = glfwCreateCursor(&img, hotspot.x, hotspot.y);
 
@@ -93,7 +93,8 @@ bool RenderCursor::set(CursorID id, const Image<Pixel::RGBA8>& image, const Vec2
 	}
 
 	cursors[id] = c;
-	return true;
+	return true;*/
+    return true;
 
 }
 
@@ -107,7 +108,7 @@ bool RenderCursor::set(CursorID id, StandardCursor cursor) {
 
 	i32 v;
 
-	switch (cursor) {
+	/*switch (cursor) {
 
 		default:
 		case StandardCursor::Arrow:
@@ -146,7 +147,8 @@ bool RenderCursor::set(CursorID id, StandardCursor cursor) {
 	}
 
 	cursors[id] = c;
-	return true;
+	return true;*/
+    return true;
 
 }
 
@@ -166,7 +168,7 @@ void RenderCursor::destroy(CursorID id) noexcept {
 
 		if (cursors.contains(id)) {
 
-			glfwDestroyCursor(cursors[id]);
+			//glfwDestroyCursor(cursors[id]);
 			cursors.erase(id);
 
 		}
@@ -186,7 +188,7 @@ void RenderCursor::destroyAll() noexcept {
 		restoreDefaultCursor();
 
 		for (const auto& [id, cursor] : cursors) {
-			glfwDestroyCursor(cursor);
+			//glfwDestroyCursor(cursor);
 		}
 
 		cursors.clear();

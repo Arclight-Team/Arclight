@@ -252,20 +252,11 @@ project (${PROJECT_NAME})
 	message("Looking for dependencies")
 
 	# GLFW for input/window
-	if ("Arclight.Input" IN_LIST MODULE_LIST OR "Arclight.Window" IN_LIST MODULE_LIST)
+	if ("Arclight.Window" IN_LIST MODULE_LIST)
 
-		# Build GLFW along the project
-		set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-		set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-		set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-		add_subdirectory("Lib/GLFW")
-
-		include_directories("Lib/GLFW/include")
-		list(APPEND APPLICATION_LIBS glfw)
-
-		add_compile_definitions(ARC_WINDOW_MODULE)
-
-		message("\tAdded dependency 'GLFW'")
+		if (WIN32)
+			list(APPEND APPLICATION_LIBS dwmapi)
+		endif()
 
 	endif()
 

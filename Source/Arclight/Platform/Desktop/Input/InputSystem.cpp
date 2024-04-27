@@ -15,7 +15,7 @@
 
 #include <algorithm>
 
-#include <GLFW/glfw3.h>
+//#include <GLFW/glfw3.h>
 
 
 
@@ -42,7 +42,7 @@ void InputSystem::connect(const Window& window) {
 
 	disconnect();
 
-	windowHandle = window.getInternalHandle();
+	/*windowHandle = window.getInternalHandle();
 	auto handle = getWindowHandle();
 
 	if (handle) {
@@ -125,7 +125,7 @@ void InputSystem::connect(const Window& window) {
 	});
 
 	setupKeyMap(true);
-	eventCounts.resize(keyStates.size(), 0);
+	eventCounts.resize(keyStates.size(), 0);*/
 
 }
 
@@ -137,7 +137,7 @@ void InputSystem::disconnect() {
 		return;
 	}
 
-	auto handle = getWindowHandle();
+	/*auto handle = getWindowHandle();
 	arc_assert(handle != nullptr, "Handle unexpectedly null");
 
 	glfwSetKeyCallback(handle->handle, nullptr);
@@ -150,7 +150,7 @@ void InputSystem::disconnect() {
 
 	windowHandle.reset();
 
-	setupKeyMap(false);
+	setupKeyMap(false);*/
 
 }
 
@@ -159,9 +159,9 @@ bool InputSystem::connected() const {
 
 	auto handle = getWindowHandle();
 
-	if (handle && handle->userPtr.input) {
+	/*if (handle && handle->userPtr.input) {
 		return true;
-	}
+	}*/
 
 	return false;
 
@@ -372,11 +372,12 @@ KeyState InputSystem::getKeyState(Key key) const {
 
 Scancode InputSystem::getScancode(Key key) const {
 
-	if (key < GLFW_KEY_SPACE) {
+	/*if (key < GLFW_KEY_SPACE) {
 		return -1;
 	}
 
-	return glfwGetKeyScancode(static_cast<i32>(key));
+	return glfwGetKeyScancode(static_cast<i32>(key));*/
+    return 0;
 
 }
 
@@ -384,7 +385,7 @@ Scancode InputSystem::getScancode(Key key) const {
 
 std::string InputSystem::getKeyNameFromKey(Key key) const {
 
-	if (key <= GLFW_MOUSE_BUTTON_LAST) {
+	/*if (key <= GLFW_MOUSE_BUTTON_LAST) {
 
 		switch (key) {
 
@@ -410,7 +411,7 @@ std::string InputSystem::getKeyNameFromKey(Key key) const {
 			return "Unknown";
 		}
 
-	} else {
+	} else */{
 
 		return "Unknown";
 
@@ -422,11 +423,11 @@ std::string InputSystem::getKeyNameFromKey(Key key) const {
 
 std::string InputSystem::getKeyNameFromScancode(Scancode code) const {
 
-	const char* str = glfwGetKeyName(GLFW_KEY_UNKNOWN, code);
+	/*const char* str = glfwGetKeyName(GLFW_KEY_UNKNOWN, code);
 
 	if (str) {
 		return str;
-	} else {
+	} else */{
 		return "Unknown";
 	}
 
@@ -472,7 +473,7 @@ std::shared_ptr<WindowHandle> InputSystem::getWindowHandle() const {
 
 void InputSystem::setupKeyMap(bool activeWindow) {
 
-	arc_assert(GLFW_KEY_LAST < 512, "GLFW_KEY_LAST exceeds the keycount maximum of 512 keys");
+	/*arc_assert(GLFW_KEY_LAST < 512, "GLFW_KEY_LAST exceeds the keycount maximum of 512 keys");
 
 	bool refill = !!keyStates.size();
 	keyStates.resize(GLFW_KEY_LAST + 1, KeyState::Released);
@@ -494,7 +495,7 @@ void InputSystem::setupKeyMap(bool activeWindow) {
 			keyStates[i] = glfwGetKey(handle->handle, i) == GLFW_PRESS ? KeyState::Pressed : KeyState::Released;
 		}
 
-	}
+	}*/
 
 }
 

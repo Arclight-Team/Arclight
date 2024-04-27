@@ -10,7 +10,7 @@
 #include "InputSystem.hpp"
 #include "Window/Window.hpp"
 
-#include <GLFW/glfw3.h>
+//#include <GLFW/glfw3.h>
 
 
 
@@ -29,7 +29,7 @@ void Cursor::setPosition(double x, double y) {
 	auto window = system.getWindowHandle();
 
 	if (window) {
-		glfwSetCursorPos(window->handle, x, y);
+		//glfwSetCursorPos(window->handle, x, y);
 	}
 
 }
@@ -43,7 +43,7 @@ Vec2d Cursor::getPosition() const {
 	auto window = system.getWindowHandle();
 
 	if (window) {
-		glfwGetCursorPos(window->handle, &position.x, &position.y);
+		//glfwGetCursorPos(window->handle, &position.x, &position.y);
 	}
 
 	return position;
@@ -57,7 +57,7 @@ void Cursor::show() {
 	auto window = system.getWindowHandle();
 
 	if (window) {
-		glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        //glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	}
 
 }
@@ -69,7 +69,7 @@ void Cursor::hide() {
 	auto window = system.getWindowHandle();
 
 	if (window) {
-		glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        //glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 	}
 
 }
@@ -81,7 +81,7 @@ void Cursor::free() {
 	auto window = system.getWindowHandle();
 
 	if (window) {
-		glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        //glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	}
 
 }
@@ -90,15 +90,15 @@ void Cursor::free() {
 
 void Cursor::enableRawMotion() {
 
-	if (glfwRawMouseMotionSupported()) {
+	/*if (glfwRawMouseMotionSupported()) {
 
 		auto window = system.getWindowHandle();
 
 		if (window) {
-			glfwSetInputMode(window->handle, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+            //glfwSetInputMode(window->handle, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 		}
 
-	}
+	}*/
 
 }
 
@@ -106,7 +106,7 @@ void Cursor::enableRawMotion() {
 
 void Cursor::disableRawMotion() {
 
-	if (glfwRawMouseMotionSupported()) {
+	/*if (glfwRawMouseMotionSupported()) {
 
 		auto window = system.getWindowHandle();
 
@@ -114,6 +114,6 @@ void Cursor::disableRawMotion() {
 			glfwSetInputMode(window->handle, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 		}
 
-	}
+	}*/
 
 }
