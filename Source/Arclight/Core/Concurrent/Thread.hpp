@@ -100,7 +100,7 @@ public:
 	bool tryFinish(u64 us = 1000);
 
 	// Will throw if the thread exited with an uncaught exception
-	template<class R> requires !CC::Equal<R, void>
+	template<class R> requires (!CC::Equal<R, void>)
 	R getResult() {
 
 		if (finished()) {
@@ -111,7 +111,7 @@ public:
 
 	}
 
-	template<class R> requires !CC::Equal<R, void>
+	template<class R> requires (!CC::Equal<R, void>)
 	R getUncheckedResult() {
 
 		if (finished()) {
