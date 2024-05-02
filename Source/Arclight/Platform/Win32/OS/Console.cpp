@@ -20,6 +20,7 @@ void Console::initialize() {
 	AllocConsole();
 	stdinHandle = GetStdHandle(STD_INPUT_HANDLE);
 	stdoutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleOutputCP(CP_UTF8);
 
 }
 
@@ -109,6 +110,44 @@ Vec2i Console::getCursorPosition() {
 	}
 
 	return { info.dwCursorPosition.X, info.dwCursorPosition.Y };
+
+}
+
+
+
+u32 Console::getFontSize() {
+
+	if (!stdoutHandle.valid()) {
+		return 0;
+	}
+
+	CONSOLE_FONT_INFO info;
+
+	if (!GetCurrentConsoleFont(stdoutHandle.handle, false, &info)) {
+		return 0;
+	}
+
+	return info.dwFontSize.Y;
+
+}
+
+
+
+std::string Console::getFontName() {
+
+	if (!stdoutHandle.valid()) {
+		return "";
+	}
+
+	CONSOLE_FONT_INFOEX info;
+	ZeroMemory(&info, sizeof(info));
+	info.cbSize = sizeof(info);
+
+	if (!GetCurrentConsoleFontEx(stdoutHandle.handle, false, &info)) {
+		return "";
+	}
+
+	return OS::String::toUTF8(info.FaceName);
 
 }
 
@@ -231,6 +270,50 @@ void Console::setCursorPosition(u32 x, u32 y) {
 
 
 
+void Console::setFontSize(u32 size) {
+
+	if (!stdoutHandle.valid()) {
+		return;
+	}
+
+	CONSOLE_FONT_INFOEX info;
+	ZeroMemory(&info, sizeof(info));
+	info.cbSize = sizeof(info);
+
+	COORD c;
+	c.X = 0;
+	c.Y = size;
+	info.dwFontSize = c;
+
+	SetCurrentConsoleFontEx(stdoutHandle.handle, false, &info);
+
+}
+
+
+
+void Console::setFontName(const std::string& name) {
+
+	if (!stdoutHandle.valid()) {
+		return;
+	}
+
+	CONSOLE_FONT_INFOEX info;
+	ZeroMemory(&info, sizeof(info));
+	info.cbSize = sizeof(info);
+
+	std::wstring wname = OS::String::toUTF16(name);
+
+	if (wname.empty() || wname.size() + 1 > LF_FACESIZE) {
+		return;
+	}
+
+	std::ranges::copy(wname, info.FaceName);
+	SetCurrentConsoleFontEx(stdoutHandle.handle, false, &info);
+
+}
+
+
+
 void Console::setBufferSize(u32 width, u32 height) {
 
 	if (!stdoutHandle.valid()) {
@@ -242,24 +325,6 @@ void Console::setBufferSize(u32 width, u32 height) {
 	c.Y = height;
 
 	SetConsoleScreenBufferSize(stdoutHandle.handle, c);
-
-}
-
-
-
-void Console::setWindowSize(u32 width, u32 height) {
-
-	if (!stdoutHandle.valid()) {
-		return;
-	}
-
-	SMALL_RECT rect;
-	rect.Left = 0;
-	rect.Top = 0;
-	rect.Right = width - 1;
-	rect.Bottom = height - 1;
-
-	SetConsoleWindowInfo(stdoutHandle.handle, true, &rect);
 
 }
 
@@ -320,7 +385,9 @@ void Console::fill(char16_t c) {
 	}
 
 	DWORD written = 0;
-	FillConsoleOutputCharacterW(stdoutHandle.handle, c, -1, COORD { 0, 0 }, &written);
+	Vec2i bufferSize = getBufferSize();
+	FillConsoleOutputCharacterW(stdoutHandle.handle, c, bufferSize.x * bufferSize.y, COORD { 0, 0 }, &written);
+	FillConsoleOutputAttribute(stdoutHandle.handle, 0, bufferSize.x * bufferSize.y, COORD { 0, 0 }, &written);
 
 }
 
@@ -328,7 +395,7 @@ void Console::fill(char16_t c) {
 
 std::string Console::read(u32 count) {
 
-	if (!stdinHandle.valid()) {
+	if (!stdinHandle.valid() || !count) {
 		return "";
 	}
 
@@ -353,6 +420,25 @@ SizeT Console::write(const std::string& text) {
 	}
 
 	std::wstring wtext = OS::String::toUTF16(text);
+	DWORD written = 0;
+
+	if (!WriteConsoleW(stdoutHandle.handle, wtext.data(), wtext.size(), &written, nullptr)) {
+		return 0;
+	}
+
+	return written;
+
+}
+
+
+
+SizeT Console::writeLine(const std::string& text) {
+
+	if (!stdoutHandle.valid()) {
+		return 0;
+	}
+
+	std::wstring wtext = OS::String::toUTF16(text) + L'\n';
 	DWORD written = 0;
 
 	if (!WriteConsoleW(stdoutHandle.handle, wtext.data(), wtext.size(), &written, nullptr)) {

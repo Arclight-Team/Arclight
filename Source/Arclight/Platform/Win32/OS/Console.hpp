@@ -35,6 +35,8 @@ namespace OS::Console {
 	std::string getTitle();
 	bool isCursorVisible();
 	Vec2i getCursorPosition();
+	u32 getFontSize();
+	std::string getFontName();
 	Vec2i getBufferSize();
 	Vec2i getWindowSize();
 	Flags getFlags();
@@ -42,8 +44,9 @@ namespace OS::Console {
 	void setTitle(const std::string& title);
 	void setCursorVisibility(bool visible);
 	void setCursorPosition(u32 x, u32 y);
+	void setFontSize(u32 size);
+	void setFontName(const std::string& name);
 	void setBufferSize(u32 width, u32 height);
-	void setWindowSize(u32 width, u32 height);
 	void setFlags(Flags flags);
 
 	void clear();
@@ -52,6 +55,7 @@ namespace OS::Console {
 	std::string read(u32 count);
 
 	SizeT write(const std::string& text);
+	SizeT writeLine(const std::string& text);
 	bool write(const std::string& text, const Vec2i& pos, const Vec2i& size);
 
 	inline OS::Handle stdinHandle;

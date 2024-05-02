@@ -170,7 +170,7 @@ namespace OS {
 			creationFlags |= CREATE_NEW_PROCESS_GROUP;
 		}
 
-		STARTUPINFO si{};
+		STARTUPINFOW si{};
 		ZeroMemory(&si, sizeof(STARTUPINFO));
 		si.cb = sizeof(si);
 		si.dwFlags |= STARTF_USESTDHANDLES;

@@ -73,7 +73,7 @@ namespace Crypto {
 		}
 
 		//Add length
-		if(bits64) {
+		if (bits64) {
 
 			if constexpr (sizeof(SizeT) > 8) {
 				Bits::disassemble<u64>(bits >> 64, construct.lastBlock + padOffset);

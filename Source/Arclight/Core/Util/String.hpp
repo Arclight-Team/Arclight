@@ -139,7 +139,8 @@ namespace String {
 		None = 0x0,
 		Upper = 0x1,
 		Prefix = 0x2,
-		Fill = 0x4
+		Fill = 0x4,
+		All = Upper | Prefix | Fill
 	};
 
 	ARC_CREATE_BITMASK_ENUM(HexFlags)

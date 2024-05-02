@@ -24,7 +24,7 @@ class LinearCongruentialGenerator : public IRandomNumberGenerator {
 public:
 
 	using SeedType = Seed<Bits::bitCount<T>()>;
-
+	using result_type = T;
 
 	constexpr LinearCongruentialGenerator() : LinearCongruentialGenerator(1) {}
 
@@ -52,6 +52,18 @@ public:
 
 		}
 
+	}
+
+	constexpr T operator()() noexcept {
+		return next();
+	}
+
+	constexpr static T min() noexcept {
+		return 0;
+	}
+
+	constexpr static T max() noexcept {
+		return T(-1);
 	}
 
 private:

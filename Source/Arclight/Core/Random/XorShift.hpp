@@ -59,6 +59,8 @@ class XorShift32 : public XorShift<u32> {
 
 public:
 
+	using result_type = u32;
+
 	constexpr u32 next() noexcept {
 
 		x ^= x << 13;
@@ -67,6 +69,10 @@ public:
 
 		return x;
 
+	}
+
+	constexpr u32 operator()() noexcept {
+		return next();
 	}
 
 };
@@ -81,6 +87,8 @@ class XorShift64 : public XorShift<u64> {
 
 public:
 
+	using result_type = u64;
+
 	constexpr u64 next() noexcept {
 
 		x ^= x << 13;
@@ -89,6 +97,10 @@ public:
 
 		return x;
 
+	}
+
+	constexpr u64 operator()() noexcept {
+		return next();
 	}
 
 };

@@ -40,6 +40,8 @@ public:
 	using ShortSeedType = Seed<Bits::bitCount<X>()>;
 	using SeedType = Seed<Bits::bitCount<X>() * N>;
 
+	using result_type = X;
+
 	constexpr static X LMask = Bits::ones<X>(R);
 	constexpr static X WMask = Bits::ones<X>(W);
 	constexpr static X UMask = ~LMask & WMask;
@@ -52,7 +54,7 @@ public:
 
 	constexpr void setSeed(ShortSeedType seed) {
 
-		x[0] = seed.get<X>(0);
+		x[0] = seed.template get<X>(0);
 
 		for (SizeT i = 1; i < N; i++) {
 
@@ -68,7 +70,7 @@ public:
 	constexpr void setSeed(SeedType seed) {
 
 		for (SizeT i = 0; i < N; i++) {
-			x[i] = seed.get<X>(i * Bits::bitCount<X>());
+			x[i] = seed.template get<X>(i * Bits::bitCount<X>());
 		}
 
 		index = N;

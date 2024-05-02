@@ -31,6 +31,7 @@ class ArithmeticCarryGenerator : public IRandomNumberGenerator {
 public:
 
 	using SeedType = Seed<R * Bits::bitCount<T>() + 1>;
+	using result_type = T;
 
 	constexpr static bool Reduce = M != 0;
 
@@ -164,6 +165,18 @@ public:
 			return k;
 		}
 
+	}
+
+	constexpr T operator()() noexcept {
+		return next();
+	}
+
+	constexpr static T min() noexcept {
+		return 0;
+	}
+
+	constexpr static T max() noexcept {
+		return T(-1);
 	}
 
 private:

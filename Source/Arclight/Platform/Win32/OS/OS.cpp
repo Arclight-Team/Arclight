@@ -150,13 +150,6 @@ bool OS::init() {
 
 #ifndef ARC_WIN_DISABLE_CONSOLE
 	OS::Console::initialize();
-
-	if (!SetConsoleOutputCP(CP_UTF8)) {
-#ifndef ARC_CFG_ARCRT_SILENT
-		LogE("Runtime") << "Console failed to switch to Unicode";
-#endif
-		return false;
-	}
 #endif
 
 	return true;
