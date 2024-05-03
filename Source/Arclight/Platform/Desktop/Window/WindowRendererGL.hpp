@@ -10,13 +10,15 @@
 
 #include <memory>
 
+
+
 class Window;
+class WindowHandle;
 class WindowRendererGLHandle;
 
 class WindowRendererGL {
+
 public:
-    WindowRendererGL();
-    ~WindowRendererGL();
 
     bool create(Window& window);
     void destroy();
@@ -29,6 +31,8 @@ public:
     int swapInterval();
 
 private:
+
     std::unique_ptr<WindowRendererGLHandle> handle;
-    Window* window;
+    std::weak_ptr<WindowHandle> window;
+
 };

@@ -19,6 +19,7 @@ template<Pixel P>
 class Image;
 
 class Window;
+class WindowHandle;
 class GLFWcursor;
 
 class RenderCursor {
@@ -40,7 +41,7 @@ public:
 	constexpr static CursorID DefaultCursorID = -1;
 
 
-	explicit RenderCursor(const Window& window) noexcept;
+	explicit RenderCursor(std::weak_ptr<WindowHandle> window) noexcept;
 	~RenderCursor() noexcept;
 
 	void restoreDefaultCursor();
@@ -57,7 +58,7 @@ public:
 
 private:
 
-	const Window& window;
+	std::weak_ptr<WindowHandle> window;
 	CursorID currentID;
 	std::unordered_map<CursorID, GLFWcursor*> cursors;
 

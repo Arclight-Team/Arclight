@@ -10,17 +10,23 @@
 
 #include "Common/Types.hpp"
 
+
+
 class WindowRendererGLConfig {
+
 public:
+
     enum class OpenGLProfile {
         Core,
         Compatibility,
         Any
     };
 
-    constexpr WindowRendererGLConfig() :
-        openglMajor(4), openglMinor(3), profile(OpenGLProfile::Core), forwardContext(true), debugContext(false), srgbRendering(true),
-        samples(1), redBits(8), greenBits(8), blueBits(8), alphaBits(8), depthBits(24), stencilBits(8) {}
+    constexpr WindowRendererGLConfig() : openglMajor(4), openglMinor(3), profile(OpenGLProfile::Core),
+										forwardContext(true), debugContext(false), srgbRendering(true),
+										transparent(false),
+										samples(1), redBits(8), greenBits(8), blueBits(8), alphaBits(8), depthBits(24),
+										stencilBits(8), resizable(false), maximized(false), alwaysOnTop(false) {}
 
     WindowRendererGLConfig& setOpenGLVersion(u32 major, u32 minor);
     WindowRendererGLConfig& setOpenGLProfile(OpenGLProfile profile);
@@ -30,8 +36,7 @@ public:
     WindowRendererGLConfig& setSamples(u8 samples);
     WindowRendererGLConfig& setFramebuffer(u8 redBits, u8 greenBits, u8 blueBits, u8 alphaBits, u8 depthBits, u8 stencilBits);
 
-private:
-    friend class Window;
+	bool isValid() const;
 
     u32 openglMajor;
     u32 openglMinor;
@@ -50,4 +55,5 @@ private:
     bool resizable;
     bool maximized;
     bool alwaysOnTop;
+
 };

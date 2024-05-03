@@ -17,7 +17,7 @@
 #include <string>
 #include <memory>
 #include <functional>
-#include <unordered_map>
+
 
 
 template<Pixel P>
@@ -141,17 +141,18 @@ public:
     RenderCursor& getRenderCursor();
     const RenderCursor& getRenderCursor() const;
 
-    void setRefreshFunction(RefreshFunction function);
-    void setMoveFunction(MoveFunction function);
-    void setResizeFunction(ResizeFunction function);
-    void setStateChangeFunction(StateChangeFunction function);
-    void setDropFunction(DropFunction function);
+    void setRefreshFunction(const RefreshFunction& function);
+    void setMoveFunction(const MoveFunction& function);
+    void setResizeFunction(const ResizeFunction& function);
+    void setStateChangeFunction(const StateChangeFunction& function);
+    void setDropFunction(const DropFunction& function);
     void resetWindowFunctions();
 
-    WindowHandle& getInternalHandle() const;
+    std::weak_ptr<WindowHandle> getInternalHandle() const;
 
 private:
-    std::unique_ptr<WindowHandle> handle;
+
+    std::shared_ptr<WindowHandle> handle;
 
     RenderCursor cursor;
 

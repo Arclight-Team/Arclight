@@ -6,14 +6,20 @@
  *	 WindowClass.hpp
  */
 
+#pragma once
+
 #include <string>
 #include <string_view>
 #include <memory>
 
+
+
 class WindowClassHandle;
 
 class WindowClass {
+
 public:
+
     WindowClass();
     ~WindowClass();
 
@@ -24,5 +30,7 @@ public:
     WindowClassHandle& getInternalHandle();
 
 private:
+
     std::unique_ptr<WindowClassHandle> handle;
+
 };

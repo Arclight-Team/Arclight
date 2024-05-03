@@ -14,8 +14,6 @@
 #include <GL/glew.h>
 
 
-#define WGL_GETFUNC(name, type) ((type)wglGetProcAddress(name))
-
 #define WGL_TRANSPARENT_ARB 0x200A
 #define WGL_CONTEXT_MAJOR_VERSION_ARB 0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB 0X2092
@@ -23,38 +21,44 @@
 #define WGL_CONTEXT_COREPROFILE_BIT_ARB 0x00000001
 #define WGL_CONTEXT_PROFILE_MASK_ARB 0x9126
 
-typedef HGLRC (WINAPI* PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC hDC, HGLRC hShareContext, const int* attribList);
-typedef const char* (WINAPI* PFNWGLGETEXTENSIONSSTRINGEXTPROC)(void);
-typedef BOOL (WINAPI* PFNWGLSWAPINTERVALEXTPROC)(int);
-typedef int (WINAPI* PFNWGLGETSWAPINTERVALEXTPROC)(void);
-
-
+using WGLCreateContextAttribsFunction	= HGLRC (WINAPI*)(HDC hDC, HGLRC hShareContext, const int* attribList);
+using WGLGetExtensionsStringFunction	= const char* (WINAPI*)();
+using WGLSwapIntervalFunction			= BOOL (WINAPI*)(int);
+using WGLGetSwapIntervalFunction		= int (WINAPI*)();
 
 class WindowRendererGLHandle {
+
 public:
+
     HDC hdc;
     HGLRC hglrc;
-    PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
-    PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT;
+    WGLSwapIntervalFunction wglSwapIntervalEXT;
+    WGLGetSwapIntervalFunction wglGetSwapIntervalEXT;
+
 };
 
 
-WindowRendererGL::WindowRendererGL() :
-    window(nullptr)
-{}
+template<class T>
+static T getWGLFunction(const char* name) {
+	return reinterpret_cast<T>(wglGetProcAddress(name));
+}
 
-WindowRendererGL::~WindowRendererGL() = default;
 
 
 bool WindowRendererGL::create(Window& window) {
 
     arc_assert(window.isOpen(), "Tried to create OpenGL renderer for non-existing window");
 
-    this->window = &window;
+	auto windowHandle = window.getInternalHandle().lock();
 
-    HWND hwnd = window.getInternalHandle().getHWND();
+	if (!windowHandle) {
+		LogE("WindowRendererGL") << "Failed to obtain window handle";
+		return false;
+	}
 
+    HWND hwnd = windowHandle->getHWND();
     HDC hdc = GetDC(hwnd);
+
     if (!hdc) {
         LogE("WindowRendererGL") << "Failed to acquire window device context";
         return false;
@@ -65,8 +69,7 @@ bool WindowRendererGL::create(Window& window) {
         pfFlags |= PFD_SUPPORT_COMPOSITION;
     }*/
 
-    PIXELFORMATDESCRIPTOR pfd;
-    std::memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
+    PIXELFORMATDESCRIPTOR pfd {};
     pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
     pfd.nVersion = 1;
     pfd.dwFlags = pfFlags;
@@ -80,7 +83,8 @@ bool WindowRendererGL::create(Window& window) {
 
     HGLRC tempRC = wglCreateContext(hdc);
     wglMakeCurrent(hdc, tempRC);
-    auto wglCreateContextAttribsARB = WGL_GETFUNC("wglCreateContextAttribsARB", PFNWGLCREATECONTEXTATTRIBSARBPROC);
+
+    auto wglCreateContextAttribsARB = getWGLFunction<WGLCreateContextAttribsFunction>("wglCreateContextAttribsARB");
 
     const int attribList[] = {
         WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
@@ -107,16 +111,22 @@ bool WindowRendererGL::create(Window& window) {
     handle->hdc = hdc;
     handle->hglrc = hglrc;
 
-    auto wglGetExtensionsStringEXT = WGL_GETFUNC("wglGetExtensionsStringEXT", PFNWGLGETEXTENSIONSSTRINGEXTPROC);
+    std::string extensions = getWGLFunction<WGLGetExtensionsStringFunction>("wglGetExtensionsStringEXT")();
+	std::string swapControlString = "WGL_EXT_swap_control";
 
-    bool vSyncSupported = strstr(wglGetExtensionsStringEXT(), "WGL_EXT_swap_control") != 0;
+    bool vSyncSupported = !std::ranges::search(extensions, swapControlString).empty();
+
     if (vSyncSupported) {
-        handle->wglSwapIntervalEXT = WGL_GETFUNC("wglSwapIntervalEXT", PFNWGLSWAPINTERVALEXTPROC);
-        handle->wglGetSwapIntervalEXT = WGL_GETFUNC("wglGetSwapIntervalEXT", PFNWGLGETSWAPINTERVALEXTPROC);
+
+        handle->wglSwapIntervalEXT = getWGLFunction<WGLSwapIntervalFunction>("wglSwapIntervalEXT");
+        handle->wglGetSwapIntervalEXT = getWGLFunction<WGLGetSwapIntervalFunction>("wglGetSwapIntervalEXT");
+
     } else {
+
         handle->wglSwapIntervalEXT = nullptr;
         handle->wglGetSwapIntervalEXT = nullptr;
         LogW("WindowRendererGL") << "V-Sync not supported, proceeding without it";
+
     }
 
     return true;
@@ -125,11 +135,19 @@ bool WindowRendererGL::create(Window& window) {
 
 void WindowRendererGL::destroy() {
 
-    HWND hwnd = window->getInternalHandle().getHWND();
+	auto windowHandle = window.lock();
+
+	if (!windowHandle) {
+		LogE("WindowRendererGL") << "Failed to obtain window handle";
+		return;
+	}
+
+    HWND hwnd = windowHandle->getHWND();
 
     ReleaseDC(hwnd, handle->hdc);
 
     handle.reset();
+	window.reset();
 
 }
 
@@ -146,14 +164,19 @@ void WindowRendererGL::swapBuffers() {
 }
 
 void WindowRendererGL::swapInterval(int interval) {
+
     if (handle->wglSwapIntervalEXT) {
         handle->wglSwapIntervalEXT(interval);
     }
+
 }
 
 int WindowRendererGL::swapInterval() {
+
     if (handle->wglSwapIntervalEXT) {
         return handle->wglGetSwapIntervalEXT();
     }
+
     return 0;
+
 }

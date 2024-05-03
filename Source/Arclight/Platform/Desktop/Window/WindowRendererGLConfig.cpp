@@ -9,9 +9,10 @@
 #include "WindowRendererGLConfig.hpp"
 #include "Common/Assert.hpp"
 
+
+
 WindowRendererGLConfig& WindowRendererGLConfig::setOpenGLVersion(u32 major, u32 minor) {
 
-    arc_assert(major == 4 && minor <= 6 && minor >= 3, "OpenGL version %d.%d not supported", major, minor);
     this->openglMajor = major;
     this->openglMinor = minor;
     return *this;
@@ -64,4 +65,8 @@ WindowRendererGLConfig& WindowRendererGLConfig::setFramebuffer(u8 redBits, u8 gr
     this->stencilBits = stencilBits;
     return *this;
 
+}
+
+bool WindowRendererGLConfig::isValid() const {
+	return (openglMajor == 4 && openglMinor <= 6) || (openglMajor == 3 && openglMinor <= 3);
 }

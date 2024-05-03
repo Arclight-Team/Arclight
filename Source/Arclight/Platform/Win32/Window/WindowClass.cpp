@@ -13,7 +13,9 @@
 #include "Common/Assert.hpp"
 #include "Util/Log.hpp"
 
-#include <Windows.h>
+#include "Common/Win32.hpp"
+
+
 
 WindowClass::WindowClass() = default;
 WindowClass::~WindowClass() = default;

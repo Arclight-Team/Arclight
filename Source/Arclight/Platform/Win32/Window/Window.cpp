@@ -29,10 +29,9 @@
 
 #include <dwmapi.h>
 
-Window::Window() :
-    handle(nullptr),
-    cursor(*this)
-{}
+
+
+Window::Window() : handle(nullptr), cursor(handle) {}
 
 Window::~Window() {
 
@@ -78,31 +77,7 @@ bool Window::create(u32 viewportWidth, u32 viewportHeight, const std::string& ti
         return false;
     }
 
-    handle = std::make_unique<WindowHandle>();
-    handle->hwnd = hwnd;
-    handle->viewportSize = { viewportWidth, viewportHeight };
-    handle->closeRequested = false;
-    handle->fullscreen.enabled = false;
-    handle->fullscreen.backupRect = { 0, 0, 0, 0 };
-    handle->fullscreen.backupStyle = 0;
-    handle->fullscreen.backupExStyle = 0;
-    handle->minSize = { -1, -1 };
-    handle->maxSize = { -1, -1 };
-    handle->resizing = false;
-    handle->focused = false;
-    handle->minimized = false;
-    handle->maximized = false;
-    handle->hovered = false;
-    handle->resizeable = false;
-    handle->decorated = false;
-    handle->hicon = nullptr;
-    handle->hiconSm = nullptr;
-    handle->refreshFunction = nullptr;
-    handle->moveFunction = nullptr;
-    handle->resizeFunction = nullptr;
-    handle->stateChangeFunction = nullptr;
-    handle->dropFunction = nullptr;
-    handle->messageHandlerFunction = WindowHandle::defaultMessageHandler;
+    handle = std::make_shared<WindowHandle>(hwnd, Vec2i(viewportWidth, viewportHeight));
 
     return true;
 }
@@ -142,12 +117,6 @@ void Window::close() {
         return;
     }
 
-    /*InputSystem* input = windowHandle->userPtr.input;
-
-    if (input) {
-        input->disconnect();
-    }*/
-
     cursor.destroyAll();
 
     DestroyWindow(handle->hwnd);
@@ -186,6 +155,7 @@ void Window::setFullscreen() {
     arc_assert(isOpen(), "Tried to set fullscreen mode for non-existing window");
 
     auto monitor = WindowHandle::getNearestMonitor(this);
+
     if (monitor) {
         setFullscreen(*monitor);
     }
@@ -768,38 +738,38 @@ bool Window::alwaysOnTop() const {
 
 }
 
-void Window::setRefreshFunction(RefreshFunction function) {
+void Window::setRefreshFunction(const RefreshFunction& function) {
 
     arc_assert(isOpen(), "Tried to set window refresh function for non-existing window");
-    handle->refreshFunction = std::move(function);
+    handle->refreshFunction = function;
 
 }
 
-void Window::setMoveFunction(MoveFunction function) {
+void Window::setMoveFunction(const MoveFunction& function) {
 
     arc_assert(isOpen(), "Tried to set window move function for non-existing window");
-    handle->moveFunction = std::move(function);
+    handle->moveFunction = function;
 
 }
 
-void Window::setResizeFunction(ResizeFunction function) {
+void Window::setResizeFunction(const ResizeFunction& function) {
 
     arc_assert(isOpen(), "Tried to set window resize function for non-existing window");
-    handle->resizeFunction = std::move(function);
+    handle->resizeFunction = function;
 
 }
 
-void Window::setStateChangeFunction(StateChangeFunction function) {
+void Window::setStateChangeFunction(const StateChangeFunction& function) {
 
     arc_assert(isOpen(), "Tried to set window state change function for non-existing window");
-    handle->stateChangeFunction = std::move(function);
+    handle->stateChangeFunction = function;
 
 }
 
-void Window::setDropFunction(DropFunction function) {
+void Window::setDropFunction(const DropFunction& function) {
 
     arc_assert(isOpen(), "Tried to set drop function for non-existing window");
-    handle->dropFunction = std::move(function);
+    handle->dropFunction = function;
 
 }
 
@@ -813,10 +783,41 @@ void Window::resetWindowFunctions() {
 
 }
 
-WindowHandle& Window::getInternalHandle() const {
+std::weak_ptr<WindowHandle> Window::getInternalHandle() const {
 
     arc_assert(isOpen(), "Tried to get internal handle for non-existing window");
-    return *handle;
+    return handle;
+
+}
+
+
+
+WindowHandle::WindowHandle(HWND hwnd, const Vec2i& viewport) {
+
+	this->hwnd = hwnd;
+	viewportSize = viewport;
+	closeRequested = false;
+	fullscreen.enabled = false;
+	fullscreen.backupRect = { 0, 0, 0, 0 };
+	fullscreen.backupStyle = 0;
+	fullscreen.backupExStyle = 0;
+	minSize = { -1, -1 };
+	maxSize = { -1, -1 };
+	resizing = false;
+	focused = false;
+	minimized = false;
+	maximized = false;
+	hovered = false;
+	resizeable = false;
+	decorated = false;
+	hicon = nullptr;
+	hiconSm = nullptr;
+	refreshFunction = nullptr;
+	moveFunction = nullptr;
+	resizeFunction = nullptr;
+	stateChangeFunction = nullptr;
+	dropFunction = nullptr;
+	messageHandlerFunction = defaultMessageHandler;
 
 }
 
@@ -844,32 +845,44 @@ LRESULT CALLBACK WindowHandle::wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 LRESULT WindowHandle::defaultMessageHandler(Window& w, HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) noexcept {
 
     switch (uMsg) {
+
         case WM_MENUCHAR: {
             return MAKELRESULT(0, MNC_CLOSE);
         }
+
         case WM_SYSCOMMAND: {
+
             if ((wParam & 0xFFF0) == SC_SIZE) {
                 w.handle->resizing = true;
                 break;
             }
             break;
+
         }
+
         case WM_ENTERSIZEMOVE: {
+
             if (w.handle->resizing) {
                 notifyStateChange(w, WindowState::BeginResize);
                 return 0;
             }
             break;
+
         }
+
         case WM_EXITSIZEMOVE: {
+
             if (w.handle->resizing) {
                 w.handle->resizing = false;
                 notifyStateChange(w, WindowState::EndResize);
                 return 0;
             }
             break;
+
         }
+
         case WM_SIZE: {
+
             Vec2i viewportSize = Vec2i(LOWORD(lParam), HIWORD(lParam));
 
             if (w.handle->viewportSize.x != viewportSize.x ||
@@ -880,6 +893,7 @@ LRESULT WindowHandle::defaultMessageHandler(Window& w, HWND hwnd, UINT uMsg, WPA
                 if (w.handle->resizeFunction) {
                     w.handle->resizeFunction(w, viewportSize.x, viewportSize.y);
                 }
+
             }
 
             bool minimized = wParam == SIZE_MINIMIZED;
@@ -889,13 +903,18 @@ LRESULT WindowHandle::defaultMessageHandler(Window& w, HWND hwnd, UINT uMsg, WPA
                 notifyStateChange(w, minimized ? WindowState::Minimized : WindowState::Restored);
                 w.handle->minimized = minimized;
             }
+
             if (w.handle->maximized != maximized) {
                 notifyStateChange(w, maximized ? WindowState::Maximized : WindowState::Restored);
                 w.handle->maximized = maximized;
             }
+
             return 0;
+
         }
+
         case WM_MOVE: {
+
             // i16 cast required because LOWORD/HIWORD returns an
             // unsigned value and windows can move to negative positions
             i32 x = static_cast<i16>(LOWORD(lParam));
@@ -904,21 +923,35 @@ LRESULT WindowHandle::defaultMessageHandler(Window& w, HWND hwnd, UINT uMsg, WPA
             if (w.handle->moveFunction) {
                 w.handle->moveFunction(w, x, y);
             }
+
             return 0;
+
         }
+
         case WM_GETMINMAXINFO: {
+
             auto* mmi = reinterpret_cast<MINMAXINFO*>(lParam);
+
             if (w.handle->minSize != Vec2ui(-1, -1)) {
+
                 mmi->ptMinTrackSize.x = static_cast<LONG>(w.handle->minSize.x);
                 mmi->ptMinTrackSize.y = static_cast<LONG>(w.handle->minSize.y);
+
             }
+
             if (w.handle->maxSize != Vec2ui(-1, -1)) {
+
                 mmi->ptMaxTrackSize.x = static_cast<LONG>(w.handle->maxSize.x);
                 mmi->ptMaxTrackSize.y = static_cast<LONG>(w.handle->maxSize.y);
+
             }
+
             return 0;
+
         }
+
         case WM_DROPFILES: {
+
             if (!w.handle->dropFunction) {
                 break;
             }
@@ -947,32 +980,42 @@ LRESULT WindowHandle::defaultMessageHandler(Window& w, HWND hwnd, UINT uMsg, WPA
 
             DragFinish(hdrop);
             return 0;
+
         }
+
         case WM_SETFOCUS: {
+
             w.handle->focused = true;
             notifyStateChange(w, WindowState::Focused);
             return 0;
+
         }
+
         case WM_KILLFOCUS: {
+
             w.handle->focused = false;
             notifyStateChange(w, WindowState::Unfocused);
             return 0;
+
         }
+
         case WM_CLOSE: {
+
             w.handle->closeRequested = true;
             notifyStateChange(w, WindowState::CloseRequest);
             return 0;
         }
+
         case WM_DESTROY: {
             // DO NOTHING FOR NOW
             return 0;
         }
-        default: {
-            break;
-        }
+
+        default: break;
+
     }
 
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 
 }
 
@@ -989,6 +1032,7 @@ std::unique_ptr<Monitor> WindowHandle::getNearestMonitor(Window* w) {
     arc_assert(w->isOpen(), "Tried to get nearest monitor for non-existing window");
 
     HMONITOR hMonitor = MonitorFromWindow(w->handle->hwnd, MONITOR_DEFAULTTONEAREST);
+
     if (!hMonitor) {
         return nullptr;
     }
@@ -1033,6 +1077,7 @@ HICON WindowHandle::createIcon(const Image<Pixel::RGBA8>& image, int xhot, int y
     }
 
     HBITMAP mask = CreateBitmap(static_cast<i32>(width), static_cast<i32>(height), 1, 1, nullptr);
+
     if (!mask) {
         LogE("Window") << "Failed to create mask bitmap";
         DeleteObject(color);
@@ -1064,11 +1109,13 @@ HICON WindowHandle::createIcon(const Image<Pixel::RGBA8>& image, int xhot, int y
     DeleteObject(mask);
 
     if (!hicon) {
+
         if (icon) {
             LogE("Window") << "Failed to create icon";
         } else {
             LogE("Window") << "Failed to create cursor";
         }
+
     }
 
     return hicon;

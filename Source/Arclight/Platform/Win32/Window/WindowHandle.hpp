@@ -11,30 +11,38 @@
 #include "Window/Window.hpp"
 #include "Common/Win32.hpp"
 
+
+
 class WindowClass;
 
 class WindowHandle {
+
 public:
+
     using MessageHandlerFunction = std::function<LRESULT(Window& w, HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)>;
 
-    inline WindowHandle() = default;
-    inline ~WindowHandle() = default;
+    WindowHandle(HWND hwnd, const Vec2i& viewport);
+    ~WindowHandle() = default;
 
     constexpr HWND getHWND() const { return hwnd; }
 
 private:
+
     static LRESULT CALLBACK wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) noexcept;
     static LRESULT defaultMessageHandler(Window& w, HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) noexcept;
     static void notifyStateChange(Window& w, WindowState state) noexcept;
     static std::unique_ptr<Monitor> getNearestMonitor(Window* w);
     static HICON createIcon(const Image<Pixel::RGBA8>& image, int xhot, int yhot, bool icon);
+
     void setMessageHandlerFunction(MessageHandlerFunction function);
 
     struct Fullscreen {
+
         bool enabled;
         RECT backupRect;
         DWORD backupStyle;
         DWORD backupExStyle;
+
     };
 
     HWND hwnd;

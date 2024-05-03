@@ -17,7 +17,7 @@
 
 
 
-RenderCursor::RenderCursor(const Window& window) noexcept : window(window), currentID(DefaultCursorID) {}
+RenderCursor::RenderCursor(std::weak_ptr<WindowHandle> window) noexcept : window(window), currentID(DefaultCursorID) {}
 
 RenderCursor::~RenderCursor() noexcept {
 	destroyAll();
