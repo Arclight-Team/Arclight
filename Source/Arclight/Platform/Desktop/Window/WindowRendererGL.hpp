@@ -20,6 +20,9 @@ class WindowRendererGL {
 
 public:
 
+	WindowRendererGL();
+	~WindowRendererGL();
+
     bool create(Window& window);
     void destroy();
 

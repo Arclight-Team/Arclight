@@ -8,7 +8,6 @@
 
 #include <vector>
 #include <string>
-#include <utility>
 
 #define Rectangle Rectangle_
 #include "Common/Win32.hpp" // Force disable GDI's rectangle function
@@ -20,8 +19,6 @@
 #include "Window/WindowClass.hpp"
 #include "Window/WindowClassHandle.hpp"
 #include "Monitor/Monitor.hpp"
-#include "Monitor/MonitorManager.hpp"
-#include "Monitor/MonitorManagerHandle.hpp"
 #include "Image/Image.hpp"
 #include "Common/Assert.hpp"
 #include "Util/Log.hpp"
@@ -29,6 +26,9 @@
 
 #include <dwmapi.h>
 
+
+constexpr DWORD DwmDarkMode = 20;
+constexpr DWORD DwmDarkModePre20H1 = 19;
 
 
 Window::Window() : handle(nullptr), cursor(handle) {}
@@ -84,15 +84,12 @@ bool Window::create(u32 viewportWidth, u32 viewportHeight, const std::string& ti
 
 bool Window::createFullscreen(const std::string& title, WindowClass& wndClass) {
 
-    /*Vec2ui monitorSize = monitor.getSize();
-
-    if (!create(512, 512, title)) {
+    Monitor monitor;
+    if (!monitor.fromPrimary()) {
         return false;
     }
 
-    setFullscreen(monitor);*/
-
-    return true;
+    return createFullscreen(monitor, title, wndClass);
 
 }
 
@@ -154,10 +151,9 @@ void Window::setFullscreen() {
 
     arc_assert(isOpen(), "Tried to set fullscreen mode for non-existing window");
 
-    auto monitor = WindowHandle::getNearestMonitor(this);
-
-    if (monitor) {
-        setFullscreen(*monitor);
+    Monitor monitor;
+    if (monitor.fromWindow(*this)) {
+        setFullscreen(monitor);
     }
 
 }
@@ -379,11 +375,12 @@ void Window::setAlwaysOnTop(bool onTop) {
 
 }
 
-void Window::setDarkMode(bool enabled) {
+bool Window::setDarkMode(bool enabled) {
 
     arc_assert(isOpen(), "Tried to set window dark mode on non-existing window");
     BOOL darkMode = enabled;
-    DwmSetWindowAttribute(handle->hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &darkMode, sizeof(darkMode));
+    return DwmSetWindowAttribute(handle->hwnd, DwmDarkMode, &darkMode, sizeof(darkMode)) ||
+           DwmSetWindowAttribute(handle->hwnd, DwmDarkModePre20H1, &darkMode, sizeof(darkMode));
 
 }
 
@@ -494,16 +491,6 @@ Vec2ui Window::getViewportSize() const {
 
 }
 
-OptionalRef<Monitor> Window::getMonitor(MonitorManager& monitorManager) const {
-
-    arc_assert(isOpen(), "Tried to get monitor for non-existing window");
-
-    HMONITOR hMonitor = MonitorFromWindow(handle->hwnd, MONITOR_DEFAULTTONEAREST);
-
-    return MonitorManagerHandle::getMonitorForHMONITOR(monitorManager, hMonitor);
-
-}
-
 void Window::minimize() {
 
     arc_assert(isOpen(), "Tried to minimize window for non-existing window");
@@ -577,11 +564,9 @@ void Window::center() {
 
     arc_assert(isOpen(), "Tried to center non-existing window");
 
-    MonitorManager monitorManager;
-    monitorManager.create();
-
-    if (auto monitor = getMonitor(monitorManager)) {
-        center(*monitor);
+    Monitor monitor;
+    if (monitor.fromWindow(*this)) {
+        center(monitor);
     }
 
 }
@@ -1027,27 +1012,6 @@ void WindowHandle::notifyStateChange(Window& w, WindowState state) noexcept {
 
 }
 
-std::unique_ptr<Monitor> WindowHandle::getNearestMonitor(Window* w) {
-
-    arc_assert(w->isOpen(), "Tried to get nearest monitor for non-existing window");
-
-    HMONITOR hMonitor = MonitorFromWindow(w->handle->hwnd, MONITOR_DEFAULTTONEAREST);
-
-    if (!hMonitor) {
-        return nullptr;
-    }
-
-    auto mi = std::make_unique<MONITORINFOEXW>();
-    mi->cbSize = sizeof(MONITORINFOEXW);
-
-    if (!GetMonitorInfoW(hMonitor, mi.get())) {
-        return nullptr;
-    }
-
-    return MonitorManagerHandle::createMonitor(hMonitor, nullptr, std::move(mi));
-
-}
-
 HICON WindowHandle::createIcon(const Image<Pixel::RGBA8>& image, int xhot, int yhot, bool icon) {
 
     u32 width = image.getWidth();
@@ -1119,5 +1083,11 @@ HICON WindowHandle::createIcon(const Image<Pixel::RGBA8>& image, int xhot, int y
     }
 
     return hicon;
+
+}
+
+void WindowHandle::setMessageHandlerFunction(const WindowHandle::MessageHandlerFunction& function) {
+
+    messageHandlerFunction = function;
 
 }

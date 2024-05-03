@@ -36,7 +36,6 @@ enum class WindowState {
 };
 
 class Monitor;
-class MonitorManager;
 
 class WindowHandle;
 class WindowClass;
@@ -91,7 +90,7 @@ public:
     void setResizable(bool resizeable);
     void setDecorated(bool decorated);
     void setAlwaysOnTop(bool onTop);
-    void setDarkMode(bool enabled);
+    bool setDarkMode(bool enabled);
 
     void resetIcon();
     void resetSmallIcon();
@@ -105,7 +104,6 @@ public:
     u32 getViewportWidth() const;
     u32 getViewportHeight() const;
     Vec2ui getViewportSize() const;
-    OptionalRef<Monitor> getMonitor(MonitorManager& monitorManager) const; // Gets the monitor that this window is on
 
     void minimize();
     void restore();

@@ -45,6 +45,9 @@ static T getWGLFunction(const char* name) {
 
 
 
+WindowRendererGL::WindowRendererGL() = default;
+WindowRendererGL::~WindowRendererGL() = default;
+
 bool WindowRendererGL::create(Window& window) {
 
     arc_assert(window.isOpen(), "Tried to create OpenGL renderer for non-existing window");

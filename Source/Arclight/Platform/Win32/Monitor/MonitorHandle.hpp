@@ -15,12 +15,15 @@
 class Monitor;
 
 class MonitorHandle {
+public:
+    static bool fromNativeHandle(Monitor& m, HMONITOR hMonitor);
+
 private:
-    HMONITOR hMonitor;
-    HDC hDC;
-    std::unique_ptr<MONITORINFOEXW> info;
+    //HMONITOR hMonitor;
+    MONITORINFOEXW mi;
+    u32 refreshRate;
+
+    HDC createDC();
 
     friend Monitor;
-    friend MonitorManager;
-    friend MonitorManagerHandle;
 };

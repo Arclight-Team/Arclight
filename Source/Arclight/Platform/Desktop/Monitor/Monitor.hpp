@@ -17,13 +17,20 @@
 #include "Math/Vector.hpp"
 #include "Math/Shapes/Rectangle.hpp"
 
+class Window;
 class MonitorHandle;
-class MonitorManager;
-class MonitorManagerHandle;
 
 class Monitor {
 public:
+    Monitor();
     ~Monitor();
+
+    Monitor(Monitor&&) = default;
+    Monitor& operator=(Monitor&&) = default;
+
+    bool fromPrimary();
+    bool fromWindow(Window& window);
+    void destroy();
 
     // The virtual position of the monitor in pixels
     Vec2i getPosition() const;
@@ -32,7 +39,7 @@ public:
     Vec2ui getSize() const;
 
     // The real size of the monitor in millimeters
-    Vec2ui getPhysicalSize() const;
+    std::optional<Vec2ui> getPhysicalSize() const;
 
     // The area excluding the taskbar and other docked bars
     Rectangle<int> getWorkArea() const;
@@ -43,13 +50,9 @@ public:
     // The name of this monitor
     std::optional<std::string> getName() const;
 
-    inline MonitorHandle& getInternalHandle() { return *handle; }
+    MonitorHandle& getInternalHandle();
 
 private:
-    inline Monitor() = default;
-
     std::unique_ptr<MonitorHandle> handle;
-
-    friend MonitorManager;
-    friend MonitorManagerHandle;
+    friend MonitorHandle;
 };
