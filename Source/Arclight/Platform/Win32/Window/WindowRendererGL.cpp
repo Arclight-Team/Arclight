@@ -132,6 +132,8 @@ bool WindowRendererGL::create(Window& window) {
 
 	}
 
+	this->window = windowHandle;
+
 	return true;
 
 }
