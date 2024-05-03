@@ -18,13 +18,13 @@ class WindowClassHandle {
 
 public:
 
-    constexpr const std::wstring& getWName() const { return wname; }
+	constexpr const std::wstring& getWName() const { return wname; }
 
 private:
 
-    std::string name;
-    std::wstring wname;
+	std::string name;
+	std::wstring wname;
 
-    friend WindowClass;
+	friend WindowClass;
 
 };

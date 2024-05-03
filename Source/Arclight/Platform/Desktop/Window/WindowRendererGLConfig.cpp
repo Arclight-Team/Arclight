@@ -13,57 +13,57 @@
 
 WindowRendererGLConfig& WindowRendererGLConfig::setOpenGLVersion(u32 major, u32 minor) {
 
-    this->openglMajor = major;
-    this->openglMinor = minor;
-    return *this;
+	this->openglMajor = major;
+	this->openglMinor = minor;
+	return *this;
 
 }
 
 WindowRendererGLConfig& WindowRendererGLConfig::setOpenGLProfile(OpenGLProfile profile) {
 
-    this->profile = profile;
-    return *this;
+	this->profile = profile;
+	return *this;
 
 }
 
 WindowRendererGLConfig& WindowRendererGLConfig::setOpenGLContextMode(bool forward, bool debug) {
 
-    this->forwardContext = forward;
-    this->debugContext = debug;
-    return *this;
+	this->forwardContext = forward;
+	this->debugContext = debug;
+	return *this;
 
 }
 
 WindowRendererGLConfig& WindowRendererGLConfig::setSRGBMode(bool enable) {
 
-    this->srgbRendering = enable;
-    return *this;
+	this->srgbRendering = enable;
+	return *this;
 
 }
 
 WindowRendererGLConfig& WindowRendererGLConfig::setTransparent(bool enable) {
 
-    this->transparent = enable;
-    return *this;
+	this->transparent = enable;
+	return *this;
 
 }
 
 WindowRendererGLConfig& WindowRendererGLConfig::setSamples(u8 samples) {
 
-    this->samples = samples;
-    return *this;
+	this->samples = samples;
+	return *this;
 
 }
 
 WindowRendererGLConfig& WindowRendererGLConfig::setFramebuffer(u8 redBits, u8 greenBits, u8 blueBits, u8 alphaBits, u8 depthBits, u8 stencilBits) {
 
-    this->redBits = redBits;
-    this->greenBits = greenBits;
-    this->blueBits = blueBits;
-    this->alphaBits = alphaBits;
-    this->depthBits = depthBits;
-    this->stencilBits = stencilBits;
-    return *this;
+	this->redBits = redBits;
+	this->greenBits = greenBits;
+	this->blueBits = blueBits;
+	this->alphaBits = alphaBits;
+	this->depthBits = depthBits;
+	this->stencilBits = stencilBits;
+	return *this;
 
 }
 

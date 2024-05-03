@@ -30,10 +30,10 @@ class WindowRendererGLHandle {
 
 public:
 
-    HDC hdc;
-    HGLRC hglrc;
-    WGLSwapIntervalFunction wglSwapIntervalEXT;
-    WGLGetSwapIntervalFunction wglGetSwapIntervalEXT;
+	HDC hdc;
+	HGLRC hglrc;
+	WGLSwapIntervalFunction wglSwapIntervalEXT;
+	WGLGetSwapIntervalFunction wglGetSwapIntervalEXT;
 
 };
 
@@ -50,7 +50,7 @@ WindowRendererGL::~WindowRendererGL() = default;
 
 bool WindowRendererGL::create(Window& window) {
 
-    arc_assert(window.isOpen(), "Tried to create OpenGL renderer for non-existing window");
+	arc_assert(window.isOpen(), "Tried to create OpenGL renderer for non-existing window");
 
 	auto windowHandle = window.getInternalHandle().lock();
 
@@ -59,80 +59,80 @@ bool WindowRendererGL::create(Window& window) {
 		return false;
 	}
 
-    HWND hwnd = windowHandle->getHWND();
-    HDC hdc = GetDC(hwnd);
+	HWND hwnd = windowHandle->getHWND();
+	HDC hdc = GetDC(hwnd);
 
-    if (!hdc) {
-        LogE("WindowRendererGL") << "Failed to acquire window device context";
-        return false;
-    }
+	if (!hdc) {
+		LogE("WindowRendererGL") << "Failed to acquire window device context";
+		return false;
+	}
 
-    DWORD pfFlags = PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER | PFD_SUPPORT_COMPOSITION;
-    /*if (window.flags() & Window::Flags::SeeThrough) {
-        pfFlags |= PFD_SUPPORT_COMPOSITION;
-    }*/
+	DWORD pfFlags = PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER | PFD_SUPPORT_COMPOSITION;
+	/*if (window.flags() & Window::Flags::SeeThrough) {
+		pfFlags |= PFD_SUPPORT_COMPOSITION;
+	}*/
 
-    PIXELFORMATDESCRIPTOR pfd {};
-    pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-    pfd.nVersion = 1;
-    pfd.dwFlags = pfFlags;
-    pfd.iPixelType = PFD_TYPE_RGBA;
-    pfd.cColorBits = 24;
-    pfd.cDepthBits = 32;
-    pfd.cStencilBits = 8;
+	PIXELFORMATDESCRIPTOR pfd {};
+	pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+	pfd.nVersion = 1;
+	pfd.dwFlags = pfFlags;
+	pfd.iPixelType = PFD_TYPE_RGBA;
+	pfd.cColorBits = 24;
+	pfd.cDepthBits = 32;
+	pfd.cStencilBits = 8;
 
-    int pixelFormat = ChoosePixelFormat(hdc, &pfd);
-    SetPixelFormat(hdc, pixelFormat, &pfd);
+	int pixelFormat = ChoosePixelFormat(hdc, &pfd);
+	SetPixelFormat(hdc, pixelFormat, &pfd);
 
-    HGLRC tempRC = wglCreateContext(hdc);
-    wglMakeCurrent(hdc, tempRC);
+	HGLRC tempRC = wglCreateContext(hdc);
+	wglMakeCurrent(hdc, tempRC);
 
-    auto wglCreateContextAttribsARB = getWGLFunction<WGLCreateContextAttribsFunction>("wglCreateContextAttribsARB");
+	auto wglCreateContextAttribsARB = getWGLFunction<WGLCreateContextAttribsFunction>("wglCreateContextAttribsARB");
 
-    const int attribList[] = {
-        WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-        WGL_CONTEXT_MINOR_VERSION_ARB, 3,
-        WGL_CONTEXT_FLAGS_ARB, 0,
-        WGL_CONTEXT_PROFILE_MASK_ARB,
-        WGL_CONTEXT_COREPROFILE_BIT_ARB, 0,
-        WGL_TRANSPARENT_ARB, TRUE,
-    };
+	const int attribList[] = {
+		WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+		WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+		WGL_CONTEXT_FLAGS_ARB, 0,
+		WGL_CONTEXT_PROFILE_MASK_ARB,
+		WGL_CONTEXT_COREPROFILE_BIT_ARB, 0,
+		WGL_TRANSPARENT_ARB, TRUE,
+	};
 
-    HGLRC hglrc = wglCreateContextAttribsARB(hdc, 0, attribList);
-    wglMakeCurrent(nullptr, nullptr);
-    wglDeleteContext(tempRC);
-    wglMakeCurrent(hdc, hglrc);
+	HGLRC hglrc = wglCreateContextAttribsARB(hdc, 0, attribList);
+	wglMakeCurrent(nullptr, nullptr);
+	wglDeleteContext(tempRC);
+	wglMakeCurrent(hdc, hglrc);
 
-    if (glewInit() != GLEW_OK) {
-        LogE("WindowRendererGL") << "OpenGL initialization failed";
-        return false;
-    }
+	if (glewInit() != GLEW_OK) {
+		LogE("WindowRendererGL") << "OpenGL initialization failed";
+		return false;
+	}
 
-    LogI("WindowRendererGL") << "Loaded OpenGL " << reinterpret_cast<const char*>(glGetString(GL_VERSION));
+	LogI("WindowRendererGL") << "Loaded OpenGL " << reinterpret_cast<const char*>(glGetString(GL_VERSION));
 
-    handle = std::make_unique<WindowRendererGLHandle>();
-    handle->hdc = hdc;
-    handle->hglrc = hglrc;
+	handle = std::make_unique<WindowRendererGLHandle>();
+	handle->hdc = hdc;
+	handle->hglrc = hglrc;
 
-    std::string extensions = getWGLFunction<WGLGetExtensionsStringFunction>("wglGetExtensionsStringEXT")();
+	std::string extensions = getWGLFunction<WGLGetExtensionsStringFunction>("wglGetExtensionsStringEXT")();
 	std::string swapControlString = "WGL_EXT_swap_control";
 
-    bool vSyncSupported = !std::ranges::search(extensions, swapControlString).empty();
+	bool vSyncSupported = !std::ranges::search(extensions, swapControlString).empty();
 
-    if (vSyncSupported) {
+	if (vSyncSupported) {
 
-        handle->wglSwapIntervalEXT = getWGLFunction<WGLSwapIntervalFunction>("wglSwapIntervalEXT");
-        handle->wglGetSwapIntervalEXT = getWGLFunction<WGLGetSwapIntervalFunction>("wglGetSwapIntervalEXT");
+		handle->wglSwapIntervalEXT = getWGLFunction<WGLSwapIntervalFunction>("wglSwapIntervalEXT");
+		handle->wglGetSwapIntervalEXT = getWGLFunction<WGLGetSwapIntervalFunction>("wglGetSwapIntervalEXT");
 
-    } else {
+	} else {
 
-        handle->wglSwapIntervalEXT = nullptr;
-        handle->wglGetSwapIntervalEXT = nullptr;
-        LogW("WindowRendererGL") << "V-Sync not supported, proceeding without it";
+		handle->wglSwapIntervalEXT = nullptr;
+		handle->wglGetSwapIntervalEXT = nullptr;
+		LogW("WindowRendererGL") << "V-Sync not supported, proceeding without it";
 
-    }
+	}
 
-    return true;
+	return true;
 
 }
 
@@ -145,41 +145,41 @@ void WindowRendererGL::destroy() {
 		return;
 	}
 
-    HWND hwnd = windowHandle->getHWND();
+	HWND hwnd = windowHandle->getHWND();
 
-    ReleaseDC(hwnd, handle->hdc);
+	ReleaseDC(hwnd, handle->hdc);
 
-    handle.reset();
+	handle.reset();
 	window.reset();
 
 }
 
 void WindowRendererGL::makeCurrent() {
-    wglMakeCurrent(handle->hdc, handle->hglrc);
+	wglMakeCurrent(handle->hdc, handle->hglrc);
 }
 
 void WindowRendererGL::clearCurrent() {
-    wglMakeCurrent(nullptr, nullptr);
+	wglMakeCurrent(nullptr, nullptr);
 }
 
 void WindowRendererGL::swapBuffers() {
-    SwapBuffers(handle->hdc);
+	SwapBuffers(handle->hdc);
 }
 
 void WindowRendererGL::swapInterval(int interval) {
 
-    if (handle->wglSwapIntervalEXT) {
-        handle->wglSwapIntervalEXT(interval);
-    }
+	if (handle->wglSwapIntervalEXT) {
+		handle->wglSwapIntervalEXT(interval);
+	}
 
 }
 
 int WindowRendererGL::swapInterval() {
 
-    if (handle->wglSwapIntervalEXT) {
-        return handle->wglGetSwapIntervalEXT();
-    }
+	if (handle->wglSwapIntervalEXT) {
+		return handle->wglGetSwapIntervalEXT();
+	}
 
-    return 0;
+	return 0;
 
 }

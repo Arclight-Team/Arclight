@@ -94,7 +94,7 @@ bool RenderCursor::set(CursorID id, const Image<Pixel::RGBA8>& image, const Vec2
 
 	cursors[id] = c;
 	return true;*/
-    return true;
+	return true;
 
 }
 
@@ -148,7 +148,7 @@ bool RenderCursor::set(CursorID id, StandardCursor cursor) {
 
 	cursors[id] = c;
 	return true;*/
-    return true;
+	return true;
 
 }
 

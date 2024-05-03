@@ -23,19 +23,19 @@ public:
 	WindowRendererGL();
 	~WindowRendererGL();
 
-    bool create(Window& window);
-    void destroy();
+	bool create(Window& window);
+	void destroy();
 
-    void makeCurrent();
-    static void clearCurrent();
+	void makeCurrent();
+	static void clearCurrent();
 
-    void swapBuffers();
-    void swapInterval(int interval);
-    int swapInterval();
+	void swapBuffers();
+	void swapInterval(int interval);
+	int swapInterval();
 
 private:
 
-    std::unique_ptr<WindowRendererGLHandle> handle;
-    std::weak_ptr<WindowHandle> window;
+	std::unique_ptr<WindowRendererGLHandle> handle;
+	std::weak_ptr<WindowHandle> window;
 
 };

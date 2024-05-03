@@ -16,14 +16,14 @@ class Monitor;
 
 class MonitorHandle {
 public:
-    static bool fromNativeHandle(Monitor& m, HMONITOR hMonitor);
+	static bool fromNativeHandle(Monitor& m, HMONITOR hMonitor);
 
 private:
-    //HMONITOR hMonitor;
-    MONITORINFOEXW mi;
-    u32 refreshRate;
+	//HMONITOR hMonitor;
+	MONITORINFOEXW mi;
+	u32 refreshRate;
 
-    HDC createDC();
+	HDC createDC();
 
-    friend Monitor;
+	friend Monitor;
 };

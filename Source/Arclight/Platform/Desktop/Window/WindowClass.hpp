@@ -20,17 +20,17 @@ class WindowClass {
 
 public:
 
-    WindowClass();
-    ~WindowClass();
+	WindowClass();
+	~WindowClass();
 
-    bool create(std::string_view name);
-    void destroy();
-    const std::string& getName() const;
+	bool create(std::string_view name);
+	void destroy();
+	const std::string& getName() const;
 
-    WindowClassHandle& getInternalHandle();
+	WindowClassHandle& getInternalHandle();
 
 private:
 
-    std::unique_ptr<WindowClassHandle> handle;
+	std::unique_ptr<WindowClassHandle> handle;
 
 };
