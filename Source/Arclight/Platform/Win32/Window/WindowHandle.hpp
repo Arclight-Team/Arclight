@@ -9,34 +9,36 @@
 #pragma once
 
 #include "Window/Window.hpp"
+
+#define Rectangle Rectangle_
 #include "Common/Win32.hpp"
+#undef Rectangle
 
 
-
-class WindowClass;
 
 class WindowHandle {
 
 public:
 
-	using MessageHandlerFunction = std::function<LRESULT(Window& w, HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)>;
+	using WindowMessageHandlerFunction = std::function<std::optional<LRESULT>(Window& window, HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)>;
+	using InputMessageHandlerFunction = std::function<std::optional<LRESULT>(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)>;
 
 	WindowHandle(HWND hwnd, const Vec2i& viewport);
 	~WindowHandle() = default;
 
-	static LRESULT defaultMessageHandler(Window& w, HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) noexcept;
-
 	constexpr HWND getHWND() const { return hwnd; }
+
+	void setWindowMessageHandler(const WindowMessageHandlerFunction& handler);
+	void setInputMessageHandler(const InputMessageHandlerFunction& handler);
 
 private:
 
-	static LRESULT CALLBACK wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) noexcept;
-	static void notifyStateChange(Window& w, WindowState state) noexcept;
-	static HICON createIcon(const Image<Pixel::RGBA8>& image, int xhot, int yhot, bool icon);
-
-	void setMessageHandlerFunction(const MessageHandlerFunction& function);
+	static LRESULT CALLBACK wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static std::optional<LRESULT> defaultWindowMessageHandler(Window& window, HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	struct Fullscreen {
+
+		constexpr Fullscreen() : enabled(false), backupRect { 0, 0, 0, 0 }, backupStyle(0), backupExStyle(0) {}
 
 		bool enabled;
 		RECT backupRect;
@@ -44,6 +46,9 @@ private:
 		DWORD backupExStyle;
 
 	};
+
+	friend class Window;
+	friend class WindowClass;
 
 	HWND hwnd;
 	Vec2i viewportSize;
@@ -65,8 +70,7 @@ private:
 	Window::ResizeFunction resizeFunction;
 	Window::StateChangeFunction stateChangeFunction;
 	Window::DropFunction dropFunction;
-	MessageHandlerFunction messageHandlerFunction;
+	WindowMessageHandlerFunction windowMessageHandlerFunction;
+	InputMessageHandlerFunction inputMessageHandlerFunction;
 
-	friend Window;
-	friend WindowClass;
 };

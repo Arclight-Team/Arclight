@@ -36,13 +36,13 @@ enum class WindowState {
 };
 
 class Monitor;
-
-class WindowHandle;
 class WindowClass;
+class WindowHandle;
 
-class Window final {
+class Window {
 
 public:
+
 	using RefreshFunction     = std::function<void(Window& window)>;
 	using MoveFunction        = std::function<void(Window& window, u32 x, u32 y)>;
 	using ResizeFunction      = std::function<void(Window& window, u32 viewportWidth, u32 viewportHeight)>;
@@ -54,6 +54,9 @@ public:
 
 	Window(const Window& window) = delete;
 	Window& operator=(const Window& window) = delete;
+
+	Window(Window&& window) noexcept;
+	Window& operator=(Window&& window) noexcept;
 
 	bool create(u32 viewportWidth, u32 viewportHeight, const std::string& title, WindowClass& wndClass);
 	bool createFullscreen(const std::string& title, WindowClass& wndClass);
@@ -114,7 +117,7 @@ public:
 	void requestAttention();
 	void disableConstraints();
 	void center();
-	void center(Monitor& monitor);
+	void center(const Monitor& monitor);
 
 	void pollEvents();
 
@@ -150,9 +153,9 @@ public:
 
 private:
 
-	std::shared_ptr<WindowHandle> handle;
+	void setWindowPointer();
 
+	std::shared_ptr<WindowHandle> handle;
 	RenderCursor cursor;
 
-	friend WindowHandle;
 };

@@ -154,6 +154,23 @@ namespace Unicode {
 	};
 
 
+	constexpr bool isHighSurrogate(char16_t c) {
+		return c >= 0xD800 && c < 0xDC00;
+	}
+
+	constexpr bool isLowSurrogate(char16_t c) {
+		return c >= 0xDC00 && c < 0xE000;
+	}
+
+	constexpr bool isSurrogate(char16_t c) {
+		return c >= 0xD800 && c < 0xE000;
+	}
+
+	constexpr Codepoint composeSurrogate(char16_t high, char16_t low) {
+		return (Codepoint(high) & 0x3FF) << 10 | (Codepoint(low) & 0x3FF);
+	}
+
+
 	//UTF encoded size of next codepoint
 	template<Encoding E, CC::Char T>
 	constexpr SizeT getEncodedSize(const T* p) noexcept requires (isCharEncodable<E, T>()) {
@@ -378,7 +395,7 @@ namespace Unicode {
 
 				//Assume we have a low-surrogate in c1
 				count = 2;
-				return Codepoint(c0 & 0x3FF) << 10 | (c1 & 0x3FF);
+				return composeSurrogate(c0, c1);
 
 			} else {
 

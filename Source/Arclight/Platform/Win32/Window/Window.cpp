@@ -6,14 +6,6 @@
  *	 Window.cpp
  */
 
-#include <vector>
-#include <string>
-
-#define Rectangle Rectangle_
-#include "Common/Win32.hpp" // Force disable GDI's rectangle function
-// Must be included before WindowHandle
-#undef Rectangle
-
 #include "Window/Window.hpp"
 #include "Window/WindowHandle.hpp"
 #include "Window/WindowClass.hpp"
@@ -24,11 +16,90 @@
 #include "Util/Log.hpp"
 #include "OS/Common.hpp"
 
+#include <string>
+
 #include <dwmapi.h>
 
 
 constexpr DWORD DwmDarkMode = 20;
 constexpr DWORD DwmDarkModePre20H1 = 19;
+
+
+
+static HICON createIcon(const Image<Pixel::RGBA8>& image, int xhot, int yhot, bool icon) {
+
+	u32 width = image.getWidth();
+	u32 height = image.getHeight();
+
+	BITMAPV5HEADER bi;
+	ZeroMemory(&bi, sizeof(bi));
+	bi.bV5Size        = sizeof(bi);
+	bi.bV5Width       = static_cast<i32>(width);
+	bi.bV5Height      = -static_cast<i32>(height);
+	bi.bV5Planes      = 1;
+	bi.bV5BitCount    = 32;
+	bi.bV5Compression = BI_BITFIELDS;
+	bi.bV5RedMask     = 0x00FF0000;
+	bi.bV5GreenMask   = 0x0000FF00;
+	bi.bV5BlueMask    = 0x000000FF;
+	bi.bV5AlphaMask   = 0xFF000000;
+
+	HDC hdc = GetDC(nullptr);
+	u8* target = nullptr;
+	HBITMAP color = CreateDIBSection(hdc, reinterpret_cast<BITMAPINFO*>(&bi), DIB_RGB_COLORS, reinterpret_cast<void**>(&target), nullptr, 0);
+	ReleaseDC(nullptr, hdc);
+
+	if (!color) {
+		LogE("Window") << "Failed to create RGBA bitmap";
+		return nullptr;
+	}
+
+	HBITMAP mask = CreateBitmap(static_cast<i32>(width), static_cast<i32>(height), 1, 1, nullptr);
+
+	if (!mask) {
+		LogE("Window") << "Failed to create mask bitmap";
+		DeleteObject(color);
+		return nullptr;
+	}
+
+	const u8* source = image.getImageData();
+
+	for (SizeT i = 0; i < width * height; i++) {
+		target[0] = source[2];
+		target[1] = source[1];
+		target[2] = source[0];
+		target[3] = source[3];
+		target += 4;
+		source += 4;
+	}
+
+	ICONINFO iconInfo;
+	ZeroMemory(&iconInfo, sizeof(iconInfo));
+	iconInfo.fIcon    = icon;
+	iconInfo.xHotspot = xhot;
+	iconInfo.yHotspot = yhot;
+	iconInfo.hbmMask  = mask;
+	iconInfo.hbmColor = color;
+
+	HICON hicon = CreateIconIndirect(&iconInfo);
+
+	DeleteObject(color);
+	DeleteObject(mask);
+
+	if (!hicon) {
+
+		if (icon) {
+			LogE("Window") << "Failed to create icon";
+		} else {
+			LogE("Window") << "Failed to create cursor";
+		}
+
+	}
+
+	return hicon;
+
+}
+
 
 
 Window::Window() : handle(nullptr), cursor(handle) {}
@@ -38,6 +109,21 @@ Window::~Window() {
 	if (isOpen()) {
 		close();
 	}
+
+}
+
+Window::Window(Window&& window) noexcept : handle(std::move(window.handle)), cursor(window.cursor) {
+	setWindowPointer();
+}
+
+Window& Window::operator=(Window&& window) noexcept {
+
+	handle = std::move(window.handle);
+	cursor = window.cursor;
+
+	setWindowPointer();
+
+	return *this;
 
 }
 
@@ -85,6 +171,7 @@ bool Window::create(u32 viewportWidth, u32 viewportHeight, const std::string& ti
 bool Window::createFullscreen(const std::string& title, WindowClass& wndClass) {
 
 	Monitor monitor;
+
 	if (!monitor.fromPrimary()) {
 		return false;
 	}
@@ -115,9 +202,7 @@ void Window::close() {
 	}
 
 	cursor.destroyAll();
-
 	DestroyWindow(handle->hwnd);
-
 	handle.reset();
 
 }
@@ -152,6 +237,7 @@ void Window::setFullscreen() {
 	arc_assert(isOpen(), "Tried to set fullscreen mode for non-existing window");
 
 	Monitor monitor;
+
 	if (monitor.fromWindow(*this)) {
 		setFullscreen(monitor);
 	}
@@ -301,7 +387,7 @@ void Window::setIcon(const Image<Pixel::RGBA8>& icon) {
 
 	arc_assert(isOpen(), "Tried to set window icon for non-existing window");
 
-	HICON hiconNew = WindowHandle::createIcon(icon, 0, 0, true);
+	HICON hiconNew = createIcon(icon, 0, 0, true);
 
 	SendMessageW(handle->hwnd, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(hiconNew));
 
@@ -320,7 +406,7 @@ void Window::setSmallIcon(const Image<Pixel::RGBA8>& icon) {
 
 	arc_assert(isOpen(), "Tried to set small window icon for non-existing window");
 
-	HICON hiconNew = WindowHandle::createIcon(icon, 0, 0, true);
+	HICON hiconNew = createIcon(icon, 0, 0, true);
 
 	SendMessageW(handle->hwnd, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(hiconNew));
 
@@ -345,7 +431,6 @@ void Window::setResizable(bool resizeable) {
 	}
 
 	SetWindowLongW(handle->hwnd, GWL_STYLE, style);
-
 	SetWindowPos(handle->hwnd, nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 
 }
@@ -363,7 +448,6 @@ void Window::setDecorated(bool decorated) {
 	}
 
 	SetWindowLongW(handle->hwnd, GWL_STYLE, style);
-
 	SetWindowPos(handle->hwnd, nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 
 }
@@ -378,6 +462,7 @@ void Window::setAlwaysOnTop(bool onTop) {
 bool Window::setDarkMode(bool enabled) {
 
 	arc_assert(isOpen(), "Tried to set window dark mode on non-existing window");
+
 	BOOL darkMode = enabled;
 	return DwmSetWindowAttribute(handle->hwnd, DwmDarkMode, &darkMode, sizeof(darkMode)) ||
 		   DwmSetWindowAttribute(handle->hwnd, DwmDarkModePre20H1, &darkMode, sizeof(darkMode));
@@ -397,9 +482,10 @@ void Window::resetIcon() {
 	}
 
 	if (handle->hicon) {
-		DestroyIcon(handle->hicon);
 
+		DestroyIcon(handle->hicon);
 		handle->hicon = nullptr;
+
 	}
 
 }
@@ -409,13 +495,13 @@ void Window::resetSmallIcon() {
 	arc_assert(isOpen(), "Tried to reset small window icon for non-existing window");
 
 	HICON hiconNew = handle->hicon ? handle->hicon : LoadIconW(nullptr, IDI_APPLICATION);
-
 	SendMessageW(handle->hwnd, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(hiconNew));
 
 	if (handle->hiconSm) {
-		DestroyIcon(handle->hiconSm);
 
+		DestroyIcon(handle->hiconSm);
 		handle->hiconSm = nullptr;
+
 	}
 
 }
@@ -537,6 +623,7 @@ void Window::hide() {
 void Window::focus() {
 
 	arc_assert(isOpen(), "Tried to focus window for non-existing window");
+
 	BringWindowToTop(handle->hwnd);
 	SetForegroundWindow(handle->hwnd);
 	SetFocus(handle->hwnd);
@@ -553,6 +640,7 @@ void Window::requestAttention() {
 void Window::disableConstraints() {
 
 	arc_assert(isOpen(), "Tried to disable size constraints for non-existing window");
+
 	handle->minSize = { -1, -1 };
 	handle->maxSize = { -1, -1 };
 
@@ -565,13 +653,14 @@ void Window::center() {
 	arc_assert(isOpen(), "Tried to center non-existing window");
 
 	Monitor monitor;
+
 	if (monitor.fromWindow(*this)) {
 		center(monitor);
 	}
 
 }
 
-void Window::center(Monitor& monitor) {
+void Window::center(const Monitor& monitor) {
 
 	arc_assert(isOpen(), "Tried to center non-existing window");
 
@@ -591,8 +680,8 @@ void Window::pollEvents() {
 	arc_assert(isOpen(), "Tried to poll events of non-existing window");
 
 	MSG msg;
+
 	while (PeekMessageW(&msg, handle->hwnd, 0, 0, PM_REMOVE)) {
-		TranslateMessage(&msg);
 		DispatchMessageW(&msg);
 	}
 
@@ -775,319 +864,12 @@ std::weak_ptr<WindowHandle> Window::getInternalHandle() const {
 
 }
 
+void Window::setWindowPointer() {
 
-
-WindowHandle::WindowHandle(HWND hwnd, const Vec2i& viewport) {
-
-	this->hwnd = hwnd;
-	viewportSize = viewport;
-	closeRequested = false;
-	fullscreen.enabled = false;
-	fullscreen.backupRect = { 0, 0, 0, 0 };
-	fullscreen.backupStyle = 0;
-	fullscreen.backupExStyle = 0;
-	minSize = { -1, -1 };
-	maxSize = { -1, -1 };
-	resizing = false;
-	focused = false;
-	minimized = false;
-	maximized = false;
-	hovered = false;
-	resizeable = false;
-	decorated = false;
-	hicon = nullptr;
-	hiconSm = nullptr;
-	refreshFunction = nullptr;
-	moveFunction = nullptr;
-	resizeFunction = nullptr;
-	stateChangeFunction = nullptr;
-	dropFunction = nullptr;
-	messageHandlerFunction = defaultMessageHandler;
-
-}
-
-LRESULT CALLBACK WindowHandle::wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) noexcept {
-
-	if (uMsg == WM_NCCREATE) {
-
-		auto cs = reinterpret_cast<CREATESTRUCT*>(lParam);
-		auto* w = static_cast<Window*>(cs->lpCreateParams);
-
-		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(w));
-
-	} else if (auto* w = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA))) {
-
-		if (w->isOpen() && w->handle->messageHandlerFunction) {
-			return w->handle->messageHandlerFunction(*w, hwnd, uMsg, wParam, lParam);
-		}
-
+	if (!isOpen()) {
+		return;
 	}
 
-	return DefWindowProc(hwnd, uMsg, wParam, lParam);
-
-}
-
-LRESULT WindowHandle::defaultMessageHandler(Window& w, HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) noexcept {
-
-	switch (uMsg) {
-
-		case WM_MENUCHAR: {
-			return MAKELRESULT(0, MNC_CLOSE);
-		}
-
-		case WM_SYSCOMMAND: {
-
-			if ((wParam & 0xFFF0) == SC_SIZE) {
-				w.handle->resizing = true;
-				break;
-			}
-			break;
-
-		}
-
-		case WM_ENTERSIZEMOVE: {
-
-			if (w.handle->resizing) {
-				notifyStateChange(w, WindowState::BeginResize);
-				return 0;
-			}
-			break;
-
-		}
-
-		case WM_EXITSIZEMOVE: {
-
-			if (w.handle->resizing) {
-				w.handle->resizing = false;
-				notifyStateChange(w, WindowState::EndResize);
-				return 0;
-			}
-			break;
-
-		}
-
-		case WM_SIZE: {
-
-			Vec2i viewportSize = Vec2i(LOWORD(lParam), HIWORD(lParam));
-
-			if (w.handle->viewportSize.x != viewportSize.x ||
-				w.handle->viewportSize.y != viewportSize.y) {
-
-				w.handle->viewportSize = viewportSize;
-
-				if (w.handle->resizeFunction) {
-					w.handle->resizeFunction(w, viewportSize.x, viewportSize.y);
-				}
-
-			}
-
-			bool minimized = wParam == SIZE_MINIMIZED;
-			bool maximized = wParam == SIZE_MAXIMIZED || (w.handle->maximized && wParam != SIZE_RESTORED);
-
-			if (w.handle->minimized != minimized) {
-				notifyStateChange(w, minimized ? WindowState::Minimized : WindowState::Restored);
-				w.handle->minimized = minimized;
-			}
-
-			if (w.handle->maximized != maximized) {
-				notifyStateChange(w, maximized ? WindowState::Maximized : WindowState::Restored);
-				w.handle->maximized = maximized;
-			}
-
-			return 0;
-
-		}
-
-		case WM_MOVE: {
-
-			// i16 cast required because LOWORD/HIWORD returns an
-			// unsigned value and windows can move to negative positions
-			i32 x = static_cast<i16>(LOWORD(lParam));
-			i32 y = static_cast<i16>(HIWORD(lParam));
-
-			if (w.handle->moveFunction) {
-				w.handle->moveFunction(w, x, y);
-			}
-
-			return 0;
-
-		}
-
-		case WM_GETMINMAXINFO: {
-
-			auto* mmi = reinterpret_cast<MINMAXINFO*>(lParam);
-
-			if (w.handle->minSize != Vec2ui(-1, -1)) {
-
-				mmi->ptMinTrackSize.x = static_cast<LONG>(w.handle->minSize.x);
-				mmi->ptMinTrackSize.y = static_cast<LONG>(w.handle->minSize.y);
-
-			}
-
-			if (w.handle->maxSize != Vec2ui(-1, -1)) {
-
-				mmi->ptMaxTrackSize.x = static_cast<LONG>(w.handle->maxSize.x);
-				mmi->ptMaxTrackSize.y = static_cast<LONG>(w.handle->maxSize.y);
-
-			}
-
-			return 0;
-
-		}
-
-		case WM_DROPFILES: {
-
-			if (!w.handle->dropFunction) {
-				break;
-			}
-
-			auto hdrop = reinterpret_cast<HDROP>(wParam);
-
-			SizeT count = DragQueryFileW(hdrop, 0xFFFFFFFF, nullptr, 0);
-			std::vector<std::string> paths;
-
-			// Notify that the mouse cursor has moved, otherwise
-			// we don't know where to drop the file in our window
-			POINT cursorPt;
-			DragQueryPoint(hdrop, &cursorPt);
-			// TODO
-			//_glfwInputCursorPos(window, pt.x, pt.y);
-
-			for (SizeT i = 0; i < count; i++) {
-				SizeT length = DragQueryFileW(hdrop, i, nullptr, 0);
-				auto buffer = std::make_unique<WCHAR[]>(length + 1);
-
-				DragQueryFileW(hdrop, i, buffer.get(), length + 1);
-				paths[i] = OS::String::toUTF8(buffer.get());
-			}
-
-			w.handle->dropFunction(w, paths);
-
-			DragFinish(hdrop);
-			return 0;
-
-		}
-
-		case WM_SETFOCUS: {
-
-			w.handle->focused = true;
-			notifyStateChange(w, WindowState::Focused);
-			return 0;
-
-		}
-
-		case WM_KILLFOCUS: {
-
-			w.handle->focused = false;
-			notifyStateChange(w, WindowState::Unfocused);
-			return 0;
-
-		}
-
-		case WM_CLOSE: {
-
-			w.handle->closeRequested = true;
-			notifyStateChange(w, WindowState::CloseRequest);
-			return 0;
-		}
-
-		case WM_DESTROY: {
-			// DO NOTHING FOR NOW
-			return 0;
-		}
-
-		default: break;
-
-	}
-
-	return DefWindowProcW(hwnd, uMsg, wParam, lParam);
-
-}
-
-void WindowHandle::notifyStateChange(Window& w, WindowState state) noexcept {
-
-	if (w.handle->stateChangeFunction) {
-		w.handle->stateChangeFunction(w, state);
-	}
-
-}
-
-HICON WindowHandle::createIcon(const Image<Pixel::RGBA8>& image, int xhot, int yhot, bool icon) {
-
-	u32 width = image.getWidth();
-	u32 height = image.getHeight();
-
-	BITMAPV5HEADER bi;
-	ZeroMemory(&bi, sizeof(bi));
-	bi.bV5Size        = sizeof(bi);
-	bi.bV5Width       = static_cast<i32>(width);
-	bi.bV5Height      = -static_cast<i32>(height);
-	bi.bV5Planes      = 1;
-	bi.bV5BitCount    = 32;
-	bi.bV5Compression = BI_BITFIELDS;
-	bi.bV5RedMask     = 0x00FF0000;
-	bi.bV5GreenMask   = 0x0000FF00;
-	bi.bV5BlueMask    = 0x000000FF;
-	bi.bV5AlphaMask   = 0xFF000000;
-
-	HDC hdc = GetDC(nullptr);
-	u8* target = nullptr;
-	HBITMAP color = CreateDIBSection(hdc, reinterpret_cast<BITMAPINFO*>(&bi), DIB_RGB_COLORS, reinterpret_cast<void**>(&target), nullptr, 0);
-	ReleaseDC(nullptr, hdc);
-
-	if (!color) {
-		LogE("Window") << "Failed to create RGBA bitmap";
-		return nullptr;
-	}
-
-	HBITMAP mask = CreateBitmap(static_cast<i32>(width), static_cast<i32>(height), 1, 1, nullptr);
-
-	if (!mask) {
-		LogE("Window") << "Failed to create mask bitmap";
-		DeleteObject(color);
-		return nullptr;
-	}
-
-	const u8* source = image.getImageData();
-
-	for (SizeT i = 0; i < width * height; i++) {
-		target[0] = source[2];
-		target[1] = source[1];
-		target[2] = source[0];
-		target[3] = source[3];
-		target += 4;
-		source += 4;
-	}
-
-	ICONINFO iconInfo;
-	ZeroMemory(&iconInfo, sizeof(iconInfo));
-	iconInfo.fIcon    = icon;
-	iconInfo.xHotspot = xhot;
-	iconInfo.yHotspot = yhot;
-	iconInfo.hbmMask  = mask;
-	iconInfo.hbmColor = color;
-
-	HICON hicon = CreateIconIndirect(&iconInfo);
-
-	DeleteObject(color);
-	DeleteObject(mask);
-
-	if (!hicon) {
-
-		if (icon) {
-			LogE("Window") << "Failed to create icon";
-		} else {
-			LogE("Window") << "Failed to create cursor";
-		}
-
-	}
-
-	return hicon;
-
-}
-
-void WindowHandle::setMessageHandlerFunction(const WindowHandle::MessageHandlerFunction& function) {
-
-	messageHandlerFunction = function;
+	SetWindowLongPtrW(handle->getHWND(), GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
 }
