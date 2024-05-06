@@ -98,7 +98,7 @@ bool WindowRendererGL::create(Window& window) {
 		WGL_TRANSPARENT_ARB, TRUE,
 	};
 
-	HGLRC hglrc = wglCreateContextAttribsARB(hdc, 0, attribList);
+	HGLRC hglrc = wglCreateContextAttribsARB(hdc, nullptr, attribList);
 	wglMakeCurrent(nullptr, nullptr);
 	wglDeleteContext(tempRC);
 	wglMakeCurrent(hdc, hglrc);

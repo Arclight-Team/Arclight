@@ -12,10 +12,10 @@
 
 
 
-WindowHandle::WindowHandle(HWND hwnd, const Vec2i& viewport) {
+WindowHandle::WindowHandle(HWND hwnd, const Vec2ui& viewportSize) {
 
 	this->hwnd = hwnd;
-	viewportSize = viewport;
+	this->viewportSize = viewportSize;
 	closeRequested = false;
 	minSize = { -1, -1 };
 	maxSize = { -1, -1 };
@@ -129,7 +129,7 @@ std::optional<LRESULT> WindowHandle::defaultWindowMessageHandler(Window& window,
 
 		case WM_SIZE: {
 
-			Vec2i viewportSize = Vec2i(LOWORD(lParam), HIWORD(lParam));
+			Vec2ui viewportSize = Vec2ui(LOWORD(lParam), HIWORD(lParam));
 
 			if (handle->viewportSize.x != viewportSize.x ||
 				handle->viewportSize.y != viewportSize.y) {

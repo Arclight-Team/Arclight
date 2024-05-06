@@ -163,7 +163,7 @@ bool Window::create(u32 viewportWidth, u32 viewportHeight, const std::string& ti
 		return false;
 	}
 
-	handle = std::make_shared<WindowHandle>(hwnd, Vec2i(viewportWidth, viewportHeight));
+	handle = std::make_shared<WindowHandle>(hwnd, Vec2ui(viewportWidth, viewportHeight));
 
 	return true;
 }

@@ -23,7 +23,7 @@ public:
 	using WindowMessageHandlerFunction = std::function<std::optional<LRESULT>(Window& window, HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)>;
 	using InputMessageHandlerFunction = std::function<std::optional<LRESULT>(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)>;
 
-	WindowHandle(HWND hwnd, const Vec2i& viewport);
+	WindowHandle(HWND hwnd, const Vec2ui& viewportSize);
 	~WindowHandle() = default;
 
 	constexpr HWND getHWND() const { return hwnd; }
@@ -51,7 +51,7 @@ private:
 	friend class WindowClass;
 
 	HWND hwnd;
-	Vec2i viewportSize;
+	Vec2ui viewportSize;
 	bool closeRequested;
 	Fullscreen fullscreen;
 	Vec2ui minSize;
