@@ -372,7 +372,7 @@ project (${PROJECT_NAME})
 		add_compile_definitions(UNICODE _UNICODE)
 
 		# Add libraries
-		list(APPEND APPLICATION_LIBS ComCtl32.lib Bcrypt.lib)
+		list(APPEND APPLICATION_LIBS ComCtl32.lib Bcrypt.lib Hid.lib)
 
 		# Disables the console
 		if(WIN_NO_CONSOLE)

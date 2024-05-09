@@ -11,6 +11,7 @@
 #include "Meta/Concepts.hpp"
 #include "Meta/TypeTraits.hpp"
 
+#include <array>
 #include <iterator>
 
 

@@ -31,10 +31,11 @@ public:
 	void setWindowMessageHandler(const WindowMessageHandlerFunction& handler);
 	void setInputMessageHandler(const InputMessageHandlerFunction& handler);
 
+	static std::optional<LRESULT> defaultWindowMessageHandler(Window& window, HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
 private:
 
 	static LRESULT CALLBACK wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static std::optional<LRESULT> defaultWindowMessageHandler(Window& window, HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	struct Fullscreen {
 
