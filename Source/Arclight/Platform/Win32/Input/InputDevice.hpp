@@ -25,25 +25,31 @@ struct InputDeviceInfo {
 
 struct KeyboardDeviceInfo : InputDeviceInfo {
 
-	u32 functionKeys {};
-	u32 leds {};
-	u32 totalKeys {};
+	constexpr KeyboardDeviceInfo() : functionKeys(0), totalKeys(0), leds(0) {}
+
+	u32 functionKeys;
+	u32 totalKeys;
+	u32 leds;
 
 };
 
 struct MouseDeviceInfo : InputDeviceInfo {
 
-	bool hasWheel {};
-	bool hasHorizontalWheel {};
-	u32 buttons {};
-	u32 sampleRate {};
+	constexpr MouseDeviceInfo() : hasWheel(false), hasHorizontalWheel(false), buttons(0), sampleRate(0) {}
+
+	bool hasWheel;
+	bool hasHorizontalWheel;
+	u32 buttons;
+	u32 sampleRate;
 
 };
+
+
 
 namespace InputDevice {
 
 	std::vector<KeyboardDeviceInfo> enumerateKeyboardDevices();
 	std::vector<MouseDeviceInfo> enumerateMouseDevices();
-	std::vector<InputDeviceInfo> enumerateInputDevices();
+	std::vector<InputDeviceInfo> enumerateHIDInputDevices();
 
 }

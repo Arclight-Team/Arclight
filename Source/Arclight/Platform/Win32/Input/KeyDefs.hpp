@@ -152,7 +152,17 @@ struct PhysicalKey {
 		RightControl = 0xE4,
 		RightShift = 0xE5,
 		RightAlt = 0xE6,
-		RightSuper = 0xE7
+		RightSuper = 0xE7,
+
+		MouseButton1 = 0xF0,
+		MouseButton2 = 0xF1,
+		MouseButton3 = 0xF2,
+		MouseButton4 = 0xF3,
+		MouseButton5 = 0xF4,
+
+		MouseLeft = MouseButton1,
+		MouseRight = MouseButton2,
+		MouseMiddle = MouseButton3
 
 	};
 
@@ -288,28 +298,17 @@ struct VirtualKey {
 		LaunchMail,
 		LaunchMediaSelect,
 		LaunchApp1,
-		LaunchApp2
+		LaunchApp2,
 
-	};
+		MouseButton1,
+		MouseButton2,
+		MouseButton3,
+		MouseButton4,
+		MouseButton5,
 
-};
-
-
-struct MouseCode {
-
-	enum : Key {
-
-		Button1			= 0,
-		Button2			= 1,
-		Button3			= 2,
-		Button4			= 3,
-		Button5			= 4,
-		Button6			= 5,
-		Button7			= 6,
-		Button8			= 7,
-		Left			= 0,
-		Right			= 1,
-		Middle			= 2
+		MouseLeft = MouseButton1,
+		MouseRight = MouseButton2,
+		MouseMiddle = MouseButton3
 
 	};
 

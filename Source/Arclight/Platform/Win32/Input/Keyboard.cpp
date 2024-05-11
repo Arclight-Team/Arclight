@@ -80,6 +80,7 @@ void Keyboard::destroy() {
 
 		windowHandle.reset();
 		devFlags = DeviceFlags::None;
+		rawKeyStates.clear();
 
 	}
 

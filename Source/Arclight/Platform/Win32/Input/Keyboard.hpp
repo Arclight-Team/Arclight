@@ -17,6 +17,7 @@
 #include <string>
 
 
+
 class InputSystem;
 
 class Keyboard {
@@ -58,6 +59,7 @@ private:
 	DeviceFlags devFlags;
 
 	std::vector<KeyState> rawKeyStates;
+
 	bool propagateHeld;
 
 };

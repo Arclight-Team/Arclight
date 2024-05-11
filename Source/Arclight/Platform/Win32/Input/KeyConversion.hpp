@@ -182,6 +182,11 @@ namespace KeyConversion {
 				virtualKeys[i] = i << 8;
 			}
 
+			bind(VirtualKey::MouseLeft, 0x01);
+			bind(VirtualKey::MouseRight, 0x02);
+			bind(VirtualKey::MouseMiddle, 0x04);
+			bind(VirtualKey::MouseButton4, 0x05);
+			bind(VirtualKey::MouseButton5, 0x06);
 			bind(VirtualKey::Back, 0x08);
 			bind(VirtualKey::Tab, 0x09);
 			bind(VirtualKey::Return, 0x0D);

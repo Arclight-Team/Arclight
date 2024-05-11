@@ -19,7 +19,7 @@
 
 
 
-static std::string readString(SizeT initialSize, const std::function<bool(std::wstring&, SizeT)> callback) {
+static std::string readString(SizeT initialSize, const std::function<bool(std::wstring&, SizeT)>& callback) {
 
 	std::wstring wstr(initialSize, L'\0');
 
@@ -87,7 +87,7 @@ static std::vector<RAWINPUTDEVICELIST> enumerateRawDevices() {
 template<class T>
 std::vector<T> enumerateDevices() {
 
-	u32 deviceType = CC::Equal<T, KeyboardDeviceInfo> ? RIM_TYPEKEYBOARD : CC::Equal<T, MouseDeviceInfo> ? RIM_TYPEMOUSE : RIM_TYPEHID;
+	u32 deviceType = CC::Equal<T, KeyboardDeviceInfo> ? RIM_TYPEKEYBOARD : (CC::Equal<T, MouseDeviceInfo> ? RIM_TYPEMOUSE : RIM_TYPEHID);
 
 	std::vector<RAWINPUTDEVICELIST> devices = enumerateRawDevices();
 	std::vector<T> deviceInfos;
@@ -129,39 +129,43 @@ std::vector<T> enumerateDevices() {
 
 			}
 
-			bufferSize = sizeof(RID_DEVICE_INFO);
+			if constexpr (!CC::Equal<T, InputDeviceInfo>) {
 
-			RID_DEVICE_INFO devInfo;
-			devInfo.cbSize = bufferSize;
+				bufferSize = sizeof(RID_DEVICE_INFO);
 
-			if (GetRawInputDeviceInfoW(device.hDevice, RIDI_DEVICEINFO, &devInfo, &bufferSize) > 0) {
+				RID_DEVICE_INFO devInfo;
+				devInfo.cbSize = bufferSize;
 
-				if (devInfo.dwType != deviceType) {
+				if (GetRawInputDeviceInfoW(device.hDevice, RIDI_DEVICEINFO, &devInfo, &bufferSize) > 0) {
+
+					if (devInfo.dwType != deviceType) {
+						continue;
+					}
+
+					if constexpr (CC::Equal<T, KeyboardDeviceInfo>) {
+
+						const RID_DEVICE_INFO_KEYBOARD& devKeyboardInfo = devInfo.keyboard;
+
+						info.functionKeys = devKeyboardInfo.dwNumberOfFunctionKeys;
+						info.leds = devKeyboardInfo.dwNumberOfIndicators;
+						info.totalKeys = devKeyboardInfo.dwNumberOfKeysTotal;
+
+					} else if constexpr (CC::Equal<T, MouseDeviceInfo>) {
+
+						const RID_DEVICE_INFO_MOUSE& devMouseInfo = devInfo.mouse;
+
+						info.hasWheel = devMouseInfo.dwId & WHEELMOUSE_HID_HARDWARE;
+						info.hasHorizontalWheel = devMouseInfo.fHasHorizontalWheel;
+						info.buttons = devMouseInfo.dwNumberOfButtons;
+						info.sampleRate = devMouseInfo.dwSampleRate;
+
+					}
+
+				} else {
+
 					continue;
-				}
-
-				if constexpr (CC::Equal<T, KeyboardDeviceInfo>) {
-
-					const RID_DEVICE_INFO_KEYBOARD& devKeyboardInfo = devInfo.keyboard;
-
-					info.functionKeys = devKeyboardInfo.dwNumberOfFunctionKeys;
-					info.leds = devKeyboardInfo.dwNumberOfIndicators;
-					info.totalKeys = devKeyboardInfo.dwNumberOfKeysTotal;
-
-				} else if constexpr (CC::Equal<T, MouseDeviceInfo>) {
-
-					const RID_DEVICE_INFO_MOUSE& devMouseInfo = devInfo.mouse;
-
-					info.hasWheel = devMouseInfo.dwId & WHEELMOUSE_HID_HARDWARE;
-					info.hasHorizontalWheel = devMouseInfo.fHasHorizontalWheel;
-					info.buttons = devMouseInfo.dwNumberOfButtons;
-					info.sampleRate = devMouseInfo.dwSampleRate;
 
 				}
-
-			} else {
-
-				continue;
 
 			}
 
@@ -185,6 +189,6 @@ std::vector<MouseDeviceInfo> InputDevice::enumerateMouseDevices() {
 	return enumerateDevices<MouseDeviceInfo>();
 }
 
-std::vector<InputDeviceInfo> InputDevice::enumerateInputDevices() {
+std::vector<InputDeviceInfo> InputDevice::enumerateHIDInputDevices() {
 	return enumerateDevices<InputDeviceInfo>();
 }
