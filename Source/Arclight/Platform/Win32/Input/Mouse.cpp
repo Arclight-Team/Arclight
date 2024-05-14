@@ -17,9 +17,7 @@
 
 
 
-Mouse::Mouse() : devFlags(DeviceFlags::None), trapped(false), hwMotion(false), cursorEntered(false) {
-	keyStates.fill(KeyState::Released);
-}
+Mouse::Mouse() : devFlags(DeviceFlags::None), trapped(false), hwMotion(false), cursorEntered(false) {}
 
 Mouse::~Mouse() {
 	destroy();
@@ -41,7 +39,7 @@ bool Mouse::initialize(const InputSystem& input, bool trap, DeviceFlags flags) {
 
 	devFlags = flags;
 	windowHandle = handle;
-	keyStates.fill(KeyState::Released);
+	cursorEntered = false;
 
 	setTrapped(trap);
 
@@ -59,7 +57,6 @@ void Mouse::destroy() {
 
 		windowHandle.reset();
 		devFlags = DeviceFlags::None;
-		keyStates.fill(KeyState::Released);
 
 	}
 
@@ -133,10 +130,7 @@ void Mouse::dispatchInput(InputSystem& input, void* nativePtr) {
 			for (u32 i : Range(5)) {
 
 				if (mouse.usButtonFlags & buttonMask[i]) {
-
-					keyStates[i] = state;
 					input.onKeyEvent(KeyEvent(PhysicalKeys[i], VirtualKeys[i], state));
-
 				}
 
 			}
@@ -150,25 +144,19 @@ void Mouse::dispatchInput(InputSystem& input, void* nativePtr) {
 
 		switch (msgType) {
 
-			case WM_LBUTTONDOWN:	keyStates[0] = KeyState::Pressed; 	input.onKeyEvent(KeyEvent(PhysicalKey::MouseLeft, VirtualKey::MouseLeft, KeyState::Pressed));		break;
-			case WM_LBUTTONUP:		keyStates[0] = KeyState::Released; 	input.onKeyEvent(KeyEvent(PhysicalKey::MouseLeft, VirtualKey::MouseLeft, KeyState::Released));		break;
-			case WM_MBUTTONDOWN:	keyStates[2] = KeyState::Pressed; 	input.onKeyEvent(KeyEvent(PhysicalKey::MouseMiddle, VirtualKey::MouseMiddle, KeyState::Pressed));	break;
-			case WM_MBUTTONUP:		keyStates[2] = KeyState::Released; 	input.onKeyEvent(KeyEvent(PhysicalKey::MouseMiddle, VirtualKey::MouseMiddle, KeyState::Released));	break;
-			case WM_RBUTTONDOWN:	keyStates[1] = KeyState::Pressed; 	input.onKeyEvent(KeyEvent(PhysicalKey::MouseRight, VirtualKey::MouseRight, KeyState::Pressed));		break;
-			case WM_RBUTTONUP:		keyStates[1] = KeyState::Released; 	input.onKeyEvent(KeyEvent(PhysicalKey::MouseRight, VirtualKey::MouseRight, KeyState::Released));	break;
+			case WM_LBUTTONDOWN:    input.onKeyEvent(KeyEvent(PhysicalKey::MouseLeft, VirtualKey::MouseLeft, KeyState::Pressed));		break;
+			case WM_LBUTTONUP:	    input.onKeyEvent(KeyEvent(PhysicalKey::MouseLeft, VirtualKey::MouseLeft, KeyState::Released));		break;
+			case WM_MBUTTONDOWN:    input.onKeyEvent(KeyEvent(PhysicalKey::MouseMiddle, VirtualKey::MouseMiddle, KeyState::Pressed));	break;
+			case WM_MBUTTONUP:	    input.onKeyEvent(KeyEvent(PhysicalKey::MouseMiddle, VirtualKey::MouseMiddle, KeyState::Released));	break;
+			case WM_RBUTTONDOWN:    input.onKeyEvent(KeyEvent(PhysicalKey::MouseRight, VirtualKey::MouseRight, KeyState::Pressed));		break;
+			case WM_RBUTTONUP:	    input.onKeyEvent(KeyEvent(PhysicalKey::MouseRight, VirtualKey::MouseRight, KeyState::Released));	break;
 
 			case WM_XBUTTONDOWN:
 
 				if (GET_XBUTTON_WPARAM(message.wParam) == XBUTTON1) {
-
-					keyStates[3] = KeyState::Pressed;
 					input.onKeyEvent(KeyEvent(PhysicalKey::MouseButton4, VirtualKey::MouseButton4, KeyState::Pressed));
-
 				} else {
-
-					keyStates[4] = KeyState::Pressed;
 					input.onKeyEvent(KeyEvent(PhysicalKey::MouseButton5, VirtualKey::MouseButton5, KeyState::Pressed));
-
 				}
 
 				break;
@@ -176,15 +164,9 @@ void Mouse::dispatchInput(InputSystem& input, void* nativePtr) {
 			case WM_XBUTTONUP:
 
 				if (GET_XBUTTON_WPARAM(message.wParam) == XBUTTON1) {
-
-					keyStates[3] = KeyState::Released;
 					input.onKeyEvent(KeyEvent(PhysicalKey::MouseButton4, VirtualKey::MouseButton4, KeyState::Released));
-
 				} else {
-
-					keyStates[4] = KeyState::Released;
 					input.onKeyEvent(KeyEvent(PhysicalKey::MouseButton5, VirtualKey::MouseButton5, KeyState::Released));
-
 				}
 
 				break;
@@ -308,25 +290,6 @@ bool Mouse::isTrapped() const {
 
 
 
-void Mouse::releaseAllKeys(InputSystem& input) {
-
-	for (u32 i : Range(keyStates.size())) {
-
-		KeyState& state = keyStates[i];
-
-		if (state == KeyState::Pressed) {
-
-			state = KeyState::Released;
-			input.onKeyEvent(KeyEvent(PhysicalKeys[i], VirtualKeys[i], KeyState::Released));
-
-		}
-
-	}
-
-}
-
-
-
 Vec2i Mouse::getCursorPosition(bool screenPos) const {
 
 	if (auto handle = windowHandle.lock()) {
@@ -350,23 +313,6 @@ Vec2i Mouse::getCursorPosition(bool screenPos) const {
 	}
 
 	return {};
-
-}
-
-
-
-KeyState Mouse::getButtonState(Key physicalKey) const {
-
-	switch (physicalKey) {
-
-		case PhysicalKey::MouseButton1:	return keyStates[0];
-		case PhysicalKey::MouseButton2:	return keyStates[1];
-		case PhysicalKey::MouseButton3:	return keyStates[2];
-		case PhysicalKey::MouseButton4:	return keyStates[3];
-		case PhysicalKey::MouseButton5:	return keyStates[4];
-		default:	return KeyState::Released;
-
-	}
 
 }
 

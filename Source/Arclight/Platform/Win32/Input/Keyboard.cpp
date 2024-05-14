@@ -58,7 +58,6 @@ bool Keyboard::initialize(const InputSystem& input, DeviceFlags flags) {
 
 	devFlags = flags;
 	windowHandle = handle;
-	rawKeyStates.resize(KeyConversion::scancodeCount(), KeyState::Released);
 
 	return true;
 
@@ -80,7 +79,6 @@ void Keyboard::destroy() {
 
 		windowHandle.reset();
 		devFlags = DeviceFlags::None;
-		rawKeyStates.clear();
 
 	}
 
@@ -88,7 +86,7 @@ void Keyboard::destroy() {
 
 
 
-void Keyboard::dispatchInput(InputSystem& input, void* nativePtr) {
+void Keyboard::dispatchInput(InputSystem& input, const KeyContext& keyContext, void* nativePtr) {
 
 	const RAWKEYBOARD& keyboard = *static_cast<RAWKEYBOARD*>(nativePtr);
 
@@ -168,24 +166,18 @@ void Keyboard::dispatchInput(InputSystem& input, void* nativePtr) {
 	}
 
 	Key physicalKey = KeyConversion::scancodeToPhysicalKey(scancode);
-	KeyState prevState = rawKeyStates[scancode];
+	KeyState prevState = keyContext.getKeyMap(true)[physicalKey] ? KeyState::Pressed : KeyState::Released;
 
 	if (state == KeyState::Pressed) {
 
 		if (prevState == KeyState::Released) {
-
-			rawKeyStates[scancode] = KeyState::Pressed;
 			input.onKeyEvent(KeyEvent(physicalKey, virtualKey, KeyState::Pressed));
-
 		} else if (isHeldEventEnabled()) {
-
 			input.onKeyEvent(KeyEvent(physicalKey, virtualKey, KeyState::Held));
-
 		}
 
 	} else if (prevState != KeyState::Released) {
 
-		rawKeyStates[scancode] = KeyState::Released;
 		input.onKeyEvent(KeyEvent(physicalKey, virtualKey, KeyState::Released));
 
 	}
@@ -208,33 +200,6 @@ void Keyboard::disableHeldEvent() {
 
 bool Keyboard::isHeldEventEnabled() const {
 	return propagateHeld;
-}
-
-
-
-void Keyboard::releaseAllKeys(InputSystem& input) {
-
-	for (u32 i : Range(rawKeyStates.size())) {
-
-		KeyState& state = rawKeyStates[i];
-
-		if (state == KeyState::Pressed) {
-
-			Key virtualKey = MapVirtualKeyW(MAPVK_VSC_TO_VK_EX, i);
-
-			state = KeyState::Released;
-			input.onKeyEvent(KeyEvent(KeyConversion::scancodeToPhysicalKey(i), virtualKey, KeyState::Released));
-
-		}
-
-	}
-
-}
-
-
-
-KeyState Keyboard::getKeyState(Scancode scancode) const {
-	return rawKeyStates[scancode];
 }
 
 

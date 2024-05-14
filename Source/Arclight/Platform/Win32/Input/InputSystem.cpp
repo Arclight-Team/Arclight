@@ -12,8 +12,6 @@
 #include "Common/Assert.hpp"
 #include "Window/Window.hpp"
 #include "Window/WindowHandle.hpp"
-#include "Math/Shapes/Rectangle.hpp"
-#include "Util/Bool.hpp"
 #include "Util/Log.hpp"
 #include "Util/Range.hpp"
 #include "OS/Common.hpp"
@@ -21,10 +19,11 @@
 #include "windowsx.h"
 
 #include <algorithm>
+#include <ranges>
 
 
 
-InputSystem::InputSystem() {}
+InputSystem::InputSystem() = default;
 
 InputSystem::InputSystem(const Window& window) {
 	connect(window);
@@ -36,14 +35,22 @@ InputSystem::~InputSystem() {
 
 InputSystem::InputSystem(InputSystem&& system) noexcept :
 	windowHandle(std::move(system.windowHandle)),
-	inputContexts(std::move(system.inputContexts)) {
+	inputContexts(std::move(system.inputContexts)),
+	keyboard(system.keyboard),
+	mouse(system.mouse),
+	keyContext(std::move(system.keyContext)) {
+
 	setInputPointer();
+
 }
 
 InputSystem& InputSystem::operator=(InputSystem&& system) noexcept {
 
 	windowHandle = std::move(system.windowHandle);
 	inputContexts = std::move(system.inputContexts);
+	keyboard = system.keyboard;
+	mouse = system.mouse;
+	keyContext = std::move(system.keyContext);
 
 	setInputPointer();
 
@@ -172,28 +179,23 @@ void InputSystem::disableContext(u32 id) {
 
 void InputSystem::onKeyEvent(const KeyEvent& event) {
 
-	LogI() << "Key " << Log::Hex << " Physical " << event.getPhysicalKey() << " Virtual " << event.getVirtualKey() << " Scancode " << event.getScancode() << " Pressed " << event.pressed();
-/*
-	keyStates[event.getKey()] = event.getKeyState();
-	eventCounts[event.getKey()]++;
+	keyContext.setKeyState(event.physicalKey, event.virtualKey, event.pressed());
 
-	for (auto& [id, context] : inputContexts) {
+	for (auto& context : inputContexts | std::views::values) {
 
-		if (context.onKeyEvent(event, keyStates)) {
+		if (context.onKeyEvent(event, keyContext)) {
 			break;
 		}
 
 	}
-*/
+
 }
 
 
 
 void InputSystem::onCharEvent(const CharEvent& event) {
 
-	// LogI() << "Char " << event.getChar();
-
-	for (auto& [id, context] : inputContexts) {
+	for (auto& context : inputContexts | std::views::values) {
 
 		if (context.onCharEvent(event)) {
 			break;
@@ -207,9 +209,7 @@ void InputSystem::onCharEvent(const CharEvent& event) {
 
 void InputSystem::onCursorEvent(const CursorEvent& event) {
 
-	// LogI() << "Cursor " << event.getX() << ", " << event.getY();
-
-	for (auto& [id, context] : inputContexts) {
+	for (auto& context : inputContexts | std::views::values) {
 
 		if (context.onCursorEvent(event)) {
 			break;
@@ -223,9 +223,7 @@ void InputSystem::onCursorEvent(const CursorEvent& event) {
 
 void InputSystem::onScrollEvent(const ScrollEvent& event) {
 
-	LogI() << "Scroll X: " << event.scrollX() << ", Y: " << event.scrollY();
-
-	for (auto& [id, context] : inputContexts) {
+	for (auto& context : inputContexts | std::views::values) {
 
 		if (context.onScrollEvent(event)) {
 			break;
@@ -239,9 +237,7 @@ void InputSystem::onScrollEvent(const ScrollEvent& event) {
 
 void InputSystem::onCursorAreaEvent(const CursorAreaEvent& event) {
 
-	LogI() << "Area " << event.areaEntered();
-
-	for (auto& [id, context] : inputContexts) {
+	for (auto& context : inputContexts | std::views::values) {
 
 		if (context.onCursorAreaEvent(event)) {
 			break;
@@ -254,35 +250,22 @@ void InputSystem::onCursorAreaEvent(const CursorAreaEvent& event) {
 
 
 
-void InputSystem::updateContinuous(u32 ticks) {
+void InputSystem::update(u32 ticks) {
 
 	if (!ticks) {
 		return;
 	}
-/*
-	for (u32 i : eventCounts) {
 
-		if ((i / 2) > ticks) {
+	for (auto& context : inputContexts | std::views::values) {
 
-			//Prevents auto-clicks and mouse abuse
-			LogE("Input System") << "Detected non-human generated input";
-			resetEventCounts();
-			return;
-
-		}
-
-	}
-
-	for (auto& [id, context] : inputContexts) {
-
-		if (context.onContinuousEvent(ticks, keyStates, eventCounts)) {
+		if (context.onSteadyEvent(ticks, keyContext)) {
 			break;
 		}
 
 	}
 
-	resetEventCounts();
-*/
+	keyContext.resetEvents();
+
 }
 
 
@@ -295,9 +278,45 @@ std::shared_ptr<WindowHandle> InputSystem::getWindowHandle() const {
 
 void InputSystem::releaseAllKeys() {
 
-	keyboard.releaseAllKeys(*this);
-	mouse.releaseAllKeys(*this);
+	auto pkeys = keyContext.getKeyMap(true);
+	auto vkeys = keyContext.getKeyMap(false);
 
+	keyContext.resetAll();
+
+	for (u32 i : Range(pkeys.size())) {
+
+		if (pkeys[i]) {
+			onKeyEvent(KeyEvent(i, 0, KeyState::Released));
+		}
+
+	}
+
+	for (u32 i : Range(vkeys.size())) {
+
+		if (vkeys[i]) {
+			onKeyEvent(KeyEvent(0, i, KeyState::Released));
+		}
+
+	}
+
+}
+
+
+
+Keyboard& InputSystem::getKeyboard() {
+	return keyboard;
+}
+
+const Keyboard& InputSystem::getKeyboard() const {
+	return keyboard;
+}
+
+Mouse& InputSystem::getMouse() {
+	return mouse;
+}
+
+const Mouse& InputSystem::getMouse() const {
+	return mouse;
 }
 
 
@@ -316,21 +335,9 @@ bool InputSystem::setupInputDevices() {
 
 
 
-void InputSystem::resetEventCounts() {
-
-	//arc_assert(!eventCounts.empty(), "Event counts not initialized");
-
-	//std::ranges::fill(eventCounts, 0);
-
-}
-
-
-
 void InputSystem::setInputPointer() {
 
-	auto handle = windowHandle.lock();
-
-	if (handle) {
+	if (auto handle = windowHandle.lock()) {
 
 		handle->setInputMessageHandler([this](HWND hwnd, UINT messageType, WPARAM wParam, LPARAM lParam) -> std::optional<LRESULT> {
 
@@ -345,7 +352,7 @@ void InputSystem::setInputPointer() {
 					switch (input.header.dwType) {
 
 						case RIM_TYPEKEYBOARD:
-							keyboard.dispatchInput(*this, &input.data.keyboard);
+							keyboard.dispatchInput(*this, keyContext, &input.data.keyboard);
 							break;
 
 						case RIM_TYPEMOUSE:

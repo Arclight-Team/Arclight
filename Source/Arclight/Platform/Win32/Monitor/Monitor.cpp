@@ -84,7 +84,7 @@ std::optional<Vec2ui> Monitor::getPhysicalSize() const {
 	RECT& rcMonitor = handle->mi.rcMonitor;
 
 	u32 widthMM, heightMM;
-	if (OS::Hardware::getOSVersion() >= OS::Hardware::Version(8, 1, 0)) {
+	if (OS::Hardware::getOSVersion() >= OS::Hardware::Version(6, 3, 0)) {
 		widthMM = static_cast<u32>(GetDeviceCaps(hDC, HORZSIZE));
 		heightMM = static_cast<u32>(GetDeviceCaps(hDC, VERTSIZE));
 	} else {

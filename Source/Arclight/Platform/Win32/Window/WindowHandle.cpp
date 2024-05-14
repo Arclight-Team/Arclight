@@ -55,24 +55,21 @@ LRESULT CALLBACK WindowHandle::wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 
 			if (handle) {
 
+				std::optional<LRESULT> windowResult;
+				std::optional<LRESULT> inputResult;
+
 				if (handle->windowMessageHandlerFunction) {
-
-					auto windowResult = handle->windowMessageHandlerFunction(*window, hwnd, uMsg, wParam, lParam);
-
-					if (windowResult.has_value()) {
-						return *windowResult;
-					}
-
+					windowResult = handle->windowMessageHandlerFunction(*window, hwnd, uMsg, wParam, lParam);
 				}
 
 				if (handle->inputMessageHandlerFunction) {
+					inputResult = handle->inputMessageHandlerFunction(hwnd, uMsg, wParam, lParam);
+				}
 
-					auto inputResult = handle->inputMessageHandlerFunction(hwnd, uMsg, wParam, lParam);
-
-					if (inputResult.has_value()) {
-						return *inputResult;
-					}
-
+				if (windowResult.has_value()) {
+					return *windowResult;
+				} else if (inputResult.has_value()) {
+					return *inputResult;
 				}
 
 			}

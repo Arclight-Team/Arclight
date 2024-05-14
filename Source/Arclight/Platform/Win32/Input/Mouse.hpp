@@ -8,12 +8,11 @@
 
 #pragma once
 
-#include "KeyDefs.hpp"
+#include "Key.hpp"
 #include "Math/Vector.hpp"
 #include "Util/BitmaskEnum.hpp"
 
 #include <memory>
-#include <vector>
 
 
 
@@ -41,8 +40,6 @@ public:
 	void setTrapped(bool trap);
 	bool isTrapped() const;
 
-	void releaseAllKeys(InputSystem& input);
-
 	Vec2i getCursorPosition(bool screenPos = false) const;
 	KeyState getButtonState(Key physicalKey) const;
 
@@ -57,8 +54,6 @@ private:
 
 	std::weak_ptr<class WindowHandle> windowHandle;
 	DeviceFlags devFlags;
-
-	std::array<KeyState, 5> keyStates;
 
 	bool trapped;
 	bool hwMotion;

@@ -12,12 +12,12 @@
 #include "Util/BitmaskEnum.hpp"
 
 #include <memory>
-#include <vector>
 #include <functional>
 #include <string>
 
 
 
+class KeyContext;
 class InputSystem;
 
 class Keyboard {
@@ -38,13 +38,11 @@ public:
 	bool initialize(const InputSystem& input, DeviceFlags flags = DeviceFlags::None);
 	void destroy();
 
-	void dispatchInput(InputSystem& input, void* nativePtr);
+	void dispatchInput(InputSystem& input, const KeyContext& keyContext, void* nativePtr);
 
 	void enableHeldEvent();
 	void disableHeldEvent();
 	bool isHeldEventEnabled() const;
-
-	void releaseAllKeys(InputSystem& input);
 
 	KeyState getKeyState(Scancode scancode) const;
 
@@ -57,8 +55,6 @@ private:
 
 	std::weak_ptr<class WindowHandle> windowHandle;
 	DeviceFlags devFlags;
-
-	std::vector<KeyState> rawKeyStates;
 
 	bool propagateHeld;
 

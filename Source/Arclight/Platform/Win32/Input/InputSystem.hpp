@@ -11,6 +11,7 @@
 #include "Keyboard.hpp"
 #include "Mouse.hpp"
 #include "InputContext.hpp"
+#include "KeyContext.hpp"
 
 #include <memory>
 #include <map>
@@ -19,11 +20,6 @@
 
 class Window;
 class WindowHandle;
-
-class KeyEvent;
-class CharEvent;
-class CursorEvent;
-class ScrollEvent;
 
 class InputSystem {
 
@@ -36,7 +32,6 @@ public:
 
 	InputSystem(const InputSystem& system) = delete;
 	InputSystem& operator=(const InputSystem& system) = delete;
-
 	InputSystem(InputSystem&& system) noexcept;
 	InputSystem& operator=(InputSystem&& system) noexcept;
 
@@ -58,17 +53,21 @@ public:
 	void onScrollEvent(const ScrollEvent& event);
 	void onCursorAreaEvent(const CursorAreaEvent& event);
 
-	void updateContinuous(u32 ticks);
+	void update(u32 ticks);
 
 	std::shared_ptr<WindowHandle> getWindowHandle() const;
 
 	void releaseAllKeys();
 
+	Keyboard& getKeyboard();
+	const Keyboard& getKeyboard() const;
+
+	Mouse& getMouse();
+	const Mouse& getMouse() const;
+
 private:
 
 	bool setupInputDevices();
-	void resetEventCounts();
-
 	void setInputPointer();
 	void resetInputPointer();
 
@@ -77,5 +76,7 @@ private:
 
 	Keyboard keyboard;
 	Mouse mouse;
+
+	KeyContext keyContext;
 
 };

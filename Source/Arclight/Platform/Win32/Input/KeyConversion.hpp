@@ -8,8 +8,7 @@
 
 #pragma once
 
-#include "KeyDefs.hpp"
-
+#include "Key.hpp"
 #include "Util/Range.hpp"
 
 #include <array>
@@ -35,7 +34,7 @@ namespace KeyConversion {
 			};
 
 			for (u32 i : Range(keys.size())) {
-				keys[i] = i << 16;
+				keys[i] = i | (1 << 9);
 			}
 
 			bind(PhysicalKey::A, 0x1E);
@@ -179,7 +178,7 @@ namespace KeyConversion {
 			};
 
 			for (u32 i : Range(virtualKeys.size())) {
-				virtualKeys[i] = i << 8;
+				virtualKeys[i] = i | (1 << 8);
 			}
 
 			bind(VirtualKey::MouseLeft, 0x01);
@@ -336,8 +335,8 @@ namespace KeyConversion {
 
 	constexpr Scancode physicalKeyToScancode(Key physicalKey) {
 
-		if (physicalKey >= 0x100) {
-			return physicalKey >> 16;
+		if (physicalKey >= 0x200) {
+			return physicalKey & 0x1FF;
 		}
 
 		return Detail::PhysicalToScancode[physicalKey];
@@ -351,7 +350,7 @@ namespace KeyConversion {
 	constexpr Key virtualKeyToWinVK(Key virtualKey) {
 
 		if (virtualKey >= 0x100) {
-			return virtualKey >> 8;
+			return virtualKey & 0xFF;
 		}
 
 		return Detail::VirtualToWinVK[virtualKey & 0xFF];
