@@ -115,9 +115,5 @@ private:
 
 	std::vector<Layer> layers;
 	std::unordered_map<KeyAction, ActionInfo> actionInfo;
-/*
-	std::map<u32, Layer> layers;
-	std::unordered_map<KeyAction, std::pair<KeyTrigger, bool>> actionBindings;
-	std::unordered_map<KeyAction, KeyTrigger> defaultBindings;
-*/
+
 };
