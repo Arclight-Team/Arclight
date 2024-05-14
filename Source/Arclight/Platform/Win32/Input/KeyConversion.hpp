@@ -369,4 +369,35 @@ namespace KeyConversion {
 		return Detail::ScancodeToPhysical.size();
 	}
 
+	constexpr bool isVirtualModifierKey(Key virtualKey) {
+		return virtualKey >= VirtualKey::LeftShift && virtualKey <= VirtualKey::RightAlt;
+	}
+
+	constexpr u32 modifierFlag(Key virtualKey) {
+
+		switch (virtualKey) {
+
+			case VirtualKey::LeftShift:
+			case VirtualKey::RightShift:
+				return KeyModifier::Shift;
+
+			case VirtualKey::LeftControl:
+			case VirtualKey::RightControl:
+				return KeyModifier::Control;
+
+			case VirtualKey::LeftSuper:
+			case VirtualKey::RightSuper:
+				return KeyModifier::Super;
+
+			case VirtualKey::LeftAlt:
+			case VirtualKey::RightAlt:
+				return KeyModifier::Alt;
+
+			default:
+				return KeyModifier::None;
+
+		}
+
+	}
+
 }

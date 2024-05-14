@@ -17,60 +17,85 @@
 
 
 InputContext::InputContext() : modal(false), enabled(true) {
-	addLayer(0);
+	setLayerCount(1);
 }
 
 
 
-void InputContext::addLayer(u32 layer) {
+void InputContext::setLayerCount(u32 count) {
 
-	if (hasLayer(layer)) {
-		LogW("Input Context").print("Layer with ID %d does already exist", layer);
+	if (count == 0) {
+
+		LogW("Input Context") << "Layer count cannot be 0";
 		return;
+
 	}
 
-	layers.try_emplace(layer);
+	if (layers.size() > count) {
 
-}
+		for (SizeT i = count; i < layers.size(); i++) {
 
+			for (const auto& [action, _1, _2] : layers[i].actions) {
+				removeAction(action);
+			}
 
+			for (const auto& [action, _1, _2] : layers[i].steadyActions) {
+				removeAction(action);
+			}
 
-void InputContext::removeLayer(u32 layer) {
+		}
 
-	if (!hasLayer(layer)) {
-		LogW("Input Context").print("Layer with ID %d doesn't exist", layer);
-		return;
 	}
 
-	layers.erase(layer);
+	layers.resize(count);
 
 }
 
 
 
-bool InputContext::hasLayer(u32 layer) const {
-	return layers.contains(layer);
+u32 InputContext::layerCount() const {
+	return layers.size();
 }
 
 
 
-void InputContext::addAction(KeyAction action, const KeyTrigger& trigger, bool steady) {
-
-	arc_assert(!hasAction(action), "Action %d already added to context", action);
-
-	actionBindings[action] = std::make_pair(trigger, steady);
-	defaultBindings[action] = trigger;
-
+void InputContext::disableLayer(u32 layerID) {
+	getLayer(layerID).enabled = false;
 }
 
 
 
-void InputContext::addBoundAction(KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger, bool steady) {
+void InputContext::enableLayer(u32 layerID) {
+	getLayer(layerID).enabled = false;
+}
 
-	arc_assert(!hasAction(action), "Action %d already added to context", action);
 
-	actionBindings[action] = std::make_pair(boundTrigger, steady);
-	defaultBindings[action] = defaultTrigger;
+
+bool InputContext::isLayerEnabled(u32 layerID) const {
+	return getLayer(layerID).enabled;
+}
+
+
+
+void InputContext::addAction(u32 layerID, KeyAction action, const KeyTrigger& trigger, bool steady) {
+	addBoundAction(layerID, action, trigger, trigger, steady);
+}
+
+
+
+void InputContext::addBoundAction(u32 layerID, KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger, bool steady) {
+
+	if (hasAction(action)) {
+
+		LogW("Input Context") << "Action " << action << " already exists";
+		return;
+
+	}
+
+	Layer& layer = getLayer(layerID);
+	(steady ? layer.steadyActions : layer.actions).emplace_back(action, boundTrigger, defaultTrigger);
+
+	actionInfo.emplace(action, ActionInfo(layerID, steady));
 
 }
 
@@ -78,11 +103,25 @@ void InputContext::addBoundAction(KeyAction action, const KeyTrigger& boundTrigg
 
 void InputContext::removeAction(KeyAction action) {
 
-	arc_assert(hasAction(action), "Action %d not added to context", action);
+	if (actionInfo.contains(action)) {
 
-	unregisterLayerActions(action);
-	actionBindings.erase(action);
-	defaultBindings.erase(action);
+		Layer& layer = getLayer(actionInfo[action].layerID);
+
+		auto it = layer.actions.erase(std::ranges::find_if(layer.actions, [action](const ActionBinding& binding) {
+			return binding.action == action;
+		}));
+
+		if (it == layer.actions.end()) {
+
+			layer.steadyActions.erase(std::ranges::find_if(layer.steadyActions, [action](const ActionBinding& binding) {
+				return binding.action == action;
+			}));
+
+		}
+
+		actionInfo.erase(action);
+
+	}
 
 }
 
@@ -90,34 +129,21 @@ void InputContext::removeAction(KeyAction action) {
 
 void InputContext::clearActions() {
 
-	unregisterAllActions();
-	actionBindings.clear();
-	defaultBindings.clear();
+	for (Layer& layer : layers) {
+
+		layer.actions.clear();
+		layer.steadyActions.clear();
+
+	}
+
+	actionInfo.clear();
 
 }
 
 
 
 bool InputContext::hasAction(KeyAction action) const {
-	return actionBindings.contains(action);
-}
-
-
-
-void InputContext::addLayerAction(u32 layer, KeyAction action, const KeyTrigger& trigger, bool steady) {
-
-	addAction(action, trigger, steady);
-	registerAction(layer, action);
-
-}
-
-
-
-void InputContext::addBoundLayerAction(u32 layer, KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger, bool steady) {
-
-	addBoundAction(action, boundTrigger, defaultTrigger, steady);
-	registerAction(layer, action);
-
+	return actionInfo.contains(action);
 }
 
 
@@ -125,28 +151,13 @@ void InputContext::addBoundLayerAction(u32 layer, KeyAction action, const KeyTri
 void InputContext::setBinding(KeyAction action, const KeyTrigger& binding) {
 
 	if (!hasAction(action)) {
-		LogW("Input Context") << "Cannot set action binding without a default action trigger";
+
+		LogW("Input Context") << "Action " << action << " does not exist";
 		return;
-	}
-
-	std::vector<u32> boundLayers;
-
-	for (u32 layerID : layers | std::views::keys) {
-
-		if (actionRegistered(layerID, action)) {
-
-			unregisterAction(layerID, action);
-			boundLayers.push_back(layerID);
-
-		}
 
 	}
 
-	actionBindings[action].first = binding;
-
-	for (u32 layer : boundLayers) {
-		registerAction(layer, action);
-	}
+	getActionBinding(action).trigger = binding;
 
 }
 
@@ -155,11 +166,13 @@ void InputContext::setBinding(KeyAction action, const KeyTrigger& binding) {
 void InputContext::restoreBinding(KeyAction action) {
 
 	if (!hasAction(action)) {
-		LogW("Input Context") << "Cannot restore action binding without a default action trigger";
+
+		LogW("Input Context") << "Action " << action << " does not exist";
 		return;
+
 	}
 
-	setBinding(action, defaultBindings[action]);
+	getActionBinding(action).restore();
 
 }
 
@@ -167,29 +180,37 @@ void InputContext::restoreBinding(KeyAction action) {
 
 void InputContext::restoreAllBindings() {
 
-	for (const auto & action: defaultBindings | std::views::keys) {
-		restoreBinding(action);
+	for (Layer& layer : layers) {
+
+		for (ActionBinding& binding : layer.actions) {
+			binding.restore();
+		}
+
+		for (ActionBinding& binding : layer.steadyActions) {
+			binding.restore();
+		}
+
 	}
 
 }
 
 
 
-const KeyTrigger& InputContext::getActionBinding(KeyAction action) const {
+const KeyTrigger& InputContext::getActionTrigger(KeyAction action) const {
 
 	arc_assert(hasAction(action), "Action %d not added to context", action);
 
-	return actionBindings.at(action).first;
+	return getActionBinding(action).trigger;
 
 }
 
 
 
-const KeyTrigger& InputContext::getActionDefaultBinding(KeyAction action) const {
+const KeyTrigger& InputContext::getActionDefaultTrigger(KeyAction action) const {
 
 	arc_assert(hasAction(action), "Action %d not added to context", action);
 
-	return defaultBindings.at(action);
+	return getActionBinding(action).defaultTrigger;
 
 }
 
@@ -199,160 +220,7 @@ bool InputContext::isSteadyAction(KeyAction action) const {
 
 	arc_assert(hasAction(action), "Action bindings don't contain action %d", action);
 
-	return actionBindings.at(action).second;
-
-}
-
-
-
-void InputContext::registerAction(u32 layer, KeyAction action) {
-
-	arc_assert(hasLayer(layer), "Layer %d not defined for input context while registering key action %d", layer, action);
-	arc_assert(hasAction(action), "Action bindings don't contain action %d", action);
-
-	const KeyTrigger& trigger = getActionBinding(action);
-
-	if (isSteadyAction(action)) {
-
-		auto& steadyActions = layers[layer].steadyActions;
-
-		for (auto it = steadyActions.begin(); it != steadyActions.end(); ++it) {
-
-			if (getActionBinding(*it).getKeyCount() <= trigger.getKeyCount()) {
-				steadyActions.insert(it, action);
-				return;
-			}
-
-		}
-
-		steadyActions.insert(steadyActions.end(), action);
-
-	} else {
-
-		auto& keyMap = trigger.isPhysical() ? layers[layer].physicalKeyLookup : layers[layer].virtualKeyLookup;
-
-		for (u32 i = 0; i < trigger.getKeyCount(); i++) {
-
-			const auto& actions = keyMap.equal_range(trigger.getKey(i));
-			keyMap.emplace_hint(actions.second, trigger.getKey(i), action);
-
-		}
-
-	}
-
-}
-
-
-
-void InputContext::unregisterAction(u32 layer, KeyAction action) {
-
-	arc_assert(hasLayer(layer), "Layer %d not defined for input context while unregistering key action %d", layer, action);
-	arc_assert(hasAction(action), "Action bindings don't contain action %d", action);
-
-	if (isSteadyAction(action)) {
-
-		auto& coActions = layers[layer].steadyActions;
-
-		for (u32 i = 0; i < coActions.size(); i++) {
-
-			if (coActions[i] == action) {
-				coActions.erase(coActions.begin() + i);
-				return;
-			}
-
-		}
-
-	} else {
-
-		const KeyTrigger& trigger = getActionBinding(action);
-		auto& keyMap = trigger.isPhysical() ? layers[layer].physicalKeyLookup : layers[layer].virtualKeyLookup;
-
-		for (u32 i = 0; i < trigger.getKeyCount(); i++) {
-
-			const auto& actions = keyMap.equal_range(trigger.getKey(i));
-
-			for (auto it = actions.first; it != actions.second; ++it) {
-
-				if (it->second == action) {
-					keyMap.erase(it);
-					break;
-				}
-
-			}
-
-		}
-
-	}
-
-}
-
-
-
-void InputContext::unregisterActionGroup(KeyAction action) {
-
-	for (u32 key : layers | std::views::keys) {
-		unregisterAction(key, action);
-	}
-
-}
-
-
-
-void InputContext::unregisterLayerActions(u32 layer) {
-
-	arc_assert(hasLayer(layer), "Layer %d not defined for input context while unregistering all actions", layer);
-
-	auto& [physicalKeyLookup, virtualKeyLookup, steadyActions] = layers[layer];
-	physicalKeyLookup.clear();
-	virtualKeyLookup.clear();
-	steadyActions.clear();
-
-}
-
-
-
-void InputContext::unregisterAllActions() {
-
-	for (u32 layer : layers | std::views::keys) {
-		unregisterLayerActions(layer);
-	}
-
-}
-
-
-
-bool InputContext::actionRegistered(u32 layer, KeyAction action) const {
-
-	arc_assert(hasLayer(layer), "Layer %d not defined for input context while unregistering all action", layer);
-	arc_assert(hasAction(action), "Action bindings don't contain action %d", action);
-
-	if (isSteadyAction(action)) {
-
-		for (KeyAction k : layers.at(layer).steadyActions) {
-
-			if (k == action) {
-				return true;
-			}
-
-		}
-
-	} else {
-
-		const KeyTrigger& trigger = getActionBinding(action);
-		const auto& keyMap = trigger.isPhysical() ? layers.at(layer).physicalKeyLookup : layers.at(layer).virtualKeyLookup;
-		const auto& actions = keyMap.equal_range(trigger.getKey(0));
-
-		for (auto it = actions.first; it != actions.second; ++it) {
-
-			if (it->second == action) {
-				return true;
-			}
-
-		}
-
-	}
-
-	return false;
+	return actionInfo.at(action).steady;
 
 }
 
@@ -380,33 +248,22 @@ bool InputContext::onKeyEvent(const KeyEvent& event, const KeyContext& keyContex
 
 	if (handler.onActionEvent) {
 
-		auto actionInvoker = [&](const auto& actions) -> bool {
+		for (const Layer& layer : layers) {
 
-			for (auto it = actions.first; it != actions.second; ++it) {
+			if (!layer.enabled) {
+				continue;
+			}
 
-				if (isTriggered(keyContext, getActionBinding(it->second), event)){
+			for (const ActionBinding& binding : layer.actions) {
 
-					if (handler.onActionEvent(ActionEvent(it->second, 1))) {
+				if (isTriggered(keyContext, binding.trigger, event) && handler.onActionEvent(ActionEvent(binding.action, 1))) {
 
-						consumed = true;
-						return true;
-
-					}
+					consumed = true;
+					break;
 
 				}
 
 			}
-
-			return false;
-
-		};
-
-		for (const auto& layer : layers | std::views::values) {
-
-			const auto& virtualActions = layer.virtualKeyLookup.equal_range(event.virtualKey);
-			const auto& physicalActions = layer.physicalKeyLookup.equal_range(event.physicalKey);
-
-			actionInvoker(virtualActions) || actionInvoker(physicalActions);
 
 			if (consumed) {
 				break;
@@ -479,15 +336,23 @@ bool InputContext::onSteadyEvent(u32 ticks, KeyContext& keyContext) {
 
 	if (enabled && handler.onActionEvent) {
 
-		for (const Layer& layer : layers | std::views::values) {
+		for (const Layer& layer : layers) {
+
+			if (!layer.enabled) {
+				continue;
+			}
 
 			// For every steady action
-			for (KeyAction action : layer.steadyActions) {
+			for (const ActionBinding& binding : layer.steadyActions) {
 
-				u32 combinedEventCount = -1;
-				const KeyTrigger& trigger = getActionBinding(action);
+				KeyAction action = binding.action;
+				const KeyTrigger& trigger = getActionTrigger(action);
+				u32 modifiers = trigger.getModifiers();
+
 				const auto& keyMap = keyContext.getKeyMap(trigger.isPhysical());
 				auto& events = keyContext.getEvents(trigger.isPhysical());
+
+				u32 combinedEventCount = -1;
 
 				// Traverse all keys of a given trigger
 				for (u32 i = 0; i < trigger.getKeyCount(); i++) {
@@ -510,6 +375,35 @@ bool InputContext::onSteadyEvent(u32 ticks, KeyContext& keyContext) {
 
 				}
 
+				// Modifiers also have to be taken into account
+				if (modifiers) {
+
+					constexpr static u32 modMasks[4] = { KeyModifier::Shift, KeyModifier::Control, KeyModifier::Super, KeyModifier::Alt };
+
+					u32 currentModifierState = keyContext.getModifierState();
+
+					for (u32 modMask : modMasks) {
+
+						if (modifiers & modMask) {
+
+							u32 eventCount = ticks;
+
+							KeyState keyState = currentModifierState & modMask ? KeyState::Pressed : KeyState::Released;
+							u32 keyEvents = keyContext.getModifierEventCount(modMask);
+
+							if (keyState != trigger.getKeyState() || keyEvents != 0) {
+								eventCount = (keyEvents + (keyState == trigger.getKeyState())) / 2;
+							}
+
+							combinedEventCount = std::min(combinedEventCount, eventCount);
+
+						}
+
+					}
+
+				}
+
+				// If events lined up, trigger a steady event
 				if (combinedEventCount) {
 
 					if (handler.onSteadyEvent(ActionEvent(action, combinedEventCount))) {
@@ -558,6 +452,48 @@ void InputContext::setModality(bool modal) {
 
 
 
+InputContext::ActionBinding& InputContext::getActionBinding(KeyAction action) {
+	return const_cast<ActionBinding&>(std::as_const(*this).getActionBinding(action));
+}
+
+
+
+const InputContext::ActionBinding& InputContext::getActionBinding(KeyAction action) const {
+
+	const Layer& layer = getLayer(actionInfo.at(action).layerID);
+
+	auto it = std::ranges::find_if(layer.actions, [action](const ActionBinding& binding) {
+		return binding.action == action;
+	});
+
+	if (it == layer.actions.end()) {
+
+		it = std::ranges::find_if(layer.steadyActions, [action](const ActionBinding& binding) {
+			return binding.action == action;
+		});
+
+		arc_assert(it != layer.steadyActions.end(), "Action binding not found");
+
+	}
+
+	return *it;
+
+}
+
+
+
+InputContext::Layer& InputContext::getLayer(u32 layerID) {
+	return layers[layerID];
+}
+
+
+
+const InputContext::Layer& InputContext::getLayer(u32 layerID) const {
+	return layers[layerID];
+}
+
+
+
 bool InputContext::isTriggered(const KeyContext& context, const KeyTrigger& trigger, const KeyEvent& event) {
 
 	if (trigger.getKeyState() != event.state) {
@@ -575,6 +511,10 @@ bool InputContext::isTriggered(const KeyContext& context, const KeyTrigger& trig
 			return false;
 		}
 
+	}
+
+	if (trigger.getModifiers() != context.getModifierState()) {
+		return false;
 	}
 
 	return true;

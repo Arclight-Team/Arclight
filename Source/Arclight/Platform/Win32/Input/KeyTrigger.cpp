@@ -31,6 +31,8 @@ KeyTrigger::KeyTrigger(std::span<const Key> keys, KeyState state, u32 mods, Type
 		this->keys[i] = keys[i];
 	}
 
+	sortKeys();
+
 }
 
 
@@ -44,6 +46,8 @@ void KeyTrigger::addKey(Key key) {
 
 	keys[keyCount] = key;
 	keyCount++;
+
+	sortKeys();
 
 }
 
@@ -120,29 +124,60 @@ bool KeyTrigger::isVirtual() const {
 
 bool KeyTrigger::operator==(const KeyTrigger& trigger) const {
 
-	if (keyCount != trigger.keyCount || keyState != trigger.keyState) {
+	if (keyCount != trigger.keyCount) {
 		return false;
 	}
 
 	for (u32 i = 0; i < keyCount; i++) {
 
-		bool found = false;
-
-		for (u32 j = 0; j < keyCount; j++) {
-
-			if (keys[i] == trigger.keys[j]) {
-				found = true;
-				break;
-			}
-
-		}
-
-		if (!found) {
+		if (keys[i] != trigger.getKey(i)) {
 			return false;
 		}
 
 	}
 
+	if (keyState != trigger.keyState || modifiers != trigger.modifiers || type != trigger.type) {
+		return false;
+	}
+
 	return true;
 
+}
+
+
+
+std::strong_ordering KeyTrigger::operator<=>(const KeyTrigger& trigger) const {
+
+	if (keyCount != trigger.keyCount) {
+		return keyCount <=> trigger.keyCount;
+	}
+
+	for (u32 i = 0; i < keyCount; i++) {
+
+		if (keys[i] != trigger.getKey(i)) {
+			return keys[i] <=> trigger.getKey(i);
+		}
+
+	}
+
+	if (keyState != trigger.keyState) {
+		return keyState <=> trigger.keyState;
+	}
+
+	if (modifiers != trigger.modifiers) {
+		return modifiers <=> trigger.modifiers;
+	}
+
+	if (type != trigger.type) {
+		return type <=> trigger.type;
+	}
+
+	return std::strong_ordering::equal;
+
+}
+
+
+
+void KeyTrigger::sortKeys() {
+	std::sort(keys, keys + keyCount);
 }

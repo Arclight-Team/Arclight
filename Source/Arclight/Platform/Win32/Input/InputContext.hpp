@@ -11,9 +11,7 @@
 #include "KeyTrigger.hpp"
 #include "InputHandler.hpp"
 
-#include <map>
 #include <unordered_map>
-#include <optional>
 
 
 
@@ -21,11 +19,33 @@ class KeyContext;
 
 class InputContext {
 
+	struct ActionBinding {
+
+		ActionBinding() : action(0) {}
+		ActionBinding(KeyAction action, const KeyTrigger& trigger, const KeyTrigger& defaultTrigger)
+			: action(action), trigger(trigger), defaultTrigger(defaultTrigger) {}
+
+		void restore() {
+			trigger = defaultTrigger;
+		}
+
+		auto operator<=>(const ActionBinding& binding) const {
+			return trigger <=> binding.trigger;
+		}
+
+		KeyAction action;
+		KeyTrigger trigger;
+		KeyTrigger defaultTrigger;
+
+	};
+
 	struct Layer {
 
-		std::unordered_multimap<Key, KeyAction> physicalKeyLookup;
-		std::unordered_multimap<Key, KeyAction> virtualKeyLookup;
-		std::vector<KeyAction> steadyActions;
+		constexpr Layer() : enabled(true) {}
+
+		std::vector<ActionBinding> actions;
+		std::vector<ActionBinding> steadyActions;
+		bool enabled;
 
 	};
 
@@ -33,32 +53,25 @@ public:
 
 	InputContext();
 
-	void addLayer(u32 layer);
-	void removeLayer(u32 layer);
-	bool hasLayer(u32 layer) const;
+	void setLayerCount(u32 count);
+	u32 layerCount() const;
 
-	void addAction(KeyAction action, const KeyTrigger& trigger, bool steady = false);
-	void addBoundAction(KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger, bool steady = false);
+	void disableLayer(u32 layerID);
+	void enableLayer(u32 layerID);
+	bool isLayerEnabled(u32 layerID) const;
+
+	void addAction(u32 layerID, KeyAction action, const KeyTrigger& trigger, bool steady = false);
+	void addBoundAction(u32 layerID, KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger, bool steady = false);
 	void removeAction(KeyAction action);
 	void clearActions();
 	bool hasAction(KeyAction action) const;
 
-	void addLayerAction(u32 layer, KeyAction action, const KeyTrigger& trigger, bool steady = false);
-	void addBoundLayerAction(u32 layer, KeyAction action, const KeyTrigger& boundTrigger, const KeyTrigger& defaultTrigger, bool steady = false);
-
 	void setBinding(KeyAction action, const KeyTrigger& binding);
 	void restoreBinding(KeyAction action);
 	void restoreAllBindings();
-	const KeyTrigger& getActionBinding(KeyAction action) const;
-	const KeyTrigger& getActionDefaultBinding(KeyAction action) const;
+	const KeyTrigger& getActionTrigger(KeyAction action) const;
+	const KeyTrigger& getActionDefaultTrigger(KeyAction action) const;
 	bool isSteadyAction(KeyAction action) const;
-
-	void registerAction(u32 layer, KeyAction action);
-	void unregisterAction(u32 layer, KeyAction action);
-	void unregisterActionGroup(KeyAction action);
-	void unregisterLayerActions(u32 layer);
-	void unregisterAllActions();
-	bool actionRegistered(u32 layer, KeyAction action) const;
 
 	void disable();
 	void enable();
@@ -78,14 +91,33 @@ public:
 
 private:
 
+	ActionBinding& getActionBinding(KeyAction action);
+	const ActionBinding& getActionBinding(KeyAction action) const;
+
+	Layer& getLayer(u32 layerID);
+	const Layer& getLayer(u32 layerID) const;
+
 	static bool isTriggered(const KeyContext& context, const KeyTrigger& trigger, const KeyEvent& event);
 
 	bool modal;
 	bool enabled;
 	InputHandler handler;
 
+	struct ActionInfo {
+
+		constexpr ActionInfo() : layerID(0), steady(false) {}
+		constexpr ActionInfo(u32 layerID, bool steady) : layerID(layerID), steady(steady) {}
+
+		u32 layerID;
+		bool steady;
+
+	};
+
+	std::vector<Layer> layers;
+	std::unordered_map<KeyAction, ActionInfo> actionInfo;
+/*
 	std::map<u32, Layer> layers;
 	std::unordered_map<KeyAction, std::pair<KeyTrigger, bool>> actionBindings;
 	std::unordered_map<KeyAction, KeyTrigger> defaultBindings;
-
+*/
 };

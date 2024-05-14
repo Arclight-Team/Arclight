@@ -11,7 +11,7 @@
 
 
 
-KeyContext::KeyContext() {
+KeyContext::KeyContext() : modifiers(0) {
 
 	physicalKeys.resize(KeyConversion::physicalKeyCount() * 2, false);
 	virtualKeys.resize(KeyConversion::virtualKeyCount() * 2, false);
@@ -25,6 +25,7 @@ KeyContext::KeyContext() {
 
 void KeyContext::resetAll() {
 
+	modifiers = 0;
 	std::fill(physicalKeys.begin(), physicalKeys.end(), false);
 	std::fill(virtualKeys.begin(), virtualKeys.end(), false);
 
@@ -45,6 +46,18 @@ void KeyContext::resetEvents() {
 
 void KeyContext::setKeyState(Key physicalKey, Key virtualKey, bool pressed) {
 
+	if (KeyConversion::isVirtualModifierKey(virtualKey)) {
+
+		u32 mod = KeyConversion::modifierFlag(virtualKey);
+
+		if (pressed) {
+			modifiers |= mod;
+		} else {
+			modifiers &= ~mod;
+		}
+
+	}
+
 	physicalKeys[physicalKey] = pressed;
 	virtualKeys[virtualKey] = pressed;
 
@@ -57,6 +70,28 @@ void KeyContext::setKeyState(Key physicalKey, Key virtualKey, bool pressed) {
 
 void KeyContext::clearEvent(Key key, bool physical) {
 	(physical ? physicalEvents[key] : virtualEvents[key]) = 0;
+}
+
+
+
+u32 KeyContext::getModifierState() const {
+	return modifiers;
+}
+
+
+
+u32 KeyContext::getModifierEventCount(u32 modifier) const {
+
+	switch (modifier) {
+
+		case KeyModifier::Shift:	return virtualEvents[VirtualKey::LeftShift]		+ virtualEvents[VirtualKey::RightShift];
+		case KeyModifier::Control:	return virtualEvents[VirtualKey::LeftControl]	+ virtualEvents[VirtualKey::RightControl];
+		case KeyModifier::Super:	return virtualEvents[VirtualKey::LeftSuper]		+ virtualEvents[VirtualKey::RightSuper];
+		case KeyModifier::Alt:		return virtualEvents[VirtualKey::LeftAlt]		+ virtualEvents[VirtualKey::RightAlt];
+		default:	return 0;
+
+	}
+
 }
 
 

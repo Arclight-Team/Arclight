@@ -28,7 +28,7 @@ public:
 	constexpr static u32 MaxTriggerKeys = 3;
 
 	KeyTrigger();
-	explicit KeyTrigger(const std::initializer_list<Key>& keys, KeyState state = KeyState::Pressed, u32 mods = KeyModifier::None, Type type = Type::Physical);
+	KeyTrigger(const std::initializer_list<Key>& keys, KeyState state = KeyState::Pressed, u32 mods = KeyModifier::None, Type type = Type::Physical);
 	explicit KeyTrigger(std::span<const Key> keys, KeyState state = KeyState::Pressed, u32 mods = KeyModifier::None, Type type = Type::Physical);
 
 	void addKey(Key key);
@@ -46,8 +46,11 @@ public:
 	bool isVirtual() const;
 
 	bool operator==(const KeyTrigger& trigger) const;
+	std::strong_ordering operator<=>(const KeyTrigger& trigger) const;
 
 private:
+
+	void sortKeys();
 
 	Key keys[MaxTriggerKeys];
 	u32 keyCount;
