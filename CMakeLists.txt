@@ -137,6 +137,13 @@ project (Arclight)
 
 
 ######################
+####### CANDLE #######
+######################
+
+	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/Candle")
+
+
+######################
 ### PACKAGE EXPORT ###
 ######################
 
@@ -153,4 +160,4 @@ project (Arclight)
 
     foreach (_PackageTarget IN LISTS AkariTPPackages)
         LuminaExportPackage(AkariExport Akari-${_PackageTarget} "${ArclightTPPackageBase}/${_PackageTarget}" "${AkariTPOutputPath}/${_PackageTarget}.akari" 1)
-    endforeach ()
+	endforeach ()
