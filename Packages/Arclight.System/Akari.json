@@ -11,8 +11,9 @@
 
     "Artifacts": {
 
-        "Shared": {
-            "Includes": "Include"
+        "Windows": {
+            "Platform": "x64-Windows",
+            "Includes": "Include/Platform/Windows"
         },
 
         "x64-Windows-Debug" : {

@@ -12,7 +12,12 @@
     "Artifacts": {
 
         "Shared": {
-            "Includes": "Include"
+            "Includes": "Include/Main"
+        },
+
+        "Windows": {
+            "Platform": "x64-Windows",
+            "Includes": "Include/Platform/Windows"
         },
 
         "x64-Windows-Debug" : {
