@@ -1,7 +1,14 @@
-﻿cmake_minimum_required (VERSION 3.21)
+﻿#
+#	 Copyright (c) 2024 - Arclight Team
+#
+#	 This file is part of Lumina. All rights reserved.
+#
+#	 CMakeLists.txt
+#
 
-set(PROJECT_NAME Arclight)
-project (${PROJECT_NAME})
+cmake_minimum_required (VERSION 3.21)
+
+project (Arclight)
 
 
 #######################
@@ -22,58 +29,9 @@ project (${PROJECT_NAME})
 	set(CMAKE_C_EXTENSIONS off)
 	set(CMAKE_C_STANDARD_REQUIRED true)
 
-	# Set output directories
-	set(BINARY_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Bin/$<CONFIG>)
-	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
-	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
-
-	### URI TRANSITION
-	# Set root path
-	add_compile_definitions(ARC_PATH_ROOT="../../")
-
-	message("Building '${PROJECT_NAME}'")
-
-
-######################
-#### VECTOR SETUP ####
-######################
-
-	set(BUILDSYS_FILENAME ${CMAKE_CURRENT_SOURCE_DIR}/buildsys.txt)
-
-	if(EXISTS ${BUILDSYS_FILENAME})
-
-		file(STRINGS buildsys.txt BUILDSYS_STRINGS)
-		list(GET BUILDSYS_STRINGS 0 SUPPORTED_CPU_EXTENSION_STRING)
-		string(REPLACE "," ";" SUPPORTED_CPU_EXTENSIONS ${SUPPORTED_CPU_EXTENSION_STRING})
-
-		set(ARC_SUPPORTED_CPU_EXTENSIONS "sse" "sse2" "sse3" "ssse3" "sse4_1" "sse4_2" "avx" "avx2")
-		set(ARC_CPU_EXTENSION_DEFINITIONS ARC_TARGET_HAS_SSE ARC_TARGET_HAS_SSE2 ARC_TARGET_HAS_SSE3 ARC_TARGET_HAS_SSSE3 ARC_TARGET_HAS_SSE4_1 ARC_TARGET_HAS_SSE4_2 ARC_TARGET_HAS_AVX ARC_TARGET_HAS_AVX2)
-
-		list(LENGTH ARC_SUPPORTED_CPU_EXTENSIONS ARC_SUPPORTED_CPU_EXTENSION_COUNT)
-		math(EXPR ARC_SUPPORTED_CPU_EXTENSION_COUNT "${ARC_SUPPORTED_CPU_EXTENSION_COUNT} - 1")
-
-		foreach(i RANGE ${ARC_SUPPORTED_CPU_EXTENSION_COUNT})
-
-			list(GET ARC_SUPPORTED_CPU_EXTENSIONS ${i} EXTENSION)
-
-			if(EXTENSION IN_LIST SUPPORTED_CPU_EXTENSIONS)
-
-				list(GET ARC_CPU_EXTENSION_DEFINITIONS ${i} EXTENSION_DEFINITION)
-				#add_compile_definitions(${EXTENSION_DEFINITION})
-				list(APPEND BUILD_CPU_EXTENSIONS ${EXTENSION})
-
-			endif()
-
-		endforeach()
-
-	endif()
-
-	if(BUILD_CPU_EXTENSIONS)
-		message("Enabled CPU extensions: ${BUILD_CPU_EXTENSIONS}")
-	else()
-		message("Enabled CPU extensions: none")
-	endif()
+    # Platform
+    set(ArclightPlatform Windows)
+    set(ArclightArch x64)
 
 
 ######################
@@ -82,14 +40,8 @@ project (${PROJECT_NAME})
 
 	if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 
-		if("avx2" IN_LIST BUILD_CPU_EXTENSIONS)
-			set(MSVC_ARCH_FLAGS "/arch:AVX2")
-		elseif("avx" IN_LIST BUILD_CPU_EXTENSIONS)
-			set(MSVC_ARCH_FLAGS "/arch:AVX")
-		endif()
-
-		set(MSVC_CXX_BASE_FLAGS "${MSVC_ARCH_FLAGS} /Zc:preprocessor /MP /permissive /utf-8 /DWIN32 /D_WINDOWS /EHsc")
-		set(MSVC_C_BASE_FLAGS 	"${MSVC_ARCH_FLAGS} /Zc:preprocessor /MP /permissive /utf-8 /DWIN32 /D_WINDOWS")
+		set(MSVC_CXX_BASE_FLAGS "/Zc:preprocessor /MP /permissive- /utf-8 /DWIN32 /D_WINDOWS /EHsc")
+		set(MSVC_C_BASE_FLAGS 	"/Zc:preprocessor /MP /permissive- /utf-8 /DWIN32 /D_WINDOWS")
 
 		set(CMAKE_CXX_FLAGS_DEBUG 			"${MSVC_CXX_BASE_FLAGS} /Zi /Ob0 /Od /RTC1")
 		set(CMAKE_CXX_FLAGS_RELEASE 		"${MSVC_CXX_BASE_FLAGS} /GS- /O2 /Ob3 /DNDEBUG")
@@ -102,8 +54,7 @@ project (${PROJECT_NAME})
 
 		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /MANIFESTUAC:NO")
-
-		add_compile_options($<$<CONFIG:>:/MT>$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>)
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 		message("Compiling with MSVC")
 
@@ -132,7 +83,7 @@ project (${PROJECT_NAME})
 		endif()
 
 		set(GCC_C_BASE_FLAGS	"${GCC_ARCH_FLAGS} ${GCC_WINPTHREAD_FIX} -static-libgcc -finput-charset=UTF-8 -DWIN32 -D_WINDOWS")
-		set(GCC_CXX_BASE_FLAGS	"${GCC_C_BASE_FLAGS} -static-libstdc++ -fpermissive")
+		set(GCC_CXX_BASE_FLAGS	"${GCC_C_BASE_FLAGS} -static-libstdc++")
 
 		set(CMAKE_CXX_FLAGS_DEBUG 			"${GCC_CXX_BASE_FLAGS}	-O0 -g") # TODO Stack related options
 		set(CMAKE_CXX_FLAGS_RELEASE 		"${GCC_CXX_BASE_FLAGS}	-O3 -DNDEBUG")
@@ -151,262 +102,55 @@ project (${PROJECT_NAME})
 	endif()
 
 
-#######################
-#### PLATFORM SCAN ####
-#######################
+######################
+### PLATFORM SETUP ###
+######################
 
-	if(WIN32)
-		list(APPEND ARCLIGHT_PLATFORMS "Win32")
-	elseif(UNIX)
-		list(APPEND ARCLIGHT_PLATFORMS "Linux")
-	endif()
-
-	list(APPEND ARCLIGHT_PLATFORMS "Desktop")
-
-	message("Compiling for the following targets:")
-
-	foreach(Platform ${ARCLIGHT_PLATFORMS})
-		message("\t ${Platform}")
-	endforeach()
+    if (ArclightPlatform STREQUAL Windows)
+        add_compile_definitions(UNICODE _UNICODE)
+    endif ()
 
 
 ######################
-### MODULE PARSING ###
+# PACKAGE GENERATION #
 ######################
 
-	set(MODULE_FILENAME ${CMAKE_CURRENT_SOURCE_DIR}/arclight.modules)
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} $ENV{Lumina}/Support/CMake)
+    include(Lumina)
 
-	if(EXISTS ${MODULE_FILENAME})
+    set(ArclightLuminaPlatform ${ArclightArch}-${ArclightPlatform})
+    set(LuminaLocalPackagePath ${CMAKE_CURRENT_SOURCE_DIR}/Libraries)
 
-		file(STRINGS arclight.modules MODULE_LIST)
+    add_custom_target(Arclight)
 
-		# Remove comments
-		list(FILTER MODULE_LIST EXCLUDE REGEX "^#")
+    set(ArclightPackages Arclight.Core Arclight.Candle Arclight.Crypto Arclight.Desktop Arclight.System Arclight.GLE Arclight.Json Arclight.Noise Arclight.Spring Arclight.Xml)
+    set(ArclightPackageBase ${CMAKE_CURRENT_SOURCE_DIR}/Packages)
 
-		foreach(ModulePath ${MODULE_LIST})
+    foreach (Package IN LISTS ArclightPackages)
 
-			string(REPLACE "." "/" ModulePath ${ModulePath})
+        message("Building '" ${Package} "'")
+        add_subdirectory(${ArclightPackageBase}/${Package})
 
-			if(ModulePath MATCHES "^Arclight")
-				string(SUBSTRING ${ModulePath} 8 -1 ModulePath)
-			endif()
+    endforeach ()
 
-			list(APPEND MODULE_PATHS ${ModulePath})
-
-		endforeach()
-
-		message("Following modules will be activated:")
-
-		foreach(Module ${MODULE_LIST})
-			message("\t ${Module}")
-		endforeach()
-
-	else()
-
-		message(FATAL_ERROR "Failed to find module file ${MODULE_FILENAME}")
-
-	endif()
+    add_dependencies(Arclight ${ArclightPackages})
 
 
 ######################
-### MODULE LOADING ###
+### PACKAGE EXPORT ###
 ######################
 
-	set(ARCLIGHT_MODULE_CORE_PATH "Source/Arclight/Core/")
-	set(ARCLIGHT_MODULE_PLATFORM_PATH "Source/Arclight/Platform/")
-	set(APPLICATION_MAIN_PATH "Source/Main/")
-
-	# Includes
-	include_directories("${APPLICATION_MAIN_PATH}")
-	include_directories("${ARCLIGHT_MODULE_CORE_PATH}")
-
-	foreach(Platform ${ARCLIGHT_PLATFORMS})
-		file(GLOB SOURCES RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${ARCLIGHT_MODULE_PLATFORM_PATH}${Platform}/*.cpp)
-		list(APPEND APPLICATION_SOURCES ${SOURCES})
-		include_directories(${ARCLIGHT_MODULE_PLATFORM_PATH}${Platform})
-	endforeach()
-
-	# Sources
-	file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${APPLICATION_MAIN_PATH}/*.cpp)
-	list(APPEND APPLICATION_SOURCES ${SOURCES})
-	file(GLOB SOURCES RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${ARCLIGHT_MODULE_CORE_PATH}/*.cpp)
-	list(APPEND APPLICATION_SOURCES ${SOURCES})
-
-	foreach(ModulePath ${MODULE_PATHS})
-
-		file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${ARCLIGHT_MODULE_CORE_PATH}/${ModulePath}/*.cpp)
-		list(APPEND APPLICATION_SOURCES ${SOURCES})
-
-		foreach(Platform ${ARCLIGHT_PLATFORMS})
-			file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${ARCLIGHT_MODULE_PLATFORM_PATH}/${Platform}/${ModulePath}/*.cpp)
-			list(APPEND APPLICATION_SOURCES ${SOURCES})
-		endforeach()
-
-	endforeach()
-
-
-#######################
-##### MODULE DEPS #####
-#######################
-
-	message("Looking for dependencies")
-
-	# GLFW for input/window
-	if ("Arclight.Input" IN_LIST MODULE_LIST OR "Arclight.Window" IN_LIST MODULE_LIST)
-
-		# Build GLFW along the project
-		set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-		set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-		set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-		add_subdirectory("Lib/GLFW")
-
-		include_directories("Lib/GLFW/include")
-		list(APPEND APPLICATION_LIBS glfw)
-
-		add_compile_definitions(ARC_WINDOW_MODULE)
-
-		message("\tAdded dependency 'GLFW'")
-
-	endif()
-
-	# GLEW for window/render
-	if("Arclight.Window" IN_LIST MODULE_LIST OR "Arclight.Render" IN_LIST MODULE_LIST OR "Arclight.Render.GLE" IN_LIST MODULE_LIST)
-
-		# Find GLEW
-		list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Lib/GLEW)
-		find_package(GLEW REQUIRED)
-
-		if (WIN32)
-			list(APPEND APPLICATION_LIBS opengl32)
-		elseif(UNIX)
-			list(APPEND APPLICATION_LIBS GL)
-		endif()
-
-		list(APPEND APPLICATION_LIBS GLEW::GLEW)
-
-		add_compile_definitions(GLEW_NO_GLU)
-
-		message("\tAdded dependency 'GLEW'")
-
-	endif()
-
-	# FreeType for font
-	if("Arclight.Font" IN_LIST MODULE_LIST)
-
-		# Use the correct .lib
-		set(FREETYPE_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/Lib/FreeType/bin/x64/$<IF:$<CONFIG:Debug>,DebugStatic,ReleaseStatic>/freetype.lib)
-		add_compile_definitions(ARC_FONT_MODULE)
-
-		include_directories("Lib/FreeType/include")
-		list(APPEND APPLICATION_LIBS ${FREETYPE_LIBRARY})
-
-		message("\tAdded dependency 'freetype'")
-
-	endif()
-
-	# Bullet for physics
-	if("Arclight.Physics" IN_LIST MODULE_LIST)
-
-		# Use the correct bullet .libs
-		set(BULLET_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Lib/bullet3/lib/$<IF:$<CONFIG:Debug>,Debug,Release>)
-		set(BULLET_LIBRARIES ${BULLET_LIB_DIR}/BulletCollision_Debug.lib ${BULLET_LIB_DIR}/BulletDynamics$<$<CONFIG:Debug>,_Debug>.lib ${BULLET_LIB_DIR}/LinearMath$<$<CONFIG:Debug>,_Debug>.lib)
-
-		include_directories("Lib/bullet3/include/bullet")
-		list(APPEND APPLICATION_LIBS ${BULLET_LIBRARIES})
-
-		message("\tAdded dependency 'Bullet'")
-
-	endif()
-
-	# Assimp and stb for render.model
-	if("Arclight.Render" IN_LIST MODULE_LIST OR "Arclight.Render.Model" IN_LIST MODULE_LIST)
-
-		# Use the correct assimp .lib
-		set(ASSIMP_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/Lib/assimp/lib/$<IF:$<CONFIG:Debug>,Debug/assimp-vc142-mtd.lib,Release/assimp-vc142-mt.lib>)
-		
-		include_directories("Lib/assimp/include")
-		list(APPEND APPLICATION_LIBS ${ASSIMP_LIBRARY})
-
-		# stb_image
-		include_directories("Lib/stb_image")
-
-		message("\tAdded dependency 'Assimp'")
-		message("\tAdded dependency 'stb_image'")
-
-	endif()
-
-	# ImGui for render.gui
-	if("Arclight.Render" IN_LIST MODULE_LIST OR "Arclight.Render.GUI" IN_LIST MODULE_LIST)
-
-		if(${ARC_BUILD_IMGUI})
-			add_compile_definitions(ARC_USE_IMGUI=1)
-
-			file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "Lib/imgui/source/*.cpp" "Lib/imgui/backends/*.cpp")
-			list(APPEND APPLICATION_SOURCES ${SOURCES})
-		else()
-			add_compile_definitions(ARC_USE_IMGUI=0)
-		endif()
-
-		include_directories("Lib/imgui/include")
-		include_directories("Lib/imgui/backends")
-
-		message("\tAdded dependency 'ImGui'")
-
-	endif()
-
-	# FMOD for sound
-	if("Arclight.Sound" IN_LIST MODULE_LIST)
-
-		include_directories("Lib/FMOD/include")
-
-		list(APPEND APPLICATION_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/Lib/FMOD/fmodL_vc.lib)
-
-		message("\tAdded dependency 'FMOD'")
-
-	endif()
-
-
-######################
-###### PLATFORM ######
-######################
-
-	set(WIN_NO_CONSOLE FALSE)
-
-	if(WIN32)
-
-		# We only support windows icons yet
-		list(APPEND APPLICATION_SOURCES "win_resource.rc" "arclight.exe.manifest")
-
-		# Force Unicode
-		add_compile_definitions(UNICODE _UNICODE)
-
-		# Add libraries
-		list(APPEND APPLICATION_LIBS ComCtl32.lib Bcrypt.lib)
-
-		# Disables the console
-		if(WIN_NO_CONSOLE)
-
-			add_compile_definitions(ARC_WIN_DISABLE_CONSOLE)
-
-			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:mainCRTStartup")
-			add_executable (${PROJECT_NAME} WIN32 ${APPLICATION_SOURCES})
-
-		else()
-
-			add_executable (${PROJECT_NAME} ${APPLICATION_SOURCES})
-
-		endif()
-
-	else()
-
-		# Create the executable and link
-		add_executable (${PROJECT_NAME} ${APPLICATION_SOURCES})
-
-	endif()
-
-######################
-#### FINALIZATION ####
-######################
-
-	# Link libraries
-	target_link_libraries(${PROJECT_NAME} ${APPLICATION_LIBS})
+    set(AkariOutputPath "${CMAKE_CURRENT_SOURCE_DIR}/Akari/Arclight")
+    add_custom_target(AkariExport)
+
+    foreach (_PackageTarget IN LISTS ArclightPackages)
+        LuminaExportPackage(AkariExport Akari-${_PackageTarget} "${ArclightPackageBase}/${_PackageTarget}" "${AkariOutputPath}/${_PackageTarget}.akari" 1)
+    endforeach ()
+
+    set(AkariTPPackages GLEW)
+    set(ArclightTPPackageBase ${CMAKE_CURRENT_SOURCE_DIR}/Libraries)
+    set(AkariTPOutputPath "${CMAKE_CURRENT_SOURCE_DIR}/Akari/ThirdParty")
+
+    foreach (_PackageTarget IN LISTS AkariTPPackages)
+        LuminaExportPackage(AkariExport Akari-${_PackageTarget} "${ArclightTPPackageBase}/${_PackageTarget}" "${AkariTPOutputPath}/${_PackageTarget}.akari" 1)
+    endforeach ()

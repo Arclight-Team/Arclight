@@ -1,0 +1,20 @@
+{
+
+    "Name": "Arclight.Xml",
+    "Version": "0.1",
+    "Author": "Ed_IT",
+    "Description": "Xml file parser and writer",
+
+    "Resources": [
+        "Include"
+    ],
+
+    "Artifacts": {
+
+        "Shared": {
+            "Includes": "Include"
+        }
+
+    }
+
+}

@@ -1,0 +1,38 @@
+{
+
+    "Name": "Arclight.GLE",
+    "Version": "0.1",
+    "Author": "Arclight-Team",
+    "Description": "OpenGL wrapper and debugging framework",
+
+    "Resources": [
+        "Bin", "Include"
+    ],
+
+    "Artifacts": {
+
+        "Shared": {
+            "Includes": "Include"
+        },
+
+        "x64-Windows-Debug" : {
+
+            "Platform": "x64-Windows",
+            "Linkage": "Static",
+            "Config": "Debug",
+            "Libraries": "Bin/Debug/Arclight.GLE.lib"
+
+        },
+
+        "x64-Windows-Release" : {
+
+            "Platform": "x64-Windows",
+            "Linkage": "Static",
+            "Config": "Release",
+            "Libraries": "Bin/Release/Arclight.GLE.lib"
+
+        }
+
+    }
+
+}

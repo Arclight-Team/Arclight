@@ -1,0 +1,20 @@
+{
+
+    "Name": "Arclight.Noise",
+    "Version": "0.1",
+    "Author": "ItzTacos",
+    "Description": "Procedural noise algorithm integration for Arclight",
+
+    "Resources": [
+        "Include"
+    ],
+
+    "Artifacts": {
+
+        "Shared": {
+            "Includes": "Include"
+        }
+
+    }
+
+}

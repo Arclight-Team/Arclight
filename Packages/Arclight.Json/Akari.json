@@ -1,0 +1,38 @@
+{
+
+    "Name": "Arclight.Json",
+    "Version": "0.1",
+    "Author": "Ed_IT",
+    "Description": "Json file parser and writer",
+
+    "Resources": [
+        "Bin", "Include"
+    ],
+
+    "Artifacts": {
+
+        "Shared": {
+            "Includes": "Include"
+        },
+
+        "x64-Windows-Debug" : {
+
+            "Platform": "x64-Windows",
+            "Linkage": "Static",
+            "Config": "Debug",
+            "Libraries": "Bin/Debug/Arclight.Json.lib"
+
+        },
+
+        "x64-Windows-Release" : {
+
+            "Platform": "x64-Windows",
+            "Linkage": "Static",
+            "Config": "Release",
+            "Libraries": "Bin/Release/Arclight.Json.lib"
+
+        }
+
+    }
+
+}

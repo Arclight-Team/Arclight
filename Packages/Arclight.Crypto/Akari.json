@@ -1,0 +1,20 @@
+{
+
+    "Name": "Arclight.Crypto",
+    "Version": "0.1",
+    "Author": "Arclight-Team",
+    "Description": "Arclight crypto extensions for hashing, encryption and decryption",
+
+    "Resources": [
+        "Include"
+    ],
+
+    "Artifacts": {
+
+        "Shared": {
+            "Includes": "Include"
+        }
+
+    }
+
+}
