@@ -16,7 +16,8 @@ target_include_directories(Arclight.GLE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Inclu
 target_link_libraries(Arclight.GLE PUBLIC Arclight.Core)
 
 LuminaInit(Arclight.GLE ${ArclightLuminaPlatform})
-LuminaAddPackage(Arclight.GLE GLEW Linkage Dynamic)
+LuminaAddPackage(Arclight.GLE GLEW)
+LuminaFinalize(Arclight.GLE)
 
 set_target_properties(Arclight.GLE PROPERTIES
         ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Bin/$<CONFIG>

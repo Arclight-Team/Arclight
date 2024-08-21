@@ -11,7 +11,9 @@
 #include "Meta/Concepts.hpp"
 #include "Meta/TypeTraits.hpp"
 
+#include <array>
 #include <iterator>
+
 
 
 template<SizeT N, CC::Arithmetic T, CC::Arithmetic StepT> requires(N != 0)
@@ -214,6 +216,9 @@ Range(const std::array<T0, N>&, const std::array<T1, N>&, T2) -> Range<N, TT::Co
 
 template<CC::Arithmetic T>
 Range(T) -> Range<1, T, T>;
+
+template<CC::Arithmetic T0, CC::Arithmetic T1>
+Range(T0, T1) -> Range<1, TT::CommonType<T0, T1>, TT::CommonType<T0, T1>>;
 
 template<CC::Arithmetic T0, CC::Arithmetic T1, CC::Arithmetic T2>
 Range(T0, T1, T2) -> Range<1, TT::CommonType<T0, T1>, T2>;

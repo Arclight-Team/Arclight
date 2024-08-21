@@ -190,7 +190,7 @@ constexpr static u32 getOrderRank(FSEntry::Type type) {
 
 
 
-Directory::Directory() : Directory(Path::getApplicationDirectory()) {}
+Directory::Directory() : Directory("") {}
 Directory::Directory(const Path& path) : Directory(FSEntry(path)) {}
 Directory::Directory(FSEntry entry) : entry(std::move(entry)) {}
 

@@ -22,23 +22,6 @@
 
 
 
-Path Path::getApplicationDirectory() {
-
-	try {
-
-		return System::Process::getCurrentExecutablePath().parent();
-
-	} catch (std::exception& e) {
-
-		LogE("Path").print("Failed to query application directory path: %s", e.what());
-		return {};
-
-	}
-
-}
-
-
-
 Path Path::getFolderPath(Folder folder) {
 
 	GUID kfid;

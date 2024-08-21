@@ -245,18 +245,6 @@ const std::filesystem::path& Path::getHandle() const {
 
 
 
-Path Path::getCurrentWorkingDirectory() {
-	return Path(std::filesystem::current_path());
-}
-
-
-
-void Path::setCurrentWorkingDirectory(const Path& path) {
-	std::filesystem::current_path(path.path);
-}
-
-
-
 std::string Path::convertAnnotatedPath(const std::string& annotatedPath) {
 
 	if(annotatedPath.size() >= 2 && annotatedPath[0] != '.' && annotatedPath[1] == '/') {

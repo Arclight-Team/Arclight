@@ -13,7 +13,8 @@
 
         "Windows": {
             "Platform": "x64-Windows",
-            "Includes": "Include/Platform/Windows"
+            "Includes": "Include/Platform/Windows",
+            "Dependencies": "Arclight.Core"
         },
 
         "x64-Windows-Debug" : {

@@ -84,12 +84,6 @@ public:
 	const std::filesystem::path& getHandle() const;
 
 
-	static Path getCurrentWorkingDirectory();
-	static void setCurrentWorkingDirectory(const Path& path);
-
-	static Path getApplicationDirectory();
-
-
 	enum class Folder {
 		Desktop,
 		Documents,

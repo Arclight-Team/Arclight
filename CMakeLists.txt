@@ -115,7 +115,7 @@ project (Arclight)
 # PACKAGE GENERATION #
 ######################
 
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} $ENV{Lumina}/Support/CMake)
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} $ENV{LuminaRoot}/Support/CMake)
     include(Lumina)
 
     set(ArclightLuminaPlatform ${ArclightArch}-${ArclightPlatform})

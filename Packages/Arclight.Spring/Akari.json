@@ -12,7 +12,8 @@
     "Artifacts": {
 
         "Shared": {
-            "Includes": "Include"
+            "Includes": "Include",
+            "Dependencies": ["Arclight.Core", "Arclight.GLE"]
         },
 
         "x64-Windows-Debug" : {

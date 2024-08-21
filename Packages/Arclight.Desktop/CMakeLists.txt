@@ -18,7 +18,8 @@ if (ArclightPlatform STREQUAL Windows)
     target_link_libraries(Arclight.Desktop PUBLIC Arclight.Core)
 
     LuminaInit(Arclight.Desktop ${ArclightLuminaPlatform})
-    LuminaAddPackage(Arclight.Desktop GLEW Linkage Dynamic)
+    LuminaAddPackage(Arclight.Desktop GLEW)
+    LuminaFinalize(Arclight.Desktop)
 
     set_target_properties(Arclight.Desktop PROPERTIES
             ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Bin/$<CONFIG>
