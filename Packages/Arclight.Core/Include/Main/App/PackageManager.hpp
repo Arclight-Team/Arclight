@@ -8,7 +8,7 @@
 
 #pragma once
 
-#if __has_include("Lumina/Lumina.hpp")
+#ifdef LUMINA_APP
 	#include "Lumina/Lumina.hpp"
 #endif
 
@@ -35,9 +35,6 @@ struct Package {
 };
 
 
-using PackageInitializer = std::function<bool()>;
-using PackageVoid = bool;
-
 
 class PackageManager {
 
@@ -62,62 +59,13 @@ public:
 
 	}
 
-	void registerInitializer(const std::string& pkgName, const PackageInitializer& init) {
-		registerOrInvokeInitializers(pkgName, init, false);
-	}
-
-	bool invokeInitializers() {
-		return registerOrInvokeInitializers("", {}, true);
-	}
-
 private:
-
-	static bool registerOrInvokeInitializers(const std::string& pkgName, const PackageInitializer& init, bool invoke) {
-
-		static std::unordered_map<std::string, PackageInitializer> initializers;
-		static bool initialized = false;
-
-		if (initialized) {
-			return true;
-		}
-
-		if (invoke) {
-
-#if __has_include("Lumina/Lumina.hpp")
-
-			for (SizeT i : __LuminaInitOrder) {
-
-				std::string pkgName(Packages[i].name);
-
-				if (initializers.contains(pkgName)) {
-
-					if (!initializers[pkgName]()) {
-						return false;
-					}
-
-				}
-
-			}
-
-#endif
-
-			initialized = true;
-
-		} else {
-
-			initializers.try_emplace(pkgName, init);
-
-		}
-
-		return true;
-
-	}
 
 	constexpr static Package NullPackage;
 
-#if __has_include("Lumina/Lumina.hpp")
+#ifdef LUMINA_APP
 
-	constexpr static SizeT PackageCount = __LuminaPkgNames.size();
+	constexpr static SizeT PackageCount = __Lumina::PkgNames.size();
 
 	constexpr static std::array<Package, PackageCount> Packages = []() {
 
@@ -125,9 +73,9 @@ private:
 
 		for (SizeT i : Range(PackageCount)) {
 
-			packages[i].name = __LuminaPkgNames[i];
-			packages[i].version = __LuminaPkgVersions[i];
-			packages[i].variant = __LuminaPkgVariants[i];
+			packages[i].name = __Lumina::PkgNames[i];
+			packages[i].version = __Lumina::PkgVersions[i];
+			packages[i].variant = __Lumina::PkgVariants[i];
 
 		}
 

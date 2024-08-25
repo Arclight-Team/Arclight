@@ -23,7 +23,6 @@ namespace Application {
 
 	}
 
-
 	constexpr std::string_view getName() {
 
 	#ifdef ARCLIGHT_APP_NAME
@@ -101,8 +100,8 @@ namespace Application {
 		Private::appConfig.set<T>(name, value);
 	}
 
-	bool init();
-	PackageVoid registerPackageInitializer(const std::string& packageName, const PackageInitializer& initializer);
+	bool initialize();
+	void finalize();
 
 	Path getExecutablePath();
 	Path getExecutableDirectory();

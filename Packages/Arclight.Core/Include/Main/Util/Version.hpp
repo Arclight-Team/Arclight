@@ -1,7 +1,7 @@
 /*
  *	 Copyright (c) 2023 - Arclight Team
  *
- *	 This file is part of Lumina. All rights reserved.
+ *	 This file is part of Arclight. All rights reserved.
  *
  *	 Version.hpp
  */

@@ -11,22 +11,13 @@
 
 
 
-bool Application::init() {
-
-	try {
-		return Private::pkgManager.invokeInitializers();
-	} catch (...) {}
-
-	return false;
-
+bool Application::initialize() {
+	return true;
 }
 
 
 
-PackageVoid Application::registerPackageInitializer(const std::string& packageName, const PackageInitializer& initializer) {
-
-	Private::pkgManager.registerInitializer(packageName, initializer);
-	return PackageVoid();
+void Application::finalize() {
 
 }
 
