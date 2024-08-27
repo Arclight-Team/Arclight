@@ -1,4 +1,4 @@
-<img src="Assets/Logo.png" height="140" align="left" style="border: 10px solid transparent;" alt="Arclight Logo">
+<img src="Assets/logo.png" height="140" align="left" style="border: 10px solid transparent;" alt="Arclight Logo">
 <h1>Arclight<br><sub>High-performance modern C++ ecosystem</sub><br><br></h1>
 
 [![GitHub Stars](https://badgen.net/github/stars/Arclight-Team/Arclight)](https://github.com/Arclight-Team/Arclight/stargazers/)
