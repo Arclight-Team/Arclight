@@ -1,14 +1,19 @@
-<img src="Assets/logo.png" height="150" align="right">
+<img src="Assets/Logo.png" height="140" align="left" style="border: 10px solid transparent;" alt="Arclight Logo">
+<h1>Arclight<br><sub>High-performance modern C++ ecosystem</sub><br><br></h1>
 
-# Arclight - High-performance C++23 ecosystem
-
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/424f1b0554d8435e90b66ee8bcca0c36)](https://www.codacy.com/gh/Arclight-Team/Arclight/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Arclight-Team/Arclight&amp;utm_campaign=Badge_Grade)
 [![GitHub Stars](https://badgen.net/github/stars/Arclight-Team/Arclight)](https://github.com/Arclight-Team/Arclight/stargazers/)
-![Version](https://img.shields.io/badge/version-unreleased-yellow)
-![Standard](https://img.shields.io/badge/C%2B%2B-23-blueviolet)
-![License](https://img.shields.io/badge/license-none-red)
+[![Version](https://badgen.net/static/version/unreleased/yellow)]()
+[![Standard](https://badgen.net/static/c++%20standard/23/purple)]()
+[![License](https://badgen.net/github/license/Arclight-Team/Arclight)]()
+
+> [!IMPORTANT]
+> Arclight is under heavy development right now.
+> Due to that, interfaces might drastically change and most of the code is yet to be documented.
+> This will change with the first full stable release of the ecosystem.
+> Information provided in this README may be outdated; it is going to get updated in the near future.
 
 ## General
+
 Arclight is an ecosystem intended to help developers in creating new C++ projects quickly without having to setup a common codebase everytime.
 It offers a wide range of features, ranging from basic utilities over image manipulation up to 3D rendering.
 
@@ -22,10 +27,8 @@ Everything was written to be as clear as possible without requiring too much pri
 
 Because development has never been that simple. We aim at maximum flexibility, user experience and performance so that you can get exactly what you want.
 
-*Note that Arclight is under heavy development right now.* Interfaces might drastically change on active branches.
-Due to that, most of the code is yet to be documented in the near future. If you need stability and consistency, we recommend waiting until the first full release.
-
 ## Features
+
 The following features have been fully implemented:
 - Full window support (including Cursor + opt. Animations)
 - OpenGL 3D rendering backend GLE
@@ -72,6 +75,7 @@ Planned features:
 - Video streaming
 
 ## Dependencies
+
 Due to our handcrafted implementations optimized for performance, there is barely any need for external libraries.
 Those that are necessary include:
 - GLFW for Window/Input and the render context
@@ -83,6 +87,7 @@ Only those libraries used by a module being built are required to build an appli
 All other dependencies appearing in `CMakeLists.txt` are temporary and will be removed with the first release of Arclight.
 
 ## Building
+
 Arclight is using CMake to build all of its modules. The preliminary buildsystem requires one extra file named `arclight.modules` residing in the Arclight root directory, containing the list of modules to be built. Note that some modules need to be built together.
 
 ```
@@ -94,15 +99,18 @@ arclight.window
 Libraries go into `lib/LibraryName/`. Then, simply invoke CMake to build all of the requested modules.
 
 ## Release
+
 The first release is expected to be in 2023. Until then, there will be a consistent, intuitive and well-tested API, examples for different use cases and removal of unused dependencies.
 We also plan an easy-to-use build system through Arclight Studio, a tool to manage different aspects of application development with Arclight and C++.
 With the first release the license will be revealed as well.
 
 ## Support
+
 If you want to support this project, feel free to donate as soon as donation is set up.
 If you consider joining our team, contact us through arcayn.arclight@gmail.com.
 
 ## Credits
+
 - [Arcayn](https://github.com/Arcaynx) for the project's management
 - [Ed_IT](https://github.com/Ed-1T) for the help as the second head developer
 - [ItzTacos](https://github.com/ItzTacosOfficial) for the logo, testing the code and several additions / fixes
