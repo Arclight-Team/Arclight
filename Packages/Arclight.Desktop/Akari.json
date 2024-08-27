@@ -11,9 +11,10 @@
 
     "Artifacts": {
 
-        "Shared": {
-            "Includes": "Include",
-            "Dependencies": ["Arclight.Core", "GLEW"]
+        "Windows": {
+            "Platform": "x64-Windows",
+            "Includes": "Include/Platform/Windows",
+            "Dependencies": "Arclight.Core"
         },
 
         "x64-Windows-Debug" : {

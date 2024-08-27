@@ -58,9 +58,10 @@ public:
 	Window(Window&& window) noexcept;
 	Window& operator=(Window&& window) noexcept;
 
-	bool create(u32 viewportWidth, u32 viewportHeight, const std::string& title, WindowClass& wndClass);
-	bool createFullscreen(const std::string& title, WindowClass& wndClass);
-	bool createFullscreen(Monitor& monitor, const std::string& title, WindowClass& wndClass);
+	bool create(u32 viewportWidth, u32 viewportHeight, const std::string& title);
+	bool createFullscreen(const std::string& title);
+	bool createFullscreen(Monitor& monitor, const std::string& title);
+
 	void close();
 
 	void setWindowed();
@@ -149,6 +150,9 @@ public:
 	void setDropFunction(const DropFunction& function);
 	void resetWindowFunctions();
 
+	void setWin32WindowClass(std::shared_ptr<class WindowClass> wc);
+	std::string getWin32WindowClassName() const;
+
 	std::weak_ptr<WindowHandle> getInternalHandle() const;
 
 private:
@@ -156,6 +160,8 @@ private:
 	void setWindowPointer();
 
 	std::shared_ptr<WindowHandle> handle;
+	std::shared_ptr<WindowClass> windowClass;
+
 	RenderCursor cursor;
 
 };

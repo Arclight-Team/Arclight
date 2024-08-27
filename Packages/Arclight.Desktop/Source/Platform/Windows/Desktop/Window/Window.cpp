@@ -9,7 +9,6 @@
 #include "Desktop/Window/Window.hpp"
 #include "Desktop/Window/WindowHandle.hpp"
 #include "Desktop/Window/WindowClass.hpp"
-#include "Desktop/Window/WindowClassHandle.hpp"
 #include "Desktop/Monitor/Monitor.hpp"
 #include "Image/Image.hpp"
 #include "Common/Assert.hpp"
@@ -102,7 +101,7 @@ static HICON createIcon(const Image<Pixel::RGBA8>& image, int xhot, int yhot, bo
 
 
 
-Window::Window() : handle(nullptr), cursor(handle) {}
+Window::Window() : handle(nullptr), windowClass(WindowClass::getDefaultWindowClass()), cursor(handle) {}
 
 Window::~Window() {
 
@@ -127,11 +126,13 @@ Window& Window::operator=(Window&& window) noexcept {
 
 }
 
-bool Window::create(u32 viewportWidth, u32 viewportHeight, const std::string& title, WindowClass& wndClass) {
+bool Window::create(u32 viewportWidth, u32 viewportHeight, const std::string& title) {
 
 	if (isOpen()) {
+
 		LogW("Window") << "Cannot open window that is already open";
 		return true;
+
 	}
 
 	HMODULE hinst = GetModuleHandleW(nullptr);
@@ -144,9 +145,11 @@ bool Window::create(u32 viewportWidth, u32 viewportHeight, const std::string& ti
 	RECT rect = { 0, 0, static_cast<LONG>(viewportWidth), static_cast<LONG>(viewportHeight) };
 	AdjustWindowRectEx(&rect, style, false, exStyle);
 
+	std::wstring windowClassName = System::String::toUTF16(getWin32WindowClassName());
+
 	HWND hwnd = CreateWindowExW(
 		exStyle,
-		wndClass.getInternalHandle().getWName().c_str(),
+		windowClassName.c_str(),
 		wtitle.c_str(),
 		style,
 		CW_USEDEFAULT, CW_USEDEFAULT,
@@ -168,7 +171,7 @@ bool Window::create(u32 viewportWidth, u32 viewportHeight, const std::string& ti
 	return true;
 }
 
-bool Window::createFullscreen(const std::string& title, WindowClass& wndClass) {
+bool Window::createFullscreen(const std::string& title) {
 
 	Monitor monitor;
 
@@ -176,15 +179,15 @@ bool Window::createFullscreen(const std::string& title, WindowClass& wndClass) {
 		return false;
 	}
 
-	return createFullscreen(monitor, title, wndClass);
+	return createFullscreen(monitor, title);
 
 }
 
-bool Window::createFullscreen(Monitor& monitor, const std::string& title, WindowClass& wndClass) {
+bool Window::createFullscreen(Monitor& monitor, const std::string& title) {
 
 	Vec2ui monitorSize = monitor.getSize();
 
-	if (!create(monitorSize.x, monitorSize.y, title, wndClass)) {
+	if (!create(monitorSize.x, monitorSize.y, title)) {
 		return false;
 	}
 
@@ -464,6 +467,7 @@ bool Window::setDarkMode(bool enabled) {
 	arc_assert(isOpen(), "Tried to set window dark mode on non-existing window");
 
 	BOOL darkMode = enabled;
+
 	return DwmSetWindowAttribute(handle->hwnd, DwmDarkMode, &darkMode, sizeof(darkMode)) ||
 		   DwmSetWindowAttribute(handle->hwnd, DwmDarkModePre20H1, &darkMode, sizeof(darkMode));
 
@@ -858,6 +862,14 @@ void Window::resetWindowFunctions() {
 	setStateChangeFunction(nullptr);
 	setDropFunction(nullptr);
 
+}
+
+void Window::setWin32WindowClass(std::shared_ptr<class WindowClass> wc) {
+	windowClass = std::move(wc);
+}
+
+std::string Window::getWin32WindowClassName() const {
+	return windowClass ? windowClass->getName() : "";
 }
 
 std::weak_ptr<WindowHandle> Window::getInternalHandle() const {

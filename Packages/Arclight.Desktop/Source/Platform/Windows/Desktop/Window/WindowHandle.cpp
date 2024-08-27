@@ -38,7 +38,7 @@ WindowHandle::WindowHandle(HWND hwnd, const Vec2ui& viewportSize) {
 
 }
 
-LRESULT CALLBACK WindowHandle::wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK WindowHandle::onWindowUpdate(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
 	if (uMsg == WM_NCCREATE) {
 
@@ -250,7 +250,6 @@ std::optional<LRESULT> WindowHandle::defaultWindowMessageHandler(Window& window,
 		}
 
 		case WM_DESTROY: {
-			// DO NOTHING FOR NOW
 			return 0;
 		}
 

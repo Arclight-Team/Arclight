@@ -11,8 +11,6 @@
 #include "Desktop/Window/WindowHandle.hpp"
 #include "Common/Assert.hpp"
 
-#include <GL/glew.h>
-
 
 #define WGL_TRANSPARENT_ARB 0x200A
 #define WGL_CONTEXT_MAJOR_VERSION_ARB 0x2091
@@ -102,13 +100,6 @@ bool WindowRendererGL::create(Window& window) {
 	wglMakeCurrent(nullptr, nullptr);
 	wglDeleteContext(tempRC);
 	wglMakeCurrent(hdc, hglrc);
-
-	if (glewInit() != GLEW_OK) {
-		LogE("WindowRendererGL") << "OpenGL initialization failed";
-		return false;
-	}
-
-	LogI("WindowRendererGL") << "Loaded OpenGL " << reinterpret_cast<const char*>(glGetString(GL_VERSION));
 
 	handle = std::make_unique<WindowRendererGLHandle>();
 	handle->hdc = hdc;

@@ -33,9 +33,9 @@ public:
 
 	static std::optional<LRESULT> defaultWindowMessageHandler(Window& window, HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-private:
+	static LRESULT CALLBACK onWindowUpdate(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-	static LRESULT CALLBACK wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+private:
 
 	struct Fullscreen {
 
@@ -49,7 +49,6 @@ private:
 	};
 
 	friend class Window;
-	friend class WindowClass;
 
 	HWND hwnd;
 	Vec2ui viewportSize;
